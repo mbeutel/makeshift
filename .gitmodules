@@ -1,4 +1,4 @@
 [submodule "CMakeshift"]
-	path = CMakeshift
+	path = cmake/CMakeshift
 	url = git@gitlab.com:mbeutel/CMakeshift.git
 	branch = rejuvenated
