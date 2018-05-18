@@ -18,7 +18,7 @@
 namespace makeshift
 {
 
-inline namespace types
+inline namespace pointers
 {
 
 
@@ -169,7 +169,7 @@ template <typename PtrT>
 }
 
 
-} // inline namespace types
+} // inline namespace pointers
 
 namespace detail
 {
@@ -193,7 +193,7 @@ template <typename T>
 
 } // namespace detail
 
-inline namespace types
+inline namespace pointers
 {
 
 
@@ -221,7 +221,7 @@ template <typename T, typename SC = void>
     using arg = typename decltype(default_pointer(std::declval<typename makeshift::detail::substitute_class_<T, SC>::type*>()))::arg;
 
 
-} // inline namespace types
+} // inline namespace pointers
 
 namespace detail
 {
@@ -237,25 +237,25 @@ template <typename DstT, typename SrcT> using CanStaticCast_ = CanApply_<CanStat
 template <typename DstT, typename SrcT>
     constexpr decltype(auto) polymorphic_pointer_cast_impl(std::true_type /*canStaticCast*/, SrcT&& src) noexcept
 {
-    using namespace makeshift::types;
+    using namespace makeshift::pointers;
     return static_pointer_cast<DstT>(std::forward<SrcT>(src));
 }
 template <typename DstT, typename SrcT>
     decltype(auto) polymorphic_pointer_cast_impl(std::false_type /*canStaticCast*/, SrcT&& src)
 {
-    using namespace makeshift::types;
+    using namespace makeshift::pointers;
     return dynamic_pointer_cast<DstT>(std::forward<SrcT>(src));
 }
 template <typename DstT, typename SrcT>
     constexpr decltype(auto) polymorphic_ref_cast_impl(std::true_type /*canStaticCast*/, SrcT&& src) noexcept
 {
-    using namespace makeshift::types;
+    using namespace makeshift::pointers;
     return static_pointer_cast<DstT>(std::forward<SrcT>(src));
 }
 template <typename DstT, typename SrcT>
     decltype(auto) polymorphic_ref_cast_impl(std::false_type /*canStaticCast*/, SrcT&& src)
 {
-    using namespace makeshift::types;
+    using namespace makeshift::pointers;
     return dynamic_pointer_cast<DstT>(std::forward<SrcT>(src));
 }
 
@@ -324,7 +324,7 @@ template <typename T, typename SC>
 
 } // namespace detail
 
-inline namespace types
+inline namespace pointers
 {
 
     // A polymorphic cast is a downcast that can be statically guaranteed to succeed.
@@ -383,8 +383,7 @@ template <typename T, typename SC = void>
 /// - typeof<>, obj<>, val<>, ref<>, ptr<>, arg<>
 
 
-} // inline namespace types
-
+} // inline namespace pointers
 
 } // namespace makeshift
 
