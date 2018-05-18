@@ -3,6 +3,9 @@
 # Distributed under the BSD 3-Clause License. See accompanying file licensing.txt for details.
 
 
+## 1. Prologue and public interface
+## ================================
+
 cmake_minimum_required(VERSION 3.8)
 
 # Disable in-source builds to avoid cluttering the source directory.
@@ -19,11 +22,6 @@ endif()
 
 include(cmake/CMakeshift/DefaultFlags.cmake)
 include(cmake/CMakeshift/Makeshift.cmake)
-#include(cmake/AddCatchTests.cmake)
-
-# TODO public header files
-#set(RELATIVE_INCLUDE_DIR "include/")
-#set(RELATIVE_INCLUDE_SUBDIR "makeshift/")
 
 # Define the project.
 makeshift_parse_semantic_version(makeshift_VERSION MAKESHIFT "include/makeshift/version.hpp")
@@ -36,33 +34,26 @@ set(INTERFACE_FIND_MODULE_PATH
     "${PROJECT_SOURCE_DIR}/cmake/CMakeshift/modules")
 set(INTERFACE_FIND_MODULES GSL)
 
-# TODO Install directories.
-#set(INCLUDE_INSTALL_DIR "include/")
-#set(LIB_INSTALL_DIR "lib/")
-#set(SYSCONFIG_INSTALL_DIR "etc/${PROJECT_NAME}/")
-#set(MY_DOCS_INSTALL_DIR "share/doc/${PROJECT_NAME}" CACHE STRING "docs install path relative to CMAKE_INSTALL_PREFIX")
-#set(MY_INSTALL_DESTINATION "${LIB_INSTALL_DIR}cmake/${PROJECT_NAME}")
-
 # Define build options.
 option(BUILD_TESTS "Build tests" OFF)
 #option(BUILD_DOCUMENTATION "Build documentation (HTML)" OFF)
 option(EXPORT_BUILD_DIR "Export build directory using CMake (enables external use without install)" OFF)
 
 
-# ---
-
+## 2. Targets
+## ==========
 
 # Make CMake aware of the cmake folder for local FindXXX scripts.
 list(APPEND CMAKE_MODULE_PATH ${INTERFACE_FIND_MODULE_PATH})
 
 # project targets
 add_subdirectory(src)
-#add_subdirectory(src/sys)
 
 # tests
 if(BUILD_TESTS)
     enable_testing()
-    add_subdirectory(tests)
+    add_subdirectory(test)
+    #TODO: have include(cmake/CMakeshift/AddCatchTests.cmake) in tests script
 endif()
 
 # documentation (with Sphinx)
@@ -76,12 +67,15 @@ endif()
 #    endif(SPHINX_FOUND)
 #endif(BUILD_DOCUMENTATION)
 
+
+## 3. Installation
+## ===============
+
 # Generate package version file.
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file("${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
     VERSION ${PROJECT_VERSION}
     COMPATIBILITY SameMajorVersion)
-
 
 # Install method #1: Put library in CMAKE_INSTALL_PREFIX, i.e. /usr/local or equivalent.
 
@@ -101,12 +95,6 @@ install(EXPORT ${PROJECT_NAME}Export
     DESTINATION "${RELATIVE_CONFIG_INSTALL_DIR}"
     NAMESPACE "${PROJECT_NAME}::"
     FILE ${PROJECT_NAME}Targets.cmake)
-
-# Save the relative path from the installed *Config.cmake file to the install prefix.  We do not save an
-# absolute path in case the installed package is subsequently relocated after installation (on Windows).
-#file(RELATIVE_PATH INSTALL_ROOT_REL_CONFIG_INSTALL_DIR
-#    "${CMAKE_INSTALL_PREFIX}/${RELATIVE_CMAKECONFIG_INSTALL_DIR}"
-#    "${CMAKE_INSTALL_PREFIX}/${SXS_INSTALL_PREFIX}")
 
 # Configure a *Config.cmake file for an installed version of the package from the template, reflecting the
 # current build options.
@@ -134,11 +122,6 @@ makeshift_install_find_modules(
 
 if(EXPORT_BUILD_DIR AND NOT CMAKE_EXPORT_NO_PACKAGE_REGISTRY)
     message("-- Exporting ${PROJECT_NAME} build directory to local CMake package registry.")
-    
-    # Save the relative path from the build directory to the source directory.
-    #file(RELATIVE_PATH INSTALL_ROOT_REL_CONFIG_INSTALL_DIR
-    #    "${PROJECT_BINARY_DIR}"
-    #    "${PROJECT_SOURCE_DIR}")
     
     # Analogously to install(EXPORT ...), export the targets from the build directory as a package into the
     # local CMake package registry.
