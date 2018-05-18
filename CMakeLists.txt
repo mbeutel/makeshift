@@ -11,14 +11,15 @@ cmake_minimum_required(VERSION 3.8)
 set(CMAKE_DISABLE_SOURCE_CHANGES ON)
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 
+# Set default build configuration.
+if(NOT CMAKE_BUILD_TYPE)
+    message("-- No build type specified; defaulting to CMAKE_BUILD_TYPE=Release.")
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
+endif()
+
 include(cmake/CMakeshift/DefaultFlags.cmake)
 include(cmake/CMakeshift/Makeshift.cmake)
 #include(cmake/AddCatchTests.cmake)
-
-# Define a list of find modules required in the public interface.
-set(INTERFACE_FIND_MODULE_PATH
-    "${PROJECT_SOURCE_DIR}/cmake/CMakeshift/modules")
-set(INTERFACE_FIND_MODULES GSL)
 
 # TODO public header files
 #set(RELATIVE_INCLUDE_DIR "include/")
@@ -30,8 +31,10 @@ project(makeshift
     VERSION ${makeshift_VERSION}
     LANGUAGES CXX)
 
-# Make CMake aware of the cmake folder for local FindXXX scripts.
-list(APPEND CMAKE_MODULE_PATH ${INTERFACE_FIND_MODULE_PATH})
+# Define a list of find modules required in the public interface.
+set(INTERFACE_FIND_MODULE_PATH
+    "${PROJECT_SOURCE_DIR}/cmake/CMakeshift/modules")
+set(INTERFACE_FIND_MODULES GSL)
 
 # TODO Install directories.
 #set(INCLUDE_INSTALL_DIR "include/")
@@ -45,11 +48,12 @@ option(BUILD_TESTS "Build tests" OFF)
 #option(BUILD_DOCUMENTATION "Build documentation (HTML)" OFF)
 option(EXPORT_BUILD_DIR "Export build directory using CMake (enables external use without install)" OFF)
 
-# Set default build configuration.
-if(NOT CMAKE_BUILD_TYPE)
-    message("-- No build type specified; defaulting to CMAKE_BUILD_TYPE=Release.")
-    set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
-endif()
+
+# ---
+
+
+# Make CMake aware of the cmake folder for local FindXXX scripts.
+list(APPEND CMAKE_MODULE_PATH ${INTERFACE_FIND_MODULE_PATH})
 
 # project targets
 add_subdirectory(src)
