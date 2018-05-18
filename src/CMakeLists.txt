@@ -5,6 +5,9 @@
 
 cmake_minimum_required(VERSION 3.8)
 
+# find dependencies
+find_package(GSL REQUIRED)
+
 # library target
 add_library(makeshift INTERFACE)
 
@@ -14,8 +17,14 @@ target_include_directories(makeshift
         "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
         "$<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/include>")
 
+# library dependencies
+target_link_libraries(makeshift
+    INTERFACE
+        GSL::GSL)
+
 install(TARGETS makeshift
     EXPORT ${PROJECT_NAME}Export
     #ARCHIVE DESTINATION "lib${MAKESHIFT_LIB_SUFFIX}"
     #LIBRARY DESTINATION "lib${MAKESHIFT_LIB_SUFFIX}"
     INCLUDES DESTINATION "include")
+

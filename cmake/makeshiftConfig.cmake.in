@@ -19,5 +19,5 @@ find_dependency(GSL REQUIRED)
 set(CMAKE_MODULE_PATH "${@PROJECT_NAME@_ORIGINAL_CMAKE_MODULE_PATH}")
 
 # Import targets.
-include("${(@PROJECT_NAME@_CURRENT_CONFIG_DIR}/@PROJECT_NAME@Targets.cmake")
+include("${@PROJECT_NAME@_CURRENT_CONFIG_DIR}/@PROJECT_NAME@Targets.cmake")
 
