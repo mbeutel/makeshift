@@ -51,11 +51,11 @@ template <typename DstT, typename SrcT>
 {
     return dynamic_cast<DstT*>(object);
 }
-template <typename DstT, typename SrcT>
+/*template <typename DstT, typename SrcT>
     constexpr DstT* reinterpret_pointer_cast(SrcT* object) noexcept
 {
     return reinterpret_cast<DstT*>(object);
-}
+}*/
 template <typename DstT, typename SrcT>
     constexpr raw_ref<DstT> const_ref_cast(raw_ref<SrcT> object) noexcept
 {
@@ -78,11 +78,11 @@ template <typename DstT, typename SrcT>
 {
     return raw_ref<DstT>(&dynamic_cast<DstT&>(*object));
 }
-template <typename DstT, typename SrcT>
+/*template <typename DstT, typename SrcT>
     constexpr raw_ref<DstT> reinterpret_ref_cast(raw_ref<SrcT> object) noexcept
 {
     return raw_ref<DstT>(reinterpret_cast<DstT*>(object.get()));
-}
+}*/
 
 
     // pointer aliases for smart pointers
@@ -102,7 +102,7 @@ template <typename T>
 using std::dynamic_pointer_cast;
 using std::static_pointer_cast;
 using std::const_pointer_cast;
-using std::reinterpret_pointer_cast;
+//using std::reinterpret_pointer_cast;
 template <typename DstT, typename SrcT>
     constexpr shared_ref<DstT> const_ref_cast(const shared_ref<SrcT>& object) noexcept
 {
@@ -128,11 +128,11 @@ template <typename DstT, typename SrcT>
         throw std::bad_cast();
     return shared_ref<DstT>(std::move(intermediate));
 }
-template <typename DstT, typename SrcT>
+/*template <typename DstT, typename SrcT>
     constexpr shared_ref<DstT> reinterpret_ref_cast(const shared_ref<SrcT>& object) noexcept
 {
     return shared_ref<DstT>(reinterpret_pointer_cast<DstT>(object.get()));
-}
+}*/
 
 
     // traits type to extract information from arbitrary pointer-like types
@@ -158,14 +158,14 @@ template <typename T>
 
     // extract raw pointer from smart pointer
 template <typename PtrT>
-    typename pointer_traits<std::decay_t<PtrT>::pointer raw(PtrT&& ptr)
+    typename pointer_traits<std::decay_t<PtrT>>::pointer raw(PtrT&& ptr)
 {
     return ptr.get();
 }
 template <typename PtrT>
-    raw_ref<typename pointer_traits<std::decay_t<PtrT>::element_type> raw(not_null<PtrT>&& ptr)
+    raw_ref<typename pointer_traits<std::decay_t<PtrT>>::element_type> raw(not_null<PtrT>&& ptr)
 {
-    return raw_ref<typename pointer_traits<std::decay_t<PtrT>::element_type>(ptr.get().get());
+    return raw_ref<typename pointer_traits<std::decay_t<PtrT>>::element_type>(ptr.get().get());
 }
 
 
@@ -178,7 +178,7 @@ namespace detail
 template <typename T, typename SC>
     struct substitute_class_;
 template <typename T>
-    struct substitute_class_<T, void> : std::bool_constant<std::is_final_v<T>>
+    struct substitute_class_<T, void> : std::integral_constant<bool, std::is_final<T>::value>
 {
     using type = T;
 };
@@ -202,7 +202,7 @@ template <typename PtrT, typename ArgT = PtrT>
 {
     using ptr = PtrT;
     using arg = ArgT;
-}
+};
 
 
 
