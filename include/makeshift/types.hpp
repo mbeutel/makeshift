@@ -52,6 +52,7 @@ template <typename T>
     using type = T;
 };
 
+} // inline namespace types
 
 
 namespace detail
@@ -108,6 +109,10 @@ constexpr inline key_crc operator /(key_name lhs, key_name rhs) noexcept
 } // namespace detail
 
 
+inline namespace types
+{
+
+
     // Named object wrapper.
     // Use with the ""_kn literal defined below:
     //
@@ -139,6 +144,8 @@ template <typename T, makeshift::detail::key_crc KeyCRC>
     }
 };
 
+} // inline namespace types
+
 namespace detail
 {
 
@@ -156,6 +163,9 @@ template <key_crc KeyCRC>
 };
 
 } // namespace detail
+
+inline namespace types
+{
 
 template <makeshift::detail::key_crc KeyCRC>
     constexpr inline makeshift::detail::key<KeyCRC> name { };
@@ -175,3 +185,4 @@ constexpr inline makeshift::detail::key_name operator ""_kn(const char* data, st
 } // namespace makeshift
 
 #endif // MAKESHIFT_TYPES_HPP_
+
