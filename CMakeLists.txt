@@ -11,80 +11,141 @@ cmake_minimum_required(VERSION 3.8)
 set(CMAKE_DISABLE_SOURCE_CHANGES ON)
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 
-include(cmake/DefaultFlags.cmake)
-include(cmake/Makeshift.cmake)
+include(cmake/CMakeshift/DefaultFlags.cmake)
+include(cmake/CMakeshift/Makeshift.cmake)
 #include(cmake/AddCatchTests.cmake)
 
-# public header files
-set(RELATIVE_INCLUDE_DIR "include/")
-set(RELATIVE_INCLUDE_SUBDIR "makeshift/")
+# Define a list of find modules required in the public interface.
+set(INTERFACE_FIND_MODULE_PATH
+    "${PROJECT_SOURCE_DIR}/cmake/CMakeshift/modules")
+set(INTERFACE_FIND_MODULES GSL)
 
-# project
-# if possible, parse the library version from a header file
-makeshift_parse_semantic_version(makeshift_VERSION MAKESHIFT "${RELATIVE_INCLUDE_DIR}${RELATIVE_INCLUDE_SUBDIR}version.hpp")
+# TODO public header files
+#set(RELATIVE_INCLUDE_DIR "include/")
+#set(RELATIVE_INCLUDE_SUBDIR "makeshift/")
+
+# Define the project.
+makeshift_parse_semantic_version(makeshift_VERSION MAKESHIFT "include/makeshift/version.hpp")
 project(makeshift
     VERSION ${makeshift_VERSION}
     LANGUAGES CXX)
 
 # Make CMake aware of the cmake folder for local FindXXX scripts.
-list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules")
+list(APPEND CMAKE_MODULE_PATH ${INTERFACE_FIND_MODULE_PATH})
 
-# install directories
+# TODO Install directories.
 #set(INCLUDE_INSTALL_DIR "include/")
 #set(LIB_INSTALL_DIR "lib/")
 #set(SYSCONFIG_INSTALL_DIR "etc/${PROJECT_NAME}/")
-set(MY_DOCS_INSTALL_DIR "share/doc/${PROJECT_NAME}" CACHE STRING "docs install path relative to CMAKE_INSTALL_PREFIX")
+#set(MY_DOCS_INSTALL_DIR "share/doc/${PROJECT_NAME}" CACHE STRING "docs install path relative to CMAKE_INSTALL_PREFIX")
 #set(MY_INSTALL_DESTINATION "${LIB_INSTALL_DIR}cmake/${PROJECT_NAME}")
 
-# options
-# NOTE: these options are named conventionally; they are checked by some helper functions in PackageHelpers.cmake
+# Define build options.
 option(BUILD_TESTS "Build tests" OFF)
-option(BUILD_DOCUMENTATION "Build documentation (HTML)" OFF)
+#option(BUILD_DOCUMENTATION "Build documentation (HTML)" OFF)
 option(EXPORT_BUILD_DIR "Export build directory using CMake (enables external use without install)" OFF)
 
-# default build configuration
+# Set default build configuration.
 if(NOT CMAKE_BUILD_TYPE)
-    message("-- No build type specified; defaulting to CMAKE_BUILD_TYPE=RelWithDebInfo.")
-    set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
+    message("-- No build type specified; defaulting to CMAKE_BUILD_TYPE=Release.")
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
 endif()
 
-# targets
-#add_subdirectory(src/base)
+# project targets
+add_subdirectory(src)
 #add_subdirectory(src/sys)
 
 # tests
 if(BUILD_TESTS)
     enable_testing()
-    add_subdirectory(src/tests)
+    add_subdirectory(tests)
 endif()
 
 # documentation (with Sphinx)
-if(BUILD_DOCUMENTATION)
-    find_package(Sphinx QUIET)
-    if(SPHINX_FOUND)
-        add_subdirectory(doc)
-    else(SPHINX_FOUND)
-        message("WARNING: Could not find Sphinx, not building documentation.")
-        makeshift_update_cache_variable(BUILD_DOCUMENTATION OFF)
-    endif(SPHINX_FOUND)
-endif(BUILD_DOCUMENTATION)
+#if(BUILD_DOCUMENTATION)
+#    find_package(Sphinx QUIET)
+#    if(SPHINX_FOUND)
+#        add_subdirectory(doc)
+#    else(SPHINX_FOUND)
+#        message("WARNING: Could not find Sphinx, not building documentation.")
+#        makeshift_update_cache_variable(BUILD_DOCUMENTATION OFF)
+#    endif(SPHINX_FOUND)
+#endif(BUILD_DOCUMENTATION)
 
-# generate version file
+# Generate package version file.
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file("${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
     VERSION ${PROJECT_VERSION}
     COMPATIBILITY SameMajorVersion)
 
-# installation of public headers
-makeshift_install(
-    DIRECTORY "${RELATIVE_INCLUDE_DIR}"
-    DESTINATION "${RELATIVE_INCLUDE_DIR}")
 
 # Install method #1: Put library in CMAKE_INSTALL_PREFIX, i.e. /usr/local or equivalent.
-makeshift_install_package()
 
-# Install method #2: Put package build directory into local CMake registry. This allows the detection
-# and use of the package without requiring that it be installed.
-if(EXPORT_BUILD_DIR)
-    makeshift_export_build_dir()
-endif(EXPORT_BUILD_DIR)
+# Install public header files.
+install(
+    DIRECTORY "include/"
+    DESTINATION "include/")
+
+# Determine the install path for the *Config.cmake configuration file relative to CMAKE_INSTALL_PREFIX.
+makeshift_get_relative_config_install_dir(RELATIVE_CONFIG_INSTALL_DIR)
+
+# This "exports" for installation all targets which have been put into the export set "*Export". This generates
+# a *Targets.cmake file which, when read in by a client project as part of find_package(*), creates imported
+# library targets for the project (with dependency relations) which can be used in target_link_libraries()
+# calls in the client project.
+install(EXPORT ${PROJECT_NAME}Export
+    DESTINATION "${RELATIVE_CONFIG_INSTALL_DIR}"
+    NAMESPACE "${PROJECT_NAME}::"
+    FILE ${PROJECT_NAME}Targets.cmake)
+
+# Save the relative path from the installed *Config.cmake file to the install prefix.  We do not save an
+# absolute path in case the installed package is subsequently relocated after installation (on Windows).
+#file(RELATIVE_PATH INSTALL_ROOT_REL_CONFIG_INSTALL_DIR
+#    "${CMAKE_INSTALL_PREFIX}/${RELATIVE_CMAKECONFIG_INSTALL_DIR}"
+#    "${CMAKE_INSTALL_PREFIX}/${SXS_INSTALL_PREFIX}")
+
+# Configure a *Config.cmake file for an installed version of the package from the template, reflecting the
+# current build options.
+# The "-install" suffix is necessary to distinguish the install version from the exported version, which must
+# be named *Config.cmake in PROJECT_BINARY_DIR to be detected. The suffix is removed when it is installed.
+set(SETUP_PACKAGE_CONFIG_FOR_INSTALLATION TRUE)
+configure_file("cmake/${PROJECT_NAME}Config.cmake.in"
+    "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config-install.cmake" @ONLY)
+
+# Install the configuration files into the same directory as the autogenerated *Targets.cmake file.
+install(
+    FILES "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config-install.cmake"
+    RENAME "${PROJECT_NAME}Config.cmake"
+    DESTINATION "${RELATIVE_CONFIG_INSTALL_DIR}")
+
+# Install the find modules for our public/interfaces dependencies which do not define a config module.
+makeshift_install_find_modules(
+    FIND_MODULE_PATH ${INTERFACE_FIND_MODULE_PATH}
+    FIND_MODULES ${INTERFACE_FIND_MODULES}
+    DESTINATION "${RELATIVE_CONFIG_INSTALL_DIR}")
+
+
+# Install method #2: Put package build directory into local CMake registry. This allows the detection and use
+# of the package without requiring that it be installed.
+
+if(EXPORT_BUILD_DIR AND NOT CMAKE_EXPORT_NO_PACKAGE_REGISTRY)
+    message("-- Exporting ${PROJECT_NAME} build directory to local CMake package registry.")
+    
+    # Save the relative path from the build directory to the source directory.
+    #file(RELATIVE_PATH INSTALL_ROOT_REL_CONFIG_INSTALL_DIR
+    #    "${PROJECT_BINARY_DIR}"
+    #    "${PROJECT_SOURCE_DIR}")
+    
+    # Analogously to install(EXPORT ...), export the targets from the build directory as a package into the
+    # local CMake package registry.
+    export(EXPORT ${PROJECT_NAME}Export
+        NAMESPACE "${PROJECT_NAME}::"
+        FILE "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake")
+    export(PACKAGE ${PROJECT_NAME})
+    
+    # Configure a *Config.cmake file for the export of the build directory from the template, reflecting the
+    # current build options.
+    set(SETUP_PACKAGE_CONFIG_FOR_INSTALLATION FALSE)
+    configure_file("cmake/${PROJECT_NAME}Config.cmake.in"
+        "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake" @ONLY)
+endif()
