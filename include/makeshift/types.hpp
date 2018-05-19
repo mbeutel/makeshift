@@ -3,10 +3,10 @@
 #define MAKESHIFT_TYPES_HPP_
 
 
-#include <type_traits> // for decay_t<>
-#include <utility> // for forward<>()
-#include <cstdint> // for uint32_t
-#include <cstddef> // for size_t
+#include <type_traits> // for declval<>(), decay_t<>, reference_wrapper<>
+#include <utility>     // for forward<>()
+#include <cstdint>     // for uint32_t
+#include <cstddef>     // for size_t
 
 
 namespace makeshift
@@ -46,7 +46,7 @@ template <typename FlagsT, typename UnderlyingTypeT = unsigned>
 
 
     // Helper for type dispatching.
-template <typename T>
+template <typename T = void>
     struct tag
 {
     using type = T;
@@ -182,7 +182,127 @@ constexpr inline makeshift::detail::key_name operator ""_kn(const char* data, st
 
 } // inline namespace literals
 
+namespace detail
+{
+
+struct default_overload_tag { };
+
+template <typename... Fs>
+    struct overload_0 : Fs...
+{
+    constexpr overload_0(Fs&&... fs) : Fs(std::move(fs))... { }
+    using Fs::operator ()...;
+    template <typename T>
+        constexpr decltype(auto) operator()(std::reference_wrapper<T> arg) const
+        noexcept(noexcept((*this)(arg.get())))
+    {
+        return (*this)(arg.get());
+    }
+};
+
+template <typename Fs>
+    struct default_overload_wrapper : Fs
+{
+    template <typename... Ts>
+        constexpr decltype(auto) default_overload(Ts&&... args) const
+        noexcept(noexcept(Fs::operator ()(std::forward<Ts>(args)...)))
+    {
+        return Fs::operator ()(std::forward<Ts>(args)...);
+    }
+};
+struct ignore_overload_wrapper
+{
+    template <typename... Ts>
+        constexpr void default_overload(Ts&&...) const noexcept
+    {
+    }
+};
+
+} // namespace detail
+
+inline namespace types
+{
+
+struct ignore { };
+
+template <typename F>
+    constexpr makeshift::detail::default_overload_wrapper<std::decay_t<F>> otherwise(F&& func)
+    noexcept(noexcept(F(std::forward<F>(func))))
+{
+    return { std::forward<F>(func) };
+}
+constexpr inline makeshift::detail::ignore_overload_wrapper otherwise(ignore) noexcept
+{
+    return { };
+}
+
+template <typename... Fs>
+    struct overload
+{
+private:
+    struct test : makeshift::detail::overload_0<Fs...>
+    {
+        using makeshift::detail::overload_0<Fs...>::operator ()...;
+        makeshift::detail::default_overload_tag operator ()(...) const;
+    };
+
+    makeshift::detail::overload_0<Fs...> overload_;
+
+public:
+    constexpr overload(Fs&&... fs)
+    //noexcept((noexcept(Fs(std::forward<Fs>(fs))) && ...))
+        : overload_(std::forward<Fs>(fs)...)
+    {
+    }
+    template <typename... Ts>
+        constexpr decltype(auto) operator()(Ts&&... args) const
+    {
+        using ResultType = decltype(std::declval<test>()(std::forward<Ts>(args)...));
+        constexpr bool isDefaultOverload = std::is_same<ResultType, makeshift::detail::default_overload_tag>::value;
+        if constexpr (isDefaultOverload)
+            return overload_.default_overload(std::forward<Ts>(args)...);
+        else
+            return overload_(std::forward<Ts>(args)...);
+    }
+};
+
+} // inline namespace types
+
+namespace detail
+{
+
+template <std::size_t... Is, typename TupleT, typename F>
+    constexpr void tuple_foreach_impl(std::index_sequence<Is...>, TupleT&& tuple, F&& func)
+{
+    (func(std::get<Is>(std::forward<TupleT>(tuple))), ...);
+}
+
+} // namespace detail
+
+inline namespace types
+{
+
+template <typename... Ts, typename F>
+    constexpr void tuple_foreach(const std::tuple<Ts...>& tuple, F&& func)
+{
+    makeshift::detail::tuple_foreach_impl(std::make_index_sequence<sizeof...(Ts)>{}, tuple,
+        std::forward<F>(func));
+}
+template <typename... Ts, typename F>
+    constexpr void tuple_foreach(std::tuple<Ts...>& tuple, F&& func)
+{
+    makeshift::detail::tuple_foreach_impl(std::make_index_sequence<sizeof...(Ts)>{}, tuple,
+        std::forward<F>(func));
+}
+template <typename... Ts, typename F>
+    constexpr void tuple_foreach(std::tuple<Ts...>&& tuple, F&& func)
+{
+    makeshift::detail::tuple_foreach_impl(std::make_index_sequence<sizeof...(Ts)>{}, std::move(tuple),
+        std::forward<F>(func));
+}
+
+} // inline namespace types
+
 } // namespace makeshift
 
 #endif // MAKESHIFT_TYPES_HPP_
-
