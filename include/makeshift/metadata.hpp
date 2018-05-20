@@ -47,8 +47,6 @@ struct property_metadata_base { };
 inline namespace metadata
 {
 
-template <typename...> struct TD;
-
 template <typename T, typename AttributesT>
     struct type_metadata : makeshift::detail::type_metadata_base
 {
@@ -71,7 +69,7 @@ template <typename T>
     static constexpr bool is_type_metadata = std::is_base_of<makeshift::detail::type_metadata_base, T>::value;
 
 template <auto Val, typename AttributesT>
-    struct value_metadata
+    struct value_metadata : makeshift::detail::value_metadata_base
 {
     using value_type = decltype(Val);
     static inline constexpr value_type value { Val };
@@ -93,7 +91,7 @@ template <typename T>
     static constexpr bool is_value_metadata = std::is_base_of<makeshift::detail::value_metadata_base, T>::value;
 
 template <typename AttributesT, auto... Accessors>
-    struct property_metadata
+    struct property_metadata : makeshift::detail::property_metadata_base
 {
     static inline constexpr std::tuple<decltype(Accessors)...> accessors { Accessors... };
 
