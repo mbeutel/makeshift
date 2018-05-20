@@ -188,40 +188,69 @@ namespace detail
 struct default_overload_tag { };
 
 template <typename... Fs>
-    struct overload_0 : Fs...
+    struct overload_base : Fs...
 {
-    constexpr overload_0(Fs&&... fs) : Fs(std::move(fs))... { }
+    constexpr overload_base(Fs&&... fs) : Fs(std::move(fs))... { }
     using Fs::operator ()...;
     template <typename T>
+        constexpr decltype(auto) operator()(std::reference_wrapper<T> arg)
+        noexcept(noexcept(std::declval<overload_base>()(arg.get())))
+    {
+        return (*this)(arg.get());
+    }
+    template <typename T>
         constexpr decltype(auto) operator()(std::reference_wrapper<T> arg) const
-        noexcept(noexcept(std::declval<overload_0>()(arg.get())))
+        noexcept(noexcept(std::declval<overload_base>()(arg.get())))
     {
         return (*this)(arg.get());
     }
 };
 
-template <typename Fs>
-    struct default_overload_wrapper : Fs
+template <typename F>
+    struct default_overload_wrapper : F
 {
+    using F::F;
     template <typename... Ts>
-        constexpr decltype(auto) default_overload(Ts&&... args) const
-        noexcept(noexcept(Fs::operator ()(std::forward<Ts>(args)...)))
+#ifdef MAKESHIFT_FANCY_DEFAULT
+        constexpr decltype(auto) operator ()(default_overload_tag, Ts&&... args) const
+#else // MAKESHIFT_FANCY_DEFAULT
+        constexpr decltype(auto) operator ()(Ts&&... args) const
+#endif // MAKESHIFT_FANCY_DEFAULT
+        noexcept(noexcept(F::operator ()(std::forward<Ts>(args)...)))
     {
-        return Fs::operator ()(std::forward<Ts>(args)...);
+        return F::operator ()(std::forward<Ts>(args)...);
     }
 };
 struct ignore_overload_wrapper
 {
     template <typename... Ts>
-        constexpr void default_overload(Ts&&...) const noexcept
+#ifdef MAKESHIFT_FANCY_DEFAULT
+        constexpr void operator ()(default_overload_tag, Ts&&...) const noexcept
+#else // MAKESHIFT_FANCY_DEFAULT
+        constexpr void operator ()(Ts&&...) const noexcept
+#endif // MAKESHIFT_FANCY_DEFAULT
     {
     }
 };
+
+template <std::size_t N, typename T, std::size_t... Is>
+    constexpr std::array<std::remove_cv_t<T>, N> to_array_impl(T array[], std::index_sequence<Is...>)
+    noexcept(noexcept(std::remove_cv_t<T>(std::declval<T>())))
+{
+    return {{ array[Is]... }};
+}
 
 } // namespace detail
 
 inline namespace types
 {
+
+template <std::size_t N, typename T>
+    constexpr std::array<std::remove_cv_t<T>, N> to_array(T (&array)[N])
+    noexcept(noexcept(std::remove_cv_t<T>(std::declval<T>())))
+{
+    return makeshift::detail::to_array_impl(array, std::make_index_sequence<N>{ });
+}
 
 struct ignore_t { };
 constexpr inline ignore_t ignore { };
@@ -230,7 +259,7 @@ template <typename F>
     constexpr makeshift::detail::default_overload_wrapper<std::decay_t<F>> otherwise(F&& func)
     noexcept(noexcept(F(std::forward<F>(func))))
 {
-    return { std::forward<F>(func) };
+    return makeshift::detail::default_overload_wrapper<std::decay_t<F>>(std::forward<F>(func));
 }
 constexpr inline makeshift::detail::ignore_overload_wrapper otherwise(ignore_t) noexcept
 {
@@ -238,33 +267,43 @@ constexpr inline makeshift::detail::ignore_overload_wrapper otherwise(ignore_t) 
 }
 
 template <typename... Fs>
-    struct overload
+    struct overload : makeshift::detail::overload_base<Fs...>
 {
+    using base = makeshift::detail::overload_base<Fs...>;
+    using base::base;
+
+#ifdef MAKESHIFT_FANCY_DEFAULT
 private:
-    struct test : makeshift::detail::overload_0<Fs...>
+    struct test : base
     {
-        using makeshift::detail::overload_0<Fs...>::operator ();
+        using base::operator ();
         makeshift::detail::default_overload_tag operator ()(...) const;
     };
 
-    makeshift::detail::overload_0<Fs...> overload_;
-
 public:
-    constexpr overload(Fs&&... fs)
-    //noexcept((noexcept(Fs(std::forward<Fs>(fs))) && ...))
-        : overload_(std::forward<Fs>(fs)...)
-    {
-    }
     template <typename... Ts>
-        constexpr decltype(auto) operator()(Ts&&... args) const
+        constexpr decltype(auto) operator()(Ts&&... args)
     {
         using ResultType = decltype(std::declval<test>()(std::forward<Ts>(args)...));
         constexpr bool isDefaultOverload = std::is_same<ResultType, makeshift::detail::default_overload_tag>::value;
         if constexpr (isDefaultOverload)
-            return overload_.default_overload(std::forward<Ts>(args)...);
+            return base::operator ()(makeshift::detail::default_overload_tag{ }, std::forward<Ts>(args)...);
         else
-            return overload_(std::forward<Ts>(args)...);
+            return base::operator ()(std::forward<Ts>(args)...);
     }
+    template <typename... Ts>
+        constexpr decltype(auto) operator()(Ts&&... args) const
+    {
+        using ResultType = decltype(std::declval<const test>()(std::forward<Ts>(args)...));
+        constexpr bool isDefaultOverload = std::is_same<ResultType, makeshift::detail::default_overload_tag>::value;
+        if constexpr (isDefaultOverload)
+            return base::operator ()(makeshift::detail::default_overload_tag{ }, std::forward<Ts>(args)...);
+        else
+            return base::operator ()(std::forward<Ts>(args)...);
+    }
+#else // MAKESHIFT_FANCY_DEFAULT
+    using base::operator ();
+#endif // MAKESHIFT_FANCY_DEFAULT
 };
 
 } // inline namespace types
@@ -286,19 +325,19 @@ inline namespace types
 template <typename... Ts, typename F>
     constexpr void tuple_foreach(const std::tuple<Ts...>& tuple, F&& func)
 {
-    makeshift::detail::tuple_foreach_impl(std::make_index_sequence<sizeof...(Ts)>{}, tuple,
+    makeshift::detail::tuple_foreach_impl(std::make_index_sequence<sizeof...(Ts)>{ }, tuple,
         std::forward<F>(func));
 }
 template <typename... Ts, typename F>
     constexpr void tuple_foreach(std::tuple<Ts...>& tuple, F&& func)
 {
-    makeshift::detail::tuple_foreach_impl(std::make_index_sequence<sizeof...(Ts)>{}, tuple,
+    makeshift::detail::tuple_foreach_impl(std::make_index_sequence<sizeof...(Ts)>{ }, tuple,
         std::forward<F>(func));
 }
 template <typename... Ts, typename F>
     constexpr void tuple_foreach(std::tuple<Ts...>&& tuple, F&& func)
 {
-    makeshift::detail::tuple_foreach_impl(std::make_index_sequence<sizeof...(Ts)>{}, std::move(tuple),
+    makeshift::detail::tuple_foreach_impl(std::make_index_sequence<sizeof...(Ts)>{ }, std::move(tuple),
         std::forward<F>(func));
 }
 
