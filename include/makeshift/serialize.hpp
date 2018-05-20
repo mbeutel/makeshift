@@ -143,7 +143,7 @@ template <typename EnumT, std::size_t N, bool IsFlagsEnum, typename... Attribute
         [&](description_t desc) { typeDesc = desc.value; },
         [&](const auto& val) -> std::enable_if_t<is_value_metadata<decltype(val)>>
         {
-            values.at(index++) = make_enum_value_stringdata<decltype(val)::value>{ val };
+            values.at(index++) = make_enum_value_stringdata<decltype(val)::value>(val);
         }
     ));
     return { values, typeName, typeDesc };
@@ -195,7 +195,7 @@ template <typename T>
     lvalue_as_string& operator =(lvalue_as_string&&) = delete;
 
 private:
-    T& value;
+    T& value_;
 
 public:
     constexpr lvalue_as_string(T& _value) noexcept : value_(_value) { }

@@ -194,7 +194,7 @@ template <typename... Fs>
     using Fs::operator ()...;
     template <typename T>
         constexpr decltype(auto) operator()(std::reference_wrapper<T> arg) const
-        noexcept(noexcept((*this)(arg.get())))
+        noexcept(noexcept(std::declval<overload_0>()(arg.get())))
     {
         return (*this)(arg.get());
     }
@@ -223,7 +223,8 @@ struct ignore_overload_wrapper
 inline namespace types
 {
 
-struct ignore { };
+struct ignore_t { };
+constexpr inline ignore_t ignore { };
 
 template <typename F>
     constexpr makeshift::detail::default_overload_wrapper<std::decay_t<F>> otherwise(F&& func)
@@ -231,7 +232,7 @@ template <typename F>
 {
     return { std::forward<F>(func) };
 }
-constexpr inline makeshift::detail::ignore_overload_wrapper otherwise(ignore) noexcept
+constexpr inline makeshift::detail::ignore_overload_wrapper otherwise(ignore_t) noexcept
 {
     return { };
 }
@@ -242,7 +243,7 @@ template <typename... Fs>
 private:
     struct test : makeshift::detail::overload_0<Fs...>
     {
-        using makeshift::detail::overload_0<Fs...>::operator ()...;
+        using makeshift::detail::overload_0<Fs...>::operator ();
         makeshift::detail::default_overload_tag operator ()(...) const;
     };
 

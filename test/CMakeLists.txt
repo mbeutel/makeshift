@@ -6,10 +6,8 @@
 cmake_minimum_required(VERSION 3.8)
 
 # test target
-add_executable(test-makeshift)
-target_sources(test-makeshift
-	PRIVATE
-		"tests/metadata.cpp")
+add_executable(test-makeshift
+    "tests/metadata.cpp")
 
 # test dependencies
 target_link_libraries(test-makeshift
