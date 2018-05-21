@@ -378,29 +378,60 @@ template <std::size_t... Is, typename TupleT, typename F>
 {
     (func(std::get<Is>(std::forward<TupleT>(tuple))), ...);
 }
+template <std::size_t... Is, typename TupleT, typename F>
+    constexpr auto tuple_map_impl(std::index_sequence<Is...>, TupleT&& tuple, F&& func)
+{
+    return std::make_tuple(func(std::get<Is>(std::forward<TupleT>(tuple))), ...);
+}
+template <typename F, typename T>
+    struct AccumulatorWrapper
+{
+private:
+    F& func_;
+    T value_;
+public:
+    constexpr AccumulatorWrapper(F& _func, T&& _value)
+        : func_(_func), value_(std::move(_value))
+    {
+    }
+    template <typename U>
+        friend constexpr auto operator +(AccumulatorWrapper<F, T>&& lhs, U&& rhs)
+    {
+        return AccumulatorWrapper(lhs.func_, lhs.func_(std::move(lhs.value_), std::forward<U>(rhs)));
+    }
+};
+
+template <std::size_t... Is, typename TupleT, typename T, typename F>
+    constexpr auto tuple_reduce_impl(std::index_sequence<Is...>, TupleT&& tuple, T&& initialValue, F&& func)
+{
+    return AccumulatorWrapper(func, std::forward<T>(initialValue)) + ... + std::get<Is>(std::forward<TupleT>(tuple));
+}
 
 } // namespace detail
 
 inline namespace types
 {
 
-template <typename... Ts, typename F>
-    constexpr void tuple_foreach(const std::tuple<Ts...>& tuple, F&& func)
+template <typename TupleT, typename F,
+          typename = std::enable_if_t<is_template<std::decay_t<TupleT>, std::tuple>>>
+    constexpr void tuple_foreach(TupleT&& tuple, F&& func)
 {
-    makeshift::detail::tuple_foreach_impl(std::make_index_sequence<sizeof...(Ts)>{ }, tuple,
-        std::forward<F>(func));
+    makeshift::detail::tuple_foreach_impl(std::make_index_sequence<std::tuple_size<std::decay_t<TupleT>>::value>{ },
+        std::forward<TupleT>(tuple), std::forward<F>(func));
 }
-template <typename... Ts, typename F>
-    constexpr void tuple_foreach(std::tuple<Ts...>& tuple, F&& func)
+template <typename TupleT, typename F,
+          typename = std::enable_if_t<is_template<std::decay_t<TupleT>, std::tuple>>>
+    constexpr auto tuple_map(TupleT&& tuple, F&& func)
 {
-    makeshift::detail::tuple_foreach_impl(std::make_index_sequence<sizeof...(Ts)>{ }, tuple,
-        std::forward<F>(func));
+    return makeshift::detail::tuple_map_impl(std::make_index_sequence<std::tuple_size<std::decay_t<TupleT>>::value>{ },
+        std::forward<TupleT>(tuple), std::forward<F>(func));
 }
-template <typename... Ts, typename F>
-    constexpr void tuple_foreach(std::tuple<Ts...>&& tuple, F&& func)
+template <typename TupleT, typename T, typename F,
+          typename = std::enable_if_t<is_template<std::decay_t<TupleT>, std::tuple>>>
+    constexpr auto tuple_reduce(TupleT&& tuple, T&& initialValue, F&& func)
 {
-    makeshift::detail::tuple_foreach_impl(std::make_index_sequence<sizeof...(Ts)>{ }, std::move(tuple),
-        std::forward<F>(func));
+    return makeshift::detail::tuple_reduce_impl(std::make_index_sequence<std::tuple_size<std::decay_t<TupleT>>::value>{ },
+        std::forward<TupleT>(tuple), std::forward<T>(initialValue), std::forward<F>(func));
 }
 
 } // inline namespace types

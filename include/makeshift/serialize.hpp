@@ -103,7 +103,7 @@ template <std::size_t N, typename EnumT>
 }
 
 template <typename EnumT, std::size_t N, bool IsFlagsEnum, typename AttributesT>
-    /*constexpr*/ enum_stringdata<N, IsFlagsEnum> make_enum_stringdata_impl(const type_metadata<EnumT, AttributesT>& enumMetadata)
+    constexpr enum_stringdata<N, IsFlagsEnum> make_enum_stringdata_impl(const type_metadata<EnumT, AttributesT>& enumMetadata)
 {
     std::array<enum_value_stringdata, N> values { };
     std::size_t index = 0;
