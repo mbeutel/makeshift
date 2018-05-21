@@ -59,17 +59,17 @@ MAKESHIFT_SYS_DLLFUNC std::uint64_t string_to_flags_enum(
     gsl::span<const enum_value_stringdata> knownValues, std::string_view typeName, std::string_view typeDesc,
     const std::string& string);
 
-template <auto EnumVal, typename... AttributesT>
-    constexpr enum_value_stringdata make_enum_value_stringdata(const value_metadata<EnumVal, std::tuple<AttributesT...>>& valueMetadata)
+template <typename ValC, typename... AttributesT>
+    constexpr enum_value_stringdata make_enum_value_stringdata(const value_metadata<ValC, std::tuple<AttributesT...>>& valueMetadata)
 {
-    static_assert(sizeof(EnumVal) <= sizeof(std::uint64_t), "enums with an underlying type of more than 64 bits are not supported");
+    static_assert(sizeof(ValC::value) <= sizeof(std::uint64_t), "enums with an underlying type of more than 64 bits are not supported");
 
     std::string_view name;
     tuple_foreach(valueMetadata.attributes, overload(
         [&](std::string_view s) { name = s; },
         otherwise(ignore)
     ));
-    return { std::uint64_t(EnumVal), name };
+    return { std::uint64_t(ValC::value), name };
 }
 
 template <std::size_t N, bool IsFlagsEnum>
@@ -102,66 +102,20 @@ template <std::size_t N, typename EnumT>
     return EnumT(string_to_flags_enum(stringdata.values, stringdata.typeName, stringdata.typeDesc, string));
 }
 
-//#define MAKESHIFT_SFINAE_OVERLOADS
-
-#if !defined(MAKESHIFT_SFINAE_OVERLOADS)
-template <std::size_t N>
-    struct make_enum_value_stringdata_func
-{
-private:
-    std::array<enum_value_stringdata, N> values_;
-    std::size_t index_;
-
-public:
-    constexpr make_enum_value_stringdata_func(void) noexcept
-        : index_(0)
-    {
-    }
-    template <auto Val, typename AttributesT>
-        constexpr void operator ()(const value_metadata<Val, AttributesT>& valueMetadata)
-    {
-        values_[index_++] = make_enum_value_stringdata<Val>(valueMetadata);
-    }
-    constexpr std::array<enum_value_stringdata, N> values(void) const noexcept
-    {
-        return values_;
-    }
-};
-#endif // !defined(MAKESHIFT_SFINAE_OVERLOADS)
-
 template <typename EnumT, std::size_t N, bool IsFlagsEnum, typename AttributesT>
     /*constexpr*/ enum_stringdata<N, IsFlagsEnum> make_enum_stringdata_impl(const type_metadata<EnumT, AttributesT>& enumMetadata)
 {
-#ifdef MAKESHIFT_SFINAE_OVERLOADS
     std::array<enum_value_stringdata, N> values { };
     std::size_t index = 0;
-#endif // MAKESHIFT_SFINAE_OVERLOADS
     std::string_view typeName;
     std::string_view typeDesc;
-    auto func = overload(
-        [&](std::string_view s) constexpr { typeName = s; },
-        [&](description_t desc) constexpr { typeDesc = desc.value; },
-#ifdef MAKESHIFT_SFINAE_OVERLOADS
-            // this currently doesn't go well with VC++
-        [&](const auto& val) constexpr -> std::enable_if_t<is_value_metadata<std::decay_t<decltype(val)>>, int>
-        {
-            values.at(index++) = make_enum_value_stringdata<std::decay_t<decltype(val)>::value>(val);
-            return 0; // this is just to make VC++ happy
-        },
-#else // MAKESHIFT_SFINAE_OVERLOADS
-        make_enum_value_stringdata_func<N>(),
-#endif // MAKESHIFT_SFINAE_OVERLOADS
+    tuple_foreach(enumMetadata.attributes, overload(
+        [&](std::string_view s) { typeName = s; },
+        [&](description_t desc) { typeDesc = desc.value; },
+        match_template<value_metadata>([&](const auto& val) { values.at(index++) = make_enum_value_stringdata(val); }),
         otherwise(ignore)
-    );
-    tuple_foreach(enumMetadata.attributes, func);
-    return {
-#ifdef MAKESHIFT_SFINAE_OVERLOADS
-        values,
-#else // MAKESHIFT_SFINAE_OVERLOADS
-        func.values(),
-#endif // MAKESHIFT_SFINAE_OVERLOADS
-        typeName, typeDesc
-    };
+    ));
+    return { values, typeName, typeDesc };
 }
 
 template <typename T, typename... AttributesT>
@@ -170,7 +124,7 @@ template <typename T, typename... AttributesT>
     if constexpr (std::is_enum<T>::value)
     {
         constexpr bool isFlagsEnum = (std::is_same<AttributesT, flags_t>::value || ...);
-        constexpr std::size_t numValues = ((is_value_metadata<AttributesT> ? 1 : 0) + ... + 0);
+        constexpr std::size_t numValues = ((is_template<AttributesT, value_metadata> ? 1 : 0) + ... + 0);
         return make_enum_stringdata_impl<T, numValues, isFlagsEnum>(typeMetadata);
     }
     else

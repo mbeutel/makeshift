@@ -209,7 +209,10 @@ template <typename... Fs>
 template <typename F>
     struct default_overload_wrapper : F
 {
-    using F::F;
+    constexpr default_overload_wrapper(F&& func)
+        : F(std::move(func))
+    {
+    }
     template <typename... Ts>
 #ifdef MAKESHIFT_FANCY_DEFAULT
         constexpr decltype(auto) operator ()(default_overload_tag, Ts&&... args) const
@@ -240,6 +243,54 @@ template <std::size_t N, typename T, std::size_t... Is>
     return {{ array[Is]... }};
 }
 
+template <typename F, template <typename...> class T>
+    struct match_template_func : F
+{
+    constexpr match_template_func(F&& func)
+        : F(std::move(func))
+    {
+    }
+    template <typename... Ts>
+        constexpr decltype(auto) operator ()(const T<Ts...>& arg)
+    {
+        return F::operator ()(arg);
+    }
+    template <typename... Ts>
+        constexpr decltype(auto) operator ()(const T<Ts...>& arg) const
+    {
+        return F::operator ()(arg);
+    }
+    template <typename... Ts>
+        constexpr decltype(auto) operator ()(T<Ts...>& arg)
+    {
+        return F::operator ()(arg);
+    }
+    template <typename... Ts>
+        constexpr decltype(auto) operator ()(T<Ts...>& arg) const
+    {
+        return F::operator ()(arg);
+    }
+    template <typename... Ts>
+        constexpr decltype(auto) operator ()(T<Ts...>&& arg)
+    {
+        return F::operator ()(std::move(arg));
+    }
+    template <typename... Ts>
+        constexpr decltype(auto) operator ()(T<Ts...>&& arg) const
+    {
+        return F::operator ()(std::move(arg));
+    }
+};
+
+template <typename T, template <typename...> class U>
+    struct is_template_ : std::false_type
+{
+};
+template <template <typename...> class U, typename... Ts>
+    struct is_template_<U<Ts...>, U> : std::true_type
+{
+};
+
 } // namespace detail
 
 inline namespace types
@@ -259,7 +310,7 @@ template <typename F>
     constexpr makeshift::detail::default_overload_wrapper<std::decay_t<F>> otherwise(F&& func)
     noexcept(noexcept(F(std::forward<F>(func))))
 {
-    return makeshift::detail::default_overload_wrapper<std::decay_t<F>>(std::forward<F>(func));
+    return { std::forward<F>(func) };
 }
 constexpr inline makeshift::detail::ignore_overload_wrapper otherwise(ignore_t) noexcept
 {
@@ -305,6 +356,17 @@ public:
     using base::operator ();
 #endif // MAKESHIFT_FANCY_DEFAULT
 };
+
+template <template <typename...> class T, typename F>
+    constexpr makeshift::detail::match_template_func<std::decay_t<F>, T> match_template(F&& func)
+{
+    return { std::forward<F>(func) };
+}
+
+template <typename T, template <typename...> class U>
+    using is_template_t = makeshift::detail::is_template_<T, U>;
+template <typename T, template <typename...> class U>
+    constexpr bool is_template = is_template_t<T, U>::value;
 
 } // inline namespace types
 

@@ -65,15 +65,10 @@ template <typename T, typename... AttrT>
 {
     return { std::make_tuple(makeshift::detail::literal_decay(std::forward<AttrT>(attributes))...) };
 }
-template <typename T>
-    static constexpr bool is_type_metadata = std::is_base_of<makeshift::detail::type_metadata_base, T>::value;
 
-template <auto Val, typename AttributesT>
-    struct value_metadata : makeshift::detail::value_metadata_base
+template <typename ValC, typename AttributesT>
+    struct value_metadata : ValC, makeshift::detail::value_metadata_base
 {
-    using value_type = decltype(Val);
-    static inline constexpr value_type value { Val };
-
     AttributesT attributes;
 
     constexpr value_metadata(AttributesT&& _attributes)
@@ -83,14 +78,12 @@ template <auto Val, typename AttributesT>
     }
 };
 template <auto Val, typename... AttrT>
-    constexpr value_metadata<Val, std::tuple<makeshift::detail::literal_decay_t<AttrT>...>> value(AttrT&&... attributes)
+    constexpr value_metadata<std::integral_constant<decltype(Val), Val>, std::tuple<makeshift::detail::literal_decay_t<AttrT>...>> value(AttrT&&... attributes)
 {
     return { std::make_tuple(makeshift::detail::literal_decay(std::forward<AttrT>(attributes))...) };
 }
-template <typename T>
-    static constexpr bool is_value_metadata = std::is_base_of<makeshift::detail::value_metadata_base, T>::value;
 
-template <typename AttributesT, auto... Accessors>
+/*template <typename AttributesT, auto... Accessors>
     struct property_metadata : makeshift::detail::property_metadata_base
 {
     static inline constexpr std::tuple<decltype(Accessors)...> accessors { Accessors... };
@@ -107,9 +100,7 @@ template <auto... Accessors, typename... AttrT>
     constexpr property_metadata<std::tuple<makeshift::detail::literal_decay_t<AttrT>...>, Accessors...> property(AttrT&&... attributes)
 {
     return { std::make_tuple(makeshift::detail::literal_decay(std::forward<AttrT>(attributes))...) };
-}
-template <typename T>
-    static constexpr bool is_property_metadata = std::is_base_of<makeshift::detail::property_metadata_base, T>::value;
+}*/
 
     // Use `flags` to mark an enum type as a bitflag type in metadata.
 struct flags_t { };
