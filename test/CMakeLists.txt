@@ -10,6 +10,7 @@ find_package(Catch2)
 # test target
 add_executable(test-makeshift
     "tests/main.cpp"
+    "tests/test-types.cpp"
     "tests/test-metadata.cpp")
 
 # test dependencies

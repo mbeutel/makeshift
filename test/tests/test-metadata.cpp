@@ -10,6 +10,9 @@
 
 namespace mk = makeshift;
 
+namespace
+{
+
 enum class MyEnum
 {
     foo,
@@ -59,6 +62,9 @@ static constexpr auto reflect(Ratatouille*, mk::tag<>)
         mk::value<Vegetables::something_weird>("something-weird")
     );
 }
+
+} // anonymous namespace
+
 
 TEST_CASE("serialize", "[serialize]")
 {

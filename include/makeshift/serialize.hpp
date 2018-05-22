@@ -124,7 +124,7 @@ template <typename T, typename... AttributesT>
     if constexpr (std::is_enum<T>::value)
     {
         constexpr bool isFlagsEnum = (std::is_same<AttributesT, flags_t>::value || ...);
-        constexpr std::size_t numValues = ((is_template<AttributesT, value_metadata> ? 1 : 0) + ... + 0);
+        constexpr std::size_t numValues = (0 + ... + (is_template<AttributesT, value_metadata> ? 1 : 0));
         return make_enum_stringdata_impl<T, numValues, isFlagsEnum>(typeMetadata);
     }
     else

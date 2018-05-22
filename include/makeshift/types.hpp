@@ -7,6 +7,7 @@
 #include <utility>     // for forward<>()
 #include <cstdint>     // for uint32_t
 #include <cstddef>     // for size_t
+#include <tuple>
 
 
 namespace makeshift
@@ -29,6 +30,7 @@ inline namespace types
 template <typename FlagsT, typename UnderlyingTypeT = unsigned>
     struct define_flags
 {
+    using base_type = UnderlyingTypeT;
     enum class flags : UnderlyingTypeT { none = 0 };
     using flag = flags; // alias for declaring flag constants
     
@@ -74,37 +76,44 @@ static constexpr std::uint32_t crc32c(std::uint32_t crc, const char* buf, std::s
     return ~crc;
 }
 
-enum class key_crc : std::uint32_t { };
+enum class keyword_crc : std::uint32_t { };
 
-struct key_name
+struct keyword
 {
     const char* data;
     std::size_t size;
 
-    constexpr operator key_crc(void) const noexcept
+    constexpr operator keyword_crc(void) const noexcept
     {
-        return key_crc(crc32c(0, data, size));
+        return keyword_crc(crc32c(0, data, size));
     }
 };
 
-constexpr inline key_crc operator +(key_crc lhs, key_name rhs) noexcept
+constexpr inline keyword_crc operator +(keyword_crc lhs, keyword rhs) noexcept
 {
-    return key_crc(crc32c(std::uint32_t(lhs), rhs.data, rhs.size));
+    return keyword_crc(crc32c(std::uint32_t(lhs), rhs.data, rhs.size));
 }
-constexpr inline key_crc operator +(key_name lhs, key_name rhs) noexcept
+constexpr inline keyword_crc operator +(keyword lhs, keyword rhs) noexcept
 {
-    return key_crc(lhs) + rhs;
+    return keyword_crc(lhs) + rhs;
 }
-constexpr inline key_crc operator /(key_crc lhs, key_name rhs) noexcept
+constexpr inline keyword_crc operator /(keyword_crc lhs, keyword rhs) noexcept
 {
     char sep[] = { '/' };
-    auto sc = key_crc(crc32c(std::uint32_t(lhs), sep, 1));
+    auto sc = keyword_crc(crc32c(std::uint32_t(lhs), sep, 1));
     return sc + rhs;
 }
-constexpr inline key_crc operator /(key_name lhs, key_name rhs) noexcept
+constexpr inline keyword_crc operator /(keyword lhs, keyword rhs) noexcept
 {
-    return key_crc(lhs) / rhs;
+    return keyword_crc(lhs) / rhs;
 }
+
+constexpr inline bool operator ==(keyword_crc lhs, keyword rhs) noexcept { return lhs == keyword_crc(rhs); }
+constexpr inline bool operator !=(keyword_crc lhs, keyword rhs) noexcept { return !(lhs == rhs); }
+constexpr inline bool operator ==(keyword lhs, keyword_crc rhs) noexcept { return keyword_crc(lhs) == rhs; }
+constexpr inline bool operator !=(keyword lhs, keyword_crc rhs) noexcept { return !(lhs == rhs); }
+constexpr inline bool operator ==(keyword lhs, keyword rhs) noexcept { return keyword_crc(lhs) == keyword_crc(rhs); }
+constexpr inline bool operator !=(keyword lhs, keyword rhs) noexcept { return !(lhs == rhs); }
 
 } // namespace detail
 
@@ -113,23 +122,35 @@ inline namespace types
 {
 
 
-    // Named object wrapper.
-    // Use with the ""_kn literal defined below:
+    // Typed keyword args:
+    // Define a named type with named<> and the ""_kw literal operator:
     //
-    //     using NamedInt = named<int, "width"_kn>;
+    //     using NamedInt = named<int, "width"_kw>;
     //
     // Construct an object of a named type either with the explicit constructor, or by using name<>
     // with assignment syntax:
     //
     //     NamedInt val1 { 42 };
-    //     NamedInt val2 = { name<"width"_kn> = 42 };
+    //     NamedInt val2 = { name<"width"_kw> = 42 };
+    //
+    // Concatenate keywords with '+' (without separator) or `/` (with hierarchical separator):
+    //
+    //     "make"_kw + "shift"_kw == "makeshift"_kw
+    //     "foo"_kw / "bar"_kw == "foo/bar"_kw
     //
     // This is currently implemented using CRC-32 to work around the inability to pass strings as template
     // arguments. This may change in C++20, cf. P0732. I hope to be able to switch to a P0732-based
     // implementation while maintaining source compatibility.
-template <typename T, makeshift::detail::key_crc KeyCRC>
+
+
+    // Wraps a value of type T with a compile-time keyword name:
+    //
+    //     using NamedInt = named<int, "width"_kw>;
+template <typename T, makeshift::detail::keyword_crc KeywordCRC>
     struct named
 {
+    static constexpr makeshift::detail::keyword_crc keyword = KeywordCRC;
+
     T value;
 
     explicit constexpr named(const T& _value)
@@ -149,16 +170,16 @@ template <typename T, makeshift::detail::key_crc KeyCRC>
 namespace detail
 {
 
-template <key_crc KeyCRC>
-    struct key
+template <keyword_crc KeywordCRC>
+    struct name_t
 {
-    static constexpr key_crc value = KeyCRC;
+    static constexpr keyword_crc keyword = KeywordCRC;
 
     template <typename T>
-        constexpr named<std::decay_t<T>, value> operator =(T&& rhs) const
+        constexpr named<std::decay_t<T>, keyword> operator =(T&& rhs) const
         noexcept(noexcept(std::decay_t<T>(std::forward<T>(rhs))))
     {
-        return named<std::decay_t<T>, value> { std::forward<T>(rhs) };
+        return named<std::decay_t<T>, keyword> { std::forward<T>(rhs) };
     }
 };
 
@@ -167,15 +188,18 @@ template <key_crc KeyCRC>
 inline namespace types
 {
 
-template <makeshift::detail::key_crc KeyCRC>
-    constexpr inline makeshift::detail::key<KeyCRC> name { };
+    // Permits constructing an object of named type with familiar assignment syntax:
+    //
+    //     name<"width"_kw> = 42
+template <makeshift::detail::keyword_crc KeywordCRC>
+    constexpr inline makeshift::detail::name_t<KeywordCRC> name { };
 
 } // inline namespace types
 
 inline namespace literals
 {
 
-constexpr inline makeshift::detail::key_name operator ""_kn(const char* data, std::size_t size) noexcept
+constexpr inline makeshift::detail::keyword operator ""_kw(const char* data, std::size_t size) noexcept
 {
     return { data, size };
 }
@@ -381,7 +405,7 @@ template <std::size_t... Is, typename TupleT, typename F>
 template <std::size_t... Is, typename TupleT, typename F>
     constexpr auto tuple_map_impl(std::index_sequence<Is...>, TupleT&& tuple, F&& func)
 {
-    return std::make_tuple(func(std::get<Is>(std::forward<TupleT>(tuple))), ...);
+    return std::make_tuple(func(std::get<Is>(std::forward<TupleT>(tuple)))...);
 }
 template <typename F, typename T>
     struct AccumulatorWrapper
@@ -399,12 +423,35 @@ public:
     {
         return AccumulatorWrapper(lhs.func_, lhs.func_(std::move(lhs.value_), std::forward<U>(rhs)));
     }
+    constexpr T&& get(void) && noexcept { return std::move(value_); }
 };
 
 template <std::size_t... Is, typename TupleT, typename T, typename F>
     constexpr auto tuple_reduce_impl(std::index_sequence<Is...>, TupleT&& tuple, T&& initialValue, F&& func)
 {
-    return AccumulatorWrapper(func, std::forward<T>(initialValue)) + ... + std::get<Is>(std::forward<TupleT>(tuple));
+    return (AccumulatorWrapper(func, std::forward<T>(initialValue)) + ... + std::get<Is>(std::forward<TupleT>(tuple))).get();
+}
+
+template <keyword_crc KeywordCRC, typename T>
+    struct has_name : std::false_type
+{
+};
+template <keyword_crc KeywordCRC, typename T>
+    struct has_name<KeywordCRC, named<T, KeywordCRC>> : std::true_type
+{
+    using named_type = named<T, KeywordCRC>;
+    using element_type = T;
+};
+
+
+template <makeshift::detail::keyword_crc KeywordCRC, typename TupleT, std::size_t... Is>
+    constexpr std::size_t tuple_kw_index(std::index_sequence<Is...>) noexcept
+{
+    constexpr int numMatches = (0 + ... + (has_name<KeywordCRC, std::tuple_element_t<Is, TupleT>>::value ? 1 : 0));
+    constexpr std::size_t matchIndex = (0 + ... + (has_name<KeywordCRC, std::tuple_element_t<Is, TupleT>>::value ? Is : 0));
+    static_assert(numMatches >= 1, "argument with given keyword not found in tuple");
+    static_assert(numMatches <= 1, "more than one keyword arguments match the given keyword");
+    return matchIndex;
 }
 
 } // namespace detail
@@ -432,6 +479,14 @@ template <typename TupleT, typename T, typename F,
 {
     return makeshift::detail::tuple_reduce_impl(std::make_index_sequence<std::tuple_size<std::decay_t<TupleT>>::value>{ },
         std::forward<TupleT>(tuple), std::forward<T>(initialValue), std::forward<F>(func));
+}
+
+template <makeshift::detail::keyword_crc KeywordCRC, typename TupleT>
+    constexpr decltype(auto) get(TupleT&& tuple) noexcept
+{
+    using DTuple = std::decay_t<TupleT>;
+    constexpr std::size_t matchIndex = makeshift::detail::tuple_kw_index<KeywordCRC, DTuple>(std::make_index_sequence<std::tuple_size<DTuple>::value>{ });
+    return std::get<matchIndex>(std::forward<TupleT>(tuple)).value;
 }
 
 } // inline namespace types
