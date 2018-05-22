@@ -92,12 +92,12 @@ template <std::size_t N, typename EnumT>
     return flags_enum_to_string(stringdata.values, std::uint64_t(value));
 }
 template <std::size_t N, typename EnumT>
-    EnumT from_string(tag<EnumT>, const enum_stringdata<N, false>& stringdata, const std::string& string)
+    EnumT from_string(tag_t<EnumT>, const enum_stringdata<N, false>& stringdata, const std::string& string)
 {
     return EnumT(string_to_enum(stringdata.values, stringdata.typeName, stringdata.typeDesc, string));
 }
 template <std::size_t N, typename EnumT>
-    EnumT from_string(tag<EnumT>, const enum_stringdata<N, true>& stringdata, const std::string& string)
+    EnumT from_string(tag_t<EnumT>, const enum_stringdata<N, true>& stringdata, const std::string& string)
 {
     return EnumT(string_to_flags_enum(stringdata.values, stringdata.typeName, stringdata.typeDesc, string));
 }
@@ -177,7 +177,7 @@ public:
     {
         std::string str;
         stream >> str;
-        value.value_ = from_string(tag<T>{ }, stringdata<T>, str);
+        value.value_ = from_string(tag<T>, stringdata<T>, str);
         return stream;
     }
 };
@@ -206,7 +206,7 @@ template <typename T>
 template <typename T>
     T from_string(const std::string& string)
 {
-    return from_string(tag<T>{ }, makeshift::detail::stringdata<T>, string);
+    return from_string(tag<T>, makeshift::detail::stringdata<T>, string);
 }
 
 } // inline namespace serialize

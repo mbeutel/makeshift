@@ -42,7 +42,7 @@ TEST_CASE("types", "[flags]")
         using NamedInt = mk::named<int, "width"_kw>;
         NamedInt val1 { 42 };
         NamedInt val2 = { mk::name<"width"_kw> = 42 };
-        CHECK(val1.value == val2.value);
+        CHECK(get(val1) == get(val2));
         CHECK("make"_kw + "shift"_kw == "makeshift"_kw);
         CHECK("foo"_kw / "bar"_kw == "foo/bar"_kw);
     }

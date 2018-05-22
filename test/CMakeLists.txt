@@ -11,6 +11,7 @@ find_package(Catch2)
 add_executable(test-makeshift
     "tests/main.cpp"
     "tests/test-types.cpp"
+    "tests/test-pointers.cpp"
     "tests/test-metadata.cpp")
 
 # test dependencies

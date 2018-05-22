@@ -18,7 +18,7 @@ enum class MyEnum
     foo,
     bar
 };
-static constexpr auto reflect(MyEnum*, mk::tag<>)
+static constexpr auto reflect(MyEnum*, mk::tag_t<>)
 {
     return mk::type<MyEnum>("MyEnum",
         mk::value<MyEnum::foo>("foo"),
@@ -44,7 +44,7 @@ struct Vegetables : mk::define_flags<Vegetables>
     static constexpr flags something_weird = chili | flag(128);
 };
 using Ratatouille = Vegetables::flags;
-static constexpr auto reflect(Ratatouille*, mk::tag<>)
+static constexpr auto reflect(Ratatouille*, mk::tag_t<>)
 {
     return mk::type<Ratatouille>("Ratatouille",
         mk::flags,
@@ -98,7 +98,7 @@ struct MyStruct
     void setBar(float) const { }
     double baz;
 };
-static constexpr auto reflect(MyStruct*, mk::tag<>)
+static constexpr auto reflect(MyStruct*, mk::tag_t<>)
 {
     return mk::type<MyStruct>("MyStruct",
         mk::property<&MyStruct::foo>("foo"),

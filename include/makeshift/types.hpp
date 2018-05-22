@@ -49,10 +49,21 @@ template <typename FlagsT, typename UnderlyingTypeT = unsigned>
 
     // Helper for type dispatching.
 template <typename T = void>
-    struct tag
+    struct tag_t
 {
     using type = T;
 };
+template <typename T = void>
+    constexpr tag_t<T> tag { };
+
+
+
+    // Type sequence (strictly for compile-time purposes).
+template <typename... Ts>
+    struct type_sequence
+{
+};
+
 
 } // inline namespace types
 
@@ -151,18 +162,22 @@ template <typename T, makeshift::detail::keyword_crc KeywordCRC>
 {
     static constexpr makeshift::detail::keyword_crc keyword = KeywordCRC;
 
-    T value;
+    T value_;
 
     explicit constexpr named(const T& _value)
     noexcept(noexcept(T(_value)))
-        : value(_value)
+        : value_(_value)
     {
     }
     explicit constexpr named(T&& _value)
     noexcept(noexcept(T(std::move(_value))))
-        : value(std::move(_value))
+        : value_(std::move(_value))
     {
     }
+
+    friend constexpr const T& get(const named& self) noexcept { return self.value_; }
+    friend constexpr T& get(named& self) noexcept { return self.value_; }
+    friend constexpr T&& get(named&& self) noexcept { return std::move(self.value_); }
 };
 
 } // inline namespace types
@@ -486,7 +501,7 @@ template <makeshift::detail::keyword_crc KeywordCRC, typename TupleT>
 {
     using DTuple = std::decay_t<TupleT>;
     constexpr std::size_t matchIndex = makeshift::detail::tuple_kw_index<KeywordCRC, DTuple>(std::make_index_sequence<std::tuple_size<DTuple>::value>{ });
-    return std::get<matchIndex>(std::forward<TupleT>(tuple)).value;
+    return get(std::get<matchIndex>(std::forward<TupleT>(tuple)));
 }
 
 } // inline namespace types
