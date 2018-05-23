@@ -429,7 +429,7 @@ private:
     F& func_;
     T value_;
 public:
-    constexpr AccumulatorWrapper(F& _func, T&& _value)
+    constexpr AccumulatorWrapper(F& _func, T _value)
         : func_(_func), value_(std::move(_value))
     {
     }
