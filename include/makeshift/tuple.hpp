@@ -44,7 +44,7 @@ template <typename F0>
 template <typename... Fs>
     constexpr auto overload(Fs&&... fs)
 {
-    return overload<typename std::decay<Fs>::type...>(fs...);
+    return asc::cptools::detail::overload_t<typename std::decay<Fs>::type...>(std::forward<Fs>(fs)...);
 }
 
 
@@ -158,13 +158,19 @@ public:
         : func_(_func), value_(std::move(_value))
     {
     }
-    template <typename U>
-        friend constexpr auto operator +(accumulator_wrapper<F, T>&& lhs, U&& rhs)
-    {
-        return accumulator_wrapper(lhs.func_, lhs.func_(std::move(lhs.value_), std::forward<U>(rhs)));
-    }
+    F& func(void) const noexcept { return func_; }
     constexpr T&& get(void) && noexcept { return std::move(value_); }
 };
+template <typename F, typename T>
+    accumulator_wrapper<F, typename std::decay<T>::type> make_accumulator_wrapper(F& func, T&& value)
+{
+    return { func, std::forward<T>(value) };
+}
+template <typename F, typename T, typename U>
+    constexpr auto operator +(accumulator_wrapper<F, T>&& lhs, U&& rhs)
+{
+    return make_accumulator_wrapper(lhs.func(), lhs.func()(std::move(lhs).get(), std::forward<U>(rhs)));
+}
 
 template <typename FuncT>
     struct tuple_reduce_t : FuncT
@@ -175,7 +181,7 @@ private:
     template <std::size_t... Is, typename ValT, typename TupleT>
         constexpr auto invoke(std::index_sequence<Is...>, ValT&& initialValue, TupleT&& tuple) const
     {
-        auto wrappedInitialValue = accumulator_wrapper<const FuncT, typename std::decay<ValT>::type>(*this, std::forward<ValT>(initialValue));
+        auto wrappedInitialValue = make_accumulator_wrapper(static_cast<const FuncT&>(*this), std::forward<ValT>(initialValue));
         return (std::move(wrappedInitialValue) + ... + std::get<Is>(std::forward<TupleT>(tuple))).get();
     }
     

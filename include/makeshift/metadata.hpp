@@ -112,10 +112,15 @@ static inline constexpr description_t description(std::string_view value) { retu
 
     // Use `metadata_of<T>` to look up metadata for a type.
 template <typename T>
-    constexpr inline auto metadata_of { reflect((T*) nullptr, tag<>) };
+    constexpr auto metadata_of(void)
+{
+        // find reflect() with ADL
+    return reflect((T*) nullptr, tag<>);
+}
 
 } // inline namespace metadata
 
 } // namespace makeshift
 
-#endif // MAKESHIFT_METADATA_HPP_
+#endif // MAKESHIFT_METADATA_HPP
+

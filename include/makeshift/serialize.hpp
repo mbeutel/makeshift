@@ -134,7 +134,7 @@ template <typename T, typename... AttributesT>
 }
 
 template <typename T>
-    /*constexpr*/ inline auto stringdata { make_stringdata(metadata_of<T>) };
+    /*constexpr*/ inline auto stringdata { make_stringdata(metadata_of<T>()) };
     
 template <typename T>
     struct rvalue_as_string

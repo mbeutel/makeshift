@@ -233,13 +233,13 @@ template <typename... Fs>
     using Fs::operator ()...;
     template <typename T>
         constexpr decltype(auto) operator()(std::reference_wrapper<T> arg)
-        noexcept(noexcept(std::declval<overload_base>()(arg.get())))
+        //noexcept(noexcept(std::declval<overload_base>()(arg.get())))
     {
         return (*this)(arg.get());
     }
     template <typename T>
         constexpr decltype(auto) operator()(std::reference_wrapper<T> arg) const
-        noexcept(noexcept(std::declval<overload_base>()(arg.get())))
+        //noexcept(noexcept(std::declval<overload_base>()(arg.get())))
     {
         return (*this)(arg.get());
     }
@@ -258,7 +258,7 @@ template <typename F>
 #else // MAKESHIFT_FANCY_DEFAULT
         constexpr decltype(auto) operator ()(Ts&&... args) const
 #endif // MAKESHIFT_FANCY_DEFAULT
-        noexcept(noexcept(F::operator ()(std::forward<Ts>(args)...)))
+        //noexcept(noexcept(F::operator ()(std::forward<Ts>(args)...)))
     {
         return F::operator ()(std::forward<Ts>(args)...);
     }
@@ -395,6 +395,8 @@ public:
     using base::operator ();
 #endif // MAKESHIFT_FANCY_DEFAULT
 };
+template <typename... Ts>
+    overload(Ts&&...) -> overload<std::decay_t<Ts>...>;
 
 template <template <typename...> class T, typename F>
     constexpr makeshift::detail::match_template_func<std::decay_t<F>, T> match_template(F&& func)
