@@ -20,9 +20,11 @@ enum class MyEnum
 };
 static constexpr auto reflect(MyEnum*, mk::tag_t<>)
 {
-    return mk::type<MyEnum>("MyEnum",
-        mk::value<MyEnum::foo>("foo"),
-        mk::value<MyEnum::bar>("bar")
+    using namespace makeshift::metadata;
+    return type<MyEnum>(
+        "MyEnum", // optional for serialization (may yield better error messages)
+        value<MyEnum::foo>("foo"),
+        value<MyEnum::bar>("bar")
     );
 }
 
@@ -46,22 +48,24 @@ struct Vegetables : mk::define_flags<Vegetables>
 using Ratatouille = Vegetables::flags;
 static constexpr auto reflect(Vegetables*, mk::tag_t<>) // note: we reflect on Vegetables which is our own type, not on Ratatouille which is just an alias!
 {
-    return mk::type<Vegetables>("Vegetables",
-        mk::flags(
-            mk::type<Ratatouille>("Ratatouille")
+    using namespace makeshift::metadata;
+    return type<Vegetables>(
+        "Vegetables", // not required for serialization
+        flags(
+            type<Ratatouille>("Ratatouille") // optional for serialization (may yield better error messages)
         ),
-        mk::description("foo"),
-        mk::value<Vegetables::potato>("potato"),
-        mk::value<Vegetables::tomato>("tomato"),
-        mk::value<Vegetables::garlic>("garlic"),
-        mk::value<Vegetables::onion>("onion"),
-        mk::value<Vegetables::chili>("chili"),
-        mk::value<Vegetables::bean>("bean"),
-        mk::value<Vegetables::lentil>("lentil"),
-        mk::value<Vegetables::legume>("legume"),
-        mk::value<Vegetables::spicy>("spicy"),
-        mk::value<Vegetables::nightshade>("nightshade"),
-        mk::value<Vegetables::something_weird>("something-weird")
+        description("foo"), // optional for serialization (may yield even better error messages)
+        value<Vegetables::potato>("potato"),
+        value<Vegetables::tomato>("tomato"),
+        value<Vegetables::garlic>("garlic"),
+        value<Vegetables::onion>("onion"),
+        value<Vegetables::chili>("chili"),
+        value<Vegetables::bean>("bean"),
+        value<Vegetables::lentil>("lentil"),
+        value<Vegetables::legume>("legume"),
+        value<Vegetables::spicy>("spicy"),
+        value<Vegetables::nightshade>("nightshade"),
+        value<Vegetables::something_weird>("something-weird")
     );
 }
 
