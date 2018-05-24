@@ -2,6 +2,7 @@
 #include <stdexcept>
 #include <tuple>
 #include <cctype>    // for isspace()
+#include <optional>
 
 #include <makeshift/serialize.hpp>
 
@@ -59,7 +60,7 @@ std::string flags_enum_to_string(gsl::span<const enum_value_stringdata> knownVal
                 {
                     matchedEnumValue &= ~knownValue.value;
                     if (!result.empty())
-                        result += " ";
+                        result += ", ";
                     result += std::string(knownValue.string);
                 }
             }
@@ -92,10 +93,22 @@ std::uint64_t string_to_enum(
         raiseInvalidStringError(string);
     return enumValue;
 }
-std::string_view skipWhitespace(std::string_view s) noexcept
+static std::string_view skipWhitespace(std::string_view s) noexcept
 {
     while (!s.empty() && std::isspace(s.front()))
         s = s.substr(1);
+    return s;
+}
+static bool isSeparator(char c) noexcept
+{
+    return c = ',' || c == '|';
+}
+static std::optional<std::string_view> expectSeparator(std::string_view s) noexcept
+{
+    s = skipWhitespace(s);
+    if (s.empty() || isSeparator(s[0]))
+        return std::nullopt;
+    s = s.substr(1);
     return s;
 }
 bool try_string_to_flags_enum(std::uint64_t& enumValue,
@@ -104,8 +117,19 @@ bool try_string_to_flags_enum(std::uint64_t& enumValue,
 {
     std::string_view sv = string;
     enumValue = 0;
+    bool first = true;
     while (!sv.empty())
     {
+        if (first)
+            first = false;
+        else
+        {
+            auto nsv = expectSeparator(sv);
+            if (nsv)
+                sv = *nsv;
+            else
+                return false; // syntax error: expected separator
+        }
         sv = skipWhitespace(sv);
         bool haveMatch = false;
         for (auto& knownValue : knownValues)
@@ -113,7 +137,7 @@ bool try_string_to_flags_enum(std::uint64_t& enumValue,
             auto len = knownValue.string.size();
             if (sv.size() >= len // does it fit?
                 && knownValue.string == sv.substr(0, len) // does it match?
-                && (sv.size() == len || std::isspace(sv[len]))) // is it followed by whitespace or EOS?
+                && (sv.size() == len || std::isspace(sv[len]) || isSeparator(sv[len]))) // is it followed by whitespace, separator or EOS?
             {
                 enumValue |= knownValue.value;
                 sv = sv.substr(len);

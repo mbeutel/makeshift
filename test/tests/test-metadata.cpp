@@ -85,9 +85,9 @@ TEST_CASE("serialize", "[serialize]")
     SECTION("flags-enum")
     {
         CHECK(mk::to_string(Vegetables::tomato) == "tomato");
-        CHECK(mk::to_string(Vegetables::tomato | Vegetables::potato) == "potato tomato");
-        CHECK(mk::to_string(Vegetables::legume | Vegetables::potato) == "legume potato"); // combined flags
-        //CHECK(mk::to_string(Vegetables::spicy | Vegetables::nightshade) == "legume potato"); // combined flags
+        CHECK(mk::to_string(Vegetables::tomato | Vegetables::potato) == "potato, tomato");
+        CHECK(mk::to_string(Vegetables::legume | Vegetables::potato) == "legume, potato"); // combined flags
+        //CHECK(mk::to_string(Vegetables::spicy | Vegetables::nightshade) == "legume, potato"); // combined flags
         // TODO: not quite sure what we actually want here
     }
 }
