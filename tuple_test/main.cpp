@@ -75,7 +75,6 @@ void testOverloads(void)
     auto typenames = typenamesOf(someTuple);
     auto result = joinStrings("", typenames);
     CHECK(result == "int, float, int");
-    std::cout << result << '\n';
 }
 
 void run(void)
@@ -99,4 +98,3 @@ int main(void)
         return 1;
     }
 }
-
