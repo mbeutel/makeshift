@@ -1,55 +1,24 @@
 
-#ifndef ASC_CPTOOLS_TUPLE_FOREACH_HPP_
-#define ASC_CPTOOLS_TUPLE_FOREACH_HPP_
+#ifndef MAKESHIFT_TUPLE_HPP_
+#define MAKESHIFT_TUPLE_HPP_
 
 
 #include <tuple>
-#include <cstddef> // for size_t
-#include <utility> // for move(), forward<>()
+#include <cstddef>     // for size_t
+#include <utility>     // for move(), forward<>()
 #include <type_traits> // for decay<>, integral_constant<>, index_sequence<>
 
 
-namespace asc::cptools
+namespace makeshift
 {
 
-namespace detail
+inline namespace types
 {
-
-template <typename... Fs>
-    struct overload_t;
-template <typename F0, typename... Fs>
-    struct overload_t<F0, Fs...> : F0, overload_t<Fs...>
-{
-    constexpr overload_t(F0&& f0, Fs&&... rest) : F0(std::move(f0)), overload_t<Fs...>(std::move(rest)...) { }
-    using F0::operator();
-    using overload_t<Fs...>::operator();
-};
-template <typename F0>
-    struct overload_t<F0> : F0
-{
-    constexpr overload_t(F0&& f0) : F0(std::move(f0)) { }
-    using F0::operator();
-};
-
-} // namespace detail
-
-    // Use this function to define a function object with multiple overloads given as individual function objects.
-    // 
-    //     auto f = overload(
-    //         [](int i) { return "integer"; },
-    //         [](float f) { return "float"; }
-    //     );
-    //     std::cout << f(42) << ", " << f(1.41421f) << std::endl;
-    //
-template <typename... Fs>
-    constexpr auto overload(Fs&&... fs)
-{
-    return asc::cptools::detail::overload_t<typename std::decay<Fs>::type...>(std::forward<Fs>(fs)...);
-}
-
 
 struct tuple_index_t { };
 static constexpr tuple_index_t tuple_index { };
+
+} // inline namespace types
 
 
 namespace detail
@@ -196,6 +165,9 @@ public:
 
 } // namespace detail
 
+inline namespace types
+{
+
     // Higher-order function that takes a scalar procedure (i.e. a function with non-tuple arguments and with void return type) and returns a procedure
     // which can be called with tuples in some or all arguments.
     //
@@ -203,7 +175,7 @@ public:
     //     f(std::make_tuple(1, 2.3f)); // prints "1\n2.3\n"
     //
 template <typename FuncT>
-    constexpr asc::cptools::detail::tuple_foreach_t<false, typename std::decay<FuncT>::type>
+    constexpr makeshift::detail::tuple_foreach_t<false, typename std::decay<FuncT>::type>
     tuple_foreach(FuncT&& func)
 {
     return { std::forward<FuncT>(func) };
@@ -217,7 +189,7 @@ template <typename FuncT>
     //     auto squaredNumbers = square(numbers); // returns (4, 9.0f)
     //
 template <typename FuncT>
-    constexpr asc::cptools::detail::tuple_foreach_t<true, typename std::decay<FuncT>::type>
+    constexpr makeshift::detail::tuple_foreach_t<true, typename std::decay<FuncT>::type>
     tuple_fmap(FuncT&& func)
 {
     return { std::forward<FuncT>(func) };
@@ -231,12 +203,14 @@ template <typename FuncT>
     //     int sum = sumTuple(0, numbers); // returns 5
     //
 template <typename FuncT>
-    constexpr asc::cptools::detail::tuple_reduce_t<typename std::decay<FuncT>::type>
+    constexpr makeshift::detail::tuple_reduce_t<typename std::decay<FuncT>::type>
     tuple_freduce(FuncT&& func)
 {
     return { std::forward<FuncT>(func) };
 }
 
-} // namespace asc::cptools
+} // inline namespace types
 
-#endif // ASC_CPTOOLS_TUPLE_FOREACH_HPP_
+} // namespace makeshift
+
+#endif // MAKESHIFT_TUPLE_HPP_
