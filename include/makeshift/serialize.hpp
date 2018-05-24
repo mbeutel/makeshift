@@ -27,19 +27,27 @@ namespace makeshift
 namespace detail
 {
 
+    // default implementations for to_stream() and from_stream()
+template <typename T, typename StringdataT>
+    void to_stream(const StringdataT& sdata, std::ostream& stream, const T& value)
+{
+    stream << to_string(sdata, value);
+}
+template <typename T, typename StringdataT>
+    T from_stream(tag_t<T>, const StringdataT& sdata, std::istream& stream)
+{
+    std::string str;
+    stream >> str;
+    return from_string(tag<T>, sdata, str);
+}
+
 struct enum_value_stringdata
 {
     std::uint64_t value;
     std::string_view string;
 
-    constexpr enum_value_stringdata(void) noexcept
-        : value(0), string{ }
-    {
-    }
-    constexpr enum_value_stringdata(std::uint64_t _value, std::string_view _string) noexcept
-        : value(_value), string(_string)
-    {
-    }
+    constexpr enum_value_stringdata(void) noexcept : value(0), string{ } { }
+    constexpr enum_value_stringdata(std::uint64_t _value, std::string_view _string) noexcept : value(_value), string(_string) { }
 };
 
 MAKESHIFT_SYS_DLLFUNC std::string enum_to_string(gsl::span<const enum_value_stringdata> knownValues,
@@ -185,7 +193,8 @@ public:
 
     friend std::ostream& operator <<(std::ostream& stream, const rvalue_as_string& value)
     {
-        return stream << to_string(stringdata<T>, value.value_);
+        to_stream(stringdata<T>, stream, value.value_);
+        return stream;
     }
 };
 template <typename T>
@@ -204,13 +213,12 @@ public:
 
     friend std::ostream& operator <<(std::ostream& stream, const lvalue_as_string& value)
     {
-        return stream << to_string(stringdata<T>, value.value_);
+        to_stream(stringdata<T>, value.value_);
+        return stream;
     }
     friend std::istream& operator >>(std::istream& stream, const lvalue_as_string& value)
     {
-        std::string str;
-        stream >> str;
-        value.value_ = from_string(tag<T>, stringdata<T>, str);
+        value.value_ = from_stream(tag<T>, stringdata<T>, stream);
         return stream;
     }
 };
