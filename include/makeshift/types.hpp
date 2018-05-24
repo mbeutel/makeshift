@@ -13,8 +13,27 @@
 namespace makeshift
 {
 
+namespace detail
+{
+
+struct flags_base { };
+
+} // namespace detail
+
+
 inline namespace types
 {
+
+
+    // Helper for type dispatching.
+template <typename T = void>
+    struct tag_t
+{
+    using type = T;
+};
+template <typename T = void>
+    constexpr tag_t<T> tag { };
+
 
 
     // Inherit from define_flags<> to define a flag enum type:
@@ -28,12 +47,18 @@ inline namespace types
     //     };
     //     using Vegetables = Vegetable::flags;
 template <typename FlagsT, typename UnderlyingTypeT = unsigned>
-    struct define_flags
+    struct define_flags : makeshift::detail::flags_base
 {
     using base_type = UnderlyingTypeT;
     enum class flags : UnderlyingTypeT { none = 0 };
     using flag = flags; // alias for declaring flag constants
-    
+
+        // We just forward the metadata defined for the derived type.
+    friend constexpr auto reflect(flag*, tag_t<>)
+    {
+        return reflect((FlagsT*) nullptr, tag<>);
+    }
+
     friend constexpr flags operator |(flags lhs, flags rhs) noexcept { return flags(UnderlyingTypeT(lhs) | UnderlyingTypeT(rhs)); }
     friend constexpr flags operator &(flags lhs, flags rhs) noexcept { return flags(UnderlyingTypeT(lhs) & UnderlyingTypeT(rhs)); }
     friend constexpr flags operator ^(flags lhs, flags rhs) noexcept { return flags(UnderlyingTypeT(lhs) ^ UnderlyingTypeT(rhs)); }
@@ -45,17 +70,6 @@ template <typename FlagsT, typename UnderlyingTypeT = unsigned>
     friend constexpr bool hasAnyOf(flags _flags, flags desiredFlags) noexcept { return (UnderlyingTypeT(_flags) & UnderlyingTypeT(desiredFlags)) != 0; }
     friend constexpr bool hasAllOf(flags _flags, flags desiredFlags) noexcept { return flags(UnderlyingTypeT(_flags) & UnderlyingTypeT(desiredFlags)) == desiredFlags; }
 };
-
-
-    // Helper for type dispatching.
-template <typename T = void>
-    struct tag_t
-{
-    using type = T;
-};
-template <typename T = void>
-    constexpr tag_t<T> tag { };
-
 
 
     // Type sequence (strictly for compile-time purposes).
@@ -321,14 +335,8 @@ template <typename F, template <typename...> class T>
     }
 };
 
-template <typename T, template <typename...> class U>
-    struct is_template_ : std::false_type
-{
-};
-template <template <typename...> class U, typename... Ts>
-    struct is_template_<U<Ts...>, U> : std::true_type
-{
-};
+template <typename T, template <typename...> class U> struct is_same_template_ : std::false_type { };
+template <template <typename...> class U, typename... Ts> struct is_same_template_<U<Ts...>, U> : std::true_type { };
 
 } // namespace detail
 
@@ -405,9 +413,9 @@ template <template <typename...> class T, typename F>
 }
 
 template <typename T, template <typename...> class U>
-    using is_template_t = makeshift::detail::is_template_<T, U>;
+    using is_same_template_t = makeshift::detail::is_same_template_<T, U>;
 template <typename T, template <typename...> class U>
-    constexpr bool is_template = is_template_t<T, U>::value;
+    constexpr bool is_same_template = is_same_template_t<T, U>::value;
 
 } // inline namespace types
 
@@ -477,21 +485,21 @@ inline namespace types
 {
 
 template <typename TupleT, typename F,
-          typename = std::enable_if_t<is_template<std::decay_t<TupleT>, std::tuple>>>
+          typename = std::enable_if_t<is_same_template<std::decay_t<TupleT>, std::tuple>>>
     constexpr void tuple_foreach(TupleT&& tuple, F&& func)
 {
     makeshift::detail::tuple_foreach_impl(std::make_index_sequence<std::tuple_size<std::decay_t<TupleT>>::value>{ },
         std::forward<TupleT>(tuple), std::forward<F>(func));
 }
 template <typename TupleT, typename F,
-          typename = std::enable_if_t<is_template<std::decay_t<TupleT>, std::tuple>>>
+          typename = std::enable_if_t<is_same_template<std::decay_t<TupleT>, std::tuple>>>
     constexpr auto tuple_map(TupleT&& tuple, F&& func)
 {
     return makeshift::detail::tuple_map_impl(std::make_index_sequence<std::tuple_size<std::decay_t<TupleT>>::value>{ },
         std::forward<TupleT>(tuple), std::forward<F>(func));
 }
 template <typename TupleT, typename T, typename F,
-          typename = std::enable_if_t<is_template<std::decay_t<TupleT>, std::tuple>>>
+          typename = std::enable_if_t<is_same_template<std::decay_t<TupleT>, std::tuple>>>
     constexpr auto tuple_reduce(TupleT&& tuple, T&& initialValue, F&& func)
 {
     return makeshift::detail::tuple_reduce_impl(std::make_index_sequence<std::tuple_size<std::decay_t<TupleT>>::value>{ },

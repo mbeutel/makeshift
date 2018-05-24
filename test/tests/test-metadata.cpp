@@ -44,10 +44,12 @@ struct Vegetables : mk::define_flags<Vegetables>
     static constexpr flags something_weird = chili | flag(128);
 };
 using Ratatouille = Vegetables::flags;
-static constexpr auto reflect(Ratatouille*, mk::tag_t<>)
+static constexpr auto reflect(Vegetables*, mk::tag_t<>) // note: we reflect on Vegetables which is our own type, not on Ratatouille which is just an alias!
 {
-    return mk::type<Ratatouille>("Ratatouille",
-        mk::flags,
+    return mk::type<Vegetables>("Vegetables",
+        mk::flags(
+            mk::type<Ratatouille>("Ratatouille")
+        ),
         mk::description("foo"),
         mk::value<Vegetables::potato>("potato"),
         mk::value<Vegetables::tomato>("tomato"),

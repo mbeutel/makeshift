@@ -81,9 +81,9 @@ template <std::size_t I, typename TupleT>
     return std::get<I>(std::forward<TupleT>(arg));
 }
 template <std::size_t I, typename T>
-    constexpr std::size_t get_entry(std::integral_constant<tuple_arg_kind_t, tuple_arg_kind_t::index>, T&&) noexcept
+    constexpr std::integral_constant<std::size_t, I> get_entry(std::integral_constant<tuple_arg_kind_t, tuple_arg_kind_t::index>, T&&) noexcept
 {
-    return I;
+    return { };
 }
 
 struct tuple_size_aggregator

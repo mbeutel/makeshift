@@ -102,9 +102,23 @@ template <auto... Accessors, typename... AttrT>
     return { std::make_tuple(makeshift::detail::literal_decay(std::forward<AttrT>(attributes))...) };
 }*/
 
-    // Use `flags` to mark an enum type as a bitflag type in metadata.
-struct flags_t { };
-static inline constexpr flags_t flags { };
+    // Use `flags(type<>` to mark an enum type as a bitflag type in metadata.
+//struct flags_t { };
+//static inline constexpr flags_t flags { };
+
+template <typename TypeMetadataT>
+    struct flags_t
+{
+    using value_type = TypeMetadataT;
+    TypeMetadataT value;
+};
+template <typename TypeMetadataT,
+          typename = std::enable_if_t<is_same_template<TypeMetadataT, type_metadata>>>
+    constexpr flags_t<std::decay_t<TypeMetadataT>> flags(TypeMetadataT&& typeMetadata)
+{
+    return { std::forward<TypeMetadataT>(typeMetadata) };
+}
+
 
     // Use `description("the description")` to encode a human-readable description of an entity in metadata.
 struct description_t { std::string_view value; };
@@ -112,11 +126,7 @@ static inline constexpr description_t description(std::string_view value) { retu
 
     // Use `metadata_of<T>` to look up metadata for a type.
 template <typename T>
-    constexpr auto metadata_of(void)
-{
-        // find reflect() with ADL
-    return reflect((T*) nullptr, tag<>);
-}
+    static constexpr auto metadata_of { reflect((T*) nullptr, tag<>) };
 
 } // inline namespace metadata
 

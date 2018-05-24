@@ -72,38 +72,25 @@ template <typename ValC, typename... AttributesT>
     return { std::uint64_t(ValC::value), name };
 }
 
-template <std::size_t N, bool IsFlagsEnum>
+template <std::size_t N>
     struct enum_stringdata
 {
-    static constexpr bool isFlagsEnum = IsFlagsEnum;
-
     std::array<enum_value_stringdata, N> values;
     std::string_view typeName;
     std::string_view typeDesc;
 };
 template <std::size_t N, typename EnumT>
-    std::string to_string(const enum_stringdata<N, false>& stringdata, EnumT value)
+    std::string to_string(const enum_stringdata<N>& sdata, EnumT value)
 {
-    return enum_to_string(stringdata.values, std::uint64_t(value));
+    return enum_to_string(sdata.values, std::uint64_t(value));
 }
 template <std::size_t N, typename EnumT>
-    std::string to_string(const enum_stringdata<N, true>& stringdata, EnumT value)
+    EnumT from_string(tag_t<EnumT>, const enum_stringdata<N>& sdata, const std::string& string)
 {
-    return flags_enum_to_string(stringdata.values, std::uint64_t(value));
+    return EnumT(string_to_enum(sdata.values, sdata.typeName, sdata.typeDesc, string));
 }
-template <std::size_t N, typename EnumT>
-    EnumT from_string(tag_t<EnumT>, const enum_stringdata<N, false>& stringdata, const std::string& string)
-{
-    return EnumT(string_to_enum(stringdata.values, stringdata.typeName, stringdata.typeDesc, string));
-}
-template <std::size_t N, typename EnumT>
-    EnumT from_string(tag_t<EnumT>, const enum_stringdata<N, true>& stringdata, const std::string& string)
-{
-    return EnumT(string_to_flags_enum(stringdata.values, stringdata.typeName, stringdata.typeDesc, string));
-}
-
-template <typename EnumT, std::size_t N, bool IsFlagsEnum, typename AttributesT>
-    constexpr enum_stringdata<N, IsFlagsEnum> make_enum_stringdata_impl(const type_metadata<EnumT, AttributesT>& enumMetadata)
+template <typename EnumT, std::size_t N, typename AttributesT>
+    constexpr enum_stringdata<N> make_enum_stringdata_impl(const type_metadata<EnumT, AttributesT>& enumMetadata)
 {
     std::array<enum_value_stringdata, N> values { };
     std::size_t index = 0;
@@ -118,14 +105,60 @@ template <typename EnumT, std::size_t N, bool IsFlagsEnum, typename AttributesT>
     return { values, typeName, typeDesc };
 }
 
+template <std::size_t N>
+    struct flags_enum_stringdata
+{
+    std::array<enum_value_stringdata, N> values;
+    std::string_view flagTypeName; // name of the enum type
+    std::string_view defTypeName; // name of the struct which defines the constants
+    std::string_view typeDesc;
+};
+template <std::size_t N, typename EnumT>
+    std::string to_string(const flags_enum_stringdata<N>& sdata, EnumT value)
+{
+    return flags_enum_to_string(sdata.values, std::uint64_t(value));
+}
+template <std::size_t N, typename EnumT>
+    EnumT from_string(tag_t<EnumT>, const flags_enum_stringdata<N>& sdata, const std::string& string)
+{
+    return EnumT(string_to_flags_enum(sdata.values, sdata.flagTypeName, sdata.typeDesc, string));
+}
+template <typename EnumT, std::size_t N, typename DefT, typename AttributesT>
+    constexpr flags_enum_stringdata<N> make_flags_enum_stringdata_impl(const type_metadata<DefT, AttributesT>& enumMetadata)
+{
+    std::array<enum_value_stringdata, N> values { };
+    std::size_t index = 0;
+    std::string_view flagTypeName;
+    std::string_view defTypeName;
+    std::string_view typeDesc;
+    tuple_foreach(enumMetadata.attributes, overload(
+        match_template<flags_t>([&](const auto& flags)
+        {
+            tuple_foreach(flags.value.attributes, overload(
+                [&](std::string_view s) { flagTypeName = s; },
+                otherwise(ignore)
+            ));
+        }),
+        [&](std::string_view s) { defTypeName = s; },
+        [&](description_t desc) { typeDesc = desc.value; },
+        match_template<value_metadata>([&](const auto& val) { values.at(index++) = make_enum_value_stringdata(val); }),
+        otherwise(ignore)
+    ));
+    return { values, flagTypeName, defTypeName, typeDesc };
+}
+
 template <typename T, typename... AttributesT>
     constexpr auto make_stringdata(const type_metadata<T, std::tuple<AttributesT...>>& typeMetadata)
 {
     if constexpr (std::is_enum<T>::value)
     {
-        constexpr bool isFlagsEnum = (std::is_same<AttributesT, flags_t>::value || ...);
-        constexpr std::size_t numValues = (0 + ... + (is_template<AttributesT, value_metadata> ? 1 : 0));
-        return make_enum_stringdata_impl<T, numValues, isFlagsEnum>(typeMetadata);
+        constexpr std::size_t numValues = (0 + ... + (is_same_template<AttributesT, value_metadata> ? 1 : 0));
+        return make_enum_stringdata_impl<T, numValues>(typeMetadata);
+    }
+    else if constexpr (std::is_base_of<makeshift::detail::flags_base, T>::value)
+    {
+        constexpr std::size_t numValues = (0 + ... + (is_same_template<AttributesT, value_metadata> ? 1 : 0));
+        return make_flags_enum_stringdata_impl<T, numValues>(typeMetadata);
     }
     else
     {
@@ -134,7 +167,7 @@ template <typename T, typename... AttributesT>
 }
 
 template <typename T>
-    /*constexpr*/ inline auto stringdata { make_stringdata(metadata_of<T>()) };
+    static /*constexpr*/ auto stringdata { make_stringdata(metadata_of<T>) };
     
 template <typename T>
     struct rvalue_as_string
@@ -214,3 +247,4 @@ template <typename T>
 } // namespace makeshift
 
 #endif // MAKESHIFT_SERIALIZE_HPP_
+
