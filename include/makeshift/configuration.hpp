@@ -15,19 +15,18 @@ namespace makeshift
 namespace detail
 {
 
+#pragma region Leaf classes
+
 template <typename T>
     class config_value
 {
 private:
     T value_;
 public:
-    constexpr config_value(T _value)
-        : value_(std::move(_value))
-    {
-    }
+    constexpr config_value(T _value) : value_(std::move(_value)) { }
 };
 
-template <typename T>
+template <typename SigT>
     class config_map;
 template <typename R, typename... ArgsT>
     class config_map<R(ArgsT...)>
@@ -35,11 +34,53 @@ template <typename R, typename... ArgsT>
 private:
     std::function<R(ArgsT...)> func_;
 public:
-    config_map(std::function<R(ArgsT...)> _func)
-        : func_(std::move(_func))
-    {
-    }
+    config_map(std::function<R(ArgsT...)> _func) : func_(std::move(_func)) { }
 };
+
+
+struct open_map_base { };
+
+template <typename SigT, template <typename NewArgsT> class RebinderT, typename FuncT>
+    class open_map : public open_map_base
+{
+private:
+    FuncT func_;
+public:
+    constexpr open_map(FuncT _func) : func_(std::move(_func)) { }
+};
+
+#pragma endregion Leaf classes
+
+#pragma region Configuration mappings
+
+template <typename... CfgMapT>
+    struct Match
+{
+};
+
+#pragma endregion Configuration mappings
+
+template <typename OpenMapT, typename NewArgsT>
+    struct rebind_;
+template <typename SigT, template <typename NewArgsT> class RebinderT, typename FuncT, typename NewArgsT>
+    struct rebind_<open_map<SigT, RebinderT, FuncT>, NewArgsT> : RebinderT<NewArgsT>
+{
+};
+template <typename OpenMapT, typename NewArgsT>
+    using rebind = typename rebind_<OpenMapT, NewArgsT>::type;
+
+
+    // RebinderT must support `using NewR = RebinderT<R(NewArgsT)>::type`
+/*template <typename OpenMapT>
+    class config_typed_map
+{
+private:
+    OpenMapT map_;
+
+public:
+    constexpr config_typed_map(FuncT _func) : func_(std::move(_func)) { }
+};*/
+
 
 template <typename T> using can_call_r = decltype(&T::operator ());
 template <typename T> using can_call_t = can_apply_t<can_call_r, T>;
