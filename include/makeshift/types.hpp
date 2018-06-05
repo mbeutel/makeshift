@@ -89,6 +89,13 @@ template <typename... Ts>
 namespace detail
 {
 
+    // this is an abomination; it is used only to avoid errors about incompatible types when another, more helpful error message will follow.
+struct UniversallyConvertibleType
+{
+    template <typename T> operator T(void) const;
+};
+
+
     // adapted from Mark Adler's post at https://stackoverflow.com/a/27950866
 static constexpr std::uint32_t crc32c(std::uint32_t crc, const char* buf, std::size_t len) noexcept
 {
@@ -420,6 +427,10 @@ template <typename T, template <typename...> class U>
     using is_same_template_t = makeshift::detail::is_same_template_<T, U>;
 template <typename T, template <typename...> class U>
     constexpr bool is_same_template = is_same_template_t<T, U>::value;
+
+template <typename T> struct remove_rvalue_reference { using type = T; };
+template <typename T> struct remove_rvalue_reference<T&&> { using type = T; };
+template <typename T> using remove_rvalue_reference_t = typename remove_rvalue_reference<T>::type;
 
 } // inline namespace types
 
