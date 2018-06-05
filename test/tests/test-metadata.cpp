@@ -79,11 +79,11 @@ TEST_CASE("serialize", "[serialize]")
         CHECK(mk::to_string(MyEnum::foo) == "foo");
         CHECK(mk::to_string(MyEnum::bar) == "bar");
         CHECK(mk::from_string<MyEnum>("bar") == MyEnum::bar);
-        CHECK_THROWS(mk::from_string<MyEnum>("baz"));
+        CHECK_THROWS(from_string(mk::tag<MyEnum>, "baz"));
         std::stringstream sstr;
-        sstr << mk::as_string(MyEnum::bar);
+        sstr << mk::streamable(MyEnum::bar);
         MyEnum val = MyEnum::foo;
-        sstr >> mk::as_string(val);
+        sstr >> mk::streamable(val);
         CHECK(val == MyEnum::bar);
     }
     SECTION("flags-enum")

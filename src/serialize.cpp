@@ -29,7 +29,7 @@ namespace detail
     throw std::runtime_error(msg); // TODO: use more appropriate exception class
 }
 
-std::string enum_to_string(gsl::span<const enum_value_stringdata> knownValues,
+std::string enum_to_string(gsl::span<const enum_value_serialization_context> knownValues,
     std::uint64_t enumValue)
 {
     for (auto& knownValue : knownValues)
@@ -43,7 +43,7 @@ constexpr bool isPowerOf2(std::uint64_t value) noexcept
     return value != 0 && (value & (value - 1)) == 0;
 }
 
-std::string flags_enum_to_string(gsl::span<const enum_value_stringdata> knownValues,
+std::string flags_enum_to_string(gsl::span<const enum_value_serialization_context> knownValues,
     std::uint64_t enumValue)
 {
     std::string result;
@@ -73,7 +73,7 @@ std::string flags_enum_to_string(gsl::span<const enum_value_stringdata> knownVal
     return result;
 }
 bool try_string_to_enum(std::uint64_t& enumValue,
-    gsl::span<const enum_value_stringdata> knownValues,
+    gsl::span<const enum_value_serialization_context> knownValues,
     const std::string& string) noexcept
 {
     for (auto& knownValue : knownValues)
@@ -85,7 +85,7 @@ bool try_string_to_enum(std::uint64_t& enumValue,
     return false;
 }
 std::uint64_t string_to_enum(
-    gsl::span<const enum_value_stringdata> knownValues, std::string_view typeName, std::string_view typeDesc,
+    gsl::span<const enum_value_serialization_context> knownValues, std::string_view typeName, std::string_view typeDesc,
     const std::string& string)
 {
     std::uint64_t enumValue;
@@ -112,7 +112,7 @@ static std::optional<std::string_view> expectSeparator(std::string_view s) noexc
     return s;
 }
 bool try_string_to_flags_enum(std::uint64_t& enumValue,
-    gsl::span<const enum_value_stringdata> knownValues,
+    gsl::span<const enum_value_serialization_context> knownValues,
     const std::string& string) noexcept
 {
     std::string_view sv = string;
@@ -151,7 +151,7 @@ bool try_string_to_flags_enum(std::uint64_t& enumValue,
     return true;
 }
 std::uint64_t string_to_flags_enum(
-    gsl::span<const enum_value_stringdata> knownValues, std::string_view typeName, std::string_view typeDesc,
+    gsl::span<const enum_value_serialization_context> knownValues, std::string_view typeName, std::string_view typeDesc,
     const std::string& string)
 {
     std::uint64_t enumValue;
