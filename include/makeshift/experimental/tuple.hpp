@@ -163,6 +163,42 @@ public:
     }
 };
 
+template <typename InitialValueT, typename FuncT>
+    struct tuple_bound_reduce_t : FuncT
+{
+private:
+    InitialValueT initialValue_;
+
+    template <std::size_t... Is, typename ValT, typename TupleT>
+        constexpr auto invoke(std::index_sequence<Is...>, TupleT&& tuple) const &
+    {
+        auto wrappedInitialValue = make_accumulator_wrapper(static_cast<const FuncT&>(*this), initialValue);
+        return (std::move(wrappedInitialValue) + ... + std::get<Is>(std::forward<TupleT>(tuple))).get();
+    }
+    template <std::size_t... Is, typename ValT, typename TupleT>
+        constexpr auto invoke(std::index_sequence<Is...>, TupleT&& tuple) &&
+    {
+        auto wrappedInitialValue = make_accumulator_wrapper(static_cast<const FuncT&>(*this), std::move(initialValue));
+        return (std::move(wrappedInitialValue) + ... + std::get<Is>(std::forward<TupleT>(tuple))).get();
+    }
+    
+public:
+    constexpr tuple_bound_reduce_t(InitialValueT&& _initialValue, FuncT func) : FuncT(std::move(func)), initialValue_(std::move(_initialValue)) { }
+
+    template <typename ValT, typename TupleT,
+              typename = typename std::enable_if<tuple_arg_kind_of<typename std::decay<TupleT>::type> == tuple_arg_kind_t::tuple>::type>
+        constexpr auto operator ()(TupleT&& tuple) const &
+    {
+        return invoke(std::make_index_sequence<std::tuple_size<typename std::decay<TupleT>::type>::value>{ }, std::forward<TupleT>(tuple));
+    }
+    template <typename ValT, typename TupleT,
+              typename = typename std::enable_if<tuple_arg_kind_of<typename std::decay<TupleT>::type> == tuple_arg_kind_t::tuple>::type>
+        constexpr auto operator ()(TupleT&& tuple) &&
+    {
+        return invoke(std::make_index_sequence<std::tuple_size<typename std::decay<TupleT>::type>::value>{ }, std::forward<TupleT>(tuple));
+    }
+};
+
 } // namespace detail
 
 inline namespace types
@@ -205,6 +241,20 @@ template <typename FuncT>
 template <typename FuncT>
     constexpr makeshift::detail::tuple_reduce_t<typename std::decay<FuncT>::type>
     tuple_freduce(FuncT&& func)
+{
+    return { std::forward<FuncT>(func) };
+}
+
+    // Higher-order function that takes an initial value and a binary accumulator function (i.e. a function with non-tuple arguments and non-tuple type)
+    // and returns a function which reduces a tuple to a scalar using the accumulator function.
+    //
+    //     auto sumTuple = ac::tuple_freduce(0, std::plus<int>{ });
+    //     auto numbers = std::make_tuple(2, 3u);
+    //     int sum = sumTuple(numbers); // returns 5
+    //
+template <typename InitialValueT, typename FuncT>
+    constexpr makeshift::detail::tuple_bound_reduce_t<typename std::decay<InitialValueT>::type, typename std::decay<FuncT>::type>
+    tuple_freduce(InitialValueT&& initialValue, FuncT&& func)
 {
     return { std::forward<FuncT>(func) };
 }
