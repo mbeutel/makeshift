@@ -39,12 +39,12 @@ option(BUILD_TESTS "Build tests" OFF)
 #option(BUILD_DOCUMENTATION "Build documentation (HTML)" OFF)
 option(EXPORT_BUILD_DIR "Export build directory using CMake (enables external use without install)" OFF)
 
+# Make CMake aware of the cmake folder for local FindXXX scripts.
+list(APPEND CMAKE_MODULE_PATH ${INTERFACE_FIND_MODULE_PATH})
+
 
 ## 2. Targets
 ## ==========
-
-# Make CMake aware of the cmake folder for local FindXXX scripts.
-list(APPEND CMAKE_MODULE_PATH ${INTERFACE_FIND_MODULE_PATH})
 
 # project targets
 add_subdirectory(src)

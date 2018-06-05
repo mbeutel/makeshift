@@ -1,4 +1,4 @@
-# makeshift::test
+# test-makeshift
 # Author: Moritz Beutel
 # Distributed under the BSD 3-Clause License. See accompanying file licensing.txt for details.
 
@@ -19,3 +19,5 @@ add_executable(test-makeshift
 target_link_libraries(test-makeshift
     PRIVATE
         makeshift Catch2::Catch)
+
+add_test(NAME test-makeshift COMMAND test-makeshift)
