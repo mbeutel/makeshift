@@ -9,7 +9,7 @@
 #include <cstddef>     // for size_t
 #include <tuple>
 
-#include <makeshift/types.hpp> // for tag<>
+#include <makeshift/types.hpp> // for metadata_tag
 
 
 namespace makeshift
@@ -47,6 +47,10 @@ struct property_metadata_base { };
 inline namespace metadata
 {
 
+using makeshift::types::metadata_tag;
+
+
+    // Use `type<T>(...)` to declare metadata for a type.
 template <typename T, typename AttributesT>
     struct type_metadata : makeshift::detail::type_metadata_base
 {
@@ -55,7 +59,6 @@ template <typename T, typename AttributesT>
     AttributesT attributes;
 
     constexpr type_metadata(AttributesT&& _attributes)
-    noexcept(noexcept(AttributesT(std::move(_attributes))))
         : attributes(_attributes)
     {
     }
@@ -66,13 +69,13 @@ template <typename T, typename... AttrT>
     return { std::make_tuple(makeshift::detail::literal_decay(std::forward<AttrT>(attributes))...) };
 }
 
+    // Use `value<V>(...)` to declare metadata for a known value of a type.
 template <typename ValC, typename AttributesT>
     struct value_metadata : ValC, makeshift::detail::value_metadata_base
 {
     AttributesT attributes;
 
     constexpr value_metadata(AttributesT&& _attributes)
-    noexcept(noexcept(AttributesT(std::move(_attributes))))
         : attributes(_attributes)
     {
     }
@@ -83,29 +86,26 @@ template <auto Val, typename... AttrT>
     return { std::make_tuple(makeshift::detail::literal_decay(std::forward<AttrT>(attributes))...) };
 }
 
-/*template <typename AttributesT, auto... Accessors>
+    // Use `property<Accessors...>(...)` to declare metadata for properties of a type.
+template <typename AccessorsC, typename AttributesT>
     struct property_metadata : makeshift::detail::property_metadata_base
 {
-    static inline constexpr std::tuple<decltype(Accessors)...> accessors { Accessors... };
+    using accessors = AccessorsC;
 
     AttributesT attributes;
 
     constexpr property_metadata(AttributesT&& _attributes)
-    noexcept(noexcept(AttributesT(std::move(_attributes))))
         : attributes(_attributes)
     {
     }
 };
 template <auto... Accessors, typename... AttrT>
-    constexpr property_metadata<std::tuple<makeshift::detail::literal_decay_t<AttrT>...>, Accessors...> property(AttrT&&... attributes)
+    constexpr property_metadata<type_sequence<std::integral_constant<decltype(Accessors), Accessors>...>, std::tuple<makeshift::detail::literal_decay_t<AttrT>...>> property(AttrT&&... attributes)
 {
     return { std::make_tuple(makeshift::detail::literal_decay(std::forward<AttrT>(attributes))...) };
-}*/
+}
 
-    // Use `flags(type<>` to mark an enum type as a bitflag type in metadata.
-//struct flags_t { };
-//static inline constexpr flags_t flags { };
-
+    // Use `flags(type<TheFlagsType>(...))` to mark an enum type as a bitflag type in metadata.
 template <typename TypeMetadataT>
     struct flags_t
 {
@@ -119,18 +119,16 @@ template <typename TypeMetadataT,
     return { std::forward<TypeMetadataT>(typeMetadata) };
 }
 
-
     // Use `description("the description")` to encode a human-readable description of an entity in metadata.
 struct description_t { std::string_view value; };
 static inline constexpr description_t description(std::string_view value) { return { value }; }
 
     // Use `metadata_of<T>` to look up metadata for a type.
 template <typename T>
-    static constexpr auto metadata_of { reflect((T*) nullptr, tag<>) };
+    static constexpr auto metadata_of { reflect((T*) nullptr, metadata_tag{ }) };
 
 } // inline namespace metadata
 
 } // namespace makeshift
 
 #endif // MAKESHIFT_METADATA_HPP
-

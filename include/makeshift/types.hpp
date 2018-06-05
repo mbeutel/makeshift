@@ -36,6 +36,10 @@ template <typename T = void>
 
 
 
+    // Tag type for reflect() methods which define type metadata.
+struct metadata_tag { };
+
+
     // Inherit from define_flags<> to define a flag enum type:
     // 
     //     struct Vegetable : define_flags<Vegetable>
@@ -54,9 +58,9 @@ template <typename FlagsT, typename UnderlyingTypeT = unsigned>
     using flag = flags; // alias for declaring flag constants
 
         // We just forward the metadata defined for the derived type.
-    friend constexpr auto reflect(flag*, tag_t<>)
+    friend constexpr auto reflect(flag*, metadata_tag)
     {
-        return reflect((FlagsT*) nullptr, tag<>);
+        return reflect((FlagsT*) nullptr, metadata_tag { });
     }
 
     friend constexpr flags operator |(flags lhs, flags rhs) noexcept { return flags(UnderlyingTypeT(lhs) | UnderlyingTypeT(rhs)); }
