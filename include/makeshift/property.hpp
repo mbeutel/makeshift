@@ -33,6 +33,8 @@ using PropertyFlags = PropertyFlag::flags;
 namespace detail
 {
 
+//template <typename T>
+    
 
 struct InvalidSetter
 {

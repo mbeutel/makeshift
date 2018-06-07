@@ -2,8 +2,8 @@
 #include <string>
 #include <functional> // for plus<>
 
-#include <makeshift/types.hpp>
-#include <makeshift/experimental/tuple.hpp>
+#include <makeshift/utility.hpp> // for overload()
+#include <makeshift/tuple.hpp>
 
 #include <catch.hpp>
 
@@ -15,7 +15,7 @@ namespace mk = makeshift;
 
 void testTupleReduce(void)
 {
-    auto sumTuple = mk::tuple_freduce(std::plus<int>{ });
+    auto sumTuple = mk::tuple_reduce(std::plus<int>{ });
     auto numbers = std::make_tuple(2, 3u);
     int sum = sumTuple(0, numbers);
     CHECK(sum == 5);
@@ -30,7 +30,7 @@ void testTupleForeach(void)
 }
 void testTupleMap(void)
 {
-    auto square = mk::tuple_fmap([](auto x) { return x*x; });
+    auto square = mk::tuple_map([](auto x) { return x*x; });
     auto numbers = std::make_tuple(2, 3u);
     auto squaredNumbers = square(numbers);
     CHECK(squaredNumbers == std::make_tuple(4, 9u));
@@ -50,14 +50,14 @@ void testIndex(void)
 }
 void testOverloads(void)
 {
-    auto typenamesOf = mk::tuple_fmap(
+    auto typenamesOf = mk::tuple_map(
         mk::overload(
             [](int) { return "int"s; },
             [](float) { return "float"s; }
         )
     );
     auto someTuple = std::make_tuple(42, 13.37f, 0);
-    auto joinStrings = mk::tuple_freduce(
+    auto joinStrings = mk::tuple_reduce(
         [](const std::string& lhs, const std::string& rhs)
         {
             return !lhs.empty()
@@ -67,6 +67,19 @@ void testOverloads(void)
     auto typenames = typenamesOf(someTuple);
     auto result = joinStrings("", typenames);
     CHECK(result == "int, float, int");
+}
+void testFunctionVariants(void)
+{
+    auto numbers = std::make_tuple(0, 1u, 2);
+    mk::tuple_foreach(numbers, [](auto& val)
+    {
+        ++val;
+    });
+    CHECK(numbers == std::make_tuple(1, 2u, 3));
+    auto squares = mk::tuple_map(numbers, [](auto x) { return x*x; });
+    CHECK(squares == std::make_tuple(1, 4u, 9));
+    auto sumOfSquares = mk::tuple_reduce(squares, 0, std::plus<>());
+    CHECK(sumOfSquares == 14);
 }
 
 TEST_CASE("tuple", "[flags]")
@@ -90,5 +103,9 @@ TEST_CASE("tuple", "[flags]")
     SECTION("overloads")
     {
         testOverloads();
+    }
+    SECTION("function-variants")
+    {
+        testFunctionVariants();
     }
 }

@@ -12,10 +12,12 @@
 #include <cstddef>     // for size_t
 #include <cstdint>     // for uint64_t
 
+#include <makeshift/type_traits.hpp> // for tag<>
 #include <makeshift/metadata.hpp>
-#include <makeshift/types.hpp>    // for tag<>
+#include <makeshift/tuple.hpp>
+#include <makeshift/array.hpp>       // for to_array()
 
-#include <makeshift/detail/cfg.hpp> // for MAKESHIFT_SYS_DLLFUNC
+#include <makeshift/detail/cfg.hpp>  // for MAKESHIFT_SYS_DLLFUNC
 
 #include <gsl/span>
 
@@ -74,11 +76,7 @@ template <typename ValC, typename... AttributesT>
 {
     static_assert(sizeof(ValC::value) <= sizeof(std::uint64_t), "enums with an underlying type of more than 64 bits are not supported");
 
-    std::string_view name;
-    tuple_foreach(valueMetadata.attributes, overload(
-        [&](std::string_view s) { name = s; },
-        otherwise(ignore)
-    ));
+    std::string_view name = std::get<std::string_view>(valueMetadata.attributes);
     return { std::uint64_t(ValC::value), name };
 }
 
@@ -99,20 +97,17 @@ template <typename EnumT, std::size_t N>
 {
     return EnumT(string_to_enum(sctx.values, sctx.typeName, sctx.typeDesc, string));
 }
-template <typename EnumT, std::size_t N, typename AttributesT>
-    constexpr enum_serialization_context<N> make_enum_serialization_context_impl(const type_metadata<EnumT, AttributesT>& enumMetadata)
+template <typename T> using is_value_metadata = is_same_template<T, value_metadata>;
+template <typename EnumT, typename AttributesT>
+    constexpr auto make_enum_serialization_context(const type_metadata<EnumT, AttributesT>& enumMetadata)
 {
-    std::array<enum_value_serialization_context, N> values { };
-    std::size_t index = 0;
-    std::string_view typeName;
-    std::string_view typeDesc;
-    tuple_foreach(enumMetadata.attributes, overload(
-        [&](std::string_view s) { typeName = s; },
-        [&](description_t desc) { typeDesc = desc.value; },
-        match_template<value_metadata>([&](const auto& val) { values.at(index++) = make_enum_value_serialization_context(val); }),
-        otherwise(ignore)
-    ));
-    return { values, typeName, typeDesc };
+    std::string_view typeName = get_or_default<std::string_view>(enumMetadata.attributes);
+    std::string_view typeDesc = get_or_default<description_t>(enumMetadata.attributes).value;
+    auto values = enumMetadata.attributes
+        | tuple_filter<is_value_metadata>()
+        | tuple_map([](const auto& v) { return make_enum_value_serialization_context(v); })
+        | to_array();
+    return enum_serialization_context<array_size_v<decltype(values)>> { values, typeName, typeDesc };
 }
 
 template <std::size_t N>
@@ -133,28 +128,29 @@ template <typename EnumT, std::size_t N>
 {
     return EnumT(string_to_flags_enum(sctx.values, sctx.flagTypeName, sctx.typeDesc, string));
 }
-template <typename EnumT, std::size_t N, typename DefT, typename AttributesT>
-    constexpr flags_enum_serialization_context<N> make_flags_enum_serialization_context_impl(const type_metadata<DefT, AttributesT>& enumMetadata)
+template <typename T> using is_flags = is_same_template<T, flags_t>;
+template <typename DefT, typename AttributesT>
+    constexpr std::string_view get_flag_type_name(const type_metadata<DefT, AttributesT>& enumMetadata)
 {
-    std::array<enum_value_serialization_context, N> values { };
-    std::size_t index = 0;
-    std::string_view flagTypeName;
-    std::string_view defTypeName;
-    std::string_view typeDesc;
-    tuple_foreach(enumMetadata.attributes, overload(
-        match_template<flags_t>([&](const auto& flags)
-        {
-            tuple_foreach(flags.value.attributes, overload(
-                [&](std::string_view s) { flagTypeName = s; },
-                otherwise(ignore)
-            ));
-        }),
-        [&](std::string_view s) { defTypeName = s; },
-        [&](description_t desc) { typeDesc = desc.value; },
-        match_template<value_metadata>([&](const auto& val) { values.at(index++) = make_enum_value_serialization_context(val); }),
-        otherwise(ignore)
-    ));
-    return { values, flagTypeName, defTypeName, typeDesc };
+    auto maybeFlags = enumMetadata.attributes
+        | tuple_filter<is_flags>()
+        | single_or_none();
+    if constexpr (!std::is_same<decltype(maybeFlags), none_t>::value)
+        return get_or_default<std::string_view>(maybeFlags.value.attributes);
+    else
+        return { };
+}
+template <typename DefT, typename AttributesT>
+    constexpr auto make_flags_enum_serialization_context(const type_metadata<DefT, AttributesT>& enumMetadata)
+{
+    std::string_view defTypeName = get_or_default<std::string_view>(enumMetadata.attributes);
+    std::string_view typeDesc = get_or_default<description_t>(enumMetadata.attributes).value;
+    std::string_view flagTypeName = get_flag_type_name(enumMetadata);
+    auto values = enumMetadata.attributes
+        | tuple_filter<is_value_metadata>()
+        | tuple_map([](const auto& v) { return make_enum_value_serialization_context(v); })
+        | to_array();
+    return flags_enum_serialization_context<array_size_v<decltype(values)>>{ values, flagTypeName, defTypeName, typeDesc };
 }
 
 template <typename T, typename SerializationContextT>
@@ -219,19 +215,11 @@ template <typename T, typename... AttributesT>
     constexpr auto make_serialization_context(const type_metadata<T, std::tuple<AttributesT...>>& typeMetadata)
 {
     if constexpr (std::is_enum<T>::value)
-    {
-        constexpr std::size_t numValues = (0 + ... + (is_same_template<AttributesT, value_metadata> ? 1 : 0));
-        return makeshift::detail::make_enum_serialization_context_impl<T, numValues>(typeMetadata);
-    }
+        return makeshift::detail::make_enum_serialization_context(typeMetadata);
     else if constexpr (std::is_base_of<makeshift::detail::flags_base, T>::value)
-    {
-        constexpr std::size_t numValues = (0 + ... + (is_same_template<AttributesT, value_metadata> ? 1 : 0));
-        return makeshift::detail::make_flags_enum_serialization_context_impl<T, numValues>(typeMetadata);
-    }
+        return makeshift::detail::make_flags_enum_serialization_context(typeMetadata);
     else
-    {
         static_assert(sizeof(T) == ~0, "unsupported type");
-    }
 }
 
 template <typename T>
