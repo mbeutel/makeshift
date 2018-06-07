@@ -4,12 +4,12 @@
 
 
 #include <string_view>
-#include <type_traits> // for decay_t<>
+#include <type_traits> // for decay<>
 #include <utility>     // for forward<>()
 #include <cstddef>     // for size_t
 #include <tuple>
 
-#include <makeshift/types.hpp> // for metadata_tag
+#include <makeshift/type_traits.hpp> // for metadata_tag
 
 
 namespace makeshift
@@ -18,18 +18,9 @@ namespace makeshift
 namespace detail
 {
 
-template <typename T>
-    struct literal_decay_
-{
-    using type = std::decay_t<T>;
-};
-template <std::size_t N>
-    struct literal_decay_<const char (&)[N]>
-{
-    using type = std::string_view;
-};
-template <typename T>
-    using literal_decay_t = typename literal_decay_<T>::type;
+template <typename T> struct literal_decay_ { using type = std::decay_t<T>; };
+template <std::size_t N> struct literal_decay_<const char (&)[N]> { using type = std::string_view; };
+template <typename T> using literal_decay_t = typename literal_decay_<T>::type;
     
 template <typename T>
     constexpr literal_decay_t<T> literal_decay(T&& value)
@@ -46,6 +37,9 @@ struct property_metadata_base { };
 
 inline namespace metadata
 {
+
+    // expose ""sv literal
+using namespace std::literals::string_view_literals;
 
 using makeshift::types::metadata_tag;
 
@@ -113,7 +107,7 @@ template <typename TypeMetadataT>
     TypeMetadataT value;
 };
 template <typename TypeMetadataT,
-          typename = std::enable_if_t<is_same_template<TypeMetadataT, type_metadata>>>
+          typename = std::enable_if_t<is_same_template_v<TypeMetadataT, type_metadata>>>
     constexpr flags_t<std::decay_t<TypeMetadataT>> flags(TypeMetadataT&& typeMetadata)
 {
     return { std::forward<TypeMetadataT>(typeMetadata) };
@@ -131,4 +125,4 @@ template <typename T>
 
 } // namespace makeshift
 
-#endif // MAKESHIFT_METADATA_HPP
+#endif // MAKESHIFT_METADATA_HPP_

@@ -1,5 +1,6 @@
 
-#include <makeshift/types.hpp>
+#include <makeshift/type_traits.hpp>   // for metadata_tag
+#include <makeshift/utility.hpp>   // for define_flags<>
 #include <makeshift/metadata.hpp>
 #include <makeshift/serialize.hpp>
 

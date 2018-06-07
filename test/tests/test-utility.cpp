@@ -1,7 +1,7 @@
 
 #include <functional>
 
-#include <makeshift/types.hpp>
+#include <makeshift/utility.hpp>
 
 #include <catch.hpp>
 
@@ -49,18 +49,5 @@ TEST_CASE("types", "[flags]")
     SECTION("kwargs")
     {
         CHECK(assembleDecimal(std::make_tuple(mk::name<"ones"_kw> = 7, mk::name<"tens"_kw> = 8)) == 87);
-    }
-    SECTION("tuple")
-    {
-        auto numbers = std::make_tuple(0, 1u, 2);
-        mk::tuple_foreach(numbers, [](auto& val)
-        {
-            ++val;
-        });
-        CHECK(numbers == std::make_tuple(1, 2u, 3));
-        auto squares = mk::tuple_map(numbers, [](auto x) { return x*x; });
-        CHECK(squares == std::make_tuple(1, 4u, 9));
-        auto sumOfSquares = mk::tuple_reduce(squares, 0, std::plus<>());
-        CHECK(sumOfSquares == 14);
     }
 }

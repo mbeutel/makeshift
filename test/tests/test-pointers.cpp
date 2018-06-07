@@ -1,5 +1,4 @@
 
-#include <makeshift/types.hpp>
 #include <makeshift/pointers.hpp>
 
 #include <catch.hpp>

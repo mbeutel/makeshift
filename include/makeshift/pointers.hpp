@@ -11,7 +11,7 @@
 #include <gsl/gsl_assert> // for Expects(), Ensures()
 #include <gsl/pointers>   // for not_null<>
 
-#include <makeshift/detail/meta.hpp> // for can_apply<>
+#include <makeshift/type_traits.hpp> // for can_apply<>
 
 
 
@@ -228,7 +228,8 @@ namespace detail
 
     // SFINAE helpers for polymorphic_cast<>()
 template <typename DstT, typename SrcT> using can_static_cast_r = decltype(static_cast<DstT>(std::declval<SrcT>()));
-template <typename DstT, typename SrcT> using can_static_cast_t = can_apply_t<can_static_cast_r, DstT, SrcT>;
+template <typename DstT, typename SrcT> using can_static_cast = can_apply<can_static_cast_r, DstT, SrcT>;
+template <typename DstT, typename SrcT> constexpr bool can_static_cast_v = can_static_cast<DstT, SrcT>::value;
 
 template <typename DstT, typename SrcT>
     constexpr decltype(auto) polymorphic_pointer_cast_impl(std::true_type /*canStaticCast*/, SrcT&& src) noexcept
@@ -331,7 +332,7 @@ template <typename DstT, typename SrcPtrT>
     constexpr decltype(auto) polymorphic_pointer_cast(SrcPtrT&& src)
 {
     return makeshift::detail::polymorphic_pointer_cast_impl<DstT>(
-        makeshift::detail::can_static_cast_t<typename pointer_traits<DstT>::pointer, typename pointer_traits<std::decay_t<SrcPtrT>>::pointer>{},
+        makeshift::detail::can_static_cast<typename pointer_traits<DstT>::pointer, typename pointer_traits<std::decay_t<SrcPtrT>>::pointer>{},
         std::forward<SrcPtrT>(src));
 }
     // A polymorphic cast is a downcast that can be statically guaranteed to succeed.
@@ -342,7 +343,7 @@ template <typename DstT, typename SrcPtrT>
     constexpr decltype(auto) polymorphic_ref_cast(SrcPtrT&& src)
 {
     return makeshift::detail::polymorphic_ref_cast_impl<DstT>(
-        makeshift::detail::can_static_cast_t<typename pointer_traits<DstT>::pointer, typename pointer_traits<std::decay_t<SrcPtrT>>::pointer>{},
+        makeshift::detail::can_static_cast<typename pointer_traits<DstT>::pointer, typename pointer_traits<std::decay_t<SrcPtrT>>::pointer>{},
         std::forward<SrcPtrT>(src));
 }
 

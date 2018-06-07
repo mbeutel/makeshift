@@ -6,7 +6,7 @@
 #include <functional>
 #include <type_traits>
 
-#include <makeshift/detail/meta.hpp>
+#include <makeshift/type_traits.hpp>
 
 
 namespace makeshift
@@ -83,8 +83,8 @@ public:
 
 
 template <typename T> using can_call_r = decltype(&T::operator ());
-template <typename T> using can_call_t = can_apply_t<can_call_r, T>;
-template <typename T> constexpr bool can_call = can_call_t<T>::value;
+template <typename T> using can_call = can_apply<can_call_r, T>;
+template <typename T> constexpr bool can_call_v = can_call<T>::value;
 
 template <typename F> struct call_sig_0_;
 template <typename R, typename... ArgsT> struct call_sig_0_<R(ArgsT...)> { using type = R(ArgsT...); };
@@ -101,7 +101,7 @@ template <bool CanCall, typename T> struct config_decay_0_;
 template <typename T> struct config_decay_0_<false, T> : config_decay_value_<T> { };
 template <typename T> struct config_decay_0_<true, T> : config_decay_map_<call_sig_t<T>> { };
 
-template <typename T> struct config_decay_ : config_decay_0_<can_call<std::decay_t<T>>, std::decay_t<T>> { };
+template <typename T> struct config_decay_ : config_decay_0_<can_call_v<std::decay_t<T>>, std::decay_t<T>> { };
 template <typename R, typename... ArgsT> class config_decay_<R (*)(ArgsT...)> : config_decay_map_<R(ArgsT)> { };
 
 template <typename T> using config_type = typename config_decay_<T>::type;
