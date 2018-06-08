@@ -52,7 +52,7 @@ static constexpr auto reflect(Vegetables*, mk::metadata_tag) // note: we reflect
     using namespace makeshift::metadata;
     return type<Vegetables>(
         "Vegetables", // not required for serialization
-        flags(
+        flags( // not required for serialization
             type<Ratatouille>("Ratatouille") // optional for serialization (may yield better error messages)
         ),
         description("foo"), // optional for serialization (may yield even better error messages)

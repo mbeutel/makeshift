@@ -13,11 +13,11 @@ namespace makeshift
 namespace detail
 {
 
-[[noreturn]] void raiseInvalidValueError(void)
+[[noreturn]] static void raiseInvalidValueError(void)
 {
     throw std::logic_error("invalid value");
 }
-[[noreturn]] void raiseInvalidStringError(const std::string& str, std::string_view typeDesc = { }, std::string_view typeName = { })
+[[noreturn]] static void raiseInvalidStringError(const std::string& str, std::string_view typeDesc = { }, std::string_view typeName = { })
 {
     std::string msg;
     if (!typeDesc.empty())
@@ -29,22 +29,37 @@ namespace detail
     throw std::runtime_error(msg); // TODO: use more appropriate exception class
 }
 
-std::string enum_to_string(gsl::span<const enum_value_serialization_context> knownValues,
-    std::uint64_t enumValue)
+
+std::string enum_to_string(std::uint64_t enumValue, const enum_serialization_data_ref& sdata)
 {
-    for (auto& knownValue : knownValues)
-        if (knownValue.value == enumValue)
-            return std::string(knownValue.string);
+    for (auto& value : sdata.values)
+        if (value.value == enumValue)
+            return std::string(value.string);
     raiseInvalidValueError();
 }
+bool try_string_to_enum(std::uint64_t& enumValue, const std::string& string, const enum_serialization_data_ref& sdata) noexcept
+{
+    for (auto& value : sdata.values)
+        if (value.string == string)
+        {
+            enumValue = value.value;
+            return true;
+        }
+    return false;
+}
+std::uint64_t string_to_enum(const std::string& string, const enum_serialization_data_ref& sdata)
+{
+    std::uint64_t enumValue;
+    if (!try_string_to_enum(enumValue, string, sdata))
+        raiseInvalidStringError(string, sdata.typeDesc, sdata.typeName);
+    return enumValue;
+}
 
-constexpr bool isPowerOf2(std::uint64_t value) noexcept
+static constexpr bool isPowerOf2(std::uint64_t value) noexcept
 {
     return value != 0 && (value & (value - 1)) == 0;
 }
-
-std::string flags_enum_to_string(gsl::span<const enum_value_serialization_context> knownValues,
-    std::uint64_t enumValue)
+std::string flags_enum_to_string(std::uint64_t enumValue, const flags_enum_serialization_data_ref& sdata)
 {
     std::string result;
 
@@ -52,16 +67,16 @@ std::string flags_enum_to_string(gsl::span<const enum_value_serialization_contex
     std::uint64_t matchedEnumValue = enumValue;
     for (auto [combined, permitOverlap] : { std::make_tuple(true, false), std::make_tuple(false, false), std::make_tuple(true, true) })
     {
-        for (auto& knownValue : knownValues)
-            if (isPowerOf2(knownValue.value) != combined)
+        for (auto& value : sdata.values)
+            if (isPowerOf2(value.value) != combined)
             {
                 std::uint64_t testValue = permitOverlap ? enumValue : matchedEnumValue;
-                if ((testValue & knownValue.value) == knownValue.value)
+                if ((testValue & value.value) == value.value)
                 {
-                    matchedEnumValue &= ~knownValue.value;
+                    matchedEnumValue &= ~value.value;
                     if (!result.empty())
                         result += ", ";
-                    result += std::string(knownValue.string);
+                    result += std::string(value.string);
                 }
             }
         if (matchedEnumValue == 0)
@@ -72,27 +87,7 @@ std::string flags_enum_to_string(gsl::span<const enum_value_serialization_contex
 
     return result;
 }
-bool try_string_to_enum(std::uint64_t& enumValue,
-    gsl::span<const enum_value_serialization_context> knownValues,
-    const std::string& string) noexcept
-{
-    for (auto& knownValue : knownValues)
-        if (knownValue.string == string)
-        {
-            enumValue = knownValue.value;
-            return true;
-        }
-    return false;
-}
-std::uint64_t string_to_enum(
-    gsl::span<const enum_value_serialization_context> knownValues, std::string_view typeName, std::string_view typeDesc,
-    const std::string& string)
-{
-    std::uint64_t enumValue;
-    if (!try_string_to_enum(enumValue, knownValues, string))
-        raiseInvalidStringError(string);
-    return enumValue;
-}
+
 static std::string_view skipWhitespace(std::string_view s) noexcept
 {
     while (!s.empty() && std::isspace(s.front()))
@@ -111,9 +106,7 @@ static std::optional<std::string_view> expectSeparator(std::string_view s) noexc
     s = s.substr(1);
     return s;
 }
-bool try_string_to_flags_enum(std::uint64_t& enumValue,
-    gsl::span<const enum_value_serialization_context> knownValues,
-    const std::string& string) noexcept
+bool try_string_to_flags_enum(std::uint64_t& enumValue, const std::string& string, const flags_enum_serialization_data_ref& sdata) noexcept
 {
     std::string_view sv = string;
     enumValue = 0;
@@ -132,14 +125,14 @@ bool try_string_to_flags_enum(std::uint64_t& enumValue,
         }
         sv = skipWhitespace(sv);
         bool haveMatch = false;
-        for (auto& knownValue : knownValues)
+        for (auto& value : sdata.values)
         {
-            auto len = knownValue.string.size();
+            auto len = value.string.size();
             if (sv.size() >= len // does it fit?
-                && knownValue.string == sv.substr(0, len) // does it match?
+                && value.string == sv.substr(0, len) // does it match?
                 && (sv.size() == len || std::isspace(sv[len]) || isSeparator(sv[len]))) // is it followed by whitespace, separator or EOS?
             {
-                enumValue |= knownValue.value;
+                enumValue |= value.value;
                 sv = sv.substr(len);
                 haveMatch = true;
                 break;
@@ -150,13 +143,11 @@ bool try_string_to_flags_enum(std::uint64_t& enumValue,
     }
     return true;
 }
-std::uint64_t string_to_flags_enum(
-    gsl::span<const enum_value_serialization_context> knownValues, std::string_view typeName, std::string_view typeDesc,
-    const std::string& string)
+std::uint64_t string_to_flags_enum(const std::string& string, const flags_enum_serialization_data_ref& sdata)
 {
     std::uint64_t enumValue;
-    if (!try_string_to_flags_enum(enumValue, knownValues, string))
-        raiseInvalidStringError(string);
+    if (!try_string_to_flags_enum(enumValue, string, sdata))
+        raiseInvalidStringError(string, sdata.typeDesc, sdata.flagTypeName);
     return enumValue;
 }
 

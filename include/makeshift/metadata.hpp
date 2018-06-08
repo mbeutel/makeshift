@@ -99,7 +99,7 @@ template <auto... Accessors, typename... AttrT>
     return { std::make_tuple(makeshift::detail::literal_decay(std::forward<AttrT>(attributes))...) };
 }
 
-    // Use `flags(type<TheFlagsType>(...))` to mark an enum type as a bitflag type in metadata.
+    // When defining metadata for flag enums, use `flags(type<TheFlagsType>(...))` to define metadata for the bitflag type itself.
 template <typename TypeMetadataT>
     struct flags_t
 {
