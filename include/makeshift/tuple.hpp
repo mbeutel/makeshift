@@ -3,7 +3,6 @@
 #define MAKESHIFT_TUPLE_HPP_
 
 
-#include <tuple>
 #include <cstddef>     // for size_t
 #include <utility>     // for move(), forward<>(), tuple_element<>, tuple_size<>, get<>
 #include <type_traits> // for decay<>, integral_constant<>, index_sequence<>
@@ -70,6 +69,7 @@ template <typename DerivedT>
         return std::move(self)(std::forward<TupleT>(tuple));
     }
 };
+
 
 template <typename TupleT> struct args_sequence_of_;
 template <template <typename...> class TupleT, typename... ArgsT> struct args_sequence_of_<TupleT<ArgsT...>> { using type = type_sequence<ArgsT...>; };
