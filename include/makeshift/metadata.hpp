@@ -32,16 +32,20 @@ struct type_metadata_base { };
 struct value_metadata_base { };
 struct property_metadata_base { };
 
+//static constexpr auto metadata_of { reflect((T*) nullptr, metadata_tag{ }) };
+
 } // namespace detail
 
 
 inline namespace metadata
 {
 
-    // expose ""sv literal
+    // Expose the ""sv literal.
 using namespace std::literals::string_view_literals;
 
-using makeshift::types::metadata_tag;
+
+    // Tag type for reflect() methods which define type metadata.
+struct default_metadata_tag { };
 
 
     // Use `type<T>(...)` to declare metadata for a type.
@@ -52,10 +56,7 @@ template <typename T, typename AttributesT>
 
     AttributesT attributes;
 
-    constexpr type_metadata(AttributesT&& _attributes)
-        : attributes(_attributes)
-    {
-    }
+    constexpr type_metadata(AttributesT&& _attributes) : attributes(_attributes) { }
 };
 template <typename T, typename... AttrT>
     constexpr type_metadata<T, std::tuple<makeshift::detail::literal_decay_t<AttrT>...>> type(AttrT&&... attributes)
@@ -63,22 +64,23 @@ template <typename T, typename... AttrT>
     return { std::make_tuple(makeshift::detail::literal_decay(std::forward<AttrT>(attributes))...) };
 }
 
+
     // Use `value<V>(...)` to declare metadata for a known value of a type.
 template <typename ValC, typename AttributesT>
     struct value_metadata : ValC, makeshift::detail::value_metadata_base
 {
+    using value = ValC;
+
     AttributesT attributes;
 
-    constexpr value_metadata(AttributesT&& _attributes)
-        : attributes(_attributes)
-    {
-    }
+    constexpr value_metadata(AttributesT&& _attributes) : attributes(_attributes) { }
 };
 template <auto Val, typename... AttrT>
     constexpr value_metadata<std::integral_constant<decltype(Val), Val>, std::tuple<makeshift::detail::literal_decay_t<AttrT>...>> value(AttrT&&... attributes)
 {
     return { std::make_tuple(makeshift::detail::literal_decay(std::forward<AttrT>(attributes))...) };
 }
+
 
     // Use `property<Accessors...>(...)` to declare metadata for properties of a type.
 template <typename AccessorsC, typename AttributesT>
@@ -88,16 +90,14 @@ template <typename AccessorsC, typename AttributesT>
 
     AttributesT attributes;
 
-    constexpr property_metadata(AttributesT&& _attributes)
-        : attributes(_attributes)
-    {
-    }
+    constexpr property_metadata(AttributesT&& _attributes) : attributes(_attributes) { }
 };
 template <auto... Accessors, typename... AttrT>
     constexpr property_metadata<type_sequence<std::integral_constant<decltype(Accessors), Accessors>...>, std::tuple<makeshift::detail::literal_decay_t<AttrT>...>> property(AttrT&&... attributes)
 {
     return { std::make_tuple(makeshift::detail::literal_decay(std::forward<AttrT>(attributes))...) };
 }
+
 
     // When defining metadata for flag enums, use `flags(type<TheFlagsType>(...))` to define metadata for the bitflag type itself.
 template <typename TypeMetadataT>
@@ -113,13 +113,20 @@ template <typename TypeMetadataT,
     return { std::forward<TypeMetadataT>(typeMetadata) };
 }
 
+
     // Use `description("the description")` to encode a human-readable description of an entity in metadata.
 struct description_t { std::string_view value; };
 static inline constexpr description_t description(std::string_view value) { return { value }; }
 
-    // Use `metadata_of<T>` to look up metadata for a type.
-template <typename T>
-    static constexpr auto metadata_of { reflect((T*) nullptr, metadata_tag{ }) };
+
+    // Use `metadata_of<T[, MetadataTagT]>` to look up metadata for a type.
+template <typename T, typename MetadataTagT = default_metadata_tag> static constexpr auto metadata_of { reflect((T*) nullptr, MetadataTagT{ }) };
+template <typename T, typename MetadataTagT = default_metadata_tag> using metadata_of_t = decltype(metadata_of<T, MetadataTagT>);
+
+
+    // Determines whether there is metadata for the given type.
+template <typename T, typename MetadataTagT = default_metadata_tag> using have_metadata = can_apply<metadata_of_t, T, MetadataTagT>;
+template <typename T, typename MetadataTagT = default_metadata_tag> constexpr bool have_metadata_v = have_metadata<T, MetadataTagT>::value;
 
 } // inline namespace metadata
 

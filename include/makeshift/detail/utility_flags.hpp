@@ -3,9 +3,6 @@
 #define MAKESHIFT_DETAIL_UTILITY_FLAGS_HPP_
 
 
-#include <makeshift/type_traits.hpp> // for metadata_tag
-
-
 namespace makeshift
 {
 
@@ -39,9 +36,11 @@ template <typename FlagsT, typename UnderlyingTypeT = unsigned>
     using flag = flags; // alias for declaring flag constants
 
         // We just forward the metadata defined for the derived type.
-    friend constexpr auto reflect(flag*, metadata_tag)
+        // TODO: ensure that have_metadata<flag> is false if no metadata is defined for FlagsT.
+    template <typename MetadataTagT>
+        friend constexpr auto reflect(flag*, MetadataTagT) -> decltype(reflect((FlagsT*) nullptr, MetadataTagT{ }))
     {
-        return reflect((FlagsT*) nullptr, metadata_tag { });
+        return reflect((FlagsT*) nullptr, MetadataTagT{ });
     }
 
     friend constexpr flags operator |(flags lhs, flags rhs) noexcept { return flags(UnderlyingTypeT(lhs) | UnderlyingTypeT(rhs)); }

@@ -3,14 +3,13 @@
 #define MAKESHIFT_PROPERTY_HPP_
 
 
-#include <type_traits> // for declval<>(), decay<>, is_invocable<>
+#include <functional>  // for invoke()
+#include <type_traits> // for declval<>(), decay<>, is_invocable<>, is_member_object_pointer<>
 
-#include <makeshift/detail/meta.hpp> // for can_apply<>
-
-#include <makeshift/types.hpp>    // for define_flags<>
-#include <makeshift/metadata.hpp> // for property_metadata<>
-
-#include <makeshift/experimental/tuple.hpp>
+#include <makeshift/type_traits.hpp> // for can_apply<>
+#include <makeshift/utility.hpp>     // for define_flags<>
+#include <makeshift/tuple.hpp>
+#include <makeshift/metadata.hpp>    // for property_metadata<>
 
 
 namespace makeshift
@@ -19,46 +18,10 @@ namespace makeshift
 inline namespace metadata
 {
 
-struct PropertyFlag : define_flags<PropertyFlag>
-{
-    static constexpr flag readable { 1 };
-    static constexpr flag writable { 2 };
-};
-using PropertyFlags = PropertyFlag::flags;
-
-
-} // inline namespace metadata
-
-
-namespace detail
-{
-
-//template <typename T>
-    
-
-struct InvalidSetter
-{
-    template <typename C, typename V>
-        void operator ()(C& inst, V&& value)
-    {
-        static_assert(sizeof(V) == ~std::size_t(0), "property does not have a setter"); // TODO: should this be a runtime assertion?
-    }
-};
-struct InvalidGetter
-{
-    template <typename C>
-        UniversallyConvertibleType operator ()(const C& inst)
-    {
-        static_assert(sizeof(V) == ~std::size_t(0), "property does not have a getter"); // TODO: should this be a runtime assertion?
-        return { };
-    }
-};
-
 template <typename ObjectT, typename ValueT, typename GetterT, typename SetterT>
     class property_accessor
 {
 private:
-    PropertyFlags flags_;
     GetterT getter_;
     SetterT setter_;
 
@@ -68,110 +31,89 @@ public:
     using object_type = ObjectT;
     using element_type = ValueT;
     
-    constexpr PropertyFlags flags(void) noexcept { return flags_; }
-    constexpr ValueT get(const ObjectT& inst) { return getter_(inst); }
-    constexpr void set(ObjectT& inst, ValueT value) { return setter_(inst, value); }
+    constexpr ValueT get(const ObjectT& inst) const { return getter_(inst); }
+    constexpr void set(ObjectT& inst, ValueT value) const { return setter_(inst, value); }
+};
+
+} // inline namespace metadata
+
+
+namespace detail
+{
+
+struct invalid_setter
+{
+    template <typename C, typename V>
+        void operator ()(C& inst, V&& value)
+    {
+        static_assert(sizeof(V) == ~std::size_t(0), "property does not have a setter"); // TODO: should this be a runtime assertion?
+    }
+};
+struct invalid_getter
+{
+    template <typename C>
+        universally_convertible operator ()(const C& inst)
+    {
+        static_assert(sizeof(V) == ~std::size_t(0), "property does not have a getter"); // TODO: should this be a runtime assertion?
+        return { };
+    }
+};
+
+template <typename... Cs>
+    constexpr std::tuple<typename Cs::value_type...> tuple_from_integral_constants(type_sequence<Cs...>) noexcept
+{
+    return { Cs::value... };
+}
+template <typename Cs>
+    constexpr auto tuple_from_integral_constants(void) noexcept
+{
+    return tuple_from_integral_constants(Cs{ });
 }
 
-template <typename F> using is_functor_r = decltype(&T::operator ());
-template <typename F> using is_functor_t = can_apply_t<is_functor_r, F>;
-template <typename F> constexpr bool is_functor = is_functor_t<T>::value;
+template <typename F> struct is_getter_sig : std::false_type { };
+template <typename V, typename C> struct is_getter_sig<V(const C&)> : std::true_type { };
+template <typename F> using is_getter = is_getter_sig<callable_sig_t<F>>;
 
-template <typename F> struct is_func_t : std::false_type { };
-template <typename R, typename... ArgsT> struct is_func_t<R (*)(ArgsT...)> : std::true_type { };
-template <typename F> constexpr bool is_func = is_func_t<T>::value;
+template <typename F> struct is_setter_sig : std::false_type { };
+template <typename C, typename V> struct is_setter_sig<void(const C&, V)> : std::true_type { };
+template <typename F> using is_setter = std::conjunction<is_setter_sig<callable_sig_t<F>>, std::is_member_object_pointer<F>>;
 
-template <typename F> struct functor_sig_0_;
-template <typename R, typename... ArgsT> struct functor_sig_0_<R(ArgsT...)> { using type = R(ArgsT...); };
-template <typename R, typename C, typename... ArgsT> struct functor_sig_0_<R (C::*)(ArgsT...)> : functor_sig_0_<R(ArgsT...)> { };
-template <typename R, typename C, typename... ArgsT> struct functor_sig_0_<R (C::*)(ArgsT...) const> : functor_sig_0_<R(ArgsT...)> { };
-template <typename F> struct functor_sig : functor_sig_0_<decltype(&F::operator ())> { };
-template <typename F> using functor_sig_t = typename functor_sig<F>::type;
-
-template <typename F> struct func_sig;
-template <typename R, typename... ArgsT> struct func_sig<R (*)(ArgsT...)> { using type = R(ArgsT...); };
-
-template <typename F> struct is_callable_t : std::integral_constant<bool, is_functor<F> || is_func<F>> { };
-template <typename F> constexpr bool is_callable = is_callable_t<T>::value;
-
-template <typename F, bool IsFunctor, bool IsFunc> struct callable_sig_0_;
-template <typename F> struct callable_sig_0_<F, true, false> : functor_sig<F> { };
-template <typename F> struct callable_sig_0_<F, false, true> : func_sig<F> { };
-template <typename F> struct callable_sig : callable_sig_0_<F, is_functor<F>, is_func<F>> { };
-template <typename F> using callable_sig_t = typename callable_sig<F>::type;
-
-struct none_t { };
+template <typename GetterT, typename SetterT> struct property_type : sig_return_type<callable_sig_t<GetterT>> { };
+template <typename SetterT> struct property_type<invalid_getter, SetterT> { using type = std::decay_t<sig_arg_type_t<1, callable_sig_t<SetterT>>>; };
+template <> struct property_type<invalid_getter, invalid_setter> { using type = none_t; };
+template <typename GetterT, typename SetterT> using property_type_t = property_type<GetterT, SetterT>;
 
 } // namespace detail
-
 
 inline namespace metadata
 {
 
+template <typename AccessorT> struct has_getter;
+template <typename ObjectT, typename ValueT, typename GetterT, typename SetterT> struct has_getter<property_accessor<ObjectT, ValueT, GetterT, SetterT>> : std::negation<std::is_same<GetterT, makeshift::detail::invalid_getter>> { };
+template <typename AccessorT> constexpr bool has_getter_v = has_getter<AccessorT>::value;
+
+template <typename AccessorT> struct has_setter;
+template <typename ObjectT, typename ValueT, typename GetterT, typename SetterT> struct has_setter<property_accessor<ObjectT, ValueT, GetterT, SetterT>> : std::negation<std::is_same<SetterT, makeshift::detail::invalid_setter>> { };
+template <typename AccessorT> constexpr bool has_setter_v = has_setter<AccessorT>::value;
+
 template <typename ObjT, typename ObjAttributesT, typename PropAccessorsC, typename PropAttributesT>
-    auto get_property_accessor(const type_metadata<ObjT, ObjAttributesT>& typeMetadata, const property_metadata<PropAccessorsC, PropAttributesT>& propMetadata)
+    constexpr auto get_property_accessor(const type_metadata<ObjT, ObjAttributesT>& typeMetadata, const property_metadata<PropAccessorsC, PropAttributesT>& propMetadata)
 {
-    auto single_or_default = tuple_freduce(makeshift::detail::none_t{ },
-        overload(
-            [](makeshift::detail::none_t, makeshift::detail::none_t) { return makeshift::detail::none_t{ }; },
-            [](makeshift::detail::none_t, auto&& rhs) { return std::move(rhs); },
-            [](auto&& lhs, makeshift::detail::none_t) { return std::move(lhs); }
-        )
-    );
-
-    auto attr_getter = single_or_default(
-        tuple_map(propMetadata.attributes,
-            [](auto&& func)
-            {
-                using Func = std::decay_t<decltype(func)>;
-                if constexpr (makeshift::detail::is_callable<Func>)
-                {
-                    using Sig = makeshift::detail::callable_sig_t<Func>;
-                    if constexpr (std::is_invocable<Sig, const ObjT&>::value) // TODO
-                    {
-                        return std::forward<decltype(func)>(func);
-                    }
-                    else
-                        return makeshift::detail::none_t{ };
-                }
-                else
-                    return makeshift::detail::none_t{ };
-            }
-        )
-    );
-    auto attr_setter = single_or_default(
-        tuple_map(propMetadata.attributes,
-            [](auto&& func)
-            {
-                using Func = std::decay_t<decltype(func)>;
-                if constexpr (makeshift::detail::is_callable<Func>)
-                {
-                    using Sig = makeshift::detail::callable_sig_t<Func>;
-                    if constexpr (std::is_invocable<Sig, const ObjT&>::value)
-                    {
-                        return std::forward<decltype(func)>(func);
-                    }
-                    else
-                        return makeshift::detail::none_t{ };
-                }
-                else
-                    return makeshift::detail::none_t{ };
-            }
-        )
-    );
-    auto attr_setter = single_or_default(
-        tuple_map(propMetadata.attributes,
-            [](auto&& func)
-            {
-                if constexpr (std::is_invocable<std::decay_t<decltype(func)>, ObjT&, >::value)
-                    return func;
-                else
-                    return makeshift::detail::none_t{ };
-            }
-        )
-    );
-
-    // first look for a lambda accessor, then for member accessors
+    auto callablePropAttributes = propMetadata.attributes
+        | tuple_filter<is_callable>();
+    constexpr auto constAccessors = makeshift::detail::tuple_from_integral_constants<PropAccessorsC>()
+        | tuple_filter<is_callable>();
+    auto allAccessors = std::tuple_cat(callablePropAttributes, constAccessors);
+    auto maybeGetter = allAccessors
+        | tuple_filter<makeshift::detail::is_getter>()
+        | single_or_default(makeshift::detail::invalid_getter{ });
+    auto maybeSetter = allAccessors
+        | tuple_filter<makeshift::detail::is_setter>()
+        | single_or_default(makeshift::detail::invalid_setter{ });
+    using Getter = decltype(maybeGetter);
+    using Setter = decltype(maybeSetter);
+    using PropType = property_type_t<Getter, Setter>;
+    return makeshift::detail::property_accessor<ObjT, PropType, Getter, Setter>(flags_of_property<Getter, Setter>, std::move(maybeGetter), std::move(maybeSetter));
 }
 
 } // inline namespace metadata
