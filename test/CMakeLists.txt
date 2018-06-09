@@ -10,6 +10,7 @@ find_package(Catch2)
 # test target
 add_executable(test-makeshift
     "tests/main.cpp"
+    "tests/test-arithmetic.cpp"
     "tests/test-tuple.cpp"
     "tests/test-utility.cpp"
     "tests/test-pointers.cpp"
