@@ -640,7 +640,7 @@ template <typename T, typename TupleT, typename DefaultT,
     //
 template <typename T, typename TupleT,
           typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
-    constexpr auto
+    constexpr T
     get_or_default(TupleT&& tuple)
 {
     return get_or_default<T>()(std::forward<TupleT>(tuple));

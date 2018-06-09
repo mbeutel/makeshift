@@ -9,24 +9,24 @@
 #include <cstddef>     // for size_t
 #include <tuple>
 
-#include <makeshift/type_traits.hpp> // for metadata_tag
+#include <makeshift/type_traits.hpp> // for literal_decay<>, literal_forward<>()
 
 
 namespace makeshift
 {
 
-namespace detail
+inline namespace types
 {
 
-template <typename T> struct literal_decay_ { using type = std::decay_t<T>; };
-template <std::size_t N> struct literal_decay_<const char (&)[N]> { using type = std::string_view; };
-template <typename T> using literal_decay_t = typename literal_decay_<T>::type;
+    // Like std::decay<>, but with additional support for converting plain old literals to modern types.
+template <typename T> struct literal_decay { using type = std::decay_t<T>; };
+template <std::size_t N> struct literal_decay<const char (&)[N]> { using type = std::string_view; };
+template <typename T> using literal_decay_t = typename literal_decay<T>::type;
     
-template <typename T>
-    constexpr literal_decay_t<T> literal_decay(T&& value)
+} // inline namespace types
+
+namespace detail
 {
-    return std::forward<T>(value);
-}
 
 struct type_metadata_base { };
 struct value_metadata_base { };
@@ -56,12 +56,12 @@ template <typename T, typename AttributesT>
 
     AttributesT attributes;
 
-    constexpr type_metadata(AttributesT&& _attributes) : attributes(_attributes) { }
+    constexpr type_metadata(AttributesT&& _attributes) : attributes(std::move(_attributes)) { }
 };
 template <typename T, typename... AttrT>
-    constexpr type_metadata<T, std::tuple<makeshift::detail::literal_decay_t<AttrT>...>> type(AttrT&&... attributes)
+    constexpr type_metadata<T, std::tuple<literal_decay_t<AttrT>...>> type(AttrT&&... attributes)
 {
-    return { std::make_tuple(makeshift::detail::literal_decay(std::forward<AttrT>(attributes))...) };
+    return { std::tuple<literal_decay_t<AttrT>...>(std::forward<AttrT>(attributes)...) };
 }
 
 
@@ -73,12 +73,12 @@ template <typename ValC, typename AttributesT>
 
     AttributesT attributes;
 
-    constexpr value_metadata(AttributesT&& _attributes) : attributes(_attributes) { }
+    constexpr value_metadata(AttributesT&& _attributes) : attributes(std::move(_attributes)) { }
 };
 template <auto Val, typename... AttrT>
-    constexpr value_metadata<std::integral_constant<decltype(Val), Val>, std::tuple<makeshift::detail::literal_decay_t<AttrT>...>> value(AttrT&&... attributes)
+    constexpr value_metadata<std::integral_constant<decltype(Val), Val>, std::tuple<literal_decay_t<AttrT>...>> value(AttrT&&... attributes)
 {
-    return { std::make_tuple(makeshift::detail::literal_decay(std::forward<AttrT>(attributes))...) };
+    return { std::tuple<literal_decay_t<AttrT>...>(std::forward<AttrT>(attributes)...) };
 }
 
 
@@ -90,12 +90,12 @@ template <typename AccessorsC, typename AttributesT>
 
     AttributesT attributes;
 
-    constexpr property_metadata(AttributesT&& _attributes) : attributes(_attributes) { }
+    constexpr property_metadata(AttributesT&& _attributes) : attributes(std::move(_attributes)) { }
 };
 template <auto... Accessors, typename... AttrT>
-    constexpr property_metadata<type_sequence<std::integral_constant<decltype(Accessors), Accessors>...>, std::tuple<makeshift::detail::literal_decay_t<AttrT>...>> property(AttrT&&... attributes)
+    constexpr property_metadata<type_sequence<std::integral_constant<decltype(Accessors), Accessors>...>, std::tuple<literal_decay_t<AttrT>...>> property(AttrT&&... attributes)
 {
-    return { std::make_tuple(makeshift::detail::literal_decay(std::forward<AttrT>(attributes))...) };
+    return { std::tuple<literal_decay_t<AttrT>...>(std::forward<AttrT>(attributes)...) };
 }
 
 
