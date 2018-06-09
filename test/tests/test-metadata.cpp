@@ -55,7 +55,7 @@ static constexpr auto reflect(Vegetables*, mk::default_metadata_tag) // note: we
         flags( // not required for serialization
             type<Ratatouille>("Ratatouille") // optional for serialization (may yield better error messages)
         ),
-        description("foo"), // optional for serialization (may yield even better error messages)
+        caption("foo"), // optional for serialization (may yield even better error messages)
         value<Vegetables::potato>("potato"),
         value<Vegetables::tomato>("tomato"),
         value<Vegetables::garlic>("garlic"),

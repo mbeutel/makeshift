@@ -114,9 +114,9 @@ template <typename TypeMetadataT,
 }
 
 
-    // Use `description("the description")` to encode a human-readable description of an entity in metadata.
-struct description_t { std::string_view value; };
-static inline constexpr description_t description(std::string_view value) { return { value }; }
+    // Use `caption("the caption")` to encode a human-readable caption of an entity in metadata.
+struct caption_t { std::string_view value; };
+static inline constexpr caption_t caption(std::string_view value) { return { value }; }
 
 
     // Use `metadata_of<T[, MetadataTagT]>` to look up metadata for a type.

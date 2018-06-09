@@ -83,7 +83,7 @@ template <typename EnumT, typename AttributesT>
     constexpr auto make_enum_serialization_data(const type_metadata<EnumT, AttributesT>& enumMetadata)
 {
     std::string_view typeName = get_or_default<std::string_view>(enumMetadata.attributes);
-    std::string_view typeDesc = get_or_default<description_t>(enumMetadata.attributes).value;
+    std::string_view typeDesc = get_or_default<caption_t>(enumMetadata.attributes).value;
     auto values = enumMetadata.attributes
         | tuple_filter<is_value_metadata>()
         | tuple_map([](const auto& v) { return make_enum_value_serialization_data(v); })
@@ -139,7 +139,7 @@ template <typename DefT, typename AttributesT>
     constexpr auto make_flags_enum_serialization_data(const type_metadata<DefT, AttributesT>& enumMetadata)
 {
     std::string_view defTypeName = get_or_default<std::string_view>(enumMetadata.attributes);
-    std::string_view typeDesc = get_or_default<description_t>(enumMetadata.attributes).value;
+    std::string_view typeDesc = get_or_default<caption_t>(enumMetadata.attributes).value;
     std::string_view flagTypeName = get_flag_type_name(enumMetadata);
     auto values = enumMetadata.attributes
         | tuple_filter<is_value_metadata>()
