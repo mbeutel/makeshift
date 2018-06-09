@@ -45,7 +45,7 @@ namespace detail
 template <typename DerivedT>
     struct stream_base
 {
-    template <typename TupleT,
+    /*template <typename TupleT,
               typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
         friend constexpr auto operator |(TupleT&& tuple, const stream_base& self)
     {
@@ -56,6 +56,18 @@ template <typename DerivedT>
         friend constexpr auto operator |(TupleT&& tuple, stream_base&& self)
     {
         return std::move(static_cast<DerivedT&>(self))(std::forward<TupleT>(tuple));
+    }*/
+    template <typename TupleT,
+              typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
+        friend constexpr auto operator |(TupleT&& tuple, const DerivedT& self)
+    {
+        return self(std::forward<TupleT>(tuple));
+    }
+    template <typename TupleT,
+              typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
+        friend constexpr auto operator |(TupleT&& tuple, DerivedT&& self)
+    {
+        return std::move(self)(std::forward<TupleT>(tuple));
     }
 };
 
