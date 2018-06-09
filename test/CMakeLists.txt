@@ -14,7 +14,8 @@ add_executable(test-makeshift
     "tests/test-tuple.cpp"
     "tests/test-utility.cpp"
     "tests/test-pointers.cpp"
-    "tests/test-metadata.cpp")
+    "tests/test-metadata.cpp"
+    "tests/experimental/test-property.cpp")
 
 # test dependencies
 target_link_libraries(test-makeshift
