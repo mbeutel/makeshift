@@ -317,6 +317,43 @@ public:
     }
 };
 
+template <typename T>
+    struct get_t : stream_base<get_t<T>>
+{
+private:
+    template <typename TupleT>
+        static constexpr auto invoke(TupleT&& tuple)
+    {
+        using std::get; // make std::get<>(std::pair<>&&) visible to enable ADL for template methods named get<>()
+        return get<T>(std::forward<TupleT>(tuple));
+    }
+public:
+    template <typename TupleT,
+              typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
+        constexpr auto operator ()(TupleT&& tuple) const
+    {
+        return invoke(std::forward<TupleT>(tuple));
+    }
+};
+template <std::size_t I>
+    struct get_by_index_t : stream_base<get_by_index_t<I>>
+{
+private:
+    template <typename TupleT>
+        static constexpr auto invoke(TupleT&& tuple)
+    {
+        using std::get; // make std::get<>(std::pair<>&&) visible to enable ADL for template methods named get<>()
+        return get<I>(std::forward<TupleT>(tuple));
+    }
+public:
+    template <typename TupleT,
+              typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
+        constexpr auto operator ()(TupleT&& tuple) const
+    {
+        return invoke(std::forward<TupleT>(tuple));
+    }
+};
+
 template <typename DefaultT>
     struct single_or_default_t : stream_base<single_or_default_t<DefaultT>>
 {
@@ -621,6 +658,32 @@ template <typename T, typename TupleT,
     get_or_none(TupleT&& tuple)
 {
     return get_or_none<T>()(std::forward<TupleT>(tuple));
+}
+
+    // Returns a functor which retrieves the tuple element of the given type.
+    //
+    //     auto tuple = std::make_tuple(42);
+    //     auto elem = get<int>()(tuple); // returns 42
+    //     auto elem_alternativeSyntax = tuple | get<int>(); // returns 42
+    //
+template <typename T>
+    constexpr makeshift::detail::get_t<T>
+    get(void)
+{
+    return { };
+}
+
+    // Returns a functor which retrieves the tuple element with the given index. Negative indices count from the end.
+    //
+    //     auto tuple = std::make_tuple(42);
+    //     auto elem = get<0>()(tuple); // returns 42
+    //     auto elem_alternativeSyntax = tuple | get<0>(); // returns 42
+    //
+template <int I>
+    constexpr makeshift::detail::get_by_index_t<I>
+    get(void)
+{
+    return { };
 }
 
     // Returns a functor which retrieves the single element in a tuple, or which returns the provided default value if the tuple is empty.
