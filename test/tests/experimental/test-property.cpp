@@ -48,7 +48,7 @@ private:
 public:
     string_join_t(std::string _separator) noexcept : separator_(std::move(_separator)) { }
     template <typename TupleT,
-              typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
+              typename = std::enable_if_t<mk::is_tuple_like_v<std::decay_t<TupleT>>>>
         std::string operator ()(TupleT&& tuple) const
     {
         auto reducedValue = tuple
@@ -86,7 +86,7 @@ template <typename T, typename AttributesT>
 {
     return typeMetadata.attributes
         | mk::tuple_filter<is_property_metadata>()
-        | mk::tuple_map(columns, [&](const auto& propMetadata)
+        | mk::tuple_map([&](const auto& propMetadata)
           {
               constexpr auto accessor = mk::get_property_accessor(typeMetadata, propMetadata);
               using Accessor = decltype(accessor);
@@ -104,7 +104,7 @@ template <typename T>
 {
     auto readableProperties = metadata_of<T>.attributes
         | mk::tuple_filter<is_property_metadata>()
-        | mk::tuple_map(columns, [&](const auto& propMetadata)
+        | mk::tuple_map([&](const auto& propMetadata)
           {
               constexpr auto accessor = mk::get_property_accessor(typeMetadata, propMetadata);
               using Accessor = decltype(accessor);

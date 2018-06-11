@@ -47,7 +47,7 @@ struct invalid_setter
     template <typename C, typename V>
         void operator ()(C& inst, V&& value)
     {
-        static_assert(sizeof(V) == ~std::size_t(0), "property does not have a setter"); // TODO: should this be a runtime assertion?
+        static_assert(sizeof(C) == ~std::size_t(0), "property does not have a setter"); // TODO: should this be a runtime assertion?
     }
 };
 struct invalid_getter
@@ -55,7 +55,7 @@ struct invalid_getter
     template <typename C>
         universally_convertible operator ()(const C& inst)
     {
-        static_assert(sizeof(V) == ~std::size_t(0), "property does not have a getter"); // TODO: should this be a runtime assertion?
+        static_assert(sizeof(C) == ~std::size_t(0), "property does not have a getter"); // TODO: should this be a runtime assertion?
         return { };
     }
 };
@@ -113,8 +113,8 @@ template <typename ObjT, typename ObjAttributesT, typename PropAccessorsC, typen
         | single_or_default(makeshift::detail::invalid_setter{ });
     using Getter = decltype(maybeGetter);
     using Setter = decltype(maybeSetter);
-    using PropType = property_type_t<Getter, Setter>;
-    return makeshift::detail::property_accessor<ObjT, PropType, Getter, Setter>(flags_of_property<Getter, Setter>, std::move(maybeGetter), std::move(maybeSetter));
+    using PropType = makeshift::detail::property_type_t<Getter, Setter>;
+    return property_accessor<ObjT, PropType, Getter, Setter>(flags_of_property<Getter, Setter>, std::move(maybeGetter), std::move(maybeSetter));
 }
 
 } // inline namespace metadata
