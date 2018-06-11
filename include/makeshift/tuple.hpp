@@ -268,14 +268,14 @@ private:
         constexpr auto invoke(std::index_sequence<Is...>, TupleT&& tuple) const &
     {
         using std::get; // make std::get<>(std::pair<>&&) visible to enable ADL for template methods named get<>()
-        auto wrappedInitialValue = make_accumulator_wrapper(static_cast<const F&>(*this), initialValue);
+        auto wrappedInitialValue = make_accumulator_wrapper(static_cast<const F&>(*this), initialValue_);
         return (std::move(wrappedInitialValue) + ... + get<Is>(std::forward<TupleT>(tuple))).get();
     }
     template <std::size_t... Is, typename TupleT>
         constexpr auto invoke(std::index_sequence<Is...>, TupleT&& tuple) &&
     {
         using std::get; // make std::get<>(std::pair<>&&) visible to enable ADL for template methods named get<>()
-        auto wrappedInitialValue = make_accumulator_wrapper(static_cast<const F&>(*this), std::move(initialValue));
+        auto wrappedInitialValue = make_accumulator_wrapper(static_cast<const F&>(*this), std::move(initialValue_));
         return (std::move(wrappedInitialValue) + ... + get<Is>(std::forward<TupleT>(tuple))).get();
     }
     
@@ -302,18 +302,18 @@ template <typename T, typename DefaultT>
 private:
     DefaultT defaultValue_;
 
-    template <std::size_t... Is, typename TupleT, typename DefaultT>
-        static constexpr auto invoke(std::index_sequence<Is...>, TupleT&& tuple, DefaultT&& defaultValue)
+    template <std::size_t... Is, typename TupleT, typename LDefaultT>
+        static constexpr auto invoke(std::index_sequence<Is...>, TupleT&& tuple, LDefaultT&& defaultValue)
     {
         using std::get; // make std::get<>(std::pair<>&&) visible to enable ADL for template methods named get<>()
         constexpr bool canGet = ((std::is_same<T, std::tuple_element_t<Is, std::decay_t<TupleT>>>::value) || ...);
         if constexpr (canGet)
             return get<T>(std::forward<TupleT>(tuple));
         else
-            return std::forward<DefaultT>(defaultValue);
+            return std::forward<LDefaultT>(defaultValue);
     }
 public:
-    constexpr get_or_default_t(DefaultT&& _defaultValue) : defaultValue_(_defaultValue) { }
+    constexpr get_or_default_t(DefaultT&& _defaultValue) : defaultValue_(std::move(_defaultValue)) { }
 
     template <typename TupleT,
               typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
@@ -372,8 +372,8 @@ template <typename DefaultT>
 private:
     DefaultT defaultValue_;
 
-    template <typename TupleT, typename DefaultT>
-        static constexpr auto invoke(TupleT&& tuple, DefaultT&& defaultValue)
+    template <typename TupleT, typename LDefaultT>
+        static constexpr auto invoke(TupleT&& tuple, LDefaultT&& defaultValue)
     {
         using std::get; // make std::get<>(std::pair<>&&) visible to enable ADL for template methods named get<>()
         constexpr std::size_t tupleSize = std::tuple_size<std::decay_t<TupleT>>::value;
@@ -381,7 +381,7 @@ private:
         if constexpr (tupleSize == 1)
             return get<0>(std::forward<TupleT>(tuple));
         else
-            return std::forward<DefaultT>(defaultValue);
+            return std::forward<LDefaultT>(defaultValue);
     }
 public:
     constexpr single_or_default_t(DefaultT&& _defaultValue) : defaultValue_(_defaultValue) { }

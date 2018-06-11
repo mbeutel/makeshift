@@ -12,7 +12,8 @@ namespace makeshift
 namespace detail
 {
 
-    // this is an abomination; it is used only to avoid errors about incompatible types when another, more helpful error message will follow.
+struct flags_base { };
+
 struct universally_convertible
 {
     template <typename T> operator T(void) const;
@@ -61,7 +62,7 @@ namespace detail
 template <typename T, template <typename...> class U> struct is_same_template_ : std::false_type { };
 template <template <typename...> class U, typename... Ts> struct is_same_template_<U<Ts...>, U> : std::true_type { };
 
-template <typename F> using is_functor_r = decltype(&T::operator ());
+template <typename F> using is_functor_r = decltype(&F::operator ());
 
 template <typename F> struct functor_sig_0_;
 template <typename R, typename... ArgsT> struct functor_sig_0_<R(ArgsT...)> { using type = R(ArgsT...); };
@@ -87,13 +88,13 @@ template <typename T> using remove_rvalue_reference_t = typename remove_rvalue_r
 
     // Determines whether the given type is a functor (i.e. a class with non-ambiguous operator ()).
 template <typename F> using is_functor = can_apply<makeshift::detail::is_functor_r, F>;
-template <typename F> constexpr bool is_functor_v = is_functor<T>::value;
+template <typename F> constexpr bool is_functor_v = is_functor<F>::value;
 
 
     // Determines whether the given type is a function pointer.
 template <typename F> struct is_function_pointer : std::false_type { };
 template <typename F> struct is_function_pointer<F*> : std::is_function<F> { };
-template <typename F> constexpr bool is_function_pointer_v = is_function_pointer<T>::value;
+template <typename F> constexpr bool is_function_pointer_v = is_function_pointer<F>::value;
 
 
     // Retrieves the signature of a callable object.
@@ -127,7 +128,7 @@ template <std::size_t I, typename SigT> using sig_arg_type_t = typename sig_arg_
 
     // Calls a callable object. (This is a less general but constexpr version of std::invoke().)
 template <typename F, typename... ArgsT>
-    constexpr decltype(auto) call(F&& func, ArgsT&&... args)
+    constexpr decltype(auto) call(F&& f, ArgsT&&... args)
 {
     return std::forward<F>(f)(std::forward<ArgsT>(args)...);
 }
@@ -152,7 +153,7 @@ template <typename F, typename C, typename Arg0T, typename... ArgsT>
         //    call(f, std::forward<Arg0T>(arg0)) = (std::forward<ArgsT>(args), ...));
         //else // getter invocation
         //{
-            if constexpr (std::is_base_of<T, std::decay_t<Arg0T>>::value)
+            if constexpr (std::is_base_of<C, std::decay_t<Arg0T>>::value)
                 return std::forward<Arg0T>(arg0).*f;
             //else if constexpr (std::is_reference_wrapper<std::decay_t<Arg0T>>::value)
             //    return arg0.get().*f;

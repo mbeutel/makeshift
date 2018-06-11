@@ -3,16 +3,11 @@
 #define MAKESHIFT_DETAIL_UTILITY_FLAGS_HPP_
 
 
+#include <makeshift/type_traits.hpp> // for flags_base
+
+
 namespace makeshift
 {
-
-namespace detail
-{
-
-struct flags_base { };
-
-} // namespace detail
-
 
 inline namespace types
 {

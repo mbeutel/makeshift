@@ -12,7 +12,7 @@
 #include <cstddef>     // for size_t
 #include <cstdint>     // for uint64_t
 
-#include <makeshift/type_traits.hpp> // for tag<>
+#include <makeshift/type_traits.hpp> // for tag<>, flags_base
 #include <makeshift/metadata.hpp>
 #include <makeshift/tuple.hpp>
 #include <makeshift/array.hpp>       // for to_array()
