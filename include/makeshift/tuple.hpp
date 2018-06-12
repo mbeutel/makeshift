@@ -778,4 +778,8 @@ template <typename TupleT,
 
 } // namespace makeshift
 
+#ifdef MAKESHIFT_DETAIL_UTILITY_KEYWORD_HPP_
+ #include <makeshift/detail/utility_keyword_tuple.hpp>
+#endif // MAKESHIFT_DETAIL_UTILITY_KEYWORD_HPP_
+
 #endif // MAKESHIFT_TUPLE_HPP_

@@ -2,6 +2,7 @@
 #include <functional>
 
 #include <makeshift/utility.hpp>
+#include <makeshift/tuple.hpp>
 
 #include <catch.hpp>
 
@@ -24,7 +25,7 @@ struct Vegetables : mk::define_flags<Vegetables>
 };
 using Ratatouille = Vegetables::flags;
 
-int assembleDecimal(const std::tuple<mk::named<int, "ones"_kw>, mk::named<int, "tens"_kw>>& args)
+int assembleDecimal(const std::tuple<mk::named_t<int, "ones"_kw>, mk::named_t<int, "tens"_kw>>& args)
 {
     return 10*mk::get<"tens"_kw>(args) + mk::get<"ones"_kw>(args);
 }
@@ -39,15 +40,14 @@ TEST_CASE("types", "[flags]")
     }
     SECTION("keys")
     {
-        using NamedInt = mk::named<int, "width"_kw>;
-        NamedInt val1 { 42 };
-        NamedInt val2 = { mk::name<"width"_kw> = 42 };
+        using Width = mk::named_t<int, "width"_kw>;
+        Width val1 { 42 };
+        Width val2 = { mk::name<"width"_kw> = 42 };
         CHECK(get(val1) == get(val2));
         CHECK("make"_kw + "shift"_kw == "makeshift"_kw);
-        CHECK("foo"_kw / "bar"_kw == "foo/bar"_kw);
     }
     SECTION("kwargs")
     {
-        CHECK(assembleDecimal(std::make_tuple(mk::name<"ones"_kw> = 7, mk::name<"tens"_kw> = 8)) == 87);
+        CHECK(assembleDecimal({ mk::name<"ones"_kw> = 7, mk::name<"tens"_kw> = 8 }) == 87);
     }
 }
