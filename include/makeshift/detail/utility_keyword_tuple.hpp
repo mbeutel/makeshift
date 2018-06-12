@@ -28,6 +28,11 @@ template <makeshift::detail::keyword_crc Name, typename TupleT, std::size_t... I
 inline namespace types
 {
 
+    // Retrieves a tuple element by keyword name.
+    //
+    //     auto tuple = std::make_tuple(name<"width"_kw> = 42);
+    //     int width = get<"width"_kw>(tuple); // returns 42
+    //
 template <makeshift::detail::keyword_crc Name, typename TupleT>
     constexpr decltype(auto) get(TupleT&& tuple) noexcept
 {

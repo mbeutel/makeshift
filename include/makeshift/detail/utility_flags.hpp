@@ -13,7 +13,7 @@ inline namespace types
 {
 
 
-    // Inherit from define_flags<> to define a flag enum type:
+    // Inherit from `define_flags<>` to define a flag enum type:
     // 
     //     struct Vegetable : define_flags<Vegetable>
     //     {
@@ -23,6 +23,7 @@ inline namespace types
     //         static constexpr flag garlic { 8 };
     //     };
     //     using Vegetables = Vegetable::flags;
+
 template <typename FlagsT, typename UnderlyingTypeT = unsigned>
     struct define_flags : makeshift::detail::flags_base
 {

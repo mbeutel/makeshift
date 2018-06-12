@@ -16,7 +16,6 @@
 #include <makeshift/metadata.hpp>
 #include <makeshift/tuple.hpp>
 #include <makeshift/array.hpp>       // for to_array()
-#include <makeshift/arithmetic.hpp>  // for checked_cast<>()
 
 #include <makeshift/detail/cfg.hpp>  // for MAKESHIFT_SYS_DLLFUNC
 
@@ -253,7 +252,7 @@ inline std::string scalar_to_string(long double val) { return std::to_string(val
 
 inline std::string scalar_from_string(tag_t<std::string>, const std::string& s) { return s; }
 inline int scalar_from_string(tag_t<int>, const std::string& string) { return std::stoi(string); }
-inline unsigned scalar_from_string(tag_t<unsigned>, const std::string& string) { return checked_cast<unsigned>(std::stoul(string)); }
+MAKESHIFT_SYS_DLLFUNC unsigned scalar_from_string(tag_t<unsigned>, const std::string& string);
 inline long scalar_from_string(tag_t<long>, const std::string& string) { return std::stol(string); }
 inline unsigned long scalar_from_string(tag_t<unsigned long>, const std::string& string) { return std::stoul(string); }
 inline long long scalar_from_string(tag_t<long long>, const std::string& string) { return std::stoll(string); }
@@ -267,9 +266,19 @@ inline long double scalar_from_string(tag_t<long double>, const std::string& str
 inline namespace serialize
 {
 
+    // Default serializer for string and stream serialization with to_string()/from_string() and streamable().
+    //
+    // Inherit your serializer from `default_serializer_t<>` if you want to customize its behavior or define serialization
+    // for additional types. Then define `to_string()`, `from_string()`, `to_stream()`, `from_stream()` overloads in the same
+    // namespace as your serializer to customize string and/or stream serialization.
+    //
 template <typename MetadataTagT = default_metadata_tag> struct default_serializer_t { };
 template <typename MetadataTagT = default_metadata_tag> constexpr default_serializer_t<MetadataTagT> default_serializer { };
     
+    // Serializes the given value as string using the default serializer.
+    //
+    //     std::string s = to_string(42); // returns "42"s
+    //
 template <typename T, typename MetadataTagT = default_metadata_tag>
     std::string to_string(const T& value, default_serializer_t<MetadataTagT> = { })
 {
@@ -279,6 +288,11 @@ template <typename T, typename MetadataTagT = default_metadata_tag>
     else
         return makeshift::detail::scalar_to_string(value);
 }
+
+    // Deserializes the given value from a string using the default serializer.
+    //
+    //     int i = from_string(tag<int>, "42"); // returns 42
+    //
 template <typename T, typename MetadataTagT = default_metadata_tag>
     T from_string(tag_t<T>, const std::string& string, default_serializer_t<MetadataTagT> = { })
 {
@@ -288,6 +302,9 @@ template <typename T, typename MetadataTagT = default_metadata_tag>
     else
         return makeshift::detail::scalar_from_string(tag<T>, string);
 }
+
+    // Serializes the given value to a stream using the default serializer.
+    // Do not call `to_stream()` directly; use `streamable()` instead.
 template <typename T, typename MetadataTagT = default_metadata_tag>
     void to_stream(const T& value, std::ostream& stream, default_serializer_t<MetadataTagT> = { })
 {
@@ -297,6 +314,9 @@ template <typename T, typename MetadataTagT = default_metadata_tag>
     else
         stream << value;
 }
+
+    // Deserializes the given value from a stream using the default serializer.
+    // Do not call `from_stream()` directly; use `streamable()` instead.
 template <typename T, typename MetadataTagT = default_metadata_tag>
     void from_stream(T& value, std::istream& stream, default_serializer_t<MetadataTagT> = { })
 {
@@ -306,21 +326,44 @@ template <typename T, typename MetadataTagT = default_metadata_tag>
         stream >> value;
 }
 
+    // Wraps the given rvalue as a streamable object using the default serializer.
+    //
+    //     std::cout << streamable(vec.size()) << '\n';
+    //
 template <typename T>
     auto streamable(const T& value)
 {
     return makeshift::detail::streamable_rvalue { value, default_serializer<> };
 }
+
+    // Wraps the given rvalue as a streamable object using the serializer provided.
+    //
+    //     std::cout << streamable(vec.size(), mySerializer) << '\n';
+    //
 template <typename T, typename SerializerT>
     auto streamable(const T& value, SerializerT&& serializer)
 {
     return makeshift::detail::streamable_rvalue { value, std::forward<SerializerT>(serializer) };
 }
+
+    // Wraps the given lvalue as a streamable object using the default serializer.
+    //
+    //     int i;
+    //     std::cin >> streamable(i);
+    //     std::cout << streamable(i) << '\n';
+    //
 template <typename T>
     auto streamable(T& value)
 {
     return makeshift::detail::streamable_lvalue { value, default_serializer<> };
 }
+
+    // Wraps the given lvalue as a streamable object using the serializer provided.
+    //
+    //     int i;
+    //     std::cin >> streamable(i, mySerializer);
+    //     std::cout << streamable(i, mySerializer) << '\n';
+    //
 template <typename T, typename SerializerT>
     auto streamable(T& value, SerializerT&& serializer)
 {

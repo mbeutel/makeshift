@@ -29,7 +29,7 @@ template <template <typename...> class Z, typename... Ts> struct can_apply_1_<Z,
 inline namespace types
 {
 
-    // Determines whether the template instantiation Z<Ts...> would be valid. Useful for expression SFINAE.
+    // Determines whether the template instantiation `Z<Ts...>` would be valid. Useful for expression SFINAE.
 template <template <typename...> class Z, typename... Ts> using can_apply = makeshift::detail::can_apply_1_<Z, void, Ts...>;
 template <template <typename...> class Z, typename... Ts> constexpr bool can_apply_v = can_apply<Z, Ts...>::value;
 
@@ -43,8 +43,7 @@ template <typename T = void> struct tag_t { using type = T; };
 template <typename T = void> constexpr tag_t<T> tag { };
 
 
-    // Unity type for tuple functions.
-    // TODO: how to bridge to std::optional<>?
+    // Null type for tuple functions.
 struct none_t { };
 constexpr none_t none { };
 

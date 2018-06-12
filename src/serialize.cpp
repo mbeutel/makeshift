@@ -5,6 +5,7 @@
 #include <optional>
 
 #include <makeshift/serialize.hpp>
+#include <makeshift/arithmetic.hpp> // for checked_cast<>()
 
 
 namespace makeshift
@@ -27,6 +28,12 @@ namespace detail
     else
         msg = "unrecognized value '" + str + "'";
     throw std::runtime_error(msg); // TODO: use more appropriate exception class
+}
+
+
+unsigned scalar_from_string(tag_t<unsigned>, const std::string& string)
+{
+    return checked_cast<unsigned>(std::stoul(string));
 }
 
 

@@ -28,7 +28,7 @@ template <typename R, typename C, typename... ArgsT> struct functor_sig_0_<R (C:
 inline namespace types
 {
 
-    // Determines whether the given type is a functor (i.e. a class with non-ambiguous operator ()).
+    // Determines whether the given type is a functor (i.e. a class with non-ambiguous `operator ()`).
 template <typename F> using is_functor = can_apply<makeshift::detail::is_functor_r, F>;
 template <typename F> constexpr bool is_functor_v = is_functor<F>::value;
 
@@ -61,14 +61,14 @@ template <typename R, typename... ArgsT> struct sig_return_type<R(ArgsT...)> { u
 template <typename SigT> using sig_return_type_t = typename sig_return_type<SigT>::type;
 
 
-    // Retrieves the I-th argument type of a function signature.
+    // Retrieves the `I`-th argument type of a function signature.
 template <std::size_t I, typename SigT> struct sig_arg_type;
 template <std::size_t I, typename R, typename Arg0T, typename... ArgsT> struct sig_arg_type<I, R(Arg0T, ArgsT...)> : sig_arg_type<I - 1, R(ArgsT...)> { };
 template <typename R, typename Arg0T, typename... ArgsT> struct sig_arg_type<0, R(Arg0T, ArgsT...)> { using type = Arg0T; };
 template <std::size_t I, typename SigT> using sig_arg_type_t = typename sig_arg_type<I, SigT>::type;
 
 
-    // Calls a callable object. (This is a less general but constexpr version of std::invoke().)
+    // Calls a callable object. (This is a less general but `constexpr` version of `std::invoke()`.)
 template <typename F, typename... ArgsT>
     constexpr decltype(auto) call(F&& f, ArgsT&&... args)
 {

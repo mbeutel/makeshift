@@ -279,6 +279,7 @@ template <typename T>
     friend constexpr bool operator > (V lhs, type rhs) noexcept { return lhs >  V(rhs); }
     friend constexpr bool operator > (type lhs, V rhs) noexcept { return V(lhs) >  rhs; }
 
+        // Converts the given value to the unchecked version of the argument type.
     friend constexpr V unchecked(type arg) noexcept { return V(arg); }
 };
 
@@ -300,20 +301,31 @@ template <typename T> struct unchecked_<T, false> { using type = T; };
 inline namespace arithmetic
 {
 
+    // Determines whether `T` is a checked type, i.e. whether arithmetic operations on `T` are checked at runtime.
 template <typename T> struct is_checked : makeshift::detail::is_checked_<T, std::is_enum<T>::value> { };
 template <typename T> constexpr bool is_checked_v = is_checked<T>::value;
 
-template <typename T> struct make_checked : makeshift::detail::checked_<T, is_checked<T>::value> { };
+    // Obtains the checked version of the scalar integer type `T`, or `T` if it already is a checked type.
+template <typename T> struct make_checked : makeshift::detail::checked_<T, is_checked_v<T>> { };
 template <typename T> using make_checked_t = typename make_checked<T>::type;
 
-template <typename T> struct make_unchecked : makeshift::detail::unchecked_<T, is_checked<T>::value> { };
+    // Obtains the unchecked version of the checked scalar integer type `T`, or `T` if it already is an unchecked type.
+template <typename T> struct make_unchecked : makeshift::detail::unchecked_<T, is_checked_v<T>> { };
 template <typename T> using make_unchecked_t = typename make_unchecked<T>::type;
 
+    // Converts the given value to the checked version of the scalar integer type `T`, or to `T` if it already is a checked type.
+    //
+    //     int lhs = ..., rhs = ...;
+    //     make_checked_t<int> checked_sum = checked(lhs) + rhs; // arithmetic operations are checked even if one of the arguments is unchecked; the result is a checked type
+    //     int sum = unchecked(checked_sum);
+    //
 template <typename T>
     constexpr make_checked_t<T> checked(T val) noexcept
 {
     return make_checked_t<T>(val);
 }
+
+    // Converts the given value to the checked version of the scalar integer type `T`, or to `T` if it already is an unchecked type.
 template <typename T>
     constexpr make_unchecked_t<T> unchecked(T val) noexcept
 {
@@ -398,6 +410,10 @@ template <typename T, bool IsChecked> using make_checked_if_t = typename make_ch
 inline namespace arithmetic
 {
 
+    // Performs a cast between different integer types and checks for overflow at runtime.
+    //
+    //     int size = checked_cast<int>(vec.size());
+    //
 template <typename DstT, typename SrcT>
     typename makeshift::detail::make_checked_if<DstT, is_checked_v<std::decay_t<SrcT>>>::type
     checked_cast(SrcT src)

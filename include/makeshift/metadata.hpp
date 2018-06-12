@@ -18,7 +18,7 @@ namespace makeshift
 inline namespace types
 {
 
-    // Like std::decay<>, but with additional support for converting plain old literals to modern types.
+    // Like `std::decay<>`, but with additional support for converting plain old literals to modern types.
 template <typename T> struct literal_decay { using type = std::decay_t<T>; };
 template <std::size_t N> struct literal_decay<const char (&)[N]> { using type = std::string_view; };
 template <typename T> using literal_decay_t = typename literal_decay<T>::type;
@@ -32,19 +32,17 @@ struct type_metadata_base { };
 struct value_metadata_base { };
 struct property_metadata_base { };
 
-//static constexpr auto metadata_of { reflect((T*) nullptr, metadata_tag{ }) };
-
 } // namespace detail
 
 
 inline namespace metadata
 {
 
-    // Expose the ""sv literal.
+    // Expose the `""sv` literal.
 using namespace std::literals::string_view_literals;
 
 
-    // Tag type for reflect() methods which define type metadata.
+    // Default tag type for `reflect()` methods which define type metadata.
 struct default_metadata_tag { };
 
 
@@ -119,7 +117,7 @@ struct caption_t { std::string_view value; };
 static inline constexpr caption_t caption(std::string_view value) { return { value }; }
 
 
-    // Use `metadata_of<T[, MetadataTagT]>` to look up metadata for a type.
+    // Use `metadata_of_t<T[, MetadataTagT]>` to look up metadata for a type.
 template <typename T, typename MetadataTagT = default_metadata_tag> static constexpr auto metadata_of { reflect((T*) nullptr, MetadataTagT{ }) };
 template <typename T, typename MetadataTagT = default_metadata_tag> using metadata_of_t = decltype(metadata_of<T, MetadataTagT>);
 

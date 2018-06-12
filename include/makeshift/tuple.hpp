@@ -31,7 +31,7 @@ template <typename T> using is_tuple_like_r = std::integral_constant<std::size_t
 inline namespace types
 {
 
-    // Determines whether a type has a tuple-like interface (i.e. whether std::tuple_size<T>::value is well-formed).
+    // Determines whether a type has a tuple-like interface (i.e. whether `std::tuple_size<T>::value` is well-formed).
 template <typename T> using is_tuple_like = can_apply<makeshift::detail::is_tuple_like_r, T>;
 template <typename T> constexpr bool is_tuple_like_v = is_tuple_like<T>::value;
 
@@ -44,18 +44,6 @@ namespace detail
 template <typename DerivedT>
     struct stream_base
 {
-    /*template <typename TupleT,
-              typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
-        friend constexpr auto operator |(TupleT&& tuple, const stream_base& self)
-    {
-        return static_cast<const DerivedT&>(self)(std::forward<TupleT>(tuple));
-    }
-    template <typename TupleT,
-              typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
-        friend constexpr auto operator |(TupleT&& tuple, stream_base&& self)
-    {
-        return std::move(static_cast<DerivedT&>(self))(std::forward<TupleT>(tuple));
-    }*/
     template <typename TupleT,
               typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
         friend constexpr auto operator |(TupleT&& tuple, const DerivedT& self)
