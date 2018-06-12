@@ -272,7 +272,11 @@ inline namespace serialize
     // for additional types. Then define `to_string()`, `from_string()`, `to_stream()`, `from_stream()` overloads in the same
     // namespace as your serializer to customize string and/or stream serialization.
     //
-template <typename MetadataTagT = default_metadata_tag> struct default_serializer_t { };
+template <typename MetadataTagT = default_metadata_tag>
+    struct default_serializer_t
+{
+    using metadata_tag = MetadataTagT;
+};
 template <typename MetadataTagT = default_metadata_tag> constexpr default_serializer_t<MetadataTagT> default_serializer { };
     
     // Serializes the given value as string using the default serializer.

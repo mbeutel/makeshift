@@ -77,7 +77,7 @@ template <typename F> using is_getter = is_getter_sig<callable_sig_t<F>>;
 
 template <typename F> struct is_setter_sig : std::false_type { };
 template <typename C, typename V> struct is_setter_sig<void(const C&, V)> : std::true_type { };
-template <typename F> using is_setter = std::conjunction<is_setter_sig<callable_sig_t<F>>, std::is_member_object_pointer<F>>;
+template <typename F> using is_setter = std::disjunction<is_setter_sig<callable_sig_t<F>>, std::is_member_object_pointer<F>>;
 
 template <typename GetterT, typename SetterT> struct property_type : sig_return_type<callable_sig_t<GetterT>> { };
 template <typename SetterT> struct property_type<invalid_getter, SetterT> { using type = std::decay_t<sig_arg_type_t<1, callable_sig_t<SetterT>>>; };

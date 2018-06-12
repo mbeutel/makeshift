@@ -67,7 +67,8 @@ template <typename T, typename... AttrT>
 template <typename ValC, typename AttributesT>
     struct value_metadata : ValC, makeshift::detail::value_metadata_base
 {
-    using value = ValC;
+    using value_type = ValC;
+    static constexpr ValC value { };
 
     AttributesT attributes;
 

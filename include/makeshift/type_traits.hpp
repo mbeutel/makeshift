@@ -13,6 +13,7 @@ namespace detail
 {
 
 struct flags_base { };
+struct flags_tag;
 
 struct universally_convertible
 {
@@ -46,6 +47,23 @@ template <typename T = void> constexpr tag_t<T> tag { };
     // Null type for tuple functions.
 struct none_t { };
 constexpr none_t none { };
+
+
+    // Determines whether the given type is `none_t`.
+template <typename T> struct is_none : std::false_type { };
+template <> struct is_none<none_t> : std::true_type { };
+template <typename T> constexpr bool is_none_v = is_none<T>::value;
+
+
+    // Retrieves the flag type (i.e. the `struct` which inherits from `define_flags<>` and defines flag values) of a flags enum.
+template <typename T> struct flag_type_of : decltype(flag_type_of_(std::declval<T>(), std::declval<makeshift::detail::flags_tag>())) { };
+template <typename T> using flag_type_of_t = typename flag_type_of<T>::type;
+
+
+    // Determines whether the given type is a flags enum.
+template <typename T> struct is_flags_enum : std::conjunction<std::is_enum<T>, can_apply<flag_type_of, T>> { };
+template <typename T> constexpr bool is_flags_enum_v = is_flags_enum<T>::value;
+
 
 } // inline namespace types
 

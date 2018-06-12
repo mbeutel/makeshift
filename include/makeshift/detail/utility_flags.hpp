@@ -31,6 +31,8 @@ template <typename FlagsT, typename UnderlyingTypeT = unsigned>
     enum class flags : UnderlyingTypeT { none = 0 };
     using flag = flags; // alias for declaring flag constants
 
+    friend constexpr tag_t<FlagsT> flag_type_of_(flags, makeshift::detail::flags_tag);
+
         // We just forward the metadata defined for the derived type.
         // TODO: ensure that have_metadata<flag> is false if no metadata is defined for FlagsT.
     template <typename MetadataTagT>
