@@ -10,12 +10,12 @@ find_package(Catch2)
 # test target
 add_executable(test-makeshift
     "tests/main.cpp"
+#    "tests/experimental/test-property.cpp"
     "tests/test-arithmetic.cpp"
     "tests/test-tuple.cpp"
     "tests/test-utility.cpp"
     "tests/test-pointers.cpp"
-    "tests/test-metadata.cpp"
-    "tests/experimental/test-property.cpp")
+    "tests/test-metadata.cpp")
 
 # test dependencies
 target_link_libraries(test-makeshift
