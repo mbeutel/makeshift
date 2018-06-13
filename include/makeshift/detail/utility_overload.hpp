@@ -14,6 +14,7 @@ namespace makeshift
 namespace detail
 {
 
+
 struct default_overload_tag { };
 
 template <typename... Fs>
@@ -104,8 +105,10 @@ template <typename F, template <typename...> class T>
 
 } // namespace detail
 
+
 inline namespace types
 {
+
 
     // Defines a functor that accepts all arguments and does nothing.
 struct ignore_t
@@ -116,6 +119,7 @@ struct ignore_t
     }
 };
 constexpr inline ignore_t ignore { };
+
 
     // Defines a functor that will be called if no other overloaded functors match.
 template <typename F>
@@ -128,6 +132,7 @@ constexpr inline makeshift::detail::ignore_overload_wrapper otherwise(ignore_t) 
 {
     return { };
 }
+
 
     // Returns a functor wrapper that selects the matching overload among a number of given functors.
     //
@@ -179,6 +184,7 @@ public:
 template <typename... Ts>
     overload(Ts&&...) -> overload<std::decay_t<Ts>...>;
 
+
     // Returns a functor wrapper that only matches arguments of the given template type.
     //
     //     auto vec_size_func = match_template<std::vector>([](const auto& v) { return v.size(); });
@@ -189,8 +195,10 @@ template <template <typename...> class T, typename F>
     return { std::forward<F>(func) };
 }
 
+
 } // inline namespace types
 
 } // namespace makeshift
+
 
 #endif // MAKESHIFT_DETAIL_UTILITY_OVERLOAD_HPP_

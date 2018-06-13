@@ -15,6 +15,7 @@ namespace makeshift
 namespace detail
 {
 
+
 template <typename F> using is_functor_r = decltype(&F::operator ());
 
 template <typename F> struct functor_sig_0_;
@@ -22,11 +23,13 @@ template <typename R, typename... ArgsT> struct functor_sig_0_<R(ArgsT...)> { us
 template <typename R, typename C, typename... ArgsT> struct functor_sig_0_<R (C::*)(ArgsT...)> : functor_sig_0_<R(ArgsT...)> { };
 template <typename R, typename C, typename... ArgsT> struct functor_sig_0_<R (C::*)(ArgsT...) const> : functor_sig_0_<R(ArgsT...)> { };
 
+
 } // namespace detail
 
 
 inline namespace types
 {
+
 
     // Determines whether the given type is a functor (i.e. a class with non-ambiguous `operator ()`).
 template <typename F> using is_functor = can_apply<makeshift::detail::is_functor_r, F>;
@@ -105,8 +108,10 @@ template <typename F, typename C, typename Arg0T, typename... ArgsT>
     }
 }
 
+
 } // inline namespace types
 
 } // namespace makeshift
+
 
 #endif // MAKESHIFT_FUNCTIONAL_HPP_

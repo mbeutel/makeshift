@@ -17,6 +17,7 @@ namespace makeshift
 namespace detail
 {
 
+
 template <typename T>
     struct to_array_t : stream_base<to_array_t<T>>
 {
@@ -71,13 +72,18 @@ template <typename T, std::size_t N> struct array_size_<std::array<T, N>> : std:
 template <typename T, std::size_t N> struct array_size_<T (&)[N]> : std::integral_constant<std::size_t, N> { };
 template <typename T, std::size_t N> struct array_size_<T (&&)[N]> : std::integral_constant<std::size_t, N> { };
 
+
 } // namespace detail
+
 
 inline namespace types
 {
+
+
     // Determines the size of the array.
 template <typename ArrayT> using array_size = makeshift::detail::array_size_<std::decay_t<ArrayT>>;
 template <typename ArrayT> static constexpr std::size_t array_size_v = array_size<ArrayT>::value;
+
 
     // Converts an array to `std::array<>`.
     //
@@ -90,6 +96,7 @@ template <std::size_t N, typename T>
 {
     return makeshift::detail::to_array_impl(array, std::make_index_sequence<N>{ });
 }
+
 
     // Returns a functor that maps a tuple to an array of element type `T` that is initialized with the elements in the tuple.
     // If `T` is not specified, the common type of the tuple element types is used.
@@ -105,6 +112,7 @@ template <typename T = void>
     return { };
 }
 
+
     // Returns a `std::array<>` of element type `T` that is initialized with the elements in the tuple.
     //
     //     auto tuple = std::make_tuple(1, 2, 3);
@@ -118,8 +126,10 @@ template <typename T, typename TupleT,
     return to_array<T>()(std::forward<TupleT>(tuple));
 }
 
+
 } // inline namespace types
 
 } // namespace makeshift
+
 
 #endif // MAKESHIFT_ARRAY_HPP_

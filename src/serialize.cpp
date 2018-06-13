@@ -14,6 +14,7 @@ namespace makeshift
 namespace detail
 {
 
+
 [[noreturn]] static void raiseInvalidValueError(void)
 {
     throw std::logic_error("invalid value");
@@ -157,6 +158,7 @@ std::uint64_t string_to_flags_enum(const std::string& string, const flags_enum_s
         raiseInvalidStringError(string, sdata.typeDesc, sdata.flagTypeName);
     return enumValue;
 }
+
 
 } // namespace detail
 

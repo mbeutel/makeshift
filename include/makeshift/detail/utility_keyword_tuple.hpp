@@ -13,6 +13,7 @@ namespace makeshift
 namespace detail
 {
 
+
 template <makeshift::detail::keyword_crc Name, typename TupleT, std::size_t... Is>
     constexpr std::size_t tuple_kw_index(std::index_sequence<Is...>) noexcept
 {
@@ -23,10 +24,12 @@ template <makeshift::detail::keyword_crc Name, typename TupleT, std::size_t... I
     return matchIndex;
 }
 
+
 } // namespace detail
 
 inline namespace types
 {
+
 
     // Retrieves a tuple element by keyword name.
     //
@@ -41,8 +44,10 @@ template <makeshift::detail::keyword_crc Name, typename TupleT>
     return contextual_value(std::get<matchIndex>(std::forward<TupleT>(tuple)));
 }
 
+
 } // inline namespace types
 
 } // namespace makeshift
+
 
 #endif // MAKESHIFT_DETAIL_UTILITY_KEYWORD_TUPLE_HPP_

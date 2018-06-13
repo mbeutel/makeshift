@@ -13,33 +13,35 @@
 namespace makeshift
 {
 
-inline namespace types
-{
-
-struct tuple_index_t { };
-static constexpr tuple_index_t tuple_index { };
-
-} // inline namespace types
-
 namespace detail
 {
 
+
 template <typename T> using is_tuple_like_r = std::integral_constant<std::size_t, std::tuple_size<T>::value>;
+
 
 } // namespace detail
 
+
 inline namespace types
 {
+
 
     // Determines whether a type has a tuple-like interface (i.e. whether `std::tuple_size<T>::value` is well-formed).
 template <typename T> using is_tuple_like = can_apply<makeshift::detail::is_tuple_like_r, T>;
 template <typename T> constexpr bool is_tuple_like_v = is_tuple_like<T>::value;
 
+
+struct tuple_index_t { };
+static constexpr tuple_index_t tuple_index { };
+
+
 } // inline namespace types
 
 
 namespace detail
 {
+
 
 template <typename DerivedT>
     struct stream_base
@@ -446,10 +448,13 @@ public:
 
     */
 
+
 } // namespace detail
+
 
 inline namespace types
 {
+
 
     // Takes a scalar procedure (i.e. a function with non-tuple arguments and with void return type) and returns a procedure which can be called
     // with tuples in some or all arguments.
@@ -463,6 +468,7 @@ template <typename F>
 {
     return { std::forward<F>(func) };
 }
+
 
     // Takes a tuple and a scalar procedure (i.e. a function with non-tuple arguments and with void return type) and calls the procedure for every
     // element in the tuple.
@@ -479,6 +485,7 @@ template <typename TupleT, typename F,
     tuple_foreach(std::forward<F>(func))(std::forward<TupleT>(tuple));
 }
 
+
     // Returns a functor that maps a tuple to a new tuple which contains only the values for which the given type predicate is true.
     //
     //     auto numbers = std::make_tuple(1, 2, 3u);
@@ -492,6 +499,7 @@ template <template <typename> class PredT>
     return { };
 }
 
+
     // Maps a tuple to a new tuple which contains only the values for which the given type predicate is true.
     //
     //     auto numbers = std::make_tuple(1, 2, 3u);
@@ -504,6 +512,7 @@ template <template <typename> class PredT, typename TupleT,
 {
     return tuple_filter<PredT>()(std::forward<TupleT>(tuple));
 }
+
 
     // Takes a scalar function (i.e. a function with non-tuple arguments and non-tuple return type) and returns a function which can be called 
     // with tuples in some or all arguments, and whose result will be a tuple of the results of the function applied to the tuple elements.
@@ -520,6 +529,7 @@ template <typename F>
     return { std::forward<F>(func) };
 }
 
+
     // Takes a tuple and a scalar function (i.e. a function with non-tuple arguments and non-tuple return type) and returns a tuple of the results
     // of the function applied to the tuple elements.
     //
@@ -534,6 +544,7 @@ template <typename TupleT, typename F,
     return tuple_map(std::forward<F>(func))(std::forward<TupleT>(tuple));
 }
 
+
     // Takes a binary accumulator function (i.e. a function with non-tuple arguments and non-tuple return type) and returns a function which reduces
     // an initial value and a tuple to a scalar using the accumulator function.
     //
@@ -547,6 +558,7 @@ template <typename F>
 {
     return { std::forward<F>(func) };
 }
+
 
     // Takes an initial value and a binary accumulator function (i.e. a function with non-tuple arguments and non-tuple type) and returns a function
     // which reduces a tuple to a scalar using the accumulator function.
@@ -563,6 +575,7 @@ template <typename ValT, typename F>
     return { std::forward<F>(func) };
 }
 
+
     // Takes a tuple, an initial value and a binary accumulator function (i.e. a function with non-tuple arguments and non-tuple type) and returns the
     // reduction of the tuple (i.e. the left fold).
     //
@@ -576,6 +589,7 @@ template <typename TupleT, typename T, typename F,
 {
     return tuple_reduce(std::forward<F>(func))(std::forward<T>(initialValue), std::forward<TupleT>(tuple));
 }
+
 
     // Returns a functor which retrieves the tuple element of the given type, or which returns the provided default value if the tuple does not contain
     // an element of the given type. The type of the default value does not need to match the desired element type.
@@ -592,6 +606,7 @@ template <typename T, typename DefaultT,
     return { std::forward<DefaultT>(defaultValue) };
 }
 
+
     // Returns a functor which retrieves the tuple element of the given type, or which returns a default-constructed element if the tuple does not
     // contain an element of the given type.
     //
@@ -605,6 +620,7 @@ template <typename T>
 {
     return {{ }};
 }
+
 
     // Returns the tuple element of the given type, or the provided default value if the tuple does not contain an element of the given type.
     // The type of the default value does not need to match the desired element type.
@@ -620,6 +636,7 @@ template <typename T, typename TupleT, typename DefaultT,
     return get_or_default<T>(std::forward<DefaultT>(defaultValue))(std::forward<TupleT>(tuple));
 }
 
+
     // Returns the tuple element of the given type, or the provided default value if the tuple does not contain an element of the given type.
     // The type of the default value does not need to match the desired element type.
     //
@@ -634,6 +651,7 @@ template <typename T, typename TupleT,
     return get_or_default<T>()(std::forward<TupleT>(tuple));
 }
 
+
     // Returns a functor which retrieves the tuple element of the given type, or `none` if the tuple does not contain an element of the given type.
     //
     //     auto tuple = std::make_tuple(42);
@@ -646,6 +664,7 @@ template <typename T>
 {
     return {{ }};
 }
+
 
     // Returns the tuple element of the given type, or `none` if the tuple does not contain an element of the given type.
     //
@@ -660,6 +679,7 @@ template <typename T, typename TupleT,
     return get_or_none<T>()(std::forward<TupleT>(tuple));
 }
 
+
     // Returns a functor which retrieves the tuple element of the given type.
     //
     //     auto tuple = std::make_tuple(42);
@@ -672,6 +692,7 @@ template <typename T>
 {
     return { };
 }
+
 
     // Returns a functor which retrieves the tuple element with the given index. Negative indices count from the end.
     //
@@ -686,6 +707,7 @@ template <int I>
     return { };
 }
 
+
     // Returns a functor which retrieves the single element in a tuple, or which returns the provided default value if the tuple is empty.
     //
     //     auto tuple = std::make_tuple(12, 42);
@@ -698,6 +720,7 @@ template <typename DefaultT>
 {
     return { std::forward<DefaultT>(defaultValue) };
 }
+
 
     // Returns the single element in a tuple, or the provided default value if the tuple is empty.
     //
@@ -712,6 +735,7 @@ template <typename TupleT, typename DefaultT,
     return single_or_default(std::forward<DefaultT>(defaultValue))(std::forward<TupleT>(tuple));
 }
 
+
     // Returns a functor which retrieves the single element in a tuple, or which returns `none` if the tuple is empty.
     //
     //     auto tuple = std::make_tuple(12, 42);
@@ -723,6 +747,7 @@ single_or_none(void)
 {
     return {{ }};
 }
+
 
     // Returns the single element in a tuple, or `none` if the tuple is empty.
     //
@@ -737,6 +762,7 @@ template <typename TupleT,
     return single_or_none()(std::forward<TupleT>(tuple));
 }
 
+
     // Returns a functor which retrieves the single element in a tuple.
     //
     //     auto tuple = std::make_tuple(42);
@@ -748,6 +774,7 @@ single(void)
 {
     return { };
 }
+
 
     // Returns the single element in a tuple, or the provided default value if the tuple is empty.
     //
@@ -762,12 +789,15 @@ template <typename TupleT,
     return single()(std::forward<TupleT>(tuple));
 }
 
+
 } // inline namespace types
 
 } // namespace makeshift
 
+
 #ifdef MAKESHIFT_DETAIL_UTILITY_KEYWORD_HPP_
  #include <makeshift/detail/utility_keyword_tuple.hpp>
 #endif // MAKESHIFT_DETAIL_UTILITY_KEYWORD_HPP_
+
 
 #endif // MAKESHIFT_TUPLE_HPP_

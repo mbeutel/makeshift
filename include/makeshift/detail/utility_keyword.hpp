@@ -16,6 +16,7 @@ namespace makeshift
 namespace detail
 {
 
+
     // adapted from Mark Adler's post at https://stackoverflow.com/a/27950866
 static constexpr std::uint32_t crc32c(std::uint32_t crc, const char* buf, std::size_t len) noexcept
 {
@@ -60,6 +61,7 @@ constexpr inline bool operator ==(keyword lhs, keyword_crc rhs) noexcept { retur
 constexpr inline bool operator !=(keyword lhs, keyword_crc rhs) noexcept { return !(lhs == rhs); }
 constexpr inline bool operator ==(keyword lhs, keyword rhs) noexcept { return keyword_crc(lhs) == keyword_crc(rhs); }
 constexpr inline bool operator !=(keyword lhs, keyword rhs) noexcept { return !(lhs == rhs); }
+
 
 } // namespace detail
 
@@ -110,6 +112,7 @@ template <typename T, makeshift::detail::keyword_crc Name, makeshift::detail::ke
     constexpr T&& get(void) && noexcept { return std::move(value_); }
 };
 
+
     // Wraps a value of type `T` with a compile-time keyword scope:
     //
     //     using SrcFile = scoped_t<File, "src"_kw>;
@@ -118,6 +121,7 @@ template <typename T, makeshift::detail::keyword_crc Name, makeshift::detail::ke
 template <typename T, makeshift::detail::keyword_crc... Scopes> struct scoped { using type = contextual<T, makeshift::detail::keyword_crc{ }, Scopes...>; };
 template <typename T, makeshift::detail::keyword_crc Name, makeshift::detail::keyword_crc... OldScopes, makeshift::detail::keyword_crc... NewScopes> struct scoped<contextual<T, Name, OldScopes...>, NewScopes...> { using type = contextual<T, Name, NewScopes..., OldScopes...>; };
 template <typename T, makeshift::detail::keyword_crc... Scopes> using scoped_t = typename scoped<T, Scopes...>::type;
+
 
     // Wraps a value of type `T` with a compile-time keyword name:
     //
@@ -131,6 +135,7 @@ template <typename T, makeshift::detail::keyword_crc OldName, makeshift::detail:
 };
 template <typename T, makeshift::detail::keyword_crc Name> using named_t = typename named<T, Name>::type;
 
+
     // Retrieves the value type of a possibly contextual type.
     //
     //     using RawWidth = unwrap_contextual_t<Width>; // RawWidth == int
@@ -138,6 +143,7 @@ template <typename T, makeshift::detail::keyword_crc Name> using named_t = typen
 template <typename T> struct unwrap_contextual { using type = T; };
 template <typename T, makeshift::detail::keyword_crc Name, makeshift::detail::keyword_crc... Scopes> struct unwrap_contextual<contextual<T, Name, Scopes...>> { using type = T; };
 template <typename T> using unwrap_contextual_t = typename unwrap_contextual<T>::type;
+
 
     // Retrieves the name of a possibly contextual type. The name of non-contextual types is `""_kw`.
     //
@@ -147,6 +153,7 @@ template <typename T> struct name_of { static constexpr makeshift::detail::keywo
 template <typename T, makeshift::detail::keyword_crc Name, makeshift::detail::keyword_crc... Scopes> struct name_of<contextual<T, Name, Scopes...>> { static constexpr makeshift::detail::keyword_crc value = Name; };
 template <typename T> constexpr makeshift::detail::keyword_crc name_of_v = name_of<T>::value;
 
+
     // Determines whether `T` is a contextual type.
     //
     //     static_assert(is_contextual_v<Width>);
@@ -154,6 +161,7 @@ template <typename T> constexpr makeshift::detail::keyword_crc name_of_v = name_
 template <typename T> struct is_contextual : std::false_type { };
 template <typename T, makeshift::detail::keyword_crc Name, makeshift::detail::keyword_crc... Scopes> struct is_contextual<contextual<T, Name, Scopes...>> : std::true_type { };
 template <typename T> constexpr bool is_contextual_v = is_contextual<T>::value;
+
 
 template <typename T>
     constexpr unwrap_contextual_t<std::decay_t<T>> contextual_value(T&& value)
@@ -164,10 +172,6 @@ template <typename T>
         return std::forward<T>(value);
 }
 
-} // inline namespace types
-
-inline namespace types
-{
 
 template <makeshift::detail::keyword_crc Name, makeshift::detail::keyword_crc... Scopes>
     struct key_t
@@ -200,12 +204,14 @@ template <makeshift::detail::keyword_crc Name>
     operator makeshift::detail::keyword_crc(void) const noexcept { return Name; }
 };
 
+
     // Permits constructing an object of contextual type with familiar assignment syntax:
     //
     //     name<"width"_kw> = 42
     //     name<"filename"_kw> | scope<"src"_kw> = "/src/file/path"
     //
 template <makeshift::detail::keyword_crc Name> constexpr name_t<Name> name = { };
+
 
     // Permits constructing an object of contextual type with familiar assignment syntax:
     //
@@ -216,22 +222,28 @@ template <makeshift::detail::keyword_crc Name> constexpr name_t<Name> name = { }
     //
 template <makeshift::detail::keyword_crc... Scopes> constexpr scope_t<Scopes...> scope = { };
 
+
 } // inline namespace types
+
 
 inline namespace literals
 {
+
 
 constexpr inline makeshift::detail::keyword operator ""_kw(const char* data, std::size_t size) noexcept
 {
     return { data, size };
 }
 
+
 } // inline namespace literals
 
 } // namespace makeshift
 
+
 #ifdef MAKESHIFT_TUPLE_HPP_
  #include <makeshift/detail/utility_keyword_tuple.hpp>
 #endif // MAKESHIFT_TUPLE_HPP_
+
 
 #endif // MAKESHIFT_DETAIL_UTILITY_KEYWORD_HPP_

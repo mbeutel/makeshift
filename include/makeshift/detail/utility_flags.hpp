@@ -58,4 +58,5 @@ template <typename FlagsT, typename UnderlyingTypeT = unsigned>
 
 } // namespace makeshift
 
+
 #endif // MAKESHIFT_DETAIL_UTILITY_FLAGS_HPP_

@@ -9,7 +9,7 @@
 #include <cstddef>     // for size_t
 #include <tuple>
 
-#include <makeshift/type_traits.hpp> // for literal_decay<>, literal_forward<>()
+#include <makeshift/type_traits.hpp> // for can_apply<>
 
 
 namespace makeshift
@@ -18,25 +18,31 @@ namespace makeshift
 inline namespace types
 {
 
+
     // Like `std::decay<>`, but with additional support for converting plain old literals to modern types.
 template <typename T> struct literal_decay { using type = std::decay_t<T>; };
 template <std::size_t N> struct literal_decay<const char (&)[N]> { using type = std::string_view; };
 template <typename T> using literal_decay_t = typename literal_decay<T>::type;
     
+
 } // inline namespace types
+
 
 namespace detail
 {
 
+
 struct type_metadata_base { };
 struct value_metadata_base { };
 struct property_metadata_base { };
+
 
 } // namespace detail
 
 
 inline namespace metadata
 {
+
 
     // Expose the `""sv` literal.
 using namespace std::literals::string_view_literals;
@@ -127,8 +133,10 @@ template <typename T, typename MetadataTagT = default_metadata_tag> using metada
 template <typename T, typename MetadataTagT = default_metadata_tag> using have_metadata = can_apply<metadata_of_t, T, MetadataTagT>;
 template <typename T, typename MetadataTagT = default_metadata_tag> constexpr bool have_metadata_v = have_metadata<T, MetadataTagT>::value;
 
+
 } // inline namespace metadata
 
 } // namespace makeshift
+
 
 #endif // MAKESHIFT_METADATA_HPP_
