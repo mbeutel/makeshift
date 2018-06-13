@@ -203,7 +203,7 @@ public:
 
     friend std::ostream& operator <<(std::ostream& stream, const streamable_rvalue& self)
     {
-        to_stream(self.value_, stream, self.serializer_);
+        to_stream(self.value_, stream, self.serializer_, self.serializer_);
         return stream;
     }
 };
@@ -227,12 +227,12 @@ public:
 
     friend std::ostream& operator <<(std::ostream& stream, const streamable_lvalue& self)
     {
-        to_stream(self.value_, stream, self.serializer_);
+        to_stream(self.value_, stream, self.serializer_, self.serializer_);
         return stream;
     }
     friend std::istream& operator >>(std::istream& stream, const streamable_lvalue& self)
     {
-        from_stream(self.value_, stream, self.serializer_);
+        from_stream(self.value_, stream, self.serializer_, self.serializer_);
         return stream;
     }
 };
@@ -263,6 +263,82 @@ inline double scalar_from_string(tag_t<double>, const std::string& string) { ret
 inline long double scalar_from_string(tag_t<long double>, const std::string& string) { return std::stold(string); }
 
 
+template <typename MetadataTagT, typename T> struct is_enum_with_metadata : std::conjunction<have_metadata<T, MetadataTagT>, std::is_enum<T>> { };
+
+template <typename MetadataTagT, typename T> struct have_string_conversion : is_enum_with_metadata<MetadataTagT, T> { };
+template <typename MetadataTagT> struct have_string_conversion<MetadataTagT, std::string> : std::true_type { };
+template <typename MetadataTagT> struct have_string_conversion<MetadataTagT, int> : std::true_type { };
+template <typename MetadataTagT> struct have_string_conversion<MetadataTagT, unsigned> : std::true_type { };
+template <typename MetadataTagT> struct have_string_conversion<MetadataTagT, long> : std::true_type { };
+template <typename MetadataTagT> struct have_string_conversion<MetadataTagT, unsigned long> : std::true_type { };
+template <typename MetadataTagT> struct have_string_conversion<MetadataTagT, long long> : std::true_type { };
+template <typename MetadataTagT> struct have_string_conversion<MetadataTagT, unsigned long long> : std::true_type { };
+template <typename MetadataTagT> struct have_string_conversion<MetadataTagT, float> : std::true_type { };
+template <typename MetadataTagT> struct have_string_conversion<MetadataTagT, double> : std::true_type { };
+template <typename MetadataTagT> struct have_string_conversion<MetadataTagT, long double> : std::true_type { };
+template <typename MetadataTagT, typename T> constexpr bool have_string_conversion_v = have_string_conversion<MetadataTagT, T>::value;
+
+template <typename MetadataTagT, typename T> using have_ostream_operator_r = decltype(std::declval<std::ostream&>() << std::declval<const T&>());
+template <typename MetadataTagT, typename T> using have_ostream_operator = std::disjunction<is_enum_with_metadata<MetadataTagT, T>, can_apply<have_ostream_operator_r, T>>;
+template <typename MetadataTagT, typename T> constexpr bool have_ostream_operator_v = have_ostream_operator<MetadataTagT, T>::value;
+
+template <typename MetadataTagT, typename T> using have_istream_operator_r = decltype(std::declval<std::istream&>() >> std::declval<T&>());
+template <typename MetadataTagT, typename T> using have_istream_operator = std::disjunction<is_enum_with_metadata<MetadataTagT, T>, can_apply<have_istream_operator_r, T>>;
+template <typename MetadataTagT, typename T> constexpr bool have_istream_operator_v = have_istream_operator<MetadataTagT, T>::value;
+
+
+template <typename MetadataTagT = default_metadata_tag>
+    struct builtin_string_serializer_t
+{
+    using metadata_tag = MetadataTagT;
+};
+template <typename T, typename MetadataTagT, typename SerializerT,
+          typename = std::enable_if_t<have_string_conversion_v<MetadataTagT, std::decay_t<T>>>>
+    std::string to_string(const T& value, builtin_string_serializer_t<MetadataTagT>, SerializerT&&)
+{
+    using D = std::decay_t<T>;
+    if constexpr (std::is_enum<D>::value)
+        return to_string(value, serialization_data<D, MetadataTagT>);
+    else
+        return scalar_to_string(value);
+}
+template <typename T, typename MetadataTagT, typename SerializerT,
+          typename = std::enable_if_t<have_string_conversion_v<MetadataTagT, std::decay_t<T>>>>
+    T from_string(tag_t<T>, const std::string& string, builtin_string_serializer_t<MetadataTagT>, SerializerT&&)
+{
+    if constexpr (std::is_enum<T>::value)
+        return from_string(tag<T>, string, serialization_data<T, MetadataTagT>);
+    else
+        return scalar_from_string(tag<T>, string);
+}
+
+template <typename MetadataTagT = default_metadata_tag>
+    struct stream_serializer_t
+{
+    using metadata_tag = MetadataTagT;
+};
+template <typename T, typename MetadataTagT, typename SerializerT,
+          typename = std::enable_if_t<have_ostream_operator_v<MetadataTagT, std::decay_t<T>>>>
+    void to_stream(const T& value, std::ostream& stream, stream_serializer_t<MetadataTagT>, SerializerT&&)
+{
+    using D = std::decay_t<T>;
+    if constexpr (std::is_enum<D>::value)
+        to_stream(value, stream, serialization_data<D, MetadataTagT>);
+    else
+        stream << value;
+}
+template <typename T, typename MetadataTagT, typename SerializerT,
+          typename = std::enable_if_t<have_istream_operator_v<MetadataTagT, std::decay_t<T>>>>
+    void from_stream(T& value, std::istream& stream, stream_serializer_t<MetadataTagT>, SerializerT&&)
+{
+    using D = std::decay_t<T>;
+    if constexpr (std::is_enum<D>::value)
+        from_stream(value, stream, serialization_data<D, MetadataTagT>);
+    else
+        stream >> value;
+}
+
+
 } // namespace detail
 
 
@@ -270,32 +346,61 @@ inline namespace serialize
 {
 
 
-    // Default serializer for string and stream serialization with to_string()/from_string() and streamable().
+    // To customize string and/or stream serialization for arbitrary types, define your own serializer type and define `to_string()`, `from_string()`,
+    // `to_stream()`, `from_stream()` overloads in the same namespace. Use `combine()` to combine multiple serializers.
     //
-    // Inherit your serializer from `default_serializer_t<>` if you want to customize its behavior or define serialization
-    // for additional types. Then define `to_string()`, `from_string()`, `to_stream()`, `from_stream()` overloads in the same
-    // namespace as your serializer to customize string and/or stream serialization.
+    // To customize parts of the behavior of an existing serializer, have your serializer inherit from the existing serializer. Do not inherit from
+    // serializers with orthogonal concerns. Try to keep the scope of a serializer as small as possible to permit unambiguous combination.
     //
+    // Orthogonal serializers can be combined with `combine()`, cf. the definition of `default_serializer<>`.
+
+
+    // String serializer for common scalar types (built-in types and std::string).
+template <typename MetadataTagT = default_metadata_tag> constexpr makeshift::detail::builtin_string_serializer_t<MetadataTagT> builtin_string_serializer { };
+
+
+    // Stream serializer for enums with metadata and for types with overloaded stream operators.
+template <typename MetadataTagT = default_metadata_tag> constexpr makeshift::detail::stream_serializer_t<MetadataTagT> stream_serializer { };
+
+
+    // Default serializer.
 template <typename MetadataTagT = default_metadata_tag>
-    struct default_serializer_t
+    constexpr auto default_serializer = combine(
+        builtin_string_serializer<MetadataTagT>,
+        stream_serializer<MetadataTagT>
+    );
+
+
+    // Serializes the given value as string using the provided serializer.
+    //
+    //     std::string s = to_string(42, builtin_string_serializer<>); // returns "42"s
+    //
+template <typename T, typename SerializerT>
+    std::string to_string(const T& value, SerializerT&& serializer)
 {
-    using metadata_tag = MetadataTagT;
-};
-template <typename MetadataTagT = default_metadata_tag> constexpr default_serializer_t<MetadataTagT> default_serializer { };
+    return to_string(value, serializer, std::forward<SerializerT>(serializer));
+}
 
 
     // Serializes the given value as string using the default serializer.
     //
     //     std::string s = to_string(42); // returns "42"s
     //
-template <typename T, typename MetadataTagT = default_metadata_tag>
-    std::string to_string(const T& value, default_serializer_t<MetadataTagT> = { })
+template <typename T>
+    std::string to_string(const T& value)
 {
-    using D = std::decay_t<T>;
-    if constexpr (have_metadata_v<D, MetadataTagT>)
-        return to_string(value, makeshift::detail::serialization_data<T, MetadataTagT>);
-    else
-        return makeshift::detail::scalar_to_string(value);
+    return to_string(value, default_serializer<>);
+}
+
+
+    // Deserializes the given value from a string using the provided serializer.
+    //
+    //     int i = from_string(tag<int>, "42", builtin_string_serializer<>); // returns 42
+    //
+template <typename T, typename SerializerT>
+    T from_string(tag_t<T>, const std::string& string, SerializerT&& serializer)
+{
+    return from_string(tag<T>, string, serializer, std::forward<SerializerT>(serializer));
 }
 
 
@@ -303,39 +408,21 @@ template <typename T, typename MetadataTagT = default_metadata_tag>
     //
     //     int i = from_string(tag<int>, "42"); // returns 42
     //
-template <typename T, typename MetadataTagT = default_metadata_tag>
-    T from_string(tag_t<T>, const std::string& string, default_serializer_t<MetadataTagT> = { })
+template <typename T>
+    T from_string(tag_t<T>, const std::string& string)
 {
-    using D = std::decay_t<T>;
-    if constexpr (have_metadata_v<D, MetadataTagT>)
-        return from_string(tag<T>, string, makeshift::detail::serialization_data<T, MetadataTagT>);
-    else
-        return makeshift::detail::scalar_from_string(tag<T>, string);
+    return from_string(tag<T>, string, default_serializer<>);
 }
 
 
-    // Serializes the given value to a stream using the default serializer.
-    // Do not call `to_stream()` directly; use `streamable()` instead.
-template <typename T, typename MetadataTagT = default_metadata_tag>
-    void to_stream(const T& value, std::ostream& stream, default_serializer_t<MetadataTagT> = { })
+    // Wraps the given rvalue as a streamable object using the serializer provided.
+    //
+    //     std::cout << streamable(vec.size(), stream_serializer<>) << '\n';
+    //
+template <typename T, typename SerializerT>
+    auto streamable(const T& value, SerializerT&& serializer)
 {
-    using D = std::decay_t<T>;
-    if constexpr (have_metadata_v<D, MetadataTagT>)
-        to_stream(value, stream, makeshift::detail::serialization_data<T, MetadataTagT>);
-    else
-        stream << value;
-}
-
-
-    // Deserializes the given value from a stream using the default serializer.
-    // Do not call `from_stream()` directly; use `streamable()` instead.
-template <typename T, typename MetadataTagT = default_metadata_tag>
-    void from_stream(T& value, std::istream& stream, default_serializer_t<MetadataTagT> = { })
-{
-    if constexpr (have_metadata_v<T, MetadataTagT>)
-        from_stream(value, stream, makeshift::detail::serialization_data<T, MetadataTagT>);
-    else
-        stream >> value;
+    return makeshift::detail::streamable_rvalue { value, std::forward<SerializerT>(serializer) };
 }
 
 
@@ -350,14 +437,16 @@ template <typename T>
 }
 
 
-    // Wraps the given rvalue as a streamable object using the serializer provided.
+    // Wraps the given lvalue as a streamable object using the serializer provided.
     //
-    //     std::cout << streamable(vec.size(), mySerializer) << '\n';
+    //     int i;
+    //     std::cin >> streamable(i, stream_serializer<>);
+    //     std::cout << streamable(i, stream_serializer<>) << '\n';
     //
 template <typename T, typename SerializerT>
-    auto streamable(const T& value, SerializerT&& serializer)
+    auto streamable(T& value, SerializerT&& serializer)
 {
-    return makeshift::detail::streamable_rvalue { value, std::forward<SerializerT>(serializer) };
+    return makeshift::detail::streamable_lvalue { value, std::forward<SerializerT>(serializer) };
 }
 
 
@@ -371,19 +460,6 @@ template <typename T>
     auto streamable(T& value)
 {
     return makeshift::detail::streamable_lvalue { value, default_serializer<> };
-}
-
-
-    // Wraps the given lvalue as a streamable object using the serializer provided.
-    //
-    //     int i;
-    //     std::cin >> streamable(i, mySerializer);
-    //     std::cout << streamable(i, mySerializer) << '\n';
-    //
-template <typename T, typename SerializerT>
-    auto streamable(T& value, SerializerT&& serializer)
-{
-    return makeshift::detail::streamable_lvalue { value, std::forward<SerializerT>(serializer) };
 }
 
 
