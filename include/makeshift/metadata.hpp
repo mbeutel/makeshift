@@ -124,9 +124,9 @@ struct caption_t { std::string_view value; };
 static inline constexpr caption_t caption(std::string_view value) { return { value }; }
 
 
-    // Use `metadata_of_t<T[, MetadataTagT]>` to look up metadata for a type.
-template <typename T, typename MetadataTagT = default_metadata_tag> static constexpr auto metadata_of { reflect((T*) nullptr, MetadataTagT{ }) };
-template <typename T, typename MetadataTagT = default_metadata_tag> using metadata_of_t = decltype(metadata_of<T, MetadataTagT>);
+    // Use `metadata_of<T[, MetadataTagT]>` to look up metadata for a type.
+template <typename T, typename MetadataTagT = default_metadata_tag> using metadata_of_t = decltype(reflect((T*) nullptr, MetadataTagT{ }));
+template <typename T, typename MetadataTagT = default_metadata_tag> static constexpr metadata_of_t<T, MetadataTagT> metadata_of { reflect((T*) nullptr, MetadataTagT{ }) };
 
 
     // Determines whether there is metadata for the given type.
