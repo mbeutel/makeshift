@@ -13,7 +13,7 @@ namespace detail
 {
 
 struct flags_base { };
-struct flags_tag;
+struct flags_tag { };
 
 struct universally_convertible
 {
