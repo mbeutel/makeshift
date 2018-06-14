@@ -304,10 +304,10 @@ template <typename MetadataTagT, typename T> using have_istream_operator = std::
 template <typename MetadataTagT, typename T> constexpr bool have_istream_operator_v = have_istream_operator<MetadataTagT, T>::value;
 
 
-template <typename MetadataTagT = default_metadata_tag> struct builtin_string_serializer_t : metadata_serializer_t<MetadataTagT> { };
+template <typename MetadataTagT = default_metadata_tag> struct builtin_string_serializer_base_t : metadata_serializer_t<MetadataTagT> { };
 template <typename T, typename MetadataTagT, typename SerializerT,
           typename = std::enable_if_t<have_string_conversion_v<MetadataTagT, std::decay_t<T>>>>
-    std::string to_string_impl(const T& value, builtin_string_serializer_t<MetadataTagT>, SerializerT&)
+    std::string to_string_impl(const T& value, builtin_string_serializer_base_t<MetadataTagT>, SerializerT&)
 {
     using D = std::decay_t<T>;
     if constexpr (std::is_enum<D>::value)
@@ -317,7 +317,7 @@ template <typename T, typename MetadataTagT, typename SerializerT,
 }
 template <typename T, typename MetadataTagT, typename SerializerT,
           typename = std::enable_if_t<have_string_conversion_v<MetadataTagT, std::decay_t<T>>>>
-    T from_string_impl(tag_t<T>, const std::string& string, builtin_string_serializer_t<MetadataTagT>, SerializerT&)
+    T from_string_impl(tag_t<T>, const std::string& string, builtin_string_serializer_base_t<MetadataTagT>, SerializerT&)
 {
     if constexpr (std::is_enum<T>::value)
         return from_string(tag<T>, string, serialization_data<T, MetadataTagT>);
@@ -325,10 +325,10 @@ template <typename T, typename MetadataTagT, typename SerializerT,
         return scalar_from_string(tag<T>, string);
 }
 
-template <typename MetadataTagT = default_metadata_tag> struct stream_serializer_t : metadata_serializer_t<MetadataTagT> { };
+template <typename MetadataTagT = default_metadata_tag> struct stream_serializer_base_t : metadata_serializer_t<MetadataTagT> { };
 template <typename T, typename MetadataTagT, typename SerializerT,
           typename = std::enable_if_t<have_ostream_operator_v<MetadataTagT, std::decay_t<T>>>>
-    void to_stream_impl(const T& value, std::ostream& stream, stream_serializer_t<MetadataTagT>, SerializerT&)
+    void to_stream_impl(const T& value, std::ostream& stream, stream_serializer_base_t<MetadataTagT>, SerializerT&)
 {
     using D = std::decay_t<T>;
     if constexpr (std::is_enum<D>::value)
@@ -338,7 +338,7 @@ template <typename T, typename MetadataTagT, typename SerializerT,
 }
 template <typename T, typename MetadataTagT, typename SerializerT,
           typename = std::enable_if_t<have_istream_operator_v<MetadataTagT, std::decay_t<T>>>>
-    void from_stream_impl(T& value, std::istream& stream, stream_serializer_t<MetadataTagT>, SerializerT&)
+    void from_stream_impl(T& value, std::istream& stream, stream_serializer_base_t<MetadataTagT>, SerializerT&)
 {
     using D = std::decay_t<T>;
     if constexpr (std::is_enum<D>::value)
@@ -365,12 +365,16 @@ inline namespace serialize
 
 
     // String serializer for common scalar types (built-in types and std::string).
-using makeshift::detail::builtin_string_serializer_t;
+template <typename MetadataTagT = default_metadata_tag> struct builtin_string_serializer_t : makeshift::detail::builtin_string_serializer_base_t<MetadataTagT> { };
+
+    // String serializer for common scalar types (built-in types and std::string).
 template <typename MetadataTagT = default_metadata_tag> constexpr builtin_string_serializer_t<MetadataTagT> builtin_string_serializer { };
 
 
     // Stream serializer for enums with metadata and for types with overloaded stream operators.
-using makeshift::detail::stream_serializer_t;
+template <typename MetadataTagT = default_metadata_tag> struct stream_serializer_t : makeshift::detail::stream_serializer_base_t<MetadataTagT> { };
+
+    // Stream serializer for enums with metadata and for types with overloaded stream operators.
 template <typename MetadataTagT = default_metadata_tag> constexpr stream_serializer_t<MetadataTagT> stream_serializer { };
 
 

@@ -118,7 +118,9 @@ struct ignore_t
     {
     }
 };
-constexpr inline ignore_t ignore { };
+
+    // Functor that accepts all arguments and does nothing.
+constexpr inline ignore_t ignore = { };
 
 
     // Defines a functor that will be called if no other overloaded functors match.
@@ -128,6 +130,8 @@ template <typename F>
 {
     return { std::forward<F>(func) };
 }
+
+    // Defines a functor that will be called if no other overloaded functors match, and which accepts all arguments and does nothing.
 constexpr inline makeshift::detail::ignore_overload_wrapper otherwise(ignore_t) noexcept
 {
     return { };

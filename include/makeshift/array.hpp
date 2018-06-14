@@ -80,8 +80,10 @@ inline namespace types
 {
 
 
-    // Determines the size of the array.
-template <typename ArrayT> using array_size = makeshift::detail::array_size_<std::decay_t<ArrayT>>;
+    // Determines the size of the given array.
+template <typename ArrayT> struct array_size : makeshift::detail::array_size_<std::decay_t<ArrayT>> { };
+
+    // Determines the size of the given array.
 template <typename ArrayT> static constexpr std::size_t array_size_v = array_size<ArrayT>::value;
 
 

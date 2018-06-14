@@ -3,7 +3,7 @@
 #define MAKESHIFT_DETAIL_UTILITY_FLAGS_HPP_
 
 
-#include <makeshift/type_traits.hpp> // for flags_base
+#include <makeshift/type_traits.hpp> // for flags_base, none
 
 
 namespace makeshift
@@ -23,7 +23,7 @@ inline namespace types
     //         static constexpr flag garlic { 8 };
     //     };
     //     using Vegetables = Vegetable::flags;
-
+    //
 template <typename FlagsT, typename UnderlyingTypeT = unsigned>
     struct define_flags : makeshift::detail::flags_base
 {
@@ -48,9 +48,19 @@ template <typename FlagsT, typename UnderlyingTypeT = unsigned>
     friend constexpr flags& operator |=(flags& lhs, flags rhs) noexcept { lhs = lhs | rhs; return lhs; }
     friend constexpr flags& operator &=(flags& lhs, flags rhs) noexcept { lhs = lhs & rhs; return lhs; }
     friend constexpr flags& operator ^=(flags& lhs, flags rhs) noexcept { lhs = lhs ^ rhs; return lhs; }
-    friend constexpr bool has_flag(flags _flags, flag _flag) noexcept { return (UnderlyingTypeT(_flags) & UnderlyingTypeT(_flag)) != 0; }
-    friend constexpr bool has_any_of(flags _flags, flags desiredFlags) noexcept { return (UnderlyingTypeT(_flags) & UnderlyingTypeT(desiredFlags)) != 0; }
-    friend constexpr bool has_all_of(flags _flags, flags desiredFlags) noexcept { return flags(UnderlyingTypeT(_flags) & UnderlyingTypeT(desiredFlags)) == desiredFlags; }
+    friend constexpr bool operator ==(flags lhs, none_t) noexcept { return lhs == flags::none; }
+    friend constexpr bool operator ==(none_t, flags rhs) noexcept { return rhs == flags::none; }
+    friend constexpr bool operator !=(flags lhs, none_t) noexcept { return lhs != flags::none; }
+    friend constexpr bool operator !=(none_t, flags rhs) noexcept { return rhs != flags::none; }
+
+        // `has_flag(haystack, needle)` determines whether the flags enum `haystack` contains the flag `needle`. Equivalent to `(haystack & needle) != none`.
+    friend constexpr bool has_flag(flags haystack, flag needle) noexcept { return (UnderlyingTypeT(haystack) & UnderlyingTypeT(needle)) != 0; }
+    
+        // `has_any_of(haystack, needles)` determines whether the flags enum `haystack` contains any of the flags in `needles`. Equivalent to `(haystack & needles) != none`.
+    friend constexpr bool has_any_of(flags haystack, flags needles) noexcept { return (UnderlyingTypeT(haystack) & UnderlyingTypeT(needles)) != 0; }
+    
+        // `has_all_of(haystack, needles)` determines whether the flags enum `haystack` contains all of the flags in `needles`. Equivalent to `(haystack & needles) == needles`.
+    friend constexpr bool has_all_of(flags haystack, flags needles) noexcept { return flags(UnderlyingTypeT(_flags) & UnderlyingTypeT(desiredFlags)) == desiredFlags; }
 };
 
 

@@ -308,16 +308,22 @@ inline namespace arithmetic
 
     // Determines whether `T` is a checked type, i.e. whether arithmetic operations on `T` are checked at runtime.
 template <typename T> struct is_checked : makeshift::detail::is_checked_<T, std::is_enum<T>::value> { };
+
+    // Determines whether `T` is a checked type, i.e. whether arithmetic operations on `T` are checked at runtime.
 template <typename T> constexpr bool is_checked_v = is_checked<T>::value;
 
 
     // Obtains the checked version of the scalar integer type `T`, or `T` if it already is a checked type.
 template <typename T> struct make_checked : makeshift::detail::checked_<T, is_checked_v<T>> { };
+
+    // Obtains the checked version of the scalar integer type `T`, or `T` if it already is a checked type.
 template <typename T> using make_checked_t = typename make_checked<T>::type;
 
 
     // Obtains the unchecked version of the checked scalar integer type `T`, or `T` if it already is an unchecked type.
 template <typename T> struct make_unchecked : makeshift::detail::unchecked_<T, is_checked_v<T>> { };
+
+    // Obtains the unchecked version of the checked scalar integer type `T`, or `T` if it already is an unchecked type.
 template <typename T> using make_unchecked_t = typename make_unchecked<T>::type;
 
 

@@ -18,8 +18,14 @@ inline namespace types
 template <typename... Ts>
     struct combination_t : Ts...
 {
-    template <typename... LTs> constexpr combination_t(LTs&&... args) : Ts(std::forward<LTs>(args))... { }
+    template <typename... LTs>
+        constexpr combination_t(LTs&&... args)
+            : Ts(std::forward<LTs>(args))...
+    {
+    }
 };
+
+    // Returns an instance of a type that publicly inherits from all argument types and initializes its base classes with `std::forward<Ts>(args)`.
 template <typename... Ts>
     constexpr combination_t<std::decay_t<Ts>...> combine(Ts&&... args)
 {

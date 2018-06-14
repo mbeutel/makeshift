@@ -28,11 +28,28 @@ inline namespace types
 
 
     // Determines whether a type has a tuple-like interface (i.e. whether `std::tuple_size<T>::value` is well-formed).
-template <typename T> using is_tuple_like = can_apply<makeshift::detail::is_tuple_like_r, T>;
+template <typename T> struct is_tuple_like : can_apply<makeshift::detail::is_tuple_like_r, T> { };
+
+    // Determines whether a type has a tuple-like interface (i.e. whether `std::tuple_size<T>::value` is well-formed).
 template <typename T> constexpr bool is_tuple_like_v = is_tuple_like<T>::value;
 
 
+    // Pass `tuple_index` to `tuple_foreach()` or `tuple_map()` to have the tuple element index passed as a functor argument.
+    // The argument is of type `integral_constant<std::size_t, I>` and implicitly converts to `std::size_t`.
+    //
+    //     auto print_tuple = tuple_foreach([](auto element, std::size_t idx) { std::cout << idx << ": " << element << '\n'; });
+    //     auto tuple = std::make_tuple(42, 1.41421);
+    //     print_tuple(tuple, tuple_index); // prints "0: 42\n1: 1.41421"
+    //
 struct tuple_index_t { };
+
+    // Pass `tuple_index` to `tuple_foreach()` or `tuple_map()` to have the tuple element index passed as a functor argument.
+    // The argument is of type `integral_constant<std::size_t, I>` and implicitly converts to `std::size_t`.
+    //
+    //     auto print_tuple = tuple_foreach([](auto element, std::size_t idx) { std::cout << idx << ": " << element << '\n'; });
+    //     auto tuple = std::make_tuple(42, 1.41421);
+    //     print_tuple(tuple, tuple_index); // prints "0: 42\n1: 1.41421"
+    //
 static constexpr tuple_index_t tuple_index { };
 
 
