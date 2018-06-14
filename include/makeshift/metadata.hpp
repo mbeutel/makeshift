@@ -125,12 +125,16 @@ static inline constexpr caption_t caption(std::string_view value) { return { val
 
 
     // Use `metadata_of<T[, MetadataTagT]>` to look up metadata for a type.
+template <typename T, typename MetadataTagT = default_metadata_tag> static constexpr auto metadata_of = reflect((T*) nullptr, MetadataTagT{ });
+
+    // Use `metadata_of<T[, MetadataTagT]>` to look up metadata for a type.
 template <typename T, typename MetadataTagT = default_metadata_tag> using metadata_of_t = decltype(reflect((T*) nullptr, MetadataTagT{ }));
-template <typename T, typename MetadataTagT = default_metadata_tag> static constexpr metadata_of_t<T, MetadataTagT> metadata_of { reflect((T*) nullptr, MetadataTagT{ }) };
 
 
     // Determines whether there is metadata for the given type.
-template <typename T, typename MetadataTagT = default_metadata_tag> using have_metadata = can_apply<metadata_of_t, T, MetadataTagT>;
+template <typename T, typename MetadataTagT = default_metadata_tag> struct have_metadata : can_apply<metadata_of_t, T, MetadataTagT> { };
+
+    // Determines whether there is metadata for the given type.
 template <typename T, typename MetadataTagT = default_metadata_tag> constexpr bool have_metadata_v = have_metadata<T, MetadataTagT>::value;
 
 
