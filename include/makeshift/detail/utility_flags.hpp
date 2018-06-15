@@ -60,7 +60,7 @@ template <typename FlagsT, typename UnderlyingTypeT = unsigned>
     friend constexpr bool has_any_of(flags haystack, flags needles) noexcept { return (UnderlyingTypeT(haystack) & UnderlyingTypeT(needles)) != 0; }
     
         // `has_all_of(haystack, needles)` determines whether the flags enum `haystack` contains all of the flags in `needles`. Equivalent to `(haystack & needles) == needles`.
-    friend constexpr bool has_all_of(flags haystack, flags needles) noexcept { return flags(UnderlyingTypeT(_flags) & UnderlyingTypeT(desiredFlags)) == desiredFlags; }
+    friend constexpr bool has_all_of(flags haystack, flags needles) noexcept { return flags(UnderlyingTypeT(haystack) & UnderlyingTypeT(needles)) == needles; }
 };
 
 
