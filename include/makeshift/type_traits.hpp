@@ -16,11 +16,6 @@ namespace detail
 struct flags_base { };
 struct flags_tag { };
 
-struct universally_convertible
-{
-    template <typename T> operator T(void) const;
-};
-
 template <typename...> using void_t = void; // ICC doesn't have std::void_t<> yet
 template <template <typename...> class, typename, typename...> struct can_apply_1_ : std::false_type { };
 template <template <typename...> class Z, typename... Ts> struct can_apply_1_<Z, void_t<Z<Ts...>>, Ts...> : std::true_type { };
@@ -31,6 +26,25 @@ template <template <typename...> class Z, typename... Ts> struct can_apply_1_<Z,
 
 inline namespace types
 {
+
+
+    // Use as an argument or return type if a type mismatch error is not desired (e.g. because it would be misleading and another error follows anyway),
+    // or to enforce the lowest rank in overload resolution (e.g. to define the default behavior for a function in case no matching function is found
+    // via argument-dependent lookup).
+struct universally_convertible
+{
+    template <typename T> constexpr universally_convertible(const T&) noexcept { }
+    template <typename T> constexpr operator T(void) const;
+};
+
+    // Use as an argument type to enforce lowest rank in overload resolution (e.g. to define the default behavior for a function in case no matching
+    // function is found via argument-dependent lookup).
+template <typename T>
+    struct convertible_from
+{
+    T value;
+    constexpr convertible_from(const T& _value) : value(_value) { }
+};
 
 
     // Determines whether the template instantiation `Z<Ts...>` would be valid. Useful for expression SFINAE.
