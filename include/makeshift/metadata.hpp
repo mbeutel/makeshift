@@ -48,10 +48,6 @@ inline namespace metadata
 using namespace std::literals::string_view_literals;
 
 
-    // Default tag type for `reflect()` methods which define type metadata.
-struct default_metadata_tag { };
-
-
     // Stores metadata for a type.
 template <typename T, typename AttributesT>
     struct type_metadata : makeshift::detail::type_metadata_base
@@ -134,18 +130,18 @@ struct caption_t { std::string_view value; };
 static inline constexpr caption_t caption(std::string_view value) { return { value }; }
 
 
-    // Use `metadata_of<T[, MetadataTagT]>` to look up metadata for a type.
-template <typename T, typename MetadataTagT = default_metadata_tag> static constexpr auto metadata_of = reflect((T*) nullptr, MetadataTagT{ });
+    // Use `metadata_of<T, MetadataTagT>` to look up metadata for a type.
+template <typename T, typename MetadataTagT> static constexpr auto metadata_of = reflect((T*) nullptr, MetadataTagT{ });
 
-    // Use `metadata_of<T[, MetadataTagT]>` to look up metadata for a type.
-template <typename T, typename MetadataTagT = default_metadata_tag> using metadata_of_t = decltype(reflect((T*) nullptr, MetadataTagT{ }));
+    // Use `metadata_of<T, MetadataTagT>` to look up metadata for a type.
+template <typename T, typename MetadataTagT> using metadata_of_t = decltype(reflect((T*) nullptr, MetadataTagT{ }));
 
 
-    // Determines whether there is metadata for the given type.
-template <typename T, typename MetadataTagT = default_metadata_tag> struct have_metadata : can_apply<metadata_of_t, T, MetadataTagT> { };
+    // Determines whether there is metadata for the given type and the given tag.
+template <typename T, typename MetadataTagT> struct have_metadata : can_apply<metadata_of_t, T, MetadataTagT> { };
 
-    // Determines whether there is metadata for the given type.
-template <typename T, typename MetadataTagT = default_metadata_tag> constexpr bool have_metadata_v = have_metadata<T, MetadataTagT>::value;
+    // Determines whether there is metadata for the given type and the given tag.
+template <typename T, typename MetadataTagT> constexpr bool have_metadata_v = have_metadata<T, MetadataTagT>::value;
 
 
 } // inline namespace metadata

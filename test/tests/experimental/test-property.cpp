@@ -1,5 +1,4 @@
 
-#include <makeshift/type_traits.hpp> // for default_metadata_tag
 #include <makeshift/metadata.hpp>
 #include <makeshift/serialize.hpp>
 #include <makeshift/experimental/property.hpp>
@@ -21,7 +20,7 @@ struct MyStruct
     void setBar(float) const { }
     double baz;
 };
-static constexpr auto reflect(MyStruct*, mk::default_metadata_tag)
+static constexpr auto reflect(MyStruct*, mk::serialization_metadata_tag)
 {
     using namespace makeshift::metadata;
     return type<MyStruct>("MyStruct",
@@ -34,7 +33,7 @@ static constexpr auto reflect(MyStruct*, mk::default_metadata_tag)
 template <typename T>
     constexpr std::string_view type_name(void)
 {
-    return std::get<std::string_view>(mk::metadata_of<T>.attributes);
+    return std::get<std::string_view>(mk::metadata_of<T, mk::serialization_metadata_tag>.attributes);
 }
 
 //template <typename T>
@@ -102,7 +101,7 @@ template <typename T, typename AttributesT>
 template <typename T>
     void to_stream(std::ostream& stream, const T& value, const serialize_as_table_t& sctx)
 {
-    auto readableProperties = metadata_of<T>.attributes
+    auto readableProperties = metadata_of<T, mk::serialization_metadata_tag>.attributes
         | mk::tuple_filter<is_property_metadata>()
         | mk::tuple_map([&](const auto& propMetadata)
           {
