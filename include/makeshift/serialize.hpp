@@ -1,4 +1,4 @@
-
+﻿
 #ifndef MAKESHIFT_SERIALIZE_HPP_
 #define MAKESHIFT_SERIALIZE_HPP_
 
@@ -40,7 +40,7 @@ template <typename MetadataTagT = default_metadata_tag>
 template <typename MetadataTagT = default_metadata_tag> constexpr metadata_serializer_t<MetadataTagT> metadata_serializer { };
 
 
-} // inline namespace metadat
+} // inline namespace metadata
 
 
 namespace detail
@@ -387,8 +387,8 @@ template <typename MetadataTagT = default_metadata_tag>
 
 
     // Serializes the given value as string using the provided serializer.
-    //
-    //     std::string s = to_string(42, builtin_string_serializer<>); // returns "42"s
+    //ᅟ
+    //ᅟ    std::string s = to_string(42, builtin_string_serializer<>); // returns "42"s
     //
 template <typename T, typename SerializerT>
     std::string to_string(const T& value, SerializerT& serializer)
@@ -398,8 +398,8 @@ template <typename T, typename SerializerT>
 
 
     // Serializes the given value as string using the default serializer.
-    //
-    //     std::string s = to_string(42); // returns "42"s
+    //ᅟ
+    //ᅟ    std::string s = to_string(42); // returns "42"s
     //
 template <typename T>
     std::string to_string(const T& value)
@@ -409,8 +409,8 @@ template <typename T>
 
 
     // Deserializes the given value from a string using the provided serializer.
-    //
-    //     int i = from_string(tag<int>, "42", builtin_string_serializer<>); // returns 42
+    //ᅟ
+    //ᅟ    int i = from_string(tag<int>, "42", builtin_string_serializer<>); // returns 42
     //
 template <typename T, typename SerializerT>
     T from_string(tag_t<T>, const std::string& string, SerializerT& serializer)
@@ -420,8 +420,8 @@ template <typename T, typename SerializerT>
 
 
     // Deserializes the given value from a string using the default serializer.
-    //
-    //     int i = from_string(tag<int>, "42"); // returns 42
+    //ᅟ
+    //ᅟ    int i = from_string(tag<int>, "42"); // returns 42
     //
 template <typename T>
     T from_string(tag_t<T>, const std::string& string)
@@ -431,8 +431,8 @@ template <typename T>
 
 
     // Wraps the given rvalue as a streamable object using the serializer provided.
-    //
-    //     std::cout << streamable(vec.size(), stream_serializer<>) << '\n';
+    //ᅟ
+    //ᅟ    std::cout << streamable(vec.size(), stream_serializer<>) << '\n';
     //
 template <typename T, typename SerializerT>
     auto streamable(const T& value, SerializerT&& serializer)
@@ -442,8 +442,8 @@ template <typename T, typename SerializerT>
 
 
     // Wraps the given rvalue as a streamable object using the default serializer.
-    //
-    //     std::cout << streamable(vec.size()) << '\n';
+    //ᅟ
+    //ᅟ    std::cout << streamable(vec.size()) << '\n';
     //
 template <typename T>
     auto streamable(const T& value)
@@ -453,10 +453,10 @@ template <typename T>
 
 
     // Wraps the given lvalue as a streamable object using the serializer provided.
-    //
-    //     int i;
-    //     std::cin >> streamable(i, stream_serializer<>);
-    //     std::cout << streamable(i, stream_serializer<>) << '\n';
+    //ᅟ
+    //ᅟ    int i;
+    //ᅟ    std::cin >> streamable(i, stream_serializer<>);
+    //ᅟ    std::cout << streamable(i, stream_serializer<>) << '\n';
     //
 template <typename T, typename SerializerT>
     auto streamable(T& value, SerializerT&& serializer)
@@ -466,10 +466,10 @@ template <typename T, typename SerializerT>
 
 
     // Wraps the given lvalue as a streamable object using the default serializer.
-    //
-    //     int i;
-    //     std::cin >> streamable(i);
-    //     std::cout << streamable(i) << '\n';
+    //ᅟ
+    //ᅟ    int i;
+    //ᅟ    std::cin >> streamable(i);
+    //ᅟ    std::cout << streamable(i) << '\n';
     //
 template <typename T>
     auto streamable(T& value)

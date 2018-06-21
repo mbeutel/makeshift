@@ -1,4 +1,4 @@
-
+﻿
 #ifndef MAKESHIFT_ARRAY_HPP_
 #define MAKESHIFT_ARRAY_HPP_
 
@@ -88,9 +88,9 @@ template <typename ArrayT> static constexpr std::size_t array_size_v = array_siz
 
 
     // Converts an array to `std::array<>`.
-    //
-    //     int nativeArray[] = { 1, 2, 3 };
-    //     auto array = to_array(nativeArray); // returns {{ 1, 2, 3 }}
+    //ᅟ
+    //ᅟ    int nativeArray[] = { 1, 2, 3 };
+    //ᅟ    auto array = to_array(nativeArray); // returns {{ 1, 2, 3 }}
     //
 template <std::size_t N, typename T>
     constexpr std::array<std::remove_cv_t<T>, N>
@@ -102,10 +102,10 @@ template <std::size_t N, typename T>
 
     // Returns a functor that maps a tuple to an array of element type `T` that is initialized with the elements in the tuple.
     // If `T` is not specified, the common type of the tuple element types is used.
-    //
-    //     auto tuple = std::make_tuple(1, 2, 3);
-    //     auto array = to_array()(tuple); // returns {{ 1, 2, 3 }}
-    //     auto array_alternativeSyntax = tuple | to_array(); // returns {{ 1, 2, 3 }}
+    //ᅟ
+    //ᅟ    auto tuple = std::make_tuple(1, 2, 3);
+    //ᅟ    auto array = to_array()(tuple); // returns {{ 1, 2, 3 }}
+    //ᅟ    auto array_alternativeSyntax = tuple | to_array(); // returns {{ 1, 2, 3 }}
     //
 template <typename T = void>
     constexpr makeshift::detail::to_array_t<std::remove_cv_t<T>>
@@ -116,9 +116,9 @@ template <typename T = void>
 
 
     // Returns a `std::array<>` of element type `T` that is initialized with the elements in the tuple.
-    //
-    //     auto tuple = std::make_tuple(1, 2, 3);
-    //     auto array = to_array(tuple); // returns {{ 1, 2, 3 }}
+    //ᅟ
+    //ᅟ    auto tuple = std::make_tuple(1, 2, 3);
+    //ᅟ    auto array = to_array(tuple); // returns {{ 1, 2, 3 }}
     //
 template <typename T, typename TupleT,
           typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>

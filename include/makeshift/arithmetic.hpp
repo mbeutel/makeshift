@@ -1,4 +1,4 @@
-
+﻿
 #ifndef MAKESHIFT_ARITHMETIC_HPP_
 #define MAKESHIFT_ARITHMETIC_HPP_
 
@@ -328,10 +328,10 @@ template <typename T> using make_unchecked_t = typename make_unchecked<T>::type;
 
 
     // Converts the given value to the checked version of the scalar integer type `T`, or to `T` if it already is a checked type.
-    //
-    //     int lhs = ..., rhs = ...;
-    //     make_checked_t<int> checked_sum = checked(lhs) + rhs; // arithmetic operations are checked even if one of the arguments is unchecked; the result is a checked type
-    //     int sum = unchecked(checked_sum);
+    //ᅟ
+    //ᅟ    int lhs = ..., rhs = ...;
+    //ᅟ    make_checked_t<int> checked_sum = checked(lhs) + rhs; // arithmetic operations are checked even if one of the arguments is unchecked; the result is a checked type
+    //ᅟ    int sum = unchecked(checked_sum);
     //
 template <typename T>
     constexpr make_checked_t<T> checked(T val) noexcept
@@ -428,8 +428,8 @@ inline namespace arithmetic
 
 
     // Performs a cast between different integer types and checks for overflow at runtime.
-    //
-    //     int size = checked_cast<int>(vec.size());
+    //ᅟ
+    //ᅟ    int size = checked_cast<int>(vec.size());
     //
 template <typename DstT, typename SrcT>
     typename makeshift::detail::make_checked_if<DstT, is_checked_v<std::decay_t<SrcT>>>::type

@@ -1,4 +1,4 @@
-
+﻿
 #ifndef MAKESHIFT_DETAIL_UTILITY_OVERLOAD_HPP_
 #define MAKESHIFT_DETAIL_UTILITY_OVERLOAD_HPP_
 
@@ -139,12 +139,12 @@ constexpr inline makeshift::detail::ignore_overload_wrapper otherwise(ignore_t) 
 
 
     // Returns a functor wrapper that selects the matching overload among a number of given functors.
-    //
-    //     auto type_name_func = overload(
-    //         [](int) { return "int"; },
-    //         [](float) { return "float"; },
-    //         otherwise([](auto) { return "unknown"; })
-    //     );
+    //ᅟ
+    //ᅟ    auto type_name_func = overload(
+    //ᅟ        [](int) { return "int"; },
+    //ᅟ        [](float) { return "float"; },
+    //ᅟ        otherwise([](auto) { return "unknown"; })
+    //ᅟ    );
     //
 template <typename... Fs>
     struct overload : makeshift::detail::overload_base<Fs...>
@@ -190,8 +190,8 @@ template <typename... Ts>
 
 
     // Returns a functor wrapper that only matches arguments of the given template type.
-    //
-    //     auto vec_size_func = match_template<std::vector>([](const auto& v) { return v.size(); });
+    //ᅟ
+    //ᅟ    auto vec_size_func = match_template<std::vector>([](const auto& v) { return v.size(); });
     //
 template <template <typename...> class T, typename F>
     constexpr makeshift::detail::match_template_func<std::decay_t<F>, T> match_template(F&& func)

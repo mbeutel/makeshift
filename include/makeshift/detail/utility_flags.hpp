@@ -1,4 +1,4 @@
-
+﻿
 #ifndef MAKESHIFT_DETAIL_UTILITY_FLAGS_HPP_
 #define MAKESHIFT_DETAIL_UTILITY_FLAGS_HPP_
 
@@ -14,15 +14,15 @@ inline namespace types
 
 
     // Inherit from `define_flags<>` to define a flag enum type:
-    // 
-    //     struct Vegetable : define_flags<Vegetable>
-    //     {
-    //         static constexpr flag tomato { 1 };
-    //         static constexpr flag onion { 2 };
-    //         static constexpr flag eggplant { 4 };
-    //         static constexpr flag garlic { 8 };
-    //     };
-    //     using Vegetables = Vegetable::flags;
+    //ᅟ
+    //ᅟ    struct Vegetable : define_flags<Vegetable>
+    //ᅟ    {
+    //ᅟ        static constexpr flag tomato { 1 };
+    //ᅟ        static constexpr flag onion { 2 };
+    //ᅟ        static constexpr flag eggplant { 4 };
+    //ᅟ        static constexpr flag garlic { 8 };
+    //ᅟ    };
+    //ᅟ    using Vegetables = Vegetable::flags;
     //
 template <typename FlagsT, typename UnderlyingTypeT = unsigned>
     struct define_flags : makeshift::detail::flags_base

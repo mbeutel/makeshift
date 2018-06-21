@@ -1,4 +1,4 @@
-
+﻿
 #ifndef MAKESHIFT_TUPLE_HPP_
 #define MAKESHIFT_TUPLE_HPP_
 
@@ -36,19 +36,19 @@ template <typename T> constexpr bool is_tuple_like_v = is_tuple_like<T>::value;
 
     // Pass `tuple_index` to `tuple_foreach()` or `tuple_map()` to have the tuple element index passed as a functor argument.
     // The argument is of type `integral_constant<std::size_t, I>` and implicitly converts to `std::size_t`.
-    //
-    //     auto print_tuple = tuple_foreach([](auto element, std::size_t idx) { std::cout << idx << ": " << element << '\n'; });
-    //     auto tuple = std::make_tuple(42, 1.41421);
-    //     print_tuple(tuple, tuple_index); // prints "0: 42\n1: 1.41421"
+    //ᅟ
+    //ᅟ    auto print_tuple = tuple_foreach([](auto element, std::size_t idx) { std::cout << idx << ": " << element << '\n'; });
+    //ᅟ    auto tuple = std::make_tuple(42, 1.41421);
+    //ᅟ    print_tuple(tuple, tuple_index); // prints "0: 42\n1: 1.41421"
     //
 struct tuple_index_t { };
 
     // Pass `tuple_index` to `tuple_foreach()` or `tuple_map()` to have the tuple element index passed as a functor argument.
     // The argument is of type `integral_constant<std::size_t, I>` and implicitly converts to `std::size_t`.
-    //
-    //     auto print_tuple = tuple_foreach([](auto element, std::size_t idx) { std::cout << idx << ": " << element << '\n'; });
-    //     auto tuple = std::make_tuple(42, 1.41421);
-    //     print_tuple(tuple, tuple_index); // prints "0: 42\n1: 1.41421"
+    //ᅟ
+    //ᅟ    auto print_tuple = tuple_foreach([](auto element, std::size_t idx) { std::cout << idx << ": " << element << '\n'; });
+    //ᅟ    auto tuple = std::make_tuple(42, 1.41421);
+    //ᅟ    print_tuple(tuple, tuple_index); // prints "0: 42\n1: 1.41421"
     //
 static constexpr tuple_index_t tuple_index { };
 
@@ -475,9 +475,9 @@ inline namespace types
 
     // Takes a scalar procedure (i.e. a function with non-tuple arguments and with void return type) and returns a procedure which can be called
     // with tuples in some or all arguments.
-    //
-    //     auto f = tuple_foreach([](auto elem) { std::cout << elem << '\n'; });
-    //     f(std::make_tuple(1, 2.3f)); // prints "1\n2.3\n"
+    //ᅟ
+    //ᅟ    auto f = tuple_foreach([](auto elem) { std::cout << elem << '\n'; });
+    //ᅟ    f(std::make_tuple(1, 2.3f)); // prints "1\n2.3\n"
     //
 template <typename F>
     constexpr makeshift::detail::tuple_foreach_t<false, std::decay_t<F>>
@@ -489,10 +489,10 @@ template <typename F>
 
     // Takes a tuple and a scalar procedure (i.e. a function with non-tuple arguments and with void return type) and calls the procedure for every
     // element in the tuple.
-    //
-    //     tuple_foreach(
-    //         std::make_tuple(1, 2.3f),
-    //         [](auto elem) { std::cout << elem << '\n'; }); // prints "1\n2.3\n"
+    //ᅟ
+    //ᅟ    tuple_foreach(
+    //ᅟ        std::make_tuple(1, 2.3f),
+    //ᅟ        [](auto elem) { std::cout << elem << '\n'; }); // prints "1\n2.3\n"
     //
 template <typename TupleT, typename F,
           typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
@@ -504,10 +504,10 @@ template <typename TupleT, typename F,
 
 
     // Returns a functor that maps a tuple to a new tuple which contains only the values for which the given type predicate is true.
-    //
-    //     auto numbers = std::make_tuple(1, 2, 3u);
-    //     auto signedNumbers = tuple_filter<std::is_signed>()(numbers); // returns (1, 2)
-    //     auto signedNumbers_alternativeSyntax = numbers | tuple_filter<std::is_signed>(); // returns (1, 2)
+    //ᅟ
+    //ᅟ    auto numbers = std::make_tuple(1, 2, 3u);
+    //ᅟ    auto signedNumbers = tuple_filter<std::is_signed>()(numbers); // returns (1, 2)
+    //ᅟ    auto signedNumbers_alternativeSyntax = numbers | tuple_filter<std::is_signed>(); // returns (1, 2)
     //
 template <template <typename> class PredT>
     constexpr makeshift::detail::tuple_filter_t<PredT>
@@ -518,9 +518,9 @@ template <template <typename> class PredT>
 
 
     // Maps a tuple to a new tuple which contains only the values for which the given type predicate is true.
-    //
-    //     auto numbers = std::make_tuple(1, 2, 3u);
-    //     auto signedNumbers = tuple_filter<std::is_signed>(numbers); // returns (1, 2)
+    //ᅟ
+    //ᅟ    auto numbers = std::make_tuple(1, 2, 3u);
+    //ᅟ    auto signedNumbers = tuple_filter<std::is_signed>(numbers); // returns (1, 2)
     //
 template <template <typename> class PredT, typename TupleT,
           typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
@@ -533,11 +533,11 @@ template <template <typename> class PredT, typename TupleT,
 
     // Takes a scalar function (i.e. a function with non-tuple arguments and non-tuple return type) and returns a function which can be called 
     // with tuples in some or all arguments, and whose result will be a tuple of the results of the function applied to the tuple elements.
-    //
-    //     auto square = tuple_map([](auto x) { return x*x; });
-    //     auto numbers = std::make_tuple(2, 3.0f);
-    //     auto squaredNumbers = square(numbers); // returns (4, 9.0f)
-    //     auto squaredNumbers_alternativeSyntax = numbers | square; // returns (4, 9.0f)
+    //ᅟ
+    //ᅟ    auto square = tuple_map([](auto x) { return x*x; });
+    //ᅟ    auto numbers = std::make_tuple(2, 3.0f);
+    //ᅟ    auto squaredNumbers = square(numbers); // returns (4, 9.0f)
+    //ᅟ    auto squaredNumbers_alternativeSyntax = numbers | square; // returns (4, 9.0f)
     //
 template <typename F>
     constexpr makeshift::detail::tuple_foreach_t<true, std::decay_t<F>>
@@ -549,9 +549,9 @@ template <typename F>
 
     // Takes a tuple and a scalar function (i.e. a function with non-tuple arguments and non-tuple return type) and returns a tuple of the results
     // of the function applied to the tuple elements.
-    //
-    //     auto numbers = std::make_tuple(2, 3.0f);
-    //     auto squaredNumbers = tuple_map(numbers, [](auto x) { return x*x; }); // returns (4, 9.0f)
+    //ᅟ
+    //ᅟ    auto numbers = std::make_tuple(2, 3.0f);
+    //ᅟ    auto squaredNumbers = tuple_map(numbers, [](auto x) { return x*x; }); // returns (4, 9.0f)
     //
 template <typename TupleT, typename F,
           typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
@@ -564,10 +564,10 @@ template <typename TupleT, typename F,
 
     // Takes a binary accumulator function (i.e. a function with non-tuple arguments and non-tuple return type) and returns a function which reduces
     // an initial value and a tuple to a scalar using the accumulator function.
-    //
-    //     auto sumTuple = tuple_reduce(std::plus<int>{ });
-    //     auto numbers = std::make_tuple(2, 3u);
-    //     int sum = sumTuple(0, numbers); // returns 5
+    //ᅟ
+    //ᅟ    auto sumTuple = tuple_reduce(std::plus<int>{ });
+    //ᅟ    auto numbers = std::make_tuple(2, 3u);
+    //ᅟ    int sum = sumTuple(0, numbers); // returns 5
     //
 template <typename F>
     constexpr makeshift::detail::tuple_reduce_t<std::decay_t<F>>
@@ -579,11 +579,11 @@ template <typename F>
 
     // Takes an initial value and a binary accumulator function (i.e. a function with non-tuple arguments and non-tuple type) and returns a function
     // which reduces a tuple to a scalar using the accumulator function.
-    //
-    //     auto sumTuple = tuple_reduce(0, std::plus<int>{ });
-    //     auto numbers = std::make_tuple(2, 3u);
-    //     int sum = sumTuple(numbers); // returns 5
-    //     int sum_alternativeSyntax = numbers | sumTuple; // returns 5
+    //ᅟ
+    //ᅟ    auto sumTuple = tuple_reduce(0, std::plus<int>{ });
+    //ᅟ    auto numbers = std::make_tuple(2, 3u);
+    //ᅟ    int sum = sumTuple(numbers); // returns 5
+    //ᅟ    int sum_alternativeSyntax = numbers | sumTuple; // returns 5
     //
 template <typename ValT, typename F>
     constexpr makeshift::detail::tuple_bound_reduce_t<std::decay_t<ValT>, std::decay_t<F>>
@@ -595,9 +595,9 @@ template <typename ValT, typename F>
 
     // Takes a tuple, an initial value and a binary accumulator function (i.e. a function with non-tuple arguments and non-tuple type) and returns the
     // reduction of the tuple (i.e. the left fold).
-    //
-    //     auto numbers = std::make_tuple(2, 3u);
-    //     int sum = tuple_reduce(numbers, 0, std::plus<int>{ }); // returns 5
+    //ᅟ
+    //ᅟ    auto numbers = std::make_tuple(2, 3u);
+    //ᅟ    int sum = tuple_reduce(numbers, 0, std::plus<int>{ }); // returns 5
     //
 template <typename TupleT, typename T, typename F,
           typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
@@ -610,10 +610,10 @@ template <typename TupleT, typename T, typename F,
 
     // Returns a functor which retrieves the tuple element of the given type, or which returns the provided default value if the tuple does not contain
     // an element of the given type. The type of the default value does not need to match the desired element type.
-    //
-    //     auto tuple = std::make_tuple(42);
-    //     auto str = get_or_default<std::string>("bar"sv)(tuple); // returns "bar"sv
-    //     auto str_alternativeSyntax = tuple | get_or_default<std::string>("bar"sv); // returns "bar"sv
+    //ᅟ
+    //ᅟ    auto tuple = std::make_tuple(42);
+    //ᅟ    auto str = get_or_default<std::string>("bar"sv)(tuple); // returns "bar"sv
+    //ᅟ    auto str_alternativeSyntax = tuple | get_or_default<std::string>("bar"sv); // returns "bar"sv
     //
 template <typename T, typename DefaultT,
           typename = std::enable_if_t<!is_tuple_like_v<std::decay_t<DefaultT>>>> // TODO: this is not optimal because we might have nested tuples...
@@ -626,10 +626,10 @@ template <typename T, typename DefaultT,
 
     // Returns a functor which retrieves the tuple element of the given type, or which returns a default-constructed element if the tuple does not
     // contain an element of the given type.
-    //
-    //     auto tuple = std::make_tuple(42);
-    //     auto str = get_or_default<std::string>()(tuple); // returns ""s
-    //     auto str_alternativeSyntax = tuple | get_or_default<std::string>(); // returns ""s
+    //ᅟ
+    //ᅟ    auto tuple = std::make_tuple(42);
+    //ᅟ    auto str = get_or_default<std::string>()(tuple); // returns ""s
+    //ᅟ    auto str_alternativeSyntax = tuple | get_or_default<std::string>(); // returns ""s
     //
 template <typename T>
     constexpr makeshift::detail::get_or_default_t<T, std::decay_t<T>>
@@ -641,9 +641,9 @@ template <typename T>
 
     // Returns the tuple element of the given type, or the provided default value if the tuple does not contain an element of the given type.
     // The type of the default value does not need to match the desired element type.
-    //
-    //     auto tuple = std::make_tuple(42);
-    //     auto str = get_or_default<std::string>(tuple, "bar"sv); // returns "bar"sv
+    //ᅟ
+    //ᅟ    auto tuple = std::make_tuple(42);
+    //ᅟ    auto str = get_or_default<std::string>(tuple, "bar"sv); // returns "bar"sv
     //
 template <typename T, typename TupleT, typename DefaultT,
           typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
@@ -656,9 +656,9 @@ template <typename T, typename TupleT, typename DefaultT,
 
     // Returns the tuple element of the given type, or the provided default value if the tuple does not contain an element of the given type.
     // The type of the default value does not need to match the desired element type.
-    //
-    //     auto tuple = std::make_tuple(42);
-    //     auto str = get_or_default<std::string>(tuple); // returns ""s
+    //ᅟ
+    //ᅟ    auto tuple = std::make_tuple(42);
+    //ᅟ    auto str = get_or_default<std::string>(tuple); // returns ""s
     //
 template <typename T, typename TupleT,
           typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
@@ -670,10 +670,10 @@ template <typename T, typename TupleT,
 
 
     // Returns a functor which retrieves the tuple element of the given type, or `none` if the tuple does not contain an element of the given type.
-    //
-    //     auto tuple = std::make_tuple(42);
-    //     auto str = get_or_none<std::string>()(tuple); // returns none
-    //     auto str_alternativeSyntax = tuple | get_or_none<std::string>(); // returns none
+    //ᅟ
+    //ᅟ    auto tuple = std::make_tuple(42);
+    //ᅟ    auto str = get_or_none<std::string>()(tuple); // returns none
+    //ᅟ    auto str_alternativeSyntax = tuple | get_or_none<std::string>(); // returns none
     //
 template <typename T>
     constexpr makeshift::detail::get_or_default_t<T, none_t>
@@ -684,9 +684,9 @@ template <typename T>
 
 
     // Returns the tuple element of the given type, or `none` if the tuple does not contain an element of the given type.
-    //
-    //     auto tuple = std::make_tuple(42);
-    //     auto str = get_or_none<std::string>(tuple); // returns none
+    //ᅟ
+    //ᅟ    auto tuple = std::make_tuple(42);
+    //ᅟ    auto str = get_or_none<std::string>(tuple); // returns none
     //
 template <typename T, typename TupleT,
           typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
@@ -698,10 +698,10 @@ template <typename T, typename TupleT,
 
 
     // Returns a functor which retrieves the tuple element of the given type.
-    //
-    //     auto tuple = std::make_tuple(42);
-    //     auto elem = get<int>()(tuple); // returns 42
-    //     auto elem_alternativeSyntax = tuple | get<int>(); // returns 42
+    //ᅟ
+    //ᅟ    auto tuple = std::make_tuple(42);
+    //ᅟ    auto elem = get<int>()(tuple); // returns 42
+    //ᅟ    auto elem_alternativeSyntax = tuple | get<int>(); // returns 42
     //
 template <typename T>
     constexpr makeshift::detail::get_t<T>
@@ -712,10 +712,10 @@ template <typename T>
 
 
     // Returns a functor which retrieves the tuple element with the given index. Negative indices count from the end.
-    //
-    //     auto tuple = std::make_tuple(42);
-    //     auto elem = get<0>()(tuple); // returns 42
-    //     auto elem_alternativeSyntax = tuple | get<0>(); // returns 42
+    //ᅟ
+    //ᅟ    auto tuple = std::make_tuple(42);
+    //ᅟ    auto elem = get<0>()(tuple); // returns 42
+    //ᅟ    auto elem_alternativeSyntax = tuple | get<0>(); // returns 42
     //
 template <int I>
     constexpr makeshift::detail::get_by_index_t<I>
@@ -726,10 +726,10 @@ template <int I>
 
 
     // Returns a functor which retrieves the single element in a tuple, or which returns the provided default value if the tuple is empty.
-    //
-    //     auto tuple = std::make_tuple(12, 42);
-    //     auto elem = single_or_default(0)(tuple); // returns 0
-    //     auto elem_alternativeSyntax = tuple | single_or_default(0); // returns 0
+    //ᅟ
+    //ᅟ    auto tuple = std::make_tuple(12, 42);
+    //ᅟ    auto elem = single_or_default(0)(tuple); // returns 0
+    //ᅟ    auto elem_alternativeSyntax = tuple | single_or_default(0); // returns 0
     //
 template <typename DefaultT>
     constexpr makeshift::detail::single_or_default_t<std::decay_t<DefaultT>>
@@ -740,9 +740,9 @@ template <typename DefaultT>
 
 
     // Returns the single element in a tuple, or the provided default value if the tuple is empty.
-    //
-    //     auto tuple = std::make_tuple(12, 42);
-    //     auto elem = single_or_default(tuple, 0); // returns 0
+    //ᅟ
+    //ᅟ    auto tuple = std::make_tuple(12, 42);
+    //ᅟ    auto elem = single_or_default(tuple, 0); // returns 0
     //
 template <typename TupleT, typename DefaultT,
           typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
@@ -754,10 +754,10 @@ template <typename TupleT, typename DefaultT,
 
 
     // Returns a functor which retrieves the single element in a tuple, or which returns `none` if the tuple is empty.
-    //
-    //     auto tuple = std::make_tuple(12, 42);
-    //     auto elem = single_or_none()(tuple); // returns none
-    //     auto elem_alternativeSyntax = tuple | single_or_none(); // returns none
+    //ᅟ
+    //ᅟ    auto tuple = std::make_tuple(12, 42);
+    //ᅟ    auto elem = single_or_none()(tuple); // returns none
+    //ᅟ    auto elem_alternativeSyntax = tuple | single_or_none(); // returns none
     //
 constexpr inline makeshift::detail::single_or_default_t<none_t>
 single_or_none(void)
@@ -767,9 +767,9 @@ single_or_none(void)
 
 
     // Returns the single element in a tuple, or `none` if the tuple is empty.
-    //
-    //     auto tuple = std::make_tuple(12, 42);
-    //     auto elem = try_single(tuple); // returns 0
+    //ᅟ
+    //ᅟ    auto tuple = std::make_tuple(12, 42);
+    //ᅟ    auto elem = try_single(tuple); // returns 0
     //
 template <typename TupleT,
           typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
@@ -781,10 +781,10 @@ template <typename TupleT,
 
 
     // Returns a functor which retrieves the single element in a tuple.
-    //
-    //     auto tuple = std::make_tuple(42);
-    //     auto elem = single()(tuple); // returns 42
-    //     auto elem_alternativeSyntax = tuple | single(); // returns 42
+    //ᅟ
+    //ᅟ    auto tuple = std::make_tuple(42);
+    //ᅟ    auto elem = single()(tuple); // returns 42
+    //ᅟ    auto elem_alternativeSyntax = tuple | single(); // returns 42
     //
 constexpr inline makeshift::detail::single_t
 single(void)
@@ -794,9 +794,9 @@ single(void)
 
 
     // Returns the single element in a tuple, or the provided default value if the tuple is empty.
-    //
-    //     auto tuple = std::make_tuple(12, 42);
-    //     auto elem = single_or_default(tuple, 0); // returns 0
+    //ᅟ
+    //ᅟ    auto tuple = std::make_tuple(12, 42);
+    //ᅟ    auto elem = single_or_default(tuple, 0); // returns 0
     //
 template <typename TupleT,
           typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
