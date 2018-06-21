@@ -31,10 +31,6 @@ inline namespace metadata
 {
 
 
-    // Default tag type for `reflect()` methods which define type metadata for serialization.
-struct serialization_metadata_tag { };
-
-
     // Base class for metadata-based serializers.
     // Inherit from this class to define your own metadata-based serializer. This is to avoid ambiguity when accessing the metadata tag type
     // with a type expression such as `typename SerializerT::metadata_tag`. (The member type access is unambiguous even if the base class is

@@ -144,6 +144,10 @@ template <typename T, typename MetadataTagT> struct have_metadata : can_apply<me
 template <typename T, typename MetadataTagT> constexpr bool have_metadata_v = have_metadata<T, MetadataTagT>::value;
 
 
+    // Default tag type for `reflect()` methods which define type metadata for serialization.
+struct serialization_metadata_tag { };
+
+
 } // inline namespace metadata
 
 } // namespace makeshift
