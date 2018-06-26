@@ -1,7 +1,8 @@
 
 #include <makeshift/utility.hpp>     // for define_flags<>
 #include <makeshift/metadata.hpp>
-#include <makeshift/serialize.hpp>
+#include <makeshift/string.hpp>
+#include <makeshift/streamable.hpp>
 
 #include <sstream>
 #include <string>

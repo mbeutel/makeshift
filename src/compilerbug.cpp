@@ -1,7 +1,7 @@
 #include <utility>
 #include <iostream>
 
-#include <makeshift/utility.hpp>
+#include <makeshift/functional.hpp>
 
 namespace mk = makeshift;
 

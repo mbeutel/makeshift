@@ -2,7 +2,7 @@
 #include <string>
 #include <functional> // for plus<>
 
-#include <makeshift/utility.hpp> // for overload()
+#include <makeshift/functional.hpp> // for overload()
 #include <makeshift/tuple.hpp>
 
 #include <catch.hpp>

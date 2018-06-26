@@ -4,7 +4,8 @@
 #include <cctype>    // for isspace()
 #include <optional>
 
-#include <makeshift/serialize.hpp>
+#include <makeshift/detail/serialize-enum.hpp>
+
 #include <makeshift/arithmetic.hpp> // for checked_cast<>()
 
 

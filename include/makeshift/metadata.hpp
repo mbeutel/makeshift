@@ -148,6 +148,17 @@ template <typename T, typename MetadataTagT> constexpr bool have_metadata_v = ha
 struct serialization_metadata_tag { };
 
 
+    // Base class for metadata-based serializers.
+    // Inherit from this class to define your own metadata-based serializer. This is to avoid ambiguity when accessing the metadata tag type
+    // with a type expression such as `typename SerializerT::metadata_tag`. (The member type access is unambiguous even if the base class is
+    // inherited from multiple times.)
+template <typename MetadataTagT = serialization_metadata_tag>
+    struct metadata_serializer_t
+{
+    using metadata_tag = MetadataTagT;
+};
+template <typename MetadataTagT = serialization_metadata_tag> constexpr metadata_serializer_t<MetadataTagT> metadata_serializer { };
+
 } // inline namespace metadata
 
 } // namespace makeshift

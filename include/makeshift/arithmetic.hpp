@@ -329,7 +329,8 @@ template <typename T> using make_unchecked_t = typename make_unchecked<T>::type;
 
     // Converts the given value to the checked version of the scalar integer type `T`, or to `T` if it already is a checked type.
     //ᅟ
-    //ᅟ    int lhs = ..., rhs = ...;
+    //ᅟ    int lhs = ...;
+    //ᅟ    int rhs = ...;
     //ᅟ    make_checked_t<int> checked_sum = checked(lhs) + rhs; // arithmetic operations are checked even if one of the arguments is unchecked; the result is a checked type
     //ᅟ    int sum = unchecked(checked_sum);
     //

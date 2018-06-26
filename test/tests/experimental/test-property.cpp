@@ -1,6 +1,7 @@
 
 #include <makeshift/metadata.hpp>
 #include <makeshift/serialize.hpp>
+#include <makeshift/functional.hpp>
 #include <makeshift/experimental/property.hpp>
 
 #include <sstream>
