@@ -59,27 +59,6 @@ template <typename MetadataTagT> struct have_string_conversion<MetadataTagT, dou
 template <typename MetadataTagT> struct have_string_conversion<MetadataTagT, long double> : std::true_type { };
 template <typename MetadataTagT, typename T> constexpr bool have_string_conversion_v = have_string_conversion<MetadataTagT, T>::value;
 
-template <typename MetadataTagT = serialization_metadata_tag> struct string_serializer_base_t : metadata_serializer_t<MetadataTagT> { };
-template <typename T, typename MetadataTagT, typename SerializerT,
-          typename = std::enable_if_t<have_string_conversion_v<MetadataTagT, std::decay_t<T>>>>
-    std::string to_string_impl(const T& value, string_serializer_base_t<MetadataTagT>, SerializerT&)
-{
-    using D = std::decay_t<T>;
-    if constexpr (std::is_enum<D>::value)
-        return to_string(value, serialization_data<D, MetadataTagT>);
-    else
-        return scalar_to_string(value);
-}
-template <typename T, typename MetadataTagT, typename SerializerT,
-          typename = std::enable_if_t<have_string_conversion_v<MetadataTagT, std::decay_t<T>>>>
-    T from_string_impl(tag_t<T>, const std::string& string, string_serializer_base_t<MetadataTagT>, SerializerT&)
-{
-    if constexpr (std::is_enum<T>::value)
-        return from_string(tag<T>, string, serialization_data<T, MetadataTagT>);
-    else
-        return scalar_from_string(tag<T>, string);
-}
-
 
 } // namespace detail
 
@@ -103,7 +82,31 @@ inline namespace serialize
 
 
     // String serializer for common scalar types (built-in types and std::string).
-template <typename MetadataTagT = serialization_metadata_tag> struct string_serializer_t : makeshift::detail::string_serializer_base_t<MetadataTagT> { };
+template <typename MetadataTagT = serialization_metadata_tag>
+    struct string_serializer_t : metadata_serializer_t<MetadataTagT>
+{
+    template <typename T, typename SerializerT/*,
+              typename = std::enable_if_t<makeshift::detail::have_string_conversion_v<MetadataTagT, std::decay_t<T>>>*/>
+        friend std::enable_if_t<makeshift::detail::have_string_conversion_v<MetadataTagT, std::decay_t<T>>, std::string>
+        to_string_impl(const T& value, string_serializer_t, SerializerT&)
+    {
+        using D = std::decay_t<T>;
+        if constexpr (std::is_enum<D>::value)
+            return to_string(value, makeshift::detail::serialization_data<D, MetadataTagT>);
+        else
+            return makeshift::detail::scalar_to_string(value);
+    }
+    template <typename T, typename SerializerT/*,
+              typename = std::enable_if_t<makeshift::detail::have_string_conversion_v<MetadataTagT, T>>*/>
+        friend std::enable_if_t<makeshift::detail::have_string_conversion_v<MetadataTagT, T>, T>
+        from_string_impl(tag_t<T>, const std::string& string, string_serializer_t, SerializerT&)
+    {
+        if constexpr (std::is_enum<T>::value)
+            return from_string(tag<T>, string, makeshift::detail::serialization_data<T, MetadataTagT>);
+        else
+            return makeshift::detail::scalar_from_string(tag<T>, string);
+    }
+};
 
     // String serializer for common scalar types (built-in types and std::string).
 template <typename MetadataTagT = serialization_metadata_tag> constexpr string_serializer_t<MetadataTagT> string_serializer { };

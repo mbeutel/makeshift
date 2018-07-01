@@ -114,29 +114,6 @@ template <typename MetadataTagT, typename T> using have_istream_operator = std::
 template <typename MetadataTagT, typename T> constexpr bool have_istream_operator_v = have_istream_operator<MetadataTagT, T>::value;
 
 
-template <typename MetadataTagT = serialization_metadata_tag> struct stream_serializer_base_t : metadata_serializer_t<MetadataTagT> { };
-template <typename T, typename MetadataTagT, typename SerializerT,
-          typename = std::enable_if_t<have_ostream_operator_v<MetadataTagT, std::decay_t<T>>>>
-    void to_stream_impl(const T& value, std::ostream& stream, stream_serializer_base_t<MetadataTagT>, SerializerT&)
-{
-    using D = std::decay_t<T>;
-    if constexpr (std::is_enum<D>::value)
-        to_stream(value, stream, serialization_data<D, MetadataTagT>);
-    else
-        stream << value;
-}
-template <typename T, typename MetadataTagT, typename SerializerT,
-          typename = std::enable_if_t<have_istream_operator_v<MetadataTagT, std::decay_t<T>>>>
-    void from_stream_impl(T& value, std::istream& stream, stream_serializer_base_t<MetadataTagT>, SerializerT&)
-{
-    using D = std::decay_t<T>;
-    if constexpr (std::is_enum<D>::value)
-        from_stream(value, stream, serialization_data<D, MetadataTagT>);
-    else
-        stream >> value;
-}
-
-
 } // namespace detail
 
 
@@ -159,7 +136,32 @@ inline namespace serialize
 
 
     // Stream serializer for enums with metadata and for types with overloaded stream operators.
-template <typename MetadataTagT = serialization_metadata_tag> struct stream_serializer_t : makeshift::detail::stream_serializer_base_t<MetadataTagT> { };
+template <typename MetadataTagT = serialization_metadata_tag>
+    struct stream_serializer_t : metadata_serializer_t<MetadataTagT>
+{
+    template <typename T, typename SerializerT/*,
+              typename = std::enable_if_t<makeshift::detail::have_ostream_operator_v<MetadataTagT, std::decay_t<T>>>*/>
+        friend std::enable_if_t<makeshift::detail::have_ostream_operator_v<MetadataTagT, std::decay_t<T>>>
+        to_stream_impl(const T& value, std::ostream& stream, stream_serializer_t, SerializerT&)
+    {
+        using D = std::decay_t<T>;
+        if constexpr (std::is_enum<D>::value)
+            to_stream(value, stream, makeshift::detail::serialization_data<D, MetadataTagT>);
+        else
+            stream << value;
+    }
+    template <typename T, typename SerializerT/*,
+              typename = std::enable_if_t<makeshift::detail::have_istream_operator_v<MetadataTagT, std::decay_t<T>>>*/>
+        friend std::enable_if_t<makeshift::detail::have_ostream_operator_v<MetadataTagT, std::decay_t<T>>>
+        from_stream_impl(T& value, std::istream& stream, stream_serializer_t, SerializerT&)
+    {
+        using D = std::decay_t<T>;
+        if constexpr (std::is_enum<D>::value)
+            from_stream(value, stream, makeshift::detail::serialization_data<D, MetadataTagT>);
+        else
+            stream >> value;
+    }
+};
 
     // Stream serializer for enums with metadata and for types with overloaded stream operators.
 template <typename MetadataTagT = serialization_metadata_tag> constexpr stream_serializer_t<MetadataTagT> stream_serializer { };
