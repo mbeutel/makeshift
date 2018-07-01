@@ -54,6 +54,14 @@ template <template <typename...> class Z, typename... Ts> struct can_apply : mak
 template <template <typename...> class Z, typename... Ts> constexpr bool can_apply_v = can_apply<Z, Ts...>::value;
 
 
+    // Applies the type arguments to the given template template, i.e. instantiates `Z<Ts...>` for `SeqT = type_sequence<Ts...>`.
+template <template <typename...> class Z, typename SeqT> struct apply;
+template <template <typename...> class Z, template <typename...> class SeqT, typename... Ts> struct apply<Z, SeqT<Ts...>> { using type = Z<Ts...>; };
+
+    // Applies the type arguments to the given template template, i.e. instantiates `Z<Ts...>` for `SeqT = type_sequence<Ts...>`.
+template <template <typename...> class Z, typename SeqT> using apply_t = typename apply<Z, SeqT>::type;
+
+
     // Type sequence (strictly for compile-time purposes).
 template <typename... Ts> struct type_sequence { };
 

@@ -19,8 +19,8 @@ namespace detail
 template <typename F> using is_functor_r = decltype(&F::operator ());
 
 template <typename F> struct functor_sig_0_;
-template <typename R, typename... ArgsT> struct functor_sig_0_<R(ArgsT...)> { using type = R(ArgsT...); };
-template <typename R, typename C, typename... ArgsT> struct functor_sig_0_<R (C::*)(ArgsT...)> : functor_sig_0_<R(ArgsT...)> { };
+template <typename R, typename... ArgsT> struct functor_sig_0_<R(ArgsT...)> { using type = R(ArgsT...); static constexpr bool is_const = true; };
+template <typename R, typename C, typename... ArgsT> struct functor_sig_0_<R (C::*)(ArgsT...)> : functor_sig_0_<R(ArgsT...)> { static constexpr bool is_const = false; };
 template <typename R, typename C, typename... ArgsT> struct functor_sig_0_<R (C::*)(ArgsT...) const> : functor_sig_0_<R(ArgsT...)> { };
 
 template <typename F> struct callable_sig_ : functor_sig_0_<decltype(&F::operator ())> { };
@@ -30,6 +30,7 @@ template <typename R, typename C, typename... ArgsT> struct callable_sig_<R (C::
 template <typename R, typename C, typename... ArgsT> struct callable_sig_<R (C::*)(ArgsT...) noexcept> { using type = R(C&, ArgsT...); };
 template <typename R, typename C, typename... ArgsT> struct callable_sig_<R (C::*)(ArgsT...) const> { using type = R(const C&, ArgsT...); };
 template <typename R, typename C, typename... ArgsT> struct callable_sig_<R (C::*)(ArgsT...) const noexcept> { using type = R(const C&, ArgsT...); };
+
 
 } // namespace detail
 
@@ -45,7 +46,14 @@ template <typename F> struct is_functor : can_apply<makeshift::detail::is_functo
 template <typename F> constexpr bool is_functor_v = is_functor<F>::value;
 
 
-    // Determines whether the given type is a function pointer.
+    // Determines whether the given functor is mutable.
+template <typename F> struct is_mutable_functor : std::integral_constant<bool, !makeshift::detail::callable_sig_<F>::is_const> { };
+
+    // Determines whether the given functor is mutable.
+template <typename F> constexpr bool is_mutable_functor_v = is_mutable_functor<F>::value;
+
+
+// Determines whether the given type is a function pointer.
 template <typename F> struct is_function_pointer : std::false_type { };
 template <typename F> struct is_function_pointer<F*> : std::is_function<F> { };
 

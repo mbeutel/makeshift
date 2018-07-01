@@ -24,7 +24,6 @@
 namespace makeshift
 {
 
-
 namespace detail
 {
 
@@ -164,7 +163,6 @@ template <typename MetadataTagT, typename T> struct is_enum_with_metadata : std:
 
 
 } // namespace detail
-
 
 } // namespace makeshift
 

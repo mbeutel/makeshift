@@ -19,7 +19,6 @@
 namespace makeshift
 {
 
-
 namespace detail
 {
 
@@ -155,7 +154,6 @@ template <typename T>
 
 
 } // inline namespace serialize
-
 
 } // namespace makeshift
 
