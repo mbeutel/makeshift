@@ -9,7 +9,7 @@ find_package(Catch2)
 
 # test target
 add_executable(test-makeshift
-    "tests/main.cpp"
+    "main.cpp"
 #    "tests/experimental/test-property.cpp"
 #    "tests/experimental/test-pointers.cpp"
     "tests/test-arithmetic.cpp"
