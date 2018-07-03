@@ -27,7 +27,7 @@ using Ratatouille = Vegetables::flags;
 
 int assembleDecimal(const std::tuple<mk::named_t<int, "ones"_kw>, mk::named_t<int, "tens"_kw>>& args)
 {
-    return 10*mk::get<"tens"_kw>(args) + mk::get<"ones"_kw>(args);
+    return 10*mk::get_by_name<"tens"_kw>(args) + mk::get_by_name<"ones"_kw>(args);
 }
 
 } // anonymous namespace

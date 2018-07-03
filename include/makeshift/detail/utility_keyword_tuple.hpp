@@ -24,6 +24,26 @@ template <makeshift::detail::keyword_crc Name, typename TupleT, std::size_t... I
     return matchIndex;
 }
 
+template <keyword_crc Name>
+    struct get_by_name_t : stream_base<get_by_name_t<Name>>
+{
+private:
+    template <typename TupleT>
+        static constexpr auto invoke(TupleT&& tuple)
+    {
+        using DTuple = std::decay_t<TupleT>;
+        constexpr std::size_t matchIndex = makeshift::detail::tuple_kw_index<Name, DTuple>(std::make_index_sequence<std::tuple_size<DTuple>::value>{ });
+        return contextual_value(std::get<matchIndex>(std::forward<TupleT>(tuple)));
+    }
+public:
+    template <typename TupleT,
+              typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
+        constexpr auto operator ()(TupleT&& tuple) const
+    {
+        return invoke(std::forward<TupleT>(tuple));
+    }
+};
+
 
 } // namespace detail
 
@@ -32,17 +52,29 @@ inline namespace types
 {
 
 
+    // Returns a functor which retrieves the tuple element with the given keyword name.
+    //ᅟ
+    //ᅟ    auto tuple = std::make_tuple(name<"width"_kw> = 42);
+    //ᅟ    int width = tuple
+    //ᅟ        | get_by_name<"width"_kw>(); // returns 42
+    //
+template <makeshift::detail::keyword_crc Name>
+    constexpr makeshift::detail::get_by_name_t<Name> get_by_name(void) noexcept
+{
+    return { };
+}
+
+
     // Retrieves a tuple element by keyword name.
     //ᅟ
     //ᅟ    auto tuple = std::make_tuple(name<"width"_kw> = 42);
-    //ᅟ    int width = get<"width"_kw>(tuple); // returns 42
+    //ᅟ    int width = get_by_name<"width"_kw>(tuple); // returns 42
     //
-template <makeshift::detail::keyword_crc Name, typename TupleT>
-    constexpr decltype(auto) get(TupleT&& tuple) noexcept
+template <makeshift::detail::keyword_crc Name, typename TupleT,
+          typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
+    constexpr decltype(auto) get_by_name(TupleT&& tuple) noexcept
 {
-    using DTuple = std::decay_t<TupleT>;
-    constexpr std::size_t matchIndex = makeshift::detail::tuple_kw_index<Name, DTuple>(std::make_index_sequence<std::tuple_size<DTuple>::value>{ });
-    return contextual_value(std::get<matchIndex>(std::forward<TupleT>(tuple)));
+    return get_by_name<Name>()(std::forward<TupleT>(tuple));
 }
 
 
