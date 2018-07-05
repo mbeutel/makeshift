@@ -104,8 +104,8 @@ template <std::size_t N, typename T>
     // If `T` is not specified, the common type of the tuple element types is used.
     //ᅟ
     //ᅟ    auto tuple = std::make_tuple(1, 2, 3);
-    //ᅟ    auto array = to_array()(tuple); // returns {{ 1, 2, 3 }}
-    //ᅟ    auto array_alternativeSyntax = tuple | to_array(); // returns {{ 1, 2, 3 }}
+    //ᅟ    auto array = tuple
+    //ᅟ        | to_array(); // returns {{ 1, 2, 3 }}
     //
 template <typename T = void>
     constexpr makeshift::detail::to_array_t<std::remove_cv_t<T>>
