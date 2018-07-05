@@ -20,18 +20,23 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
 endif()
 
-include(cmake/CMakeshift/DefaultFlags.cmake)
-include(cmake/CMakeshift/Makeshift.cmake)
+# Define a project stub so find_package() will work.
+project(makeshift)
+
+# Load CMakeshift.
+find_package(CMakeshift REQUIRED)
+include(CMakeshift/DefaultFlags)
+include(CMakeshift/CMakeshift)
 
 # Define the project.
-makeshift_parse_semantic_version(makeshift_VERSION MAKESHIFT "include/makeshift/version.hpp")
+cmakeshift_parse_semantic_version(makeshift_VERSION MAKESHIFT "include/makeshift/version.hpp")
 project(makeshift
     VERSION ${makeshift_VERSION}
     LANGUAGES CXX)
 
 # Define a list of find modules required in the public interface.
 set(INTERFACE_FIND_MODULE_PATH
-    "${PROJECT_SOURCE_DIR}/cmake/CMakeshift/modules")
+    "${CMAKESHIFT_DIR}/modules")
 set(INTERFACE_FIND_MODULES GSL)
 
 # Define build options.
@@ -63,7 +68,7 @@ endif()
 #        add_subdirectory(doc)
 #    else(SPHINX_FOUND)
 #        message("WARNING: Could not find Sphinx, not building documentation.")
-#        makeshift_update_cache_variable(BUILD_DOCUMENTATION OFF)
+#        cmakeshift_update_cache_variable(BUILD_DOCUMENTATION OFF)
 #    endif(SPHINX_FOUND)
 #endif(BUILD_DOCUMENTATION)
 
@@ -85,7 +90,7 @@ install(
     DESTINATION "include/")
 
 # Determine the install path for the *Config.cmake configuration file relative to CMAKE_INSTALL_PREFIX.
-makeshift_get_relative_config_install_dir(RELATIVE_CONFIG_INSTALL_DIR)
+set(RELATIVE_CONFIG_INSTALL_DIR "${PROJECT_NAME}-${PROJECT_VERSION}/share/${PROJECT_NAME}-${PROJECT_VERSION}/cmake")
 
 # This "exports" for installation all targets which have been put into the export set "*Export". This generates
 # a *Targets.cmake file which, when read in by a client project as part of find_package(*), creates imported
@@ -111,7 +116,7 @@ install(
     DESTINATION "${RELATIVE_CONFIG_INSTALL_DIR}")
 
 # Install the find modules for our public/interfaces dependencies which do not define a config module.
-makeshift_install_find_modules(
+cmakeshift_install_find_modules(
     FIND_MODULE_PATH ${INTERFACE_FIND_MODULE_PATH}
     FIND_MODULES ${INTERFACE_FIND_MODULES}
     DESTINATION "${RELATIVE_CONFIG_INSTALL_DIR}")
