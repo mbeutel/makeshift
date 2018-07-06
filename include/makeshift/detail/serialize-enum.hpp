@@ -63,8 +63,8 @@ template <typename ValC, typename... AttributesT>
 {
     static_assert(sizeof(ValC::value) <= sizeof(std::uint64_t), "enums with an underlying type of more than 64 bits are not supported");
 
-    std::string_view name = std::get<std::string_view>(valueMetadata.attributes);
-    return { std::uint64_t(ValC::value), name };
+    std::string_view lname = std::get<std::string_view>(valueMetadata.attributes);
+    return { std::uint64_t(ValC::value), lname };
 }
 
 template <std::size_t N>

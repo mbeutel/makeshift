@@ -24,7 +24,6 @@ endif()
 project(makeshift)
 
 # Load CMakeshift.
-message("CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 find_package(CMakeshift REQUIRED)
 include(CMakeshift/DefaultFlags)
 include(CMakeshift/CMakeshift)

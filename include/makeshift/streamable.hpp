@@ -143,6 +143,7 @@ template <typename MetadataTagT = serialization_metadata_tag>
         friend std::enable_if_t<makeshift::detail::have_ostream_operator_v<MetadataTagT, std::decay_t<T>>>
         to_stream_impl(const T& value, std::ostream& stream, stream_serializer_t, SerializerT& serializer)
     {
+        (void) serializer;
         using D = std::decay_t<T>;
         if constexpr (std::is_enum<D>::value)
             enum_to_stream_impl(value, stream, makeshift::detail::serialization_data<D, MetadataTagT>, serializer);
@@ -154,6 +155,7 @@ template <typename MetadataTagT = serialization_metadata_tag>
         friend std::enable_if_t<makeshift::detail::have_ostream_operator_v<MetadataTagT, std::decay_t<T>>>
         from_stream_impl(T& value, std::istream& stream, stream_serializer_t, SerializerT& serializer)
     {
+        (void) serializer;
         using D = std::decay_t<T>;
         if constexpr (std::is_enum<D>::value)
             enum_from_stream_impl(value, stream, makeshift::detail::serialization_data<D, MetadataTagT>, serializer);

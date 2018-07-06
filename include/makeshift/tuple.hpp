@@ -312,6 +312,8 @@ private:
     template <std::size_t... Is, typename TupleT, typename LDefaultT>
         static constexpr auto invoke(std::index_sequence<Is...>, TupleT&& tuple, LDefaultT&& defaultValue)
     {
+        (void) tuple;
+        (void) defaultValue;
         using std::get; // make std::get<>(std::pair<>&&) visible to enable ADL for template methods named get<>()
         constexpr bool canGet = ((std::is_same<T, std::tuple_element_t<Is, std::decay_t<TupleT>>>::value) || ...);
         if constexpr (canGet)
