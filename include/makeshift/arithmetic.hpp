@@ -131,14 +131,14 @@ template <typename V>
     static constexpr V shl(V lhs, V rhs)
     {
             // note that we throw when shifting negative integers
-        if (lhs < 0 || rhs < 0 || rhs >= sizeof(V)*8) throw arithmetic_domain_error("invalid shift operand");
+        if (lhs < 0 || rhs < 0 || rhs >= V(sizeof(V)*8)) throw arithmetic_domain_error("invalid shift operand");
         if (lhs > (std::numeric_limits<V>::max() >> rhs)) throw arithmetic_overflow_error("integer overflow");
         return lhs << rhs;
     }
     static constexpr V shr(V lhs, V rhs)
     {
             // note that we throw when shifting negative integers
-        if (lhs < 0 || rhs < 0 || rhs >= sizeof(V)*8) throw arithmetic_domain_error("invalid shift operand");
+        if (lhs < 0 || rhs < 0 || rhs >= V(sizeof(V)*8)) throw arithmetic_domain_error("invalid shift operand");
         return lhs >> rhs;
     }
 };
