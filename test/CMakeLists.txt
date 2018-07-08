@@ -1,11 +1,13 @@
-# test-makeshift
+
+# makeshift C++ library
 # Author: Moritz Beutel
-# Distributed under the BSD 3-Clause License. See accompanying file licensing.txt for details.
+# makeshift unit tests
 
 
 cmake_minimum_required(VERSION 3.8)
 
-find_package(Catch2)
+# dependencies
+find_package(Catch2 REQUIRED)
 
 # test target
 add_executable(test-makeshift
@@ -20,6 +22,12 @@ add_executable(test-makeshift
 # test dependencies
 target_link_libraries(test-makeshift
     PRIVATE
-        makeshift Catch2::Catch)
+        makeshift
+        Catch2::Catch)
 
-add_test(NAME test-makeshift COMMAND test-makeshift)
+# register tests
+include(CMakeshift/ParseAndAddCatchTests)
+set(PARSE_CATCH_TESTS_NO_HIDDEN_TESTS ON)
+set(PARSE_CATCH_TESTS_ADD_TO_CONFIGURE_DEPENDS ON)
+set(PARSE_CATCH_TESTS_ADD_TARGET_IN_TEST_NAME OFF)
+ParseAndAddCatchTests(test-makeshift)

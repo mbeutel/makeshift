@@ -1,23 +1,16 @@
 # Get the directory containing this file.
 get_filename_component(@PROJECT_NAME@_CURRENT_CONFIG_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-# Backup module path and add find module directories.
+# Backup module path and add CMakeshift find module directory.
 set(@PROJECT_NAME@_ORIGINAL_CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}")
-if(@SETUP_PACKAGE_CONFIG_FOR_INSTALLATION@)
-    # This is an installed package; the find modules have been installed to the current config directory.
-    list(APPEND CMAKE_MODULE_PATH "${@PROJECT_NAME@_CURRENT_CONFIG_DIR}")
-else()
-    # This is an exported build directory; the find modules reside at their original locations.
-    list(APPEND CMAKE_MODULE_PATH "@INTERFACE_FIND_MODULE_PATH@")
-endif()
+list(APPEND CMAKE_MODULE_PATH "@CMAKESHIFT_MODULE_DIR@")
 
 # Find all dependencies.
 include(CMakeFindDependencyMacro)
-find_dependency(GSL REQUIRED)
+find_dependency(MS-GSL REQUIRED)
 
 # Restore original module path.
 set(CMAKE_MODULE_PATH "${@PROJECT_NAME@_ORIGINAL_CMAKE_MODULE_PATH}")
 
 # Import targets.
 include("${@PROJECT_NAME@_CURRENT_CONFIG_DIR}/@PROJECT_NAME@Targets.cmake")
-

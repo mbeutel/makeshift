@@ -1,41 +1,44 @@
-# makeshift::makeshift
+
+# makeshift C++ library
 # Author: Moritz Beutel
-# Distributed under the BSD 3-Clause License. See accompanying file licensing.txt for details.
+# makeshift library target
 
 
 cmake_minimum_required(VERSION 3.8)
 
 # dependencies
-find_package(GSL REQUIRED)
+find_package(MS-GSL REQUIRED)
 
 # library target
 add_library(makeshift
-    "serialize.cpp")
+    "serialize-enum.cpp")
 
 # library properties
 target_include_directories(makeshift
     PUBLIC
         "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
         "$<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/include>")
-target_compile_definitions(makeshift PRIVATE MAKESHIFT_BUILD_MAKESHIFT_SYS)
+target_compile_definitions(makeshift
+    PRIVATE
+        MAKESHIFT_BUILD)
 if(NOT BUILD_SHARED_LIBS)
-    target_compile_definitions(makeshift PUBLIC MAKESHIFT_STATIC_LIBRARIES)
+    target_compile_definitions(makeshift
+        PUBLIC
+            MAKESHIFT_STATIC_LIBRARIES)
 endif()
 
 # library dependencies
 target_link_libraries(makeshift
     PUBLIC
-        GSL::GSL)
+        MS-GSL::MS-GSL)
 
-# test target
-add_executable(compilerbugs
-    "compilerbug.cpp")
-target_link_libraries(compilerbugs
-    PUBLIC
-        makeshift)
+# define alias so we can use the qualified name everywhere
+add_library(makeshift::makeshift
+    ALIAS makeshift)
 
-install(TARGETS makeshift
+install(
+    TARGETS makeshift
     EXPORT ${PROJECT_NAME}Export
-    ARCHIVE DESTINATION "lib${MAKESHIFT_LIB_SUFFIX}"
-    LIBRARY DESTINATION "lib${MAKESHIFT_LIB_SUFFIX}"
+    ARCHIVE DESTINATION "lib"
+    LIBRARY DESTINATION "lib"
     INCLUDES DESTINATION "include")

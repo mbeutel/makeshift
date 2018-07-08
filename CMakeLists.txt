@@ -1,6 +1,6 @@
+
 # makeshift C++ library
 # Author: Moritz Beutel
-# Distributed under the BSD 3-Clause License. See accompanying file licensing.txt for details.
 
 
 ## 1. Prologue and public interface
@@ -13,12 +13,6 @@ cmake_minimum_required(VERSION 3.8)
 # manually by deleting the CMakeFiles directory and the CMakeCache.txt file before proceeding.
 set(CMAKE_DISABLE_SOURCE_CHANGES ON)
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
-
-# Set default build configuration.
-if(NOT CMAKE_BUILD_TYPE)
-    message("-- No build type specified; defaulting to CMAKE_BUILD_TYPE=Release.")
-    set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
-endif()
 
 # Define a project stub so find_package() will work.
 project(makeshift)
@@ -34,18 +28,12 @@ project(makeshift
     VERSION ${makeshift_VERSION}
     LANGUAGES CXX)
 
-# Define a list of find modules required in the public interface.
-set(INTERFACE_FIND_MODULE_PATH
-    "${CMAKESHIFT_DIR}/modules")
-set(INTERFACE_FIND_MODULES GSL)
-
 # Define build options.
 option(BUILD_TESTS "Build tests" OFF)
-#option(BUILD_DOCUMENTATION "Build documentation (HTML)" OFF)
 option(EXPORT_BUILD_DIR "Export build directory using CMake (enables external use without install)" OFF)
 
-# Make CMake aware of the cmake folder for local FindXXX scripts.
-list(APPEND CMAKE_MODULE_PATH ${INTERFACE_FIND_MODULE_PATH})
+# Add the interface find module path defined above to the module path.
+list(APPEND CMAKE_MODULE_PATH "${CMAKESHIFT_MODULE_DIR}")
 
 
 ## 2. Targets
@@ -58,19 +46,7 @@ add_subdirectory(src)
 if(BUILD_TESTS)
     enable_testing()
     add_subdirectory(test)
-    #TODO: have include(cmake/CMakeshift/AddCatchTests.cmake) in tests script
 endif()
-
-# documentation (with Sphinx)
-#if(BUILD_DOCUMENTATION)
-#    find_package(Sphinx QUIET)
-#    if(SPHINX_FOUND)
-#        add_subdirectory(doc)
-#    else(SPHINX_FOUND)
-#        message("WARNING: Could not find Sphinx, not building documentation.")
-#        cmakeshift_update_cache_variable(BUILD_DOCUMENTATION OFF)
-#    endif(SPHINX_FOUND)
-#endif(BUILD_DOCUMENTATION)
 
 
 ## 3. Installation
@@ -82,6 +58,7 @@ write_basic_package_version_file("${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVer
     VERSION ${PROJECT_VERSION}
     COMPATIBILITY SameMajorVersion)
 
+    
 # Install method #1: Put library in CMAKE_INSTALL_PREFIX, i.e. /usr/local or equivalent.
 
 # Install public header files.
@@ -96,7 +73,8 @@ set(RELATIVE_CONFIG_INSTALL_DIR "${PROJECT_NAME}-${PROJECT_VERSION}/share/${PROJ
 # a *Targets.cmake file which, when read in by a client project as part of find_package(*), creates imported
 # library targets for the project (with dependency relations) which can be used in target_link_libraries()
 # calls in the client project.
-install(EXPORT ${PROJECT_NAME}Export
+install(
+    EXPORT ${PROJECT_NAME}Export
     DESTINATION "${RELATIVE_CONFIG_INSTALL_DIR}"
     NAMESPACE "${PROJECT_NAME}::"
     FILE ${PROJECT_NAME}Targets.cmake)
@@ -118,12 +96,6 @@ install(
     FILES "${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
     DESTINATION "${RELATIVE_CONFIG_INSTALL_DIR}")
 
-# Install the find modules for our public/interfaces dependencies which do not define a config module.
-cmakeshift_install_find_modules(
-    FIND_MODULE_PATH ${INTERFACE_FIND_MODULE_PATH}
-    FIND_MODULES ${INTERFACE_FIND_MODULES}
-    DESTINATION "${RELATIVE_CONFIG_INSTALL_DIR}")
-
 
 # Install method #2: Put package build directory into local CMake registry. This allows the detection and use
 # of the package without requiring that it be installed.
@@ -133,10 +105,12 @@ if(EXPORT_BUILD_DIR AND NOT CMAKE_EXPORT_NO_PACKAGE_REGISTRY)
     
     # Analogously to install(EXPORT ...), export the targets from the build directory as a package into the
     # local CMake package registry.
-    export(EXPORT ${PROJECT_NAME}Export
+    export(
+        EXPORT ${PROJECT_NAME}Export
         NAMESPACE "${PROJECT_NAME}::"
         FILE "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake")
-    export(PACKAGE ${PROJECT_NAME})
+    export(
+        PACKAGE ${PROJECT_NAME})
     
     # Configure a *Config.cmake file for the export of the build directory from the template, reflecting the
     # current build options.

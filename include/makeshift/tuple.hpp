@@ -384,6 +384,8 @@ private:
     template <typename TupleT, typename LDefaultT>
         static constexpr auto invoke(TupleT&& tuple, LDefaultT&& defaultValue)
     {
+        (void) tuple;
+        (void) defaultValue;
         using std::get; // make std::get<>(std::pair<>&&) visible to enable ADL for template methods named get<>()
         constexpr std::size_t tupleSize = std::tuple_size<std::decay_t<TupleT>>::value;
         static_assert(tupleSize <= 1, "tuple may not have more than one entry");

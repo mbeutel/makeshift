@@ -11,7 +11,7 @@
 #include <makeshift/type_traits.hpp> // for tag<>
 #include <makeshift/metadata.hpp>
 
-#include <makeshift/detail/cfg.hpp>  // for MAKESHIFT_SYS_DLLFUNC
+#include <makeshift/detail/cfg.hpp>  // for MAKESHIFT_DLLFUNC
 #include <makeshift/detail/serialize-enum.hpp>
 
 
@@ -36,7 +36,7 @@ inline std::string scalar_to_string(long double val) { return std::to_string(val
 
 inline std::string scalar_from_string(tag_t<std::string>, const std::string& s) { return s; }
 inline int scalar_from_string(tag_t<int>, const std::string& string) { return std::stoi(string); }
-MAKESHIFT_SYS_DLLFUNC unsigned scalar_from_string(tag_t<unsigned>, const std::string& string);
+MAKESHIFT_DLLFUNC unsigned scalar_from_string(tag_t<unsigned>, const std::string& string);
 inline long scalar_from_string(tag_t<long>, const std::string& string) { return std::stol(string); }
 inline unsigned long scalar_from_string(tag_t<unsigned long>, const std::string& string) { return std::stoul(string); }
 inline long long scalar_from_string(tag_t<long long>, const std::string& string) { return std::stoll(string); }

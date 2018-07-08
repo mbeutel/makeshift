@@ -16,7 +16,7 @@
 #include <makeshift/tuple.hpp>
 #include <makeshift/array.hpp>       // for to_array()
 
-#include <makeshift/detail/cfg.hpp>  // for MAKESHIFT_SYS_DLLFUNC
+#include <makeshift/detail/cfg.hpp>  // for MAKESHIFT_DLLFUNC
 
 #include <gsl/span>
 
@@ -50,13 +50,13 @@ struct flags_enum_serialization_data_ref
     std::string_view typeDesc;
 };
 
-MAKESHIFT_SYS_DLLFUNC std::string enum_to_string(std::uint64_t enumValue, const enum_serialization_data_ref& sdata);
-MAKESHIFT_SYS_DLLFUNC bool try_string_to_enum(std::uint64_t& enumValue, const std::string& string, const enum_serialization_data_ref& sdata) noexcept;
-MAKESHIFT_SYS_DLLFUNC std::uint64_t string_to_enum(const std::string& string, const enum_serialization_data_ref& sdata);
+MAKESHIFT_DLLFUNC std::string enum_to_string(std::uint64_t enumValue, const enum_serialization_data_ref& sdata);
+MAKESHIFT_DLLFUNC bool try_string_to_enum(std::uint64_t& enumValue, const std::string& string, const enum_serialization_data_ref& sdata) noexcept;
+MAKESHIFT_DLLFUNC std::uint64_t string_to_enum(const std::string& string, const enum_serialization_data_ref& sdata);
 
-MAKESHIFT_SYS_DLLFUNC std::string flags_enum_to_string(std::uint64_t enumValue, const flags_enum_serialization_data_ref& sdata);
-MAKESHIFT_SYS_DLLFUNC bool try_string_to_flags_enum(std::uint64_t& enumValue, const std::string& string, const flags_enum_serialization_data_ref& sdata) noexcept;
-MAKESHIFT_SYS_DLLFUNC std::uint64_t string_to_flags_enum(const std::string& string, const flags_enum_serialization_data_ref& sdata);
+MAKESHIFT_DLLFUNC std::string flags_enum_to_string(std::uint64_t enumValue, const flags_enum_serialization_data_ref& sdata);
+MAKESHIFT_DLLFUNC bool try_string_to_flags_enum(std::uint64_t& enumValue, const std::string& string, const flags_enum_serialization_data_ref& sdata) noexcept;
+MAKESHIFT_DLLFUNC std::uint64_t string_to_flags_enum(const std::string& string, const flags_enum_serialization_data_ref& sdata);
 
 template <typename ValC, typename... AttributesT>
     constexpr enum_value_serialization_data make_enum_value_serialization_data(const value_metadata<ValC, std::tuple<AttributesT...>>& valueMetadata)
