@@ -27,13 +27,18 @@ inline namespace types
 {
 
 
+    //ᅟ
     // Determines whether a type has a tuple-like interface (i.e. whether `std::tuple_size<T>::value` is well-formed).
+    //
 template <typename T> struct is_tuple_like : can_apply<makeshift::detail::is_tuple_like_r, T> { };
 
+    //ᅟ
     // Determines whether a type has a tuple-like interface (i.e. whether `std::tuple_size<T>::value` is well-formed).
+    //
 template <typename T> constexpr bool is_tuple_like_v = is_tuple_like<T>::value;
 
 
+    //ᅟ
     // Pass `tuple_index` to `tuple_foreach()` or `tuple_map()` to have the tuple element index passed as a functor argument.
     // The argument is of type `integral_constant<std::size_t, I>` and implicitly converts to `std::size_t`.
     //ᅟ
@@ -43,6 +48,7 @@ template <typename T> constexpr bool is_tuple_like_v = is_tuple_like<T>::value;
     //
 struct tuple_index_t { };
 
+    //ᅟ
     // Pass `tuple_index` to `tuple_foreach()` or `tuple_map()` to have the tuple element index passed as a functor argument.
     // The argument is of type `integral_constant<std::size_t, I>` and implicitly converts to `std::size_t`.
     //ᅟ
@@ -477,6 +483,7 @@ inline namespace types
 {
 
 
+    //ᅟ
     // Takes a scalar procedure (i.e. a function with non-tuple arguments and with void return type) and returns a procedure which can be called
     // with tuples in some or all arguments.
     //ᅟ
@@ -491,6 +498,7 @@ template <typename F>
 }
 
 
+    //ᅟ
     // Takes a tuple and a scalar procedure (i.e. a function with non-tuple arguments and with void return type) and calls the procedure for every
     // element in the tuple.
     //ᅟ
@@ -508,6 +516,7 @@ template <typename TupleT, typename F,
 }
 
 
+    //ᅟ
     // Returns a functor that maps a tuple to a new tuple which contains only the values for which the given type predicate is true.
     //ᅟ
     //ᅟ    auto numbers = std::make_tuple(1, 2, 3u);
@@ -522,6 +531,7 @@ template <template <typename> class PredT>
 }
 
 
+    //ᅟ
     // Maps a tuple to a new tuple which contains only the values for which the given type predicate is true.
     //ᅟ
     //ᅟ    auto numbers = std::make_tuple(1, 2, 3u);
@@ -536,6 +546,7 @@ template <template <typename> class PredT, typename TupleT,
 }
 
 
+    //ᅟ
     // Takes a scalar function (i.e. a function with non-tuple arguments and non-tuple return type) and returns a function which can be called 
     // with tuples in some or all arguments, and whose result will be a tuple of the results of the function applied to the tuple elements.
     //ᅟ
@@ -551,6 +562,7 @@ template <typename F>
 }
 
 
+    //ᅟ
     // Takes a tuple and a scalar function (i.e. a function with non-tuple arguments and non-tuple return type) and returns a tuple of the results
     // of the function applied to the tuple elements.
     //ᅟ
@@ -566,6 +578,7 @@ template <typename TupleT, typename F,
 }
 
 
+    //ᅟ
     // Takes a binary accumulator function (i.e. a function with non-tuple arguments and non-tuple return type) and returns a function which reduces
     // an initial value and a tuple to a scalar using the accumulator function.
     //ᅟ
@@ -581,6 +594,7 @@ template <typename F>
 }
 
 
+    //ᅟ
     // Takes an initial value and a binary accumulator function (i.e. a function with non-tuple arguments and non-tuple type) and returns a function
     // which reduces a tuple to a scalar using the accumulator function.
     //ᅟ
@@ -596,6 +610,7 @@ template <typename ValT, typename F>
 }
 
 
+    //ᅟ
     // Takes a tuple, an initial value and a binary accumulator function (i.e. a function with non-tuple arguments and non-tuple type) and returns the
     // reduction of the tuple (i.e. the left fold).
     //ᅟ
@@ -611,6 +626,7 @@ template <typename TupleT, typename T, typename F,
 }
 
 
+    //ᅟ
     // Returns a functor which retrieves the tuple element of the given type, or which returns the provided default value if the tuple does not contain
     // an element of the given type. The type of the default value does not need to match the desired element type.
     //ᅟ
@@ -627,6 +643,7 @@ template <typename T, typename DefaultT,
 }
 
 
+    //ᅟ
     // Returns a functor which retrieves the tuple element of the given type, or which returns a default-constructed element if the tuple does not
     // contain an element of the given type.
     //ᅟ
@@ -642,6 +659,7 @@ template <typename T>
 }
 
 
+    //ᅟ
     // Returns the tuple element of the given type, or the provided default value if the tuple does not contain an element of the given type.
     // The type of the default value does not need to match the desired element type.
     //ᅟ
@@ -657,6 +675,7 @@ template <typename T, typename TupleT, typename DefaultT,
 }
 
 
+    //ᅟ
     // Returns the tuple element of the given type, or the provided default value if the tuple does not contain an element of the given type.
     // The type of the default value does not need to match the desired element type.
     //ᅟ
@@ -672,6 +691,7 @@ template <typename T, typename TupleT,
 }
 
 
+    //ᅟ
     // Returns a functor which retrieves the tuple element of the given type, or `none` if the tuple does not contain an element of the given type.
     //ᅟ
     //ᅟ    auto tuple = std::make_tuple(42);
@@ -686,6 +706,7 @@ template <typename T>
 }
 
 
+    //ᅟ
     // Returns the tuple element of the given type, or `none` if the tuple does not contain an element of the given type.
     //ᅟ
     //ᅟ    auto tuple = std::make_tuple(42);
@@ -700,6 +721,7 @@ template <typename T, typename TupleT,
 }
 
 
+    //ᅟ
     // Returns a functor which retrieves the tuple element of the given type.
     //ᅟ
     //ᅟ    auto tuple = std::make_tuple(42);
@@ -714,6 +736,7 @@ template <typename T>
 }
 
 
+    //ᅟ
     // Returns a functor which retrieves the tuple element with the given index. Negative indices count from the end.
     //ᅟ
     //ᅟ    auto tuple = std::make_tuple(42);
@@ -728,6 +751,7 @@ template <int I>
 }
 
 
+    //ᅟ
     // Returns a functor which retrieves the single element in a tuple, or which returns the provided default value if the tuple is empty.
     //ᅟ
     //ᅟ    auto tuple = std::make_tuple(12, 42);
@@ -742,6 +766,7 @@ template <typename DefaultT>
 }
 
 
+    //ᅟ
     // Returns the single element in a tuple, or the provided default value if the tuple is empty.
     //ᅟ
     //ᅟ    auto tuple = std::make_tuple(12, 42);
@@ -756,6 +781,7 @@ template <typename TupleT, typename DefaultT,
 }
 
 
+    //ᅟ
     // Returns a functor which retrieves the single element in a tuple, or which returns `none` if the tuple is empty.
     //ᅟ
     //ᅟ    auto tuple = std::make_tuple(12, 42);
@@ -769,6 +795,7 @@ single_or_none(void)
 }
 
 
+    //ᅟ
     // Returns the single element in a tuple, or `none` if the tuple is empty.
     //ᅟ
     //ᅟ    auto tuple = std::make_tuple(12, 42);
@@ -783,6 +810,7 @@ template <typename TupleT,
 }
 
 
+    //ᅟ
     // Returns a functor which retrieves the single element in a tuple.
     //ᅟ
     //ᅟ    auto tuple = std::make_tuple(42);
@@ -796,6 +824,7 @@ single(void)
 }
 
 
+    //ᅟ
     // Returns the single element in a tuple.
     //ᅟ
     //ᅟ    auto tuple = std::make_tuple(42);

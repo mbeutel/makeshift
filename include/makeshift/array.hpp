@@ -80,13 +80,18 @@ inline namespace types
 {
 
 
+    //ᅟ
     // Determines the size of the given array.
+    //
 template <typename ArrayT> struct array_size : makeshift::detail::array_size_<std::decay_t<ArrayT>> { };
 
+    //ᅟ
     // Determines the size of the given array.
+    //
 template <typename ArrayT> static constexpr std::size_t array_size_v = array_size<ArrayT>::value;
 
 
+    //ᅟ
     // Converts an array to `std::array<>`.
     //ᅟ
     //ᅟ    int nativeArray[] = { 1, 2, 3 };
@@ -100,6 +105,7 @@ template <std::size_t N, typename T>
 }
 
 
+    //ᅟ
     // Returns a functor that maps a tuple to an array of element type `T` that is initialized with the elements in the tuple.
     // If `T` is not specified, the common type of the tuple element types is used.
     //ᅟ
@@ -115,6 +121,7 @@ template <typename T = void>
 }
 
 
+    //ᅟ
     // Returns a `std::array<>` of element type `T` that is initialized with the elements in the tuple.
     //ᅟ
     //ᅟ    auto tuple = std::make_tuple(1, 2, 3);

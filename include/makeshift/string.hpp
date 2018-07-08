@@ -81,7 +81,9 @@ inline namespace serialize
     //ᅟ    );
 
 
+    //ᅟ
     // String serializer for common scalar types (built-in types and std::string).
+    //
 template <typename MetadataTagT = serialization_metadata_tag>
     struct string_serializer_t : metadata_serializer_t<MetadataTagT>
 {
@@ -108,10 +110,13 @@ template <typename MetadataTagT = serialization_metadata_tag>
     }
 };
 
+    //ᅟ
     // String serializer for common scalar types (built-in types and std::string).
+    //
 template <typename MetadataTagT = serialization_metadata_tag> constexpr string_serializer_t<MetadataTagT> string_serializer { };
 
 
+    //ᅟ
     // Serializes the given value as string using the provided serializer.
     //ᅟ
     //ᅟ    std::string s = to_string(42, string_serializer<>); // returns "42"s
@@ -123,6 +128,7 @@ template <typename T, typename SerializerT>
 }
 
 
+    //ᅟ
     // Serializes the given value as string using `string_serializer<>`.
     //ᅟ
     //ᅟ    std::string s = to_string(42); // returns "42"s
@@ -134,6 +140,7 @@ template <typename T>
 }
 
 
+    //ᅟ
     // Deserializes the given value from a string using the provided serializer.
     //ᅟ
     //ᅟ    int i = from_string(tag<int>, "42", string_serializer<>); // returns 42
@@ -145,6 +152,7 @@ template <typename T, typename SerializerT>
 }
 
 
+    //ᅟ
     // Deserializes the given value from a string using `string_serializer<>`.
     //ᅟ
     //ᅟ    int i = from_string(tag<int>, "42"); // returns 42

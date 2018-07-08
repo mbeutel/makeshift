@@ -32,7 +32,7 @@ project(makeshift
 option(BUILD_TESTS "Build tests" OFF)
 option(EXPORT_BUILD_DIR "Export build directory using CMake (enables external use without install)" OFF)
 
-# Add the interface find module path defined above to the module path.
+# Add the CMakeshift find module path to the module path.
 list(APPEND CMAKE_MODULE_PATH "${CMAKESHIFT_MODULE_DIR}")
 
 

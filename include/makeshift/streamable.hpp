@@ -134,7 +134,9 @@ inline namespace serialize
     //ᅟ    );
 
 
+    //ᅟ
     // Stream serializer for enums with metadata and for types with overloaded stream operators.
+    //
 template <typename MetadataTagT = serialization_metadata_tag>
     struct stream_serializer_t : metadata_serializer_t<MetadataTagT>
 {
@@ -164,10 +166,13 @@ template <typename MetadataTagT = serialization_metadata_tag>
     }
 };
 
+    //ᅟ
     // Stream serializer for enums with metadata and for types with overloaded stream operators.
+    //
 template <typename MetadataTagT = serialization_metadata_tag> constexpr stream_serializer_t<MetadataTagT> stream_serializer { };
 
 
+    //ᅟ
     // Wraps the given rvalue as a streamable object using the serializer provided.
     //ᅟ
     //ᅟ    std::cout << streamable(vec.size(), stream_serializer<>) << '\n';
@@ -179,6 +184,7 @@ template <typename T, typename SerializerT>
 }
 
 
+    //ᅟ
     // Wraps the given rvalue as a streamable object using `stream_serializer<>`.
     //ᅟ
     //ᅟ    std::cout << streamable(vec.size()) << '\n';
@@ -190,6 +196,7 @@ template <typename T>
 }
 
 
+    //ᅟ
     // Wraps the given lvalue as a streamable object using the serializer provided.
     //ᅟ
     //ᅟ    int i;
@@ -203,6 +210,7 @@ template <typename T, typename SerializerT>
 }
 
 
+    //ᅟ
     // Wraps the given lvalue as a streamable object using `stream_serializer<>`.
     //ᅟ
     //ᅟ    int i;

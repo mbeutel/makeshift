@@ -1,4 +1,4 @@
-
+﻿
 #ifndef MAKESHIFT_DETAIL_FUNCTIONAL_TRAITS_HPP_
 #define MAKESHIFT_DETAIL_FUNCTIONAL_TRAITS_HPP_
 
@@ -39,67 +39,99 @@ inline namespace types
 {
 
 
+    //ᅟ
     // Determines whether the given type is a functor (i.e. a class with non-ambiguous `operator ()`).
+    //
 template <typename F> struct is_functor : can_apply<makeshift::detail::is_functor_r, F> { };
 
+    //ᅟ
     // Determines whether the given type is a functor (i.e. a class with non-ambiguous `operator ()`).
+    //
 template <typename F> constexpr bool is_functor_v = is_functor<F>::value;
 
 
+    //ᅟ
     // Determines whether the given functor is mutable.
+    //
 template <typename F> struct is_mutable_functor : std::integral_constant<bool, !makeshift::detail::callable_sig_<F>::is_const> { };
 
+    //ᅟ
     // Determines whether the given functor is mutable.
+    //
 template <typename F> constexpr bool is_mutable_functor_v = is_mutable_functor<F>::value;
 
 
-// Determines whether the given type is a function pointer.
+    //ᅟ
+    // Determines whether the given type is a function pointer.
+    //
 template <typename F> struct is_function_pointer : std::false_type { };
 template <typename F> struct is_function_pointer<F*> : std::is_function<F> { };
 
+    //ᅟ
     // Determines whether the given type is a function pointer.
+    //
 template <typename F> constexpr bool is_function_pointer_v = is_function_pointer<F>::value;
 
 
+    //ᅟ
     // Retrieves the signature of a callable object.
+    //
 template <typename F> struct callable_sig : makeshift::detail::callable_sig_<F> { };
 
+    //ᅟ
     // Retrieves the signature of a callable object.
+    //
 template <typename F> using callable_sig_t = typename callable_sig<F>::type;
 
 
+    //ᅟ
     // Determines whether the object is callable.
+    //
 template <typename F> struct is_callable : std::integral_constant<bool, is_functor_v<F> || is_function_pointer_v<F> || std::is_member_function_pointer<F>::value> { };
 
+    //ᅟ
     // Determines whether the object is callable.
+    //
 template <typename F> constexpr bool is_callable_v = is_callable<F>::value;
 
 
+    //ᅟ
     // Retrieves the return type of a function signature.
+    //
 template <typename SigT> struct sig_return_type;
 template <typename R, typename... ArgsT> struct sig_return_type<R(ArgsT...)> { using type = R; };
 
+    //ᅟ
     // Retrieves the return type of a function signature.
+    //
 template <typename SigT> using sig_return_type_t = typename sig_return_type<SigT>::type;
 
 
+    //ᅟ
     // Retrieves the `I`-th argument type of a function signature.
+    //
 template <std::size_t I, typename SigT> struct sig_arg_type;
 template <std::size_t I, typename R, typename Arg0T, typename... ArgsT> struct sig_arg_type<I, R(Arg0T, ArgsT...)> : sig_arg_type<I - 1, R(ArgsT...)> { };
 template <typename R, typename Arg0T, typename... ArgsT> struct sig_arg_type<0, R(Arg0T, ArgsT...)> { using type = Arg0T; };
 
+    //ᅟ
     // Retrieves the `I`-th argument type of a function signature.
+    //
 template <std::size_t I, typename SigT> using sig_arg_type_t = typename sig_arg_type<I, SigT>::type;
 
 
+    //ᅟ
     // Calls a callable object. (This is a less general but `constexpr` version of `std::invoke()`.)
+    //
 template <typename F, typename... ArgsT>
     constexpr decltype(auto) call(F&& f, ArgsT&&... args)
 {
     return std::forward<F>(f)(std::forward<ArgsT>(args)...);
 }
 
+    //ᅟ
     // Calls a callable object. (This is a less general but `constexpr` version of `std::invoke()`.)
+    //
 template <typename F, typename C, typename Arg0T, typename... ArgsT>
     constexpr decltype(auto) call(F C::* f, Arg0T&& arg0, ArgsT&&... args)
 {

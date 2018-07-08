@@ -13,6 +13,7 @@ inline namespace types
 {
 
 
+    //ᅟ
     // Inherit from `define_flags<>` to define a flag enum type:
     //ᅟ
     //ᅟ    struct Vegetable : define_flags<Vegetable>
@@ -53,13 +54,19 @@ template <typename FlagsT, typename UnderlyingTypeT = unsigned>
     friend constexpr bool operator !=(flags lhs, none_t) noexcept { return lhs != flags::none; }
     friend constexpr bool operator !=(none_t, flags rhs) noexcept { return rhs != flags::none; }
 
+        //ᅟ
         // `has_flag(haystack, needle)` determines whether the flags enum `haystack` contains the flag `needle`. Equivalent to `(haystack & needle) != none`.
+        //
     friend constexpr bool has_flag(flags haystack, flag needle) noexcept { return (UnderlyingTypeT(haystack) & UnderlyingTypeT(needle)) != 0; }
     
+        //ᅟ
         // `has_any_of(haystack, needles)` determines whether the flags enum `haystack` contains any of the flags in `needles`. Equivalent to `(haystack & needles) != none`.
+        //
     friend constexpr bool has_any_of(flags haystack, flags needles) noexcept { return (UnderlyingTypeT(haystack) & UnderlyingTypeT(needles)) != 0; }
     
+        //ᅟ
         // `has_all_of(haystack, needles)` determines whether the flags enum `haystack` contains all of the flags in `needles`. Equivalent to `(haystack & needles) == needles`.
+        //
     friend constexpr bool has_all_of(flags haystack, flags needles) noexcept { return flags(UnderlyingTypeT(haystack) & UnderlyingTypeT(needles)) == needles; }
 };
 

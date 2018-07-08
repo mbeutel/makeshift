@@ -111,7 +111,9 @@ inline namespace types
 {
 
 
+    //ᅟ
     // Defines a functor that accepts all arguments and does nothing.
+    //
 struct ignore_t
 {
     template <typename... Ts>
@@ -120,11 +122,15 @@ struct ignore_t
     }
 };
 
+    //ᅟ
     // Functor that accepts all arguments and does nothing.
+    //
 constexpr inline ignore_t ignore = { };
 
 
+    //ᅟ
     // Defines a functor that will be called if no other overloaded functors match.
+    //
 template <typename F>
     constexpr makeshift::detail::default_overload_wrapper<std::decay_t<F>> otherwise(F&& func)
     noexcept(noexcept(F(std::forward<F>(func))))
@@ -132,13 +138,16 @@ template <typename F>
     return { std::forward<F>(func) };
 }
 
+    //ᅟ
     // Defines a functor that will be called if no other overloaded functors match, and which accepts all arguments and does nothing.
+    //
 constexpr inline makeshift::detail::ignore_overload_wrapper otherwise(ignore_t) noexcept
 {
     return { };
 }
 
 
+    //ᅟ
     // Returns a functor wrapper that selects the matching overload among a number of given functors.
     //ᅟ
     //ᅟ    auto type_name_func = overload(
@@ -190,6 +199,7 @@ template <typename... Ts>
     overload(Ts&&...) -> overload<std::decay_t<Ts>...>;
 
 
+    //ᅟ
     // Returns a functor wrapper that only matches arguments of the given template type.
     //ᅟ
     //ᅟ    auto vec_size_func = match_template<std::vector>([](const auto& v) { return v.size(); });

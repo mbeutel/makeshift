@@ -1,4 +1,4 @@
-
+﻿
 #ifndef MAKESHIFT_DETAIL_UTILITY_COMBINE_HPP_
 #define MAKESHIFT_DETAIL_UTILITY_COMBINE_HPP_
 
@@ -14,7 +14,9 @@ inline namespace types
 {
 
 
+    //ᅟ
     // A type that publicly inherits from all argument types and initializes its base classes with `std::forward<>()`.
+    //
 template <typename... Ts>
     struct combination_t : Ts...
 {
@@ -26,14 +28,18 @@ template <typename... Ts>
     }
 };
 
+    //ᅟ
     // Returns an instance of a type that publicly inherits from all argument types and initializes its base classes with `std::forward<Ts>(args)`.
+    //
 template <typename Ts>
     constexpr std::decay_t<Ts> combine(Ts&& arg)
 {
     return std::forward<Ts>(arg);
 }
 
+    //ᅟ
     // Returns an instance of a type that publicly inherits from all argument types and initializes its base classes with `std::forward<Ts>(args)`.
+    //
 template <typename... Ts>
     constexpr combination_t<std::decay_t<Ts>...> combine(Ts&&... args)
 {

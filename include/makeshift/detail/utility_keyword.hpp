@@ -90,6 +90,7 @@ inline namespace types
     // implementation while maintaining source compatibility.
 
 
+    //ᅟ
     // Wraps a value of type `T` with a compile-time keyword name and a scope:
     //ᅟ
     //ᅟ    using Width = named_t<int, "width"_kw>;
@@ -113,6 +114,7 @@ template <typename T, makeshift::detail::keyword_crc Name, makeshift::detail::ke
 };
 
 
+    //ᅟ
     // Wraps a value of type `T` with a compile-time keyword scope:
     //ᅟ
     //ᅟ    using SrcFile = scoped_t<File, "src"_kw>;
@@ -121,6 +123,7 @@ template <typename T, makeshift::detail::keyword_crc Name, makeshift::detail::ke
 template <typename T, makeshift::detail::keyword_crc... Scopes> struct scoped { using type = contextual<T, makeshift::detail::keyword_crc{ }, Scopes...>; };
 template <typename T, makeshift::detail::keyword_crc Name, makeshift::detail::keyword_crc... OldScopes, makeshift::detail::keyword_crc... NewScopes> struct scoped<contextual<T, Name, OldScopes...>, NewScopes...> { using type = contextual<T, Name, NewScopes..., OldScopes...>; };
 
+    //ᅟ
     // Wraps a value of type `T` with a compile-time keyword scope:
     //ᅟ
     //ᅟ    using SrcFile = scoped_t<File, "src"_kw>;
@@ -129,6 +132,7 @@ template <typename T, makeshift::detail::keyword_crc Name, makeshift::detail::ke
 template <typename T, makeshift::detail::keyword_crc... Scopes> using scoped_t = typename scoped<T, Scopes...>::type;
 
 
+    //ᅟ
     // Wraps a value of type `T` with a compile-time keyword name:
     //ᅟ
     //ᅟ    using Width = named_t<int, "width"_kw>;
@@ -140,6 +144,7 @@ template <typename T, makeshift::detail::keyword_crc OldName, makeshift::detail:
     using type = contextual<T, NewName, Scopes...>;
 };
 
+    //ᅟ
     // Wraps a value of type `T` with a compile-time keyword name:
     //ᅟ
     //ᅟ    using Width = named_t<int, "width"_kw>;
@@ -147,6 +152,7 @@ template <typename T, makeshift::detail::keyword_crc OldName, makeshift::detail:
 template <typename T, makeshift::detail::keyword_crc Name> using named_t = typename named<T, Name>::type;
 
 
+    //ᅟ
     // Retrieves the value type of a possibly contextual type.
     //ᅟ
     //ᅟ    using Width = named_t<int, "width"_kw>;
@@ -155,6 +161,7 @@ template <typename T, makeshift::detail::keyword_crc Name> using named_t = typen
 template <typename T> struct unwrap_contextual { using type = T; };
 template <typename T, makeshift::detail::keyword_crc Name, makeshift::detail::keyword_crc... Scopes> struct unwrap_contextual<contextual<T, Name, Scopes...>> { using type = T; };
 
+    //ᅟ
     // Retrieves the value type of a possibly contextual type.
     //ᅟ
     //ᅟ    using Width = named_t<int, "width"_kw>;
@@ -163,23 +170,33 @@ template <typename T, makeshift::detail::keyword_crc Name, makeshift::detail::ke
 template <typename T> using unwrap_contextual_t = typename unwrap_contextual<T>::type;
 
 
+    //ᅟ
     // Retrieves the name of a possibly contextual type. The name of non-contextual types is `""_kw`.
+    //
 template <typename T> struct name_of { static constexpr makeshift::detail::keyword_crc value = { }; };
 template <typename T, makeshift::detail::keyword_crc Name, makeshift::detail::keyword_crc... Scopes> struct name_of<contextual<T, Name, Scopes...>> { static constexpr makeshift::detail::keyword_crc value = Name; };
 
+    //ᅟ
     // Retrieves the name of a possibly contextual type. The name of non-contextual types is `""_kw`.
+    //
 template <typename T> constexpr makeshift::detail::keyword_crc name_of_v = name_of<T>::value;
 
 
+    //ᅟ
     // Determines whether `T` is a contextual type.
+    //
 template <typename T> struct is_contextual : std::false_type { };
 template <typename T, makeshift::detail::keyword_crc Name, makeshift::detail::keyword_crc... Scopes> struct is_contextual<contextual<T, Name, Scopes...>> : std::true_type { };
 
+    //ᅟ
     // Determines whether `T` is a contextual type.
+    //
 template <typename T> constexpr bool is_contextual_v = is_contextual<T>::value;
 
 
+    //ᅟ
     // Retrieves the underlying value from an object of contextual type, or returns the value itself if it is not of contextual type.
+    //
 template <typename T>
     constexpr unwrap_contextual_t<std::decay_t<T>> contextual_value(T&& value)
 {
@@ -215,6 +232,7 @@ inline namespace types
 {
 
 
+    //ᅟ
     // Permits constructing an object of contextual type with familiar assignment syntax:
     //ᅟ
     //ᅟ    scope<"src"_kw> = srcFile
@@ -235,6 +253,7 @@ template <makeshift::detail::keyword_crc... Scopes>
 template <makeshift::detail::keyword_crc... Scopes> constexpr scope_t<Scopes...> scope = { };
 
 
+    //ᅟ
     // Permits constructing an object of contextual type with familiar assignment syntax:
     //ᅟ
     //ᅟ    name<"width"_kw> = 42
