@@ -87,29 +87,29 @@ template <typename MetadataTagT, typename T> constexpr bool have_istream_operato
 
 
 template <typename EnumT, std::size_t N, typename SerializerT>
-    void enum_to_stream_impl(EnumT value, std::ostream& stream, const enum_serialization_data<N>& sdata, SerializerT& serializer)
+    void enum_to_stream_impl(EnumT value, std::ostream& stream, const enum_serialization_data<N>& sdata, const enum_serialization_options_t& options, SerializerT& serializer)
 {
-    stream << streamable_rvalue { to_string(value, sdata), serializer };
+    stream << streamable_rvalue { to_string_impl(value, sdata, options), serializer };
 }
 template <typename EnumT, std::size_t N, typename SerializerT>
-    void enum_from_stream_impl(EnumT& value, std::istream& stream, const enum_serialization_data<N>& sdata, SerializerT& serializer)
+    void enum_from_stream_impl(EnumT& value, std::istream& stream, const enum_serialization_data<N>& sdata, const enum_serialization_options_t& options, SerializerT& serializer)
 {
     std::string str;
     stream >> streamable_lvalue { str, serializer };
-    value = from_string(tag<EnumT>, str, sdata);
+    value = from_string_impl(tag<EnumT>, str, sdata, options);
 }
 
 template <typename EnumT, std::size_t N, typename SerializerT>
-    void enum_to_stream_impl(EnumT value, std::ostream& stream, const flags_enum_serialization_data<N>& sdata, SerializerT& serializer)
+    void enum_to_stream_impl(EnumT value, std::ostream& stream, const flags_enum_serialization_data<N>& sdata, const enum_serialization_options_t& options, SerializerT& serializer)
 {
-    stream << streamable_rvalue { to_string(value, sdata), serializer };
+    stream << streamable_rvalue { to_string_impl(value, sdata, options), serializer };
 }
 template <typename EnumT, std::size_t N, typename SerializerT>
-    void enum_from_stream_impl(EnumT& value, std::istream& stream, const flags_enum_serialization_data<N>& sdata, SerializerT& serializer)
+    void enum_from_stream_impl(EnumT& value, std::istream& stream, const flags_enum_serialization_data<N>& sdata, const enum_serialization_options_t& options, SerializerT& serializer)
 {
     std::string str;
     stream >> streamable_lvalue { str, serializer };
-    value = from_string(tag<EnumT>, str, sdata);
+    value = from_string_impl(tag<EnumT>, str, sdata, options);
 }
 
 
@@ -140,27 +140,34 @@ inline namespace serialize
 template <typename MetadataTagT = serialization_metadata_tag>
     struct stream_serializer_t : metadata_serializer_t<MetadataTagT>
 {
+    enum_serialization_options_t enum_options;
+
+    constexpr stream_serializer_t(void) noexcept = default;
+    constexpr stream_serializer_t(enum_serialization_options_t _enum_options) noexcept : enum_options(_enum_options) { }
+
     template <typename T, typename SerializerT/*,
               typename = std::enable_if_t<makeshift::detail::have_ostream_operator_v<MetadataTagT, std::decay_t<T>>>*/>
         friend std::enable_if_t<makeshift::detail::have_ostream_operator_v<MetadataTagT, std::decay_t<T>>>
-        to_stream_impl(const T& value, std::ostream& stream, stream_serializer_t, SerializerT& serializer)
+        to_stream_impl(const T& value, std::ostream& stream, const stream_serializer_t& streamSerializer, SerializerT& serializer)
     {
+        (void) streamSerializer;
         (void) serializer;
         using D = std::decay_t<T>;
         if constexpr (std::is_enum<D>::value)
-            enum_to_stream_impl(value, stream, makeshift::detail::serialization_data<D, MetadataTagT>, serializer);
+            enum_to_stream_impl(value, stream, makeshift::detail::serialization_data<D, MetadataTagT>, streamSerializer.enum_options, serializer);
         else
             stream << value;
     }
     template <typename T, typename SerializerT/*,
               typename = std::enable_if_t<makeshift::detail::have_istream_operator_v<MetadataTagT, std::decay_t<T>>>*/>
         friend std::enable_if_t<makeshift::detail::have_ostream_operator_v<MetadataTagT, std::decay_t<T>>>
-        from_stream_impl(T& value, std::istream& stream, stream_serializer_t, SerializerT& serializer)
+        from_stream_impl(T& value, std::istream& stream, const stream_serializer_t& streamSerializer, SerializerT& serializer)
     {
         (void) serializer;
+        (void) streamSerializer;
         using D = std::decay_t<T>;
         if constexpr (std::is_enum<D>::value)
-            enum_from_stream_impl(value, stream, makeshift::detail::serialization_data<D, MetadataTagT>, serializer);
+            enum_from_stream_impl(value, stream, makeshift::detail::serialization_data<D, MetadataTagT>, streamSerializer.enum_options, serializer);
         else
             stream >> value;
     }

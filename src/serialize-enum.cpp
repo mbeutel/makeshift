@@ -1,8 +1,9 @@
 
 #include <stdexcept>
 #include <tuple>
-#include <cctype>    // for isspace()
+#include <cctype>    // for isspace(), tolower()
 #include <optional>
+#include <algorithm> // for equal()
 
 #include <makeshift/detail/serialize-enum.hpp>
 
@@ -39,27 +40,39 @@ unsigned scalar_from_string(tag_t<unsigned>, const std::string& string)
 }
 
 
-std::string enum_to_string(std::uint64_t enumValue, const enum_serialization_data_ref& sdata)
+static bool string_equals(std::string_view lhs, std::string_view rhs)
+{
+    return lhs == rhs;
+}
+static bool string_equals_ci(std::string_view lhs, std::string_view rhs)
+{
+    return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end(), [](char a, char b) { return std::tolower(a) == std::tolower(b); });
+}
+
+std::string enum_to_string(std::uint64_t enumValue, const enum_serialization_data_ref& sdata, const enum_serialization_options_t& /*options*/)
 {
     for (auto& value : sdata.values)
         if (value.value == enumValue)
             return std::string(value.string);
     raiseInvalidValueError();
 }
-bool try_string_to_enum(std::uint64_t& enumValue, const std::string& string, const enum_serialization_data_ref& sdata) noexcept
+bool try_string_to_enum(std::uint64_t& enumValue, const std::string& string, const enum_serialization_data_ref& sdata, const enum_serialization_options_t& options) noexcept
 {
+    auto equalsFunc = options.case_sensitive
+        ? string_equals
+        : string_equals_ci;
     for (auto& value : sdata.values)
-        if (value.string == string)
+        if (equalsFunc(value.string, string))
         {
             enumValue = value.value;
             return true;
         }
     return false;
 }
-std::uint64_t string_to_enum(const std::string& string, const enum_serialization_data_ref& sdata)
+std::uint64_t string_to_enum(const std::string& string, const enum_serialization_data_ref& sdata, const enum_serialization_options_t& options)
 {
     std::uint64_t enumValue;
-    if (!try_string_to_enum(enumValue, string, sdata))
+    if (!try_string_to_enum(enumValue, string, sdata, options))
         raiseInvalidStringError(string, sdata.typeDesc, sdata.typeName);
     return enumValue;
 }
@@ -68,7 +81,7 @@ static constexpr bool isPowerOf2(std::uint64_t value) noexcept
 {
     return value != 0 && (value & (value - 1)) == 0;
 }
-std::string flags_enum_to_string(std::uint64_t enumValue, const flags_enum_serialization_data_ref& sdata)
+std::string flags_enum_to_string(std::uint64_t enumValue, const flags_enum_serialization_data_ref& sdata, const enum_serialization_options_t& /*options*/)
 {
     std::string result;
 
@@ -115,8 +128,11 @@ static std::optional<std::string_view> expectSeparator(std::string_view s) noexc
     s = s.substr(1);
     return s;
 }
-bool try_string_to_flags_enum(std::uint64_t& enumValue, const std::string& string, const flags_enum_serialization_data_ref& sdata) noexcept
+bool try_string_to_flags_enum(std::uint64_t& enumValue, const std::string& string, const flags_enum_serialization_data_ref& sdata, const enum_serialization_options_t& options) noexcept
 {
+    auto equalsFunc = options.case_sensitive
+        ? string_equals
+        : string_equals_ci;
     std::string_view sv = string;
     enumValue = 0;
     bool first = true;
@@ -138,7 +154,7 @@ bool try_string_to_flags_enum(std::uint64_t& enumValue, const std::string& strin
         {
             auto len = value.string.size();
             if (sv.size() >= len // does it fit?
-                && value.string == sv.substr(0, len) // does it match?
+                && equalsFunc(value.string, sv.substr(0, len)) // does it match?
                 && (sv.size() == len || std::isspace(sv[len]) || isSeparator(sv[len]))) // is it followed by whitespace, separator or EOS?
             {
                 enumValue |= value.value;
@@ -152,10 +168,10 @@ bool try_string_to_flags_enum(std::uint64_t& enumValue, const std::string& strin
     }
     return true;
 }
-std::uint64_t string_to_flags_enum(const std::string& string, const flags_enum_serialization_data_ref& sdata)
+std::uint64_t string_to_flags_enum(const std::string& string, const flags_enum_serialization_data_ref& sdata, const enum_serialization_options_t& options)
 {
     std::uint64_t enumValue;
-    if (!try_string_to_flags_enum(enumValue, string, sdata))
+    if (!try_string_to_flags_enum(enumValue, string, sdata, options))
         raiseInvalidStringError(string, sdata.typeDesc, sdata.flagTypeName);
     return enumValue;
 }

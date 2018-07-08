@@ -87,24 +87,31 @@ inline namespace serialize
 template <typename MetadataTagT = serialization_metadata_tag>
     struct string_serializer_t : metadata_serializer_t<MetadataTagT>
 {
+    enum_serialization_options_t enum_options;
+
+    constexpr string_serializer_t(void) noexcept = default;
+    constexpr string_serializer_t(enum_serialization_options_t _enum_options) noexcept : enum_options(_enum_options) { }
+
     template <typename T, typename SerializerT/*,
               typename = std::enable_if_t<makeshift::detail::have_string_conversion_v<MetadataTagT, std::decay_t<T>>>*/>
         friend std::enable_if_t<makeshift::detail::have_string_conversion_v<MetadataTagT, std::decay_t<T>>, std::string>
-        to_string_impl(const T& value, string_serializer_t, SerializerT&)
+        to_string_impl(const T& value, const string_serializer_t& stringSerializer, SerializerT&)
     {
+        (void) stringSerializer;
         using D = std::decay_t<T>;
         if constexpr (std::is_enum<D>::value)
-            return to_string(value, makeshift::detail::serialization_data<D, MetadataTagT>);
+            return to_string_impl(value, makeshift::detail::serialization_data<D, MetadataTagT>, stringSerializer.enum_options);
         else
             return makeshift::detail::scalar_to_string(value);
     }
     template <typename T, typename SerializerT/*,
               typename = std::enable_if_t<makeshift::detail::have_string_conversion_v<MetadataTagT, T>>*/>
         friend std::enable_if_t<makeshift::detail::have_string_conversion_v<MetadataTagT, T>, T>
-        from_string_impl(tag_t<T>, const std::string& string, string_serializer_t, SerializerT&)
+        from_string_impl(tag_t<T>, const std::string& string, const string_serializer_t& stringSerializer, SerializerT&)
     {
+        (void) stringSerializer;
         if constexpr (std::is_enum<T>::value)
-            return from_string(tag<T>, string, makeshift::detail::serialization_data<T, MetadataTagT>);
+            return from_string_impl(tag<T>, string, makeshift::detail::serialization_data<T, MetadataTagT>, stringSerializer.enum_options);
         else
             return makeshift::detail::scalar_from_string(tag<T>, string);
     }

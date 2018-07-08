@@ -24,6 +24,25 @@
 namespace makeshift
 {
 
+inline namespace serialize
+{
+
+
+    //ᅟ
+    // Options for serializing and deserializing enums and flag enums with metadata.
+    //
+struct enum_serialization_options_t
+{
+        //ᅟ
+        // Determines whether enum deserialization is case-sensitive.
+        //
+    bool case_sensitive = false;
+};
+
+
+} // inline namespace serialize
+
+
 namespace detail
 {
 
@@ -50,13 +69,13 @@ struct flags_enum_serialization_data_ref
     std::string_view typeDesc;
 };
 
-MAKESHIFT_DLLFUNC std::string enum_to_string(std::uint64_t enumValue, const enum_serialization_data_ref& sdata);
-MAKESHIFT_DLLFUNC bool try_string_to_enum(std::uint64_t& enumValue, const std::string& string, const enum_serialization_data_ref& sdata) noexcept;
-MAKESHIFT_DLLFUNC std::uint64_t string_to_enum(const std::string& string, const enum_serialization_data_ref& sdata);
+MAKESHIFT_DLLFUNC std::string enum_to_string(std::uint64_t enumValue, const enum_serialization_data_ref& sdata, const enum_serialization_options_t& options);
+MAKESHIFT_DLLFUNC bool try_string_to_enum(std::uint64_t& enumValue, const std::string& string, const enum_serialization_data_ref& sdata, const enum_serialization_options_t& options) noexcept;
+MAKESHIFT_DLLFUNC std::uint64_t string_to_enum(const std::string& string, const enum_serialization_data_ref& sdata, const enum_serialization_options_t& options);
 
-MAKESHIFT_DLLFUNC std::string flags_enum_to_string(std::uint64_t enumValue, const flags_enum_serialization_data_ref& sdata);
-MAKESHIFT_DLLFUNC bool try_string_to_flags_enum(std::uint64_t& enumValue, const std::string& string, const flags_enum_serialization_data_ref& sdata) noexcept;
-MAKESHIFT_DLLFUNC std::uint64_t string_to_flags_enum(const std::string& string, const flags_enum_serialization_data_ref& sdata);
+MAKESHIFT_DLLFUNC std::string flags_enum_to_string(std::uint64_t enumValue, const flags_enum_serialization_data_ref& sdata, const enum_serialization_options_t& options);
+MAKESHIFT_DLLFUNC bool try_string_to_flags_enum(std::uint64_t& enumValue, const std::string& string, const flags_enum_serialization_data_ref& sdata, const enum_serialization_options_t& options) noexcept;
+MAKESHIFT_DLLFUNC std::uint64_t string_to_flags_enum(const std::string& string, const flags_enum_serialization_data_ref& sdata, const enum_serialization_options_t& options);
 
 template <typename ValC, typename... AttributesT>
     constexpr enum_value_serialization_data make_enum_value_serialization_data(const value_metadata<ValC, std::tuple<AttributesT...>>& valueMetadata)
@@ -89,14 +108,14 @@ template <typename EnumT, typename AttributesT>
     return enum_serialization_data<array_size_v<decltype(values)>> { values, typeName, typeDesc };
 }
 template <typename EnumT, std::size_t N>
-    std::string to_string(EnumT value, const enum_serialization_data<N>& sdata)
+    std::string to_string_impl(EnumT value, const enum_serialization_data<N>& sdata, const enum_serialization_options_t& options)
 {
-    return enum_to_string(std::uint64_t(value), sdata.data());
+    return enum_to_string(std::uint64_t(value), sdata.data(), options);
 }
 template <typename EnumT, std::size_t N>
-    EnumT from_string(tag_t<EnumT>, const std::string& string, const enum_serialization_data<N>& sdata)
+    EnumT from_string_impl(tag_t<EnumT>, const std::string& string, const enum_serialization_data<N>& sdata, const enum_serialization_options_t& options)
 {
-    return EnumT(string_to_enum(string, sdata.data()));
+    return EnumT(string_to_enum(string, sdata.data(), options));
 }
 
 template <std::size_t N>
@@ -134,14 +153,14 @@ template <typename DefT, typename AttributesT>
     return flags_enum_serialization_data<array_size_v<decltype(values)>>{ values, flagTypeName, defTypeName, typeDesc };
 }
 template <typename EnumT, std::size_t N>
-    std::string to_string(EnumT value, const flags_enum_serialization_data<N>& sdata)
+    std::string to_string_impl(EnumT value, const flags_enum_serialization_data<N>& sdata, const enum_serialization_options_t& options)
 {
-    return flags_enum_to_string(std::uint64_t(value), sdata.data());
+    return flags_enum_to_string(std::uint64_t(value), sdata.data(), options);
 }
 template <typename EnumT, std::size_t N>
-    EnumT from_string(tag_t<EnumT>, const std::string& string, const flags_enum_serialization_data<N>& sdata)
+    EnumT from_string_impl(tag_t<EnumT>, const std::string& string, const flags_enum_serialization_data<N>& sdata, const enum_serialization_options_t& options)
 {
-    return EnumT(string_to_flags_enum(string, sdata.data()));
+    return EnumT(string_to_flags_enum(string, sdata.data(), options));
 }
 
 
