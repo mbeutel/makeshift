@@ -108,6 +108,7 @@ template <typename BaseT, typename DerivedT>
 template <typename... ArgsT, typename SerializerT>
     constexpr std::tuple<ArgsT...> get_args_tuple(type_sequence<ArgsT...>, SerializerT&& serializer)
 {
+    (void) serializer;
     return { as_base<ArgsT, SerializerT>(std::forward<SerializerT>(serializer))... };
 }
 
@@ -130,12 +131,13 @@ inline namespace serialize
     //
 template <typename... SerializersT>
     auto chain_serializers(SerializersT&&... serializers)
+        -> typename makeshift::detail::chain_serializer_types<decltype(makeshift::detail::get_serializer_definition(serializers))...>::type
 {
-    auto argsTuple = std::tuple_cat(
-        makeshift::detail::get_args_tuple(typename std::decay_t<SerializersT>::args_sequence{ }, std::forward<SerializersT>(serializers))...
-    );
-    using ChainedSerializer = typename makeshift::detail::chain_serializer_types<decltype(makeshift::detail::get_serializer_definition(serializers))...>::type;
-    return ChainedSerializer{ std::move(argsTuple) };
+    return {
+        std::tuple_cat(
+            makeshift::detail::get_args_tuple(typename std::decay_t<SerializersT>::args_sequence{ }, std::forward<SerializersT>(serializers))...
+        )
+    };
 }
 
 
