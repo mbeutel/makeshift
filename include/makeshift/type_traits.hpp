@@ -21,6 +21,15 @@ template <template <typename...> class, typename, typename...> struct can_apply_
 template <template <typename...> class Z, typename... Ts> struct can_apply_1_<Z, void_t<Z<Ts...>>, Ts...> : std::true_type { };
 
 
+template <typename RSeqT, typename... Ts> struct type_sequence_cat_;
+template <typename RSeqT> struct type_sequence_cat_<RSeqT> { using type = RSeqT; };
+template <template <typename...> class TypeSeqT, typename... RSeqT, typename... NSeqT, typename... Ts>
+    struct type_sequence_cat_<TypeSeqT<RSeqT...>, TypeSeqT<NSeqT...>, Ts...>
+        : type_sequence_cat_<TypeSeqT<RSeqT..., NSeqT...>, Ts...> 
+{
+};
+
+
 } // namespace detail
 
 
@@ -78,6 +87,17 @@ template <template <typename...> class Z, typename SeqT> using apply_t = typenam
     // Type sequence (strictly for compile-time purposes).
     //
 template <typename... Ts> struct type_sequence { };
+
+
+    //ᅟ
+    // Concatenates a sequence of type sequences.
+    //
+template <typename... Ts> struct type_sequence_cat : makeshift::detail::type_sequence_cat_<type_sequence<>, Ts...> { };
+
+    //ᅟ
+    // Concatenates a sequence of type sequences.
+    //
+template <typename... Ts> using type_sequence_cat_t = typename type_sequence_cat<Ts...>::type;
 
 
     //ᅟ

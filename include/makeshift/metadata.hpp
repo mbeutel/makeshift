@@ -4,7 +4,7 @@
 
 
 #include <string_view>
-#include <type_traits> // for decay<>
+#include <type_traits> // for decay<>, conditional<>
 #include <utility>     // for forward<>()
 #include <cstddef>     // for size_t
 #include <tuple>
@@ -35,6 +35,9 @@ namespace detail
 struct type_metadata_base { };
 struct value_metadata_base { };
 struct property_metadata_base { };
+
+template <typename SerializerT> struct serializer_metadata_tag_r { using type = typename SerializerT::metadata_tag; };
+template <typename SerializerT> using serializer_metadata_tag_rt = typename SerializerT::metadata_tag;
 
 
 } // namespace detail
@@ -181,9 +184,7 @@ struct serialization_metadata_tag { };
     //ᅟ
     // Base class for metadata-based serializers.
     //ᅟ
-    // Inherit from this class to define your own metadata-based serializer. This is to avoid ambiguity when accessing the metadata tag type
-    // with a type expression such as `typename SerializerT::metadata_tag`. (The member type access is unambiguous even if the base class is
-    // inherited from multiple times.)
+    // Use this class with `chain_serializers()` or `combine()` to inject a metadata tag into a metadata-based serializer.
     //
 template <typename MetadataTagT = serialization_metadata_tag>
     struct metadata_serializer_t
@@ -191,6 +192,20 @@ template <typename MetadataTagT = serialization_metadata_tag>
     using metadata_tag = MetadataTagT;
 };
 template <typename MetadataTagT = serialization_metadata_tag> constexpr metadata_serializer_t<MetadataTagT> metadata_serializer { };
+
+
+    //ᅟ
+    // Retrieves the metadata tag to be used for metadata-based serializers.
+    // Defaults to `serialization_metadata_tag` if the user did not override the tag by combining or chaining with a `metadata_serializer_t`.
+    //
+template <typename SerializerT> struct serializer_metadata_tag : std::conditional<can_apply_v<makeshift::detail::serializer_metadata_tag_rt, SerializerT>, makeshift::detail::serializer_metadata_tag_r<SerializerT>, serialization_metadata_tag> { };
+
+    //ᅟ
+    // Retrieves the metadata tag to be used for metadata-based serializers. Defaults to `serialization_metadata_tag` if the
+    // user did not override the tag by combining or chaining with a `metadata_serializer_t`.
+    //
+template <typename SerializerT> using serializer_metadata_tag_t = typename serializer_metadata_tag<SerializerT>::type;
+
 
 } // inline namespace metadata
 

@@ -10,6 +10,7 @@
 #include <utility>     // for move(), forward<>()
 #include <cstddef>     // for size_t
 #include <cstdint>     // for uint64_t
+#include <tuple>
 
 #include <makeshift/type_traits.hpp> // for tag<>, flags_base
 #include <makeshift/metadata.hpp>
@@ -37,6 +38,8 @@ struct enum_serialization_options_t
         // Determines whether enum deserialization is case-sensitive.
         //
     bool case_sensitive = false;
+
+    constexpr enum_serialization_options_t(void) = default;
 };
 
 

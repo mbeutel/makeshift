@@ -1,4 +1,4 @@
-
+﻿
 #include <stdexcept>
 #include <tuple>
 #include <cctype>    // for isspace(), tolower()
@@ -12,6 +12,22 @@
 
 namespace makeshift
 {
+
+inline namespace utility
+{
+
+
+    //ᅟ
+    // Compares the two strings in case insensitive manner. Handles ASCII characters only.
+    //
+bool string_equals_case_insensitive(std::string_view lhs, std::string_view rhs)
+{
+    return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end(), [](char a, char b) { return std::tolower(a) == std::tolower(b); });
+}
+
+
+} // inline namespace utility
+
 
 namespace detail
 {
@@ -44,10 +60,6 @@ static bool string_equals(std::string_view lhs, std::string_view rhs)
 {
     return lhs == rhs;
 }
-static bool string_equals_ci(std::string_view lhs, std::string_view rhs)
-{
-    return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end(), [](char a, char b) { return std::tolower(a) == std::tolower(b); });
-}
 
 std::string enum_to_string(std::uint64_t enumValue, const enum_serialization_data_ref& sdata, const enum_serialization_options_t& /*options*/)
 {
@@ -60,7 +72,7 @@ bool try_string_to_enum(std::uint64_t& enumValue, const std::string& string, con
 {
     auto equalsFunc = options.case_sensitive
         ? string_equals
-        : string_equals_ci;
+        : string_equals_case_insensitive;
     for (auto& value : sdata.values)
         if (equalsFunc(value.string, string))
         {
@@ -132,7 +144,7 @@ bool try_string_to_flags_enum(std::uint64_t& enumValue, const std::string& strin
 {
     auto equalsFunc = options.case_sensitive
         ? string_equals
-        : string_equals_ci;
+        : string_equals_case_insensitive;
     std::string_view sv = string;
     enumValue = 0;
     bool first = true;
