@@ -18,14 +18,11 @@ add_library(makeshift
 target_include_directories(makeshift
     PUBLIC
         "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
-        "$<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/include>")
-target_compile_definitions(makeshift
-    PRIVATE
-        MAKESHIFT_BUILD)
+        "$<INSTALL_INTERFACE:include>")
+target_compile_features(makeshift PUBLIC cxx_std_17)
+target_compile_definitions(makeshift PRIVATE MAKESHIFT_BUILD)
 if(NOT BUILD_SHARED_LIBS)
-    target_compile_definitions(makeshift
-        PUBLIC
-            MAKESHIFT_STATIC_LIBRARIES)
+    target_compile_definitions(makeshift PUBLIC MAKESHIFT_STATIC_LIBRARIES)
 endif()
 
 # library dependencies
@@ -34,9 +31,9 @@ target_link_libraries(makeshift
         MS-GSL::MS-GSL)
 
 # define alias so we can use the qualified name everywhere
-add_library(makeshift::makeshift
-    ALIAS makeshift)
+add_library(makeshift::makeshift ALIAS makeshift)
 
+# installation
 install(
     TARGETS makeshift
     EXPORT ${PROJECT_NAME}Export
