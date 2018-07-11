@@ -11,6 +11,7 @@ find_package(MS-GSL REQUIRED)
 
 # library target
 add_library(makeshift
+    "version.cpp"
     "serialize-enum.cpp")
 
 # library properties
