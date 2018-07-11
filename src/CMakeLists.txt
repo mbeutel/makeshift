@@ -4,7 +4,7 @@
 # makeshift library target
 
 
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.10)
 
 # dependencies
 find_package(MS-GSL REQUIRED)
