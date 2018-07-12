@@ -14,35 +14,37 @@ cmake_minimum_required(VERSION 3.10)
 set(CMAKE_DISABLE_SOURCE_CHANGES ON)
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 
-# Define a project stub so find_package() will work.
-project(makeshift)
-
-# Load CMakeshift.
-find_package(CMakeshift REQUIRED)
-include(CMakeshift/DefaultFlags)
-include(CMakeshift/CMakeshift)
-
 # Define the project.
-cmakeshift_parse_semantic_version(makeshift_VERSION MAKESHIFT "include/makeshift/version.hpp")
 project(makeshift
-    VERSION ${makeshift_VERSION}
+    VERSION 1.0.0
     LANGUAGES CXX)
 
 # Define build options.
 option(BUILD_TESTS "Build tests" OFF)
 option(EXPORT_BUILD_DIR "Export build directory using CMake (enables external use without install)" OFF)
 
+# Load CMakeshift.
+find_package(CMakeshift REQUIRED)
+include(CMakeshift/CMakeshift)
+
 # Add the CMakeshift find module path to the module path.
 list(APPEND CMAKE_MODULE_PATH "${CMAKESHIFT_MODULE_DIR}")
+
+# Generate a version header file.
+configure_file("cmake/version.hpp.in"
+    "${PROJECT_BINARY_DIR}/include/makeshift/version.hpp" @ONLY)
 
 
 ## 2. Targets
 ## ==========
 
-# project targets
+# apply default flags
+include(CMakeshift/DefaultFlags)
+
+# define project targets
 add_subdirectory(src)
 
-# tests
+# define tests
 if(BUILD_TESTS)
     enable_testing()
     add_subdirectory(test)
@@ -63,8 +65,13 @@ write_basic_package_version_file("${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVer
 
 # Install public header files.
 install(
-    DIRECTORY "include/"
-    DESTINATION "include/")
+    DIRECTORY "include"
+    DESTINATION "include")
+
+# Install generated header files.
+install(
+    DIRECTORY "${PROJECT_BINARY_DIR}/include"
+    DESTINATION "include")
 
 # Determine the install path for the *Config.cmake configuration file relative to CMAKE_INSTALL_PREFIX.
 set(RELATIVE_CONFIG_INSTALL_DIR "share/cmake/${PROJECT_NAME}-${PROJECT_VERSION}")

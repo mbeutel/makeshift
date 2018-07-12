@@ -18,6 +18,7 @@ add_library(makeshift
 target_include_directories(makeshift
     PUBLIC
         "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
+        "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>"
         "$<INSTALL_INTERFACE:include>")
 target_compile_features(makeshift PUBLIC cxx_std_17)
 target_compile_definitions(makeshift PRIVATE MAKESHIFT_BUILD)
