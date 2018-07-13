@@ -3,7 +3,7 @@
 #define MAKESHIFT_DETAIL_CFG_HPP_
 
 
-#pragma region Shared library implementation details
+    // shared library implementation details
 #ifdef _WIN32
  #ifdef MAKESHIFT_STATIC_LIBRARIES
   #define MAKESHIFT_EXPORT
@@ -16,10 +16,9 @@
  #define MAKESHIFT_EXPORT
  #define MAKESHIFT_IMPORT
 #endif
-#pragma endregion Shared library implementation details
 
 
-#pragma region Compiler-specific attributes
+    // compiler-specific attributes
 #if defined(_MSC_VER) || defined(__clang__)
  #define MAKESHIFT_HAVE_UNICODE_IDENTIFIERS
 #endif // defined(_MSC_VER) || defined(__clang__)
@@ -50,16 +49,15 @@
 #else // _MSC_VER
  #define MAKESHIFT_NOVTABLE
 #endif // _MSC_VER
-#pragma endregion Compiler-specific workarounds
 
 
-#pragma region Components
+    // components
 #ifdef MAKESHIFT_BUILD
  #define MAKESHIFT_DLLFUNC MAKESHIFT_EXPORT
 #else // MAKESHIFT_BUILD
  #define MAKESHIFT_DLLFUNC MAKESHIFT_IMPORT
 #endif // MAKESHIFT_BUILD
-#pragma endregion Components
 
 
 #endif // MAKESHIFT_DETAIL_CFG_HPP_
+
