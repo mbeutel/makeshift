@@ -130,8 +130,8 @@ inline namespace serialize
     // Orthogonal serializers can be combined with `combine()`:
     //ᅟ
     //ᅟ    auto serializer = combine(
-    //ᅟ        stream_serializer<>,
-    //ᅟ        my_own_serializer<>
+    //ᅟ        string_serializer,
+    //ᅟ        stream_serializer
     //ᅟ    );
 
 
@@ -193,7 +193,7 @@ constexpr stream_serializer_t<> stream_serializer{ };
     //ᅟ
     // Wraps the given rvalue as a streamable object using the serializer provided.
     //ᅟ
-    //ᅟ    std::cout << streamable(vec.size(), stream_serializer<>) << '\n';
+    //ᅟ    std::cout << streamable(vec.size(), stream_serializer) << '\n';
     //
 template <typename T, typename SerializerT>
     auto streamable(const T& value, SerializerT&& serializer)
@@ -218,8 +218,8 @@ template <typename T>
     // Wraps the given lvalue as a streamable object using the serializer provided.
     //ᅟ
     //ᅟ    int i;
-    //ᅟ    std::cin >> streamable(i, stream_serializer<>);
-    //ᅟ    std::cout << streamable(i, stream_serializer<>) << '\n';
+    //ᅟ    std::cin >> streamable(i, stream_serializer);
+    //ᅟ    std::cout << streamable(i, stream_serializer) << '\n';
     //
 template <typename T, typename SerializerT>
     auto streamable(T& value, SerializerT&& serializer)

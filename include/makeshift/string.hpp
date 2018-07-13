@@ -78,8 +78,8 @@ inline namespace serialize
     // Orthogonal serializers can be combined with `combine()`:
     //ᅟ
     //ᅟ    auto serializer = combine(
-    //ᅟ        string_serializer<>,
-    //ᅟ        my_own_serializer<>
+    //ᅟ        string_serializer,
+    //ᅟ        stream_serializer
     //ᅟ    );
 
 
@@ -139,7 +139,7 @@ constexpr string_serializer_t<> string_serializer{ };
     //ᅟ
     // Serializes the given value as string using the provided serializer.
     //ᅟ
-    //ᅟ    std::string s = to_string(42, string_serializer<>); // returns "42"s
+    //ᅟ    std::string s = to_string(42, string_serializer); // returns "42"s
     //
 template <typename T, typename SerializerT>
     std::string to_string(const T& value, SerializerT& serializer)
@@ -163,7 +163,7 @@ template <typename T>
     //ᅟ
     // Deserializes the given value from a string using the provided serializer.
     //ᅟ
-    //ᅟ    int i = from_string(tag<int>, "42", string_serializer<>); // returns 42
+    //ᅟ    int i = from_string(tag<int>, "42", string_serializer); // returns 42
     //
 template <typename T, typename SerializerT>
     T from_string(tag_t<T>, const std::string& string, SerializerT& serializer)
