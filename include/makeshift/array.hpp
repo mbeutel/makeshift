@@ -111,7 +111,6 @@ public:
         return invoke(std::forward<TupleT>(tuple));
     }
 };
-template <typename... Ts> struct TD;
 template <>
     struct array_cat_t<void> : stream_base<array_cat_t<void>>
 {
@@ -120,7 +119,6 @@ private:
         static constexpr auto invoke(TupleT&& tuple)
     {
         using Elem = common_array_value_type_t<std::decay_t<TupleT>>;
-        TD<Elem> td;
         constexpr std::size_t n = std::tuple_size<std::decay_t<TupleT>>::value;
         return concat_arrays<Elem>(std::array<Elem, 0>{ }, tuple, std::integral_constant<std::size_t, 0>{ }, std::integral_constant<std::size_t, n>{ });
     }
