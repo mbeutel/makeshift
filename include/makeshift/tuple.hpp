@@ -84,9 +84,9 @@ template <typename DerivedT>
 };
 
 
-template <typename TupleT> struct args_sequence_of_;
-template <template <typename...> class TupleT, typename... ArgsT> struct args_sequence_of_<TupleT<ArgsT...>> { using type = type_sequence<ArgsT...>; };
-template <typename TupleT> using args_sequence_of = typename args_sequence_of_<TupleT>::type;
+template <typename TupleT> struct args_sequence_of;
+template <template <typename...> class TupleT, typename... ArgsT> struct args_sequence_of<TupleT<ArgsT...>> { using type = type_sequence<ArgsT...>; };
+template <typename TupleT> using args_sequence_of_t = typename args_sequence_of<TupleT>::type;
 
 
 enum class tuple_arg_kind_t
@@ -232,6 +232,7 @@ template <typename TupleT, template <typename...> class PredT>
 template <typename TupleT, std::size_t... Is>
     constexpr auto select_tuple_indices(TupleT&& tuple, std::index_sequence<Is...>)
 {
+    (void) tuple;
     using std::get; // make std::get<>(std::pair<>&&) visible to enable ADL for template methods named get<>()
     return std::make_tuple(get<Is>(std::forward<TupleT>(tuple))...);
 }
@@ -257,7 +258,8 @@ private:
     template <std::size_t... Is, typename ValT, typename TupleT>
         constexpr auto invoke(std::index_sequence<Is...>, ValT&& initialValue, TupleT&& tuple) const
     {
-        using namespace std; // make std::get<>(std::pair<>&&) visible to enable ADL for template methods named get<>()
+        (void) tuple;
+        using std::get; // make std::get<>(std::pair<>&&) visible to enable ADL for template methods named get<>()
         auto wrappedInitialValue = make_accumulator_wrapper(static_cast<const F&>(*this), std::forward<ValT>(initialValue));
         return (std::move(wrappedInitialValue) + ... + get<Is>(std::forward<TupleT>(tuple))).get();
     }
@@ -280,6 +282,7 @@ private:
     template <std::size_t... Is, typename TupleT>
         constexpr auto invoke(std::index_sequence<Is...>, TupleT&& tuple) const &
     {
+        (void) tuple;
         using std::get; // make std::get<>(std::pair<>&&) visible to enable ADL for template methods named get<>()
         auto wrappedInitialValue = make_accumulator_wrapper(static_cast<const F&>(*this), initialValue_);
         return (std::move(wrappedInitialValue) + ... + get<Is>(std::forward<TupleT>(tuple))).get();
@@ -287,6 +290,7 @@ private:
     template <std::size_t... Is, typename TupleT>
         constexpr auto invoke(std::index_sequence<Is...>, TupleT&& tuple) &&
     {
+        (void) tuple;
         using std::get; // make std::get<>(std::pair<>&&) visible to enable ADL for template methods named get<>()
         auto wrappedInitialValue = make_accumulator_wrapper(static_cast<const F&>(*this), std::move(initialValue_));
         return (std::move(wrappedInitialValue) + ... + get<Is>(std::forward<TupleT>(tuple))).get();
@@ -434,6 +438,24 @@ public:
         constexpr auto operator ()(TupleT&& tuple) const
     {
         return invoke(std::forward<TupleT>(tuple));
+    }
+};
+
+struct tuple_cat_t : stream_base<tuple_cat_t>
+{
+private:
+    template <std::size_t... Is, typename TupleT>
+        static constexpr auto invoke(std::index_sequence<Is...>, TupleT&& tuple)
+    {
+        using std::get; // make std::get<>(std::pair<>&&) visible to enable ADL for template methods named get<>()
+        return std::tuple_cat(get<Is>(std::forward<TupleT>(tuple))...);
+    }
+public:
+    template <typename TupleT,
+              typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
+        constexpr auto operator ()(TupleT&& tuple) const
+    {
+        return invoke(std::make_index_sequence<std::tuple_size<std::decay_t<TupleT>>::value>{ }, std::forward<TupleT>(tuple));
     }
 };
 
@@ -836,6 +858,20 @@ template <typename TupleT,
     single(TupleT&& tuple)
 {
     return single()(std::forward<TupleT>(tuple));
+}
+
+
+    //ᅟ
+    // Concatenates the tuples in a tuple of tuples.
+    //ᅟ
+    //ᅟ    auto tuple = std::make_tuple(std::make_tuple(1), std::make_tuple(2));
+    //ᅟ    auto flat_tuple = tuple
+    //ᅟ        | tuple_cat(); // returns (1, 2)
+    //
+constexpr inline makeshift::detail::tuple_cat_t
+tuple_cat(void)
+{
+    return { };
 }
 
 
