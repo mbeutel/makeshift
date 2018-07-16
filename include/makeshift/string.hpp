@@ -194,7 +194,7 @@ inline namespace utility
     //ᅟ
     // Compares the two strings in case insensitive manner. Handles ASCII characters only.
     //
-bool string_equals_case_insensitive(std::string_view lhs, std::string_view rhs);
+MAKESHIFT_DLLFUNC bool string_equals_case_insensitive(std::string_view lhs, std::string_view rhs) noexcept;
 
 
 } // inline namespace utility

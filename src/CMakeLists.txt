@@ -32,7 +32,7 @@ target_link_libraries(makeshift
         MS-GSL::MS-GSL)
 
 # define alias so we can use the qualified name everywhere
-add_library(makeshift::makeshift ALIAS makeshift)
+add_library(${PROJECT_NAME}::makeshift ALIAS makeshift)
 
 # installation
 install(

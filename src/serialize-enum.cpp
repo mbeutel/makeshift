@@ -17,7 +17,7 @@ inline namespace utility
 {
 
 
-bool string_equals_case_insensitive(std::string_view lhs, std::string_view rhs)
+bool string_equals_case_insensitive(std::string_view lhs, std::string_view rhs) noexcept
 {
     return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end(), [](char a, char b) { return std::tolower(a) == std::tolower(b); });
 }
@@ -53,7 +53,7 @@ unsigned scalar_from_string(tag_t<unsigned>, const std::string& string)
 }
 
 
-static bool string_equals(std::string_view lhs, std::string_view rhs)
+static bool string_equals(std::string_view lhs, std::string_view rhs) noexcept
 {
     return lhs == rhs;
 }
