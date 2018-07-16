@@ -80,13 +80,16 @@ MAKESHIFT_DLLFUNC std::string flags_enum_to_string(std::uint64_t enumValue, cons
 MAKESHIFT_DLLFUNC bool try_string_to_flags_enum(std::uint64_t& enumValue, const std::string& string, const flags_enum_serialization_data_ref& sdata, const enum_serialization_options_t& options) noexcept;
 MAKESHIFT_DLLFUNC std::uint64_t string_to_flags_enum(const std::string& string, const flags_enum_serialization_data_ref& sdata, const enum_serialization_options_t& options);
 
+template <typename T> using is_string_view = std::is_same<T, std::string_view>;
 template <typename ValC, typename... AttributesT>
-    constexpr enum_value_serialization_data make_enum_value_serialization_data(const value_metadata<ValC, std::tuple<AttributesT...>>& valueMetadata)
+    constexpr auto make_enum_value_serialization_data(const value_metadata<ValC, std::tuple<AttributesT...>>& valueMetadata)
 {
     static_assert(sizeof(ValC::value) <= sizeof(std::uint64_t), "enums with an underlying type of more than 64 bits are not supported");
 
-    std::string_view lname = std::get<std::string_view>(valueMetadata.attributes);
-    return { std::uint64_t(ValC::value), lname };
+    return valueMetadata.attributes
+        | tuple_filter<is_string_view>()
+        | tuple_map([](std::string_view lname) { return enum_value_serialization_data{ std::uint64_t(ValC::value), lname }; })
+        | to_array();
 }
 
 template <std::size_t N>
@@ -107,7 +110,7 @@ template <typename EnumT, typename AttributesT>
     auto values = enumMetadata.attributes
         | tuple_filter<is_value_metadata>()
         | tuple_map([](const auto& v) { return make_enum_value_serialization_data(v); })
-        | to_array();
+        | array_cat<enum_value_serialization_data>();
     return enum_serialization_data<array_size_v<decltype(values)>> { values, typeName, typeDesc };
 }
 template <typename EnumT, std::size_t N>
@@ -152,7 +155,7 @@ template <typename DefT, typename AttributesT>
     auto values = enumMetadata.attributes
         | tuple_filter<is_value_metadata>()
         | tuple_map([](const auto& v) { return make_enum_value_serialization_data(v); })
-        | to_array();
+        | array_cat<enum_value_serialization_data>();
     return flags_enum_serialization_data<array_size_v<decltype(values)>>{ values, flagTypeName, defTypeName, typeDesc };
 }
 template <typename EnumT, std::size_t N>

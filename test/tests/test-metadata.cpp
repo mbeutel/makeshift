@@ -60,7 +60,7 @@ static constexpr auto reflect(Vegetables*, mk::serialization_metadata_tag) // no
         value<Vegetables::tomato>("tomato"),
         value<Vegetables::garlic>("garlic"),
         value<Vegetables::onion>("onion"),
-        value<Vegetables::chili>("chili"),
+        value<Vegetables::chili>("chili", "chili pepper"),
         value<Vegetables::bean>("bean"),
         value<Vegetables::lentil>("lentil"),
         value<Vegetables::legume>("legume"),
