@@ -17,7 +17,8 @@
 #include <makeshift/tuple.hpp>
 #include <makeshift/array.hpp>       // for to_array()
 
-#include <makeshift/detail/cfg.hpp>  // for MAKESHIFT_DLLFUNC
+#include <makeshift/detail/cfg.hpp>            // for MAKESHIFT_DLLFUNC
+#include <makeshift/detail/string_compare.hpp>
 
 #include <gsl/span>
 
@@ -35,9 +36,9 @@ inline namespace serialize
 struct enum_serialization_options_t
 {
         //ᅟ
-        // Determines whether enum deserialization is case-sensitive.
+        // Determines comparison mode for string representations of enum values.
         //
-    bool case_sensitive = false;
+    string_comparison enum_string_comparison_mode = string_comparison::ordinal_ignore_case;
 
     constexpr enum_serialization_options_t(void) = default;
 };

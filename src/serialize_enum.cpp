@@ -1,30 +1,16 @@
 ﻿
 #include <stdexcept>
 #include <tuple>
-#include <cctype>    // for isspace(), tolower()
+#include <cctype>    // for isspace()
 #include <optional>
-#include <algorithm> // for equal()
 
-#include <makeshift/detail/serialize-enum.hpp>
+#include <makeshift/detail/serialize_enum.hpp>
 
 #include <makeshift/arithmetic.hpp> // for checked_cast<>()
 
 
 namespace makeshift
 {
-
-inline namespace utility
-{
-
-
-bool string_equals_case_insensitive(std::string_view lhs, std::string_view rhs) noexcept
-{
-    return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end(), [](char a, char b) { return std::tolower(a) == std::tolower(b); });
-}
-
-
-} // inline namespace utility
-
 
 namespace detail
 {
@@ -53,11 +39,6 @@ unsigned scalar_from_string(tag_t<unsigned>, const std::string& string)
 }
 
 
-static bool string_equals(std::string_view lhs, std::string_view rhs) noexcept
-{
-    return lhs == rhs;
-}
-
 std::string enum_to_string(std::uint64_t enumValue, const enum_serialization_data_ref& sdata, const enum_serialization_options_t& /*options*/)
 {
     for (auto& value : sdata.values)
@@ -67,11 +48,9 @@ std::string enum_to_string(std::uint64_t enumValue, const enum_serialization_dat
 }
 bool try_string_to_enum(std::uint64_t& enumValue, const std::string& string, const enum_serialization_data_ref& sdata, const enum_serialization_options_t& options) noexcept
 {
-    auto equalsFunc = options.case_sensitive
-        ? string_equals
-        : string_equals_case_insensitive;
+    auto stringComparer = string_equal_to{ options.enum_string_comparison_mode };
     for (auto& value : sdata.values)
-        if (equalsFunc(value.string, string))
+        if (stringComparer(value.string, string))
         {
             enumValue = value.value;
             return true;
@@ -139,9 +118,7 @@ static std::optional<std::string_view> expectSeparator(std::string_view s) noexc
 }
 bool try_string_to_flags_enum(std::uint64_t& enumValue, const std::string& string, const flags_enum_serialization_data_ref& sdata, const enum_serialization_options_t& options) noexcept
 {
-    auto equalsFunc = options.case_sensitive
-        ? string_equals
-        : string_equals_case_insensitive;
+    auto stringComparer = string_equal_to{ options.enum_string_comparison_mode };
     std::string_view sv = string;
     enumValue = 0;
     bool first = true;
@@ -163,7 +140,7 @@ bool try_string_to_flags_enum(std::uint64_t& enumValue, const std::string& strin
         {
             auto len = value.string.size();
             if (sv.size() >= len // does it fit?
-                && equalsFunc(value.string, sv.substr(0, len)) // does it match?
+                && stringComparer(value.string, sv.substr(0, len)) // does it match?
                 && (sv.size() == len || std::isspace(sv[len]) || isSeparator(sv[len]))) // is it followed by whitespace, separator or EOS?
             {
                 enumValue |= value.value;

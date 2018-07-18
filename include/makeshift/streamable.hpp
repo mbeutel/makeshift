@@ -14,7 +14,7 @@
 #include <makeshift/metadata.hpp>
 #include <makeshift/serialize.hpp>   // for define_serializer<>
 
-#include <makeshift/detail/serialize-enum.hpp>
+#include <makeshift/detail/serialize_enum.hpp>
 
 
 namespace makeshift
