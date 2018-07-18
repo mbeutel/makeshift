@@ -65,12 +65,12 @@ write_basic_package_version_file("${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVer
 
 # Install public header files.
 install(
-    DIRECTORY "include"
+    DIRECTORY "include/"
     DESTINATION "include")
 
 # Install generated header files.
 install(
-    DIRECTORY "${PROJECT_BINARY_DIR}/include"
+    DIRECTORY "${PROJECT_BINARY_DIR}/include/"
     DESTINATION "include")
 
 # Determine the install path for the *Config.cmake configuration file relative to CMAKE_INSTALL_PREFIX.
