@@ -14,8 +14,8 @@
 #include <makeshift/serialize.hpp>   // for define_serializer<>
 
 #include <makeshift/detail/cfg.hpp>  // for MAKESHIFT_DLLFUNC
-#include <makeshift/detail/serialize-enum.hpp>
-
+#include <makeshift/detail/string_compare.hpp>
+#include <makeshift/detail/serialize_enum.hpp>
 
 
 namespace makeshift
@@ -185,19 +185,6 @@ template <typename T>
 
 
 } // inline namespace serialize
-
-
-inline namespace utility
-{
-
-
-    //ᅟ
-    // Compares the two strings in case insensitive manner. Handles ASCII characters only.
-    //
-MAKESHIFT_DLLFUNC bool string_equals_case_insensitive(std::string_view lhs, std::string_view rhs) noexcept;
-
-
-} // inline namespace utility
 
 } // namespace makeshift
 
