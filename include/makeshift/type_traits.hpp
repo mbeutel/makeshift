@@ -4,6 +4,7 @@
 
 
 #include <type_traits> // for integral_constant<>, declval<>()
+#include <utility>     // for integer_sequence<>
 
 
 namespace makeshift
@@ -28,6 +29,39 @@ template <template <typename...> class TypeSeqT, typename... RSeqT, typename... 
         : type_sequence_cat_<TypeSeqT<RSeqT..., NSeqT...>, Ts...> 
 {
 };
+
+
+    // taken from http://ldionne.com/2015/11/29/efficient-parameter-pack-indexing/
+    // (cf. the same URL for a discussion of the benefits and drawbacks of the MI approach vs. a recursive one)
+template <std::size_t I, typename T>
+    struct type_pack_index_base
+{
+    using type = T;
+};
+template <typename IsT, typename... Ts> struct type_pack_indexer;
+template <std::size_t... Is, typename... Ts> struct type_pack_indexer<std::index_sequence<Is...>, Ts...> : type_pack_index_base<Is, Ts>... { };
+template <std::size_t I, typename T>
+    static type_pack_index_base<I, T> select_type_seq_entry(type_pack_index_base<I, T>);
+
+template <std::size_t I, typename... Ts>
+    struct type_pack_element_
+{
+    using index_base = decltype(makeshift::detail::select_type_seq_entry<I>(type_pack_indexer<std::make_index_sequence<sizeof...(Ts)>, Ts...>{ }));
+    using type = typename index_base::type;
+};
+
+
+
+#ifdef __clang__
+ #if __has_builtin(__type_pack_element)
+    template <std::size_t I, typename... Ts> struct nth_type_ { using type = __type_pack_element<I, Ts...>; };
+ #else // __has_builtin(__type_pack_element)
+template <std::size_t I, typename... Ts> using nth_type_ = type_pack_element_<I, Ts...>;
+ #endif // __has_builtin(__type_pack_element)
+#else // __clang__
+    // work around a VC++ bug with decltype() and dependent types
+template <std::size_t I, typename... Ts> using nth_type_ = type_pack_element_<I, Ts...>;
+#endif
 
 
 } // namespace detail
@@ -87,6 +121,64 @@ template <template <typename...> class Z, typename SeqT> using apply_t = typenam
     // Type sequence (strictly for compile-time purposes).
     //
 template <typename... Ts> struct type_sequence { };
+
+
+    //ᅟ
+    // Return a type sequence that represents the types of the given values.
+    //
+template <typename... Ts>
+    constexpr type_sequence<std::decay_t<Ts>...> make_type_sequence(Ts&&...) noexcept
+{
+    return { };
+}
+
+
+    //ᅟ
+    // Determines the `N`-th type in the variadic type sequence.
+    //
+template <std::size_t N, typename... Ts> struct nth_type : makeshift::detail::nth_type_<N, Ts...> { };
+
+    //ᅟ
+    // Determines the `N`-th type in the variadic type sequence.
+    //
+template <std::size_t N, typename... Ts> using nth_type_t = typename nth_type<N, Ts...>::type;
+
+
+    //ᅟ
+    // Determines the `N`-th value in the variadic sequence.
+    //
+template <std::size_t N, auto... Vs> struct nth_value : nth_type_t<N, std::integral_constant<decltype(Vs), Vs>...> { };
+
+
+    //ᅟ
+    // Determines the `N`-th value in the variadic sequence.
+    //
+template <std::size_t N, auto... Vs> constexpr typename nth_value<N, Vs...>::value_type nth_value_v = nth_value<N, Vs...>::value;
+
+
+    //ᅟ
+    // Determines the `N`-th type in the given type sequence.
+    //
+template <std::size_t N, typename TypeSeqT> struct nth_type_in;
+template <std::size_t N, template <typename...> class TypeSeqT, typename... Ts> struct nth_type_in<N, TypeSeqT<Ts...>> : makeshift::detail::nth_type_<N, Ts...> { };
+
+    //ᅟ
+    // Determines the `N`-th type in the given type sequence.
+    //
+template <std::size_t N, typename TypeSeqT> using nth_type_in_t = typename nth_type_in<N, TypeSeqT>::type;
+
+
+    //ᅟ
+    // Determines the `N`-th value in the given sequence.
+    //
+template <std::size_t N, typename SeqT> struct nth_value_in;
+template <std::size_t N, typename T, T... Vs> struct nth_value_in<N, std::integer_sequence<T, Vs...>> : nth_type_t<N, std::integral_constant<T, Vs>...> { };
+
+
+    //ᅟ
+    // Determines the `N`-th value in the given sequence.
+    //
+template <std::size_t N, typename SeqT> constexpr typename SeqT::value_type nth_value_in_v = nth_value_in<N, SeqT>::value;
 
 
     //ᅟ
