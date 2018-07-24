@@ -97,7 +97,7 @@ struct string_serializer_args
 
 
     //ᅟ
-    // String serializer for common scalar types (built-in types and std::string).
+    // String serializer for common scalar types (built-in types and `std::string`).
     //
 template <typename BaseT = void>
     struct string_serializer_t : define_serializer<string_serializer_t, BaseT, string_serializer_args>
@@ -131,7 +131,7 @@ template <typename BaseT = void>
 };
 
     //ᅟ
-    // String serializer for common scalar types (built-in types and std::string).
+    // String serializer for common scalar types (built-in types and `std::string`).
     //
 constexpr string_serializer_t<> string_serializer{ };
 
