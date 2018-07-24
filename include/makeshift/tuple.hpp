@@ -160,9 +160,9 @@ private:
         return std::make_tuple(invoke_tuple_element<Is>(std::forward<Ts>(args)...)...);
     }
     template <std::size_t... Is, typename... Ts>
-        constexpr auto invoke_tuple(std::false_type /*isMap*/, std::index_sequence<Is...>, Ts&&... args) const
+        constexpr void invoke_tuple(std::false_type /*isMap*/, std::index_sequence<Is...>, Ts&&... args) const
     {
-        return (invoke_tuple_element<Is>(std::forward<Ts>(args)...), ...);
+        (invoke_tuple_element<Is>(std::forward<Ts>(args)...), ...);
     }
     template <typename... Ts>
         constexpr auto invoke(std::true_type /*scalar*/, Ts&&... args) const
