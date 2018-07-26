@@ -16,7 +16,7 @@ set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 
 # Define the project.
 project(makeshift
-    VERSION 1.0.0
+    VERSION 1.1.0
     LANGUAGES CXX)
 
 # Define build options.
@@ -24,7 +24,7 @@ option(BUILD_TESTS "Build tests" OFF)
 option(EXPORT_BUILD_DIR "Export build directory using CMake (enables external use without install)" OFF)
 
 # Load CMakeshift.
-find_package(CMakeshift REQUIRED)
+find_package(CMakeshift 1.1 REQUIRED)
 include(CMakeshift/CMakeshift)
 
 # Add the CMakeshift find module path to the module path.

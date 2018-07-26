@@ -24,7 +24,7 @@ target_link_libraries(test-makeshift
         makeshift)
 
 # register tests
-find_package(CMakeshift REQUIRED)
+find_package(CMakeshift 1.1 REQUIRED)
 include(CMakeshift/ParseAndAddCatchTests)
 set(PARSE_CATCH_TESTS_NO_HIDDEN_TESTS ON)
 set(PARSE_CATCH_TESTS_ADD_TO_CONFIGURE_DEPENDS ON)
