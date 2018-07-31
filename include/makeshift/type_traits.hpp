@@ -10,6 +10,53 @@
 namespace makeshift
 {
 
+
+inline namespace types
+{
+
+
+    //ᅟ
+    // Encodes a sequence of index values in a type.
+    //
+template <std::ptrdiff_t... Is> struct index_t : std::integer_sequence<std::ptrdiff_t, Is...> { };
+
+
+    //ᅟ
+    // Encodes a sequence of index values in the type of the expression.
+    //
+template <std::ptrdiff_t... Is> constexpr index_t<Is...> index{ };
+
+
+    //ᅟ
+    // Encodes a sequence of dimension values in a type.
+    //
+template <std::ptrdiff_t... Ds> struct shape_t : std::integer_sequence<std::ptrdiff_t, Ds...> { };
+
+
+    //ᅟ
+    // Encodes a sequence of dimension values in the type of the expression.
+    //
+template <std::ptrdiff_t... Ds> constexpr shape_t<Ds...> shape{ };
+
+
+    //ᅟ
+    // Encodes a dimension value in a type.
+    //
+template <std::ptrdiff_t D> using dim_t = shape_t<D>;
+
+
+    //ᅟ
+    // Encodes a dimension value in the type of the expression.
+    //
+template <std::ptrdiff_t D> constexpr dim_t<D> dim{ };
+
+
+
+
+
+} // inline namespace types
+
+
 namespace detail
 {
 
@@ -51,7 +98,6 @@ template <std::size_t I, typename... Ts>
 };
 
 
-
 #ifdef __clang__
  #if __has_builtin(__type_pack_element)
     template <std::size_t I, typename... Ts> struct nth_type_ { using type = __type_pack_element<I, Ts...>; };
@@ -62,6 +108,42 @@ template <std::size_t I, typename... Ts> using nth_type_ = type_pack_element_<I,
     // work around a VC++ bug with decltype() and dependent types
 template <std::size_t I, typename... Ts> using nth_type_ = type_pack_element_<I, Ts...>;
 #endif
+
+
+constexpr inline std::ptrdiff_t cpow10(int I, int N) noexcept
+{
+    std::ptrdiff_t result = 1;
+    for (int n = 0; n != N - 1 - I; ++n)
+        result *= 10;
+    return result;
+}
+template <typename... Ts>
+    constexpr inline std::ptrdiff_t csum(Ts... vs) noexcept // workaround to make VC++ accept non-trivial fold expressions
+{
+    auto term = std::ptrdiff_t(0);
+    return (vs + ... + term);
+}
+template <typename... Ts>
+    constexpr inline bool cand(Ts... vs) noexcept // workaround to make VC++ accept non-trivial fold expressions
+{
+    return (vs && ...);
+}
+template <typename Is, char... Cs>
+    struct make_index_constant_;
+template <std::size_t... Is, char... Cs>
+    struct make_index_constant_<std::index_sequence<Is...>, Cs...>
+{
+    static_assert(cand(Cs >= '0' && Cs <= '9'...), "invalid character: index must be an integral value");
+    static constexpr std::ptrdiff_t value = csum((Cs - '0') * cpow10(Is, sizeof...(Cs))...);
+};
+template <char... Cs> struct make_index_constant : make_index_constant_<std::make_index_sequence<sizeof...(Cs)>, Cs...> { };
+template <char... Cs> constexpr std::ptrdiff_t make_index_constant_v = make_index_constant<Cs...>::value;
+
+
+template <auto I, auto V> using substitute = std::integral_constant<decltype(V), V>;
+template <typename Is> struct zero_index_0_;
+template <std::size_t... Is> struct zero_index_0_<std::index_sequence<Is...>> { using type = index_t<substitute<Is, std::ptrdiff_t(0)>::value...>; };
+template <std::size_t Dim> struct zero_index_ : zero_index_0_<std::make_index_sequence<Dim>> { };
 
 
 } // namespace detail
@@ -172,7 +254,7 @@ template <std::size_t N, typename TypeSeqT> using nth_type_in_t = typename nth_t
     // Determines the `N`-th value in the given sequence.
     //
 template <std::size_t N, typename SeqT> struct nth_value_in;
-template <std::size_t N, typename T, T... Vs> struct nth_value_in<N, std::integer_sequence<T, Vs...>> : nth_type_t<N, std::integral_constant<T, Vs>...> { };
+template <std::size_t N, typename T, template <typename, T> class SeqT, T... Vs> struct nth_value_in<N, SeqT<T, Vs...>> : nth_type_t<N, std::integral_constant<T, Vs>...> { };
 
 
     //ᅟ
@@ -272,7 +354,55 @@ template <typename T> struct remove_rvalue_reference<T&&> { using type = T; };
 template <typename T> using remove_rvalue_reference_t = typename remove_rvalue_reference<T>::type;
 
 
+    //ᅟ
+    // A multi-index of dimension `Dim` with zero-valued entries.
+    //ᅟ
+    //ᅟ    using I0 = zero_index_t<3>; // I0 is index_t<0, 0, 0>
+    //
+template <int Dim> using zero_index_t = typename makeshift::detail::zero_index_<Dim>::type;
+
+    //ᅟ
+    // Constructs a multi-index of dimension `Dim` with zero-valued entries.
+    //ᅟ
+    //ᅟ    auto i0 = zero_index<3>; // decltype(i0) is index_t<0, 0, 0>
+    //
+template <int Dim> constexpr zero_index_t<Dim> zero_index{ };
+
+
 } // inline namespace types
+
+
+inline namespace literals
+{
+
+
+    //ᅟ
+    // Encodes an index value given as numeric literal in the type of the expression using `index_t<>`.
+    //ᅟ
+    //ᅟ    auto i = 42_idx; // decltype(i) is index_t<42>
+    //
+template <char... Cs>
+    constexpr inline index_t<makeshift::detail::make_index_constant<Cs...>::value>
+    operator "" _idx(void) noexcept
+{
+    return { };
+}
+
+
+    //ᅟ
+    // Encodes a dimension value given as numeric literal in the type of the expression using `dim_t<>`.
+    //ᅟ
+    //ᅟ    auto d = 3_dim; // decltype(i) is dim_t<3>
+    //
+template <char... Cs>
+    constexpr inline dim_t<makeshift::detail::make_index_constant<Cs...>::value>
+    operator "" _dim(void) noexcept
+{
+    return { };
+}
+
+
+} // inline namespace literals
 
 } // namespace makeshift
 
