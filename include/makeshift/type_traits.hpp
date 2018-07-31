@@ -10,45 +10,62 @@
 namespace makeshift
 {
 
-
 inline namespace types
 {
 
 
     //ᅟ
+    // Represents an index value.
+    //
+using index_t = std::ptrdiff_t;
+
+
+    //ᅟ
+    // Represents an array stride.
+    //
+using stride_t = std::ptrdiff_t;
+
+
+    //ᅟ
+    // Represents a dimension value.
+    //
+using dim_t = std::ptrdiff_t;
+
+
+    //ᅟ
     // Encodes a sequence of index values in a type.
     //
-template <std::ptrdiff_t... Is> struct index_t : std::integer_sequence<std::ptrdiff_t, Is...> { };
+template <index_t... Is> struct index_constant : std::integer_sequence<index_t, Is...> { };
 
 
     //ᅟ
     // Encodes a sequence of index values in the type of the expression.
     //
-template <std::ptrdiff_t... Is> constexpr index_t<Is...> index{ };
+template <index_t... Is> constexpr index_constant<Is...> index{ };
 
 
     //ᅟ
     // Encodes a sequence of dimension values in a type.
     //
-template <std::ptrdiff_t... Ds> struct shape_t : std::integer_sequence<std::ptrdiff_t, Ds...> { };
+template <dim_t... Ds> struct shape_constant : std::integer_sequence<dim_t, Ds...> { };
 
 
     //ᅟ
     // Encodes a sequence of dimension values in the type of the expression.
     //
-template <std::ptrdiff_t... Ds> constexpr shape_t<Ds...> shape{ };
+template <dim_t... Ds> constexpr shape_constant<Ds...> shape{ };
 
 
     //ᅟ
     // Encodes a dimension value in a type.
     //
-template <std::ptrdiff_t D> using dim_t = shape_t<D>;
+template <dim_t D> using dim_constant = shape_constant<D>;
 
 
     //ᅟ
     // Encodes a dimension value in the type of the expression.
     //
-template <std::ptrdiff_t D> constexpr dim_t<D> dim{ };
+template <dim_t D> constexpr dim_constant<D> dim{ };
 
 
 
@@ -142,8 +159,8 @@ template <char... Cs> constexpr std::ptrdiff_t make_index_constant_v = make_inde
 
 template <auto I, auto V> using substitute = std::integral_constant<decltype(V), V>;
 template <typename Is> struct zero_index_0_;
-template <std::size_t... Is> struct zero_index_0_<std::index_sequence<Is...>> { using type = index_t<substitute<Is, std::ptrdiff_t(0)>::value...>; };
-template <std::size_t Dim> struct zero_index_ : zero_index_0_<std::make_index_sequence<Dim>> { };
+template <std::size_t... Is> struct zero_index_0_<std::index_sequence<Is...>> { using type = index_constant<substitute<Is, std::ptrdiff_t(0)>::value...>; };
+template <dim_t Dim> struct zero_index_ : zero_index_0_<std::make_index_sequence<Dim>> { };
 
 
 } // namespace detail
@@ -357,16 +374,16 @@ template <typename T> using remove_rvalue_reference_t = typename remove_rvalue_r
     //ᅟ
     // A multi-index of dimension `Dim` with zero-valued entries.
     //ᅟ
-    //ᅟ    using I0 = zero_index_t<3>; // I0 is index_t<0, 0, 0>
+    //ᅟ    using I0 = zero_index_t<3>; // I0 is index_constant<0, 0, 0>
     //
-template <int Dim> using zero_index_t = typename makeshift::detail::zero_index_<Dim>::type;
+template <dim_t Dim> using zero_index_t = typename makeshift::detail::zero_index_<Dim>::type;
 
     //ᅟ
     // Constructs a multi-index of dimension `Dim` with zero-valued entries.
     //ᅟ
-    //ᅟ    auto i0 = zero_index<3>; // decltype(i0) is index_t<0, 0, 0>
+    //ᅟ    auto i0 = zero_index<3>; // decltype(i0) is index_constant<0, 0, 0>
     //
-template <int Dim> constexpr zero_index_t<Dim> zero_index{ };
+template <dim_t Dim> constexpr zero_index_t<Dim> zero_index{ };
 
 
 } // inline namespace types
@@ -377,12 +394,12 @@ inline namespace literals
 
 
     //ᅟ
-    // Encodes an index value given as numeric literal in the type of the expression using `index_t<>`.
+    // Encodes an index value given as numeric literal in the type of the expression using `index_constant<>`.
     //ᅟ
-    //ᅟ    auto i = 42_idx; // decltype(i) is index_t<42>
+    //ᅟ    auto i = 42_idx; // decltype(i) is index_constant<42>
     //
 template <char... Cs>
-    constexpr inline index_t<makeshift::detail::make_index_constant<Cs...>::value>
+    constexpr inline index_constant<makeshift::detail::make_index_constant<Cs...>::value>
     operator "" _idx(void) noexcept
 {
     return { };
@@ -390,12 +407,12 @@ template <char... Cs>
 
 
     //ᅟ
-    // Encodes a dimension value given as numeric literal in the type of the expression using `dim_t<>`.
+    // Encodes a dimension value given as numeric literal in the type of the expression using `dim_constant<>`.
     //ᅟ
-    //ᅟ    auto d = 3_dim; // decltype(i) is dim_t<3>
+    //ᅟ    auto d = 3_dim; // decltype(i) is dim_constant<3>
     //
 template <char... Cs>
-    constexpr inline dim_t<makeshift::detail::make_index_constant<Cs...>::value>
+    constexpr inline dim_constant<makeshift::detail::make_index_constant<Cs...>::value>
     operator "" _dim(void) noexcept
 {
     return { };
