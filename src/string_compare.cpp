@@ -14,28 +14,25 @@ namespace detail
 {
 
 
-template <unsigned HashSize>
-    struct fnv1a_hasher_base;
-template <>
-    struct fnv1a_hasher_base<4>
+constexpr std::size_t fnv_offset_basis(void) noexcept
 {
-    static constexpr std::size_t fnv_offset_basis = 2166136261U;
-    static constexpr std::size_t fnv_prime = 16777619U;
-};
-template <>
-    struct fnv1a_hasher_base<8>
+    if constexpr (sizeof(std::size_t) == 4) return 2166136261U;
+    else if constexpr (sizeof(std::size_t) == 8) return 14695981039346656037ULL;
+}
+constexpr std::size_t fnv_prime(void) noexcept
 {
-    static constexpr std::size_t fnv_offset_basis = 14695981039346656037ULL;
-    static constexpr std::size_t fnv_prime = 1099511628211ULL;
-};
-struct fnv1a_hasher : fnv1a_hasher_base<sizeof(std::size_t)>
+    if constexpr (sizeof(std::size_t) == 4) return 16777619U;
+    else if constexpr (sizeof(std::size_t) == 8) return 1099511628211ULL;
+}
+
+struct fnv1a_hasher
 {
-    std::size_t val = fnv_offset_basis;
+    std::size_t val = fnv_offset_basis();
 
     std::size_t add_byte(unsigned char b) noexcept
     {
         val ^= static_cast<std::size_t>(b);
-        val *= fnv_prime;
+        val *= fnv_prime();
         return val;
     }
     std::size_t add_bytes(const unsigned char* first, const unsigned char* last) noexcept
