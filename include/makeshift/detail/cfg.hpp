@@ -16,9 +16,14 @@
  #define MAKESHIFT_EXPORT
  #define MAKESHIFT_IMPORT
 #endif
+#ifdef MAKESHIFT_BUILD
+ #define MAKESHIFT_DLLFUNC MAKESHIFT_EXPORT
+#else // MAKESHIFT_BUILD
+ #define MAKESHIFT_DLLFUNC MAKESHIFT_IMPORT
+#endif // MAKESHIFT_BUILD
 
 
-    // compiler-specific attributes
+    // internal compiler-specific attributes
 #if defined(_MSC_VER) || defined(__clang__)
  #define MAKESHIFT_HAVE_UNICODE_IDENTIFIERS
 #endif // defined(_MSC_VER) || defined(__clang__)
@@ -27,36 +32,6 @@
  #define MAKESHIFT_INTELLISENSE_PARSER
 #endif // defined(_MSC_VER) && defined(__INTELLISENSE__)
 
-#if defined(_MSC_VER)
- #define MAKESHIFT_SELECTANY_PREFIX __declspec(selectany)
- #define MAKESHIFT_SELECTANY_SUFFIX
-#elif defined(__GNUC__) || defined(__clang__)
- #define MAKESHIFT_SELECTANY_PREFIX
- #define MAKESHIFT_SELECTANY_SUFFIX __attribute__((weak))
-#else // compilers
- #define MAKESHIFT_SELECTANY_PREFIX static
- #define MAKESHIFT_SELECTANY_SUFFIX
-#endif // compilers
-
-#ifdef _MSC_VER
- #define MAKESHIFT_EMPTY_BASES __declspec(empty_bases) // selectively enable empty base class optimization
-#else // _MSC_VER
- #define MAKESHIFT_EMPTY_BASES
-#endif // _MSC_VER
-
-#ifdef _MSC_VER
- #define MAKESHIFT_NOVTABLE __declspec(novtable) // do not generate VMT for the given class
-#else // _MSC_VER
- #define MAKESHIFT_NOVTABLE
-#endif // _MSC_VER
-
-
-    // components
-#ifdef MAKESHIFT_BUILD
- #define MAKESHIFT_DLLFUNC MAKESHIFT_EXPORT
-#else // MAKESHIFT_BUILD
- #define MAKESHIFT_DLLFUNC MAKESHIFT_IMPORT
-#endif // MAKESHIFT_BUILD
 
 
 #endif // MAKESHIFT_DETAIL_CFG_HPP_
