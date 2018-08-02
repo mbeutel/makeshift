@@ -42,7 +42,7 @@ template <index_t... Is> struct index_constant : std::integer_sequence<index_t, 
     //ᅟ
     // Encodes a sequence of index values in the type of the expression.
     //
-template <index_t... Is> constexpr index_constant<Is...> index{ };
+template <index_t... Is> constexpr index_constant<Is...> index_c{ };
 
 
     //ᅟ
@@ -54,7 +54,7 @@ template <dim_t... Ds> struct shape_constant : std::integer_sequence<dim_t, Ds..
     //ᅟ
     // Encodes a sequence of dimension values in the type of the expression.
     //
-template <dim_t... Ds> constexpr shape_constant<Ds...> shape{ };
+template <dim_t... Ds> constexpr shape_constant<Ds...> shape_c{ };
 
 
     //ᅟ
@@ -66,7 +66,7 @@ template <dim_t D> using dim_constant = shape_constant<D>;
     //ᅟ
     // Encodes a dimension value in the type of the expression.
     //
-template <dim_t D> constexpr dim_constant<D> dim{ };
+template <dim_t D> constexpr dim_constant<D> dim_c{ };
 
 
 } // inline namespace types
@@ -129,9 +129,9 @@ template <dim_t Dim> using zero_index_t = typename makeshift::detail::zero_index
     //ᅟ
     // Constructs a multi-index of dimension `Dim` with zero-valued entries.
     //ᅟ
-    //ᅟ    auto i0 = zero_index<3>; // decltype(i0) is index_constant<0, 0, 0>
+    //ᅟ    auto i0 = zero_index_c<3>; // decltype(i0) is index_constant<0, 0, 0>
     //
-template <dim_t Dim> constexpr zero_index_t<Dim> zero_index{ };
+template <dim_t Dim> constexpr zero_index_t<Dim> zero_index_c{ };
 
 
 } // inline namespace types
