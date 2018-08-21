@@ -1,6 +1,6 @@
 ﻿
-#ifndef MAKESHIFT_STRING_HPP_
-#define MAKESHIFT_STRING_HPP_
+#ifndef INCLUDED_MAKESHIFT_STRING_HPP_
+#define INCLUDED_MAKESHIFT_STRING_HPP_
 
 
 #include <string>      // for string, to_string<>
@@ -189,4 +189,4 @@ template <typename T>
 } // namespace makeshift
 
 
-#endif // MAKESHIFT_STRING_HPP_
+#endif // INCLUDED_MAKESHIFT_STRING_HPP_

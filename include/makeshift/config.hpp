@@ -1,6 +1,6 @@
 
-#ifndef MAKESHIFT_CONFIG_HPP_
-#define MAKESHIFT_CONFIG_HPP_
+#ifndef INCLUDED_MAKESHIFT_CONFIG_HPP_
+#define INCLUDED_MAKESHIFT_CONFIG_HPP_
 
 
     // compiler-specific attributes
@@ -49,4 +49,4 @@
 #endif // _MSC_VER
 
 
-#endif // MAKESHIFT_CONFIG_HPP_
+#endif // INCLUDED_MAKESHIFT_CONFIG_HPP_

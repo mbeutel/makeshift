@@ -1,6 +1,6 @@
 ﻿
-#ifndef MAKESHIFT_DETAIL_STRING_COMPARE_HPP_
-#define MAKESHIFT_DETAIL_STRING_COMPARE_HPP_
+#ifndef INCLUDED_MAKESHIFT_DETAIL_STRING_COMPARE_HPP_
+#define INCLUDED_MAKESHIFT_DETAIL_STRING_COMPARE_HPP_
 
 
 #include <string_view>
@@ -44,12 +44,12 @@ private:
 public:
     constexpr string_equal_to(string_comparison _comparison) noexcept : comparison_(_comparison) { }
 
-    bool operator()(std::string_view lhs, std::string_view rhs) const noexcept;
+    MAKESHIFT_DLLFUNC bool operator()(std::string_view lhs, std::string_view rhs) const noexcept;
 };
 
 
     //ᅟ
-    // Computes the hash of a given string using the given string comparison mode.
+    // Computes the hash of a string using the given string comparison mode.
     //
 class string_hash
 {
@@ -59,7 +59,7 @@ private:
 public:
     constexpr string_hash(string_comparison _comparison) noexcept : comparison_(_comparison) { }
 
-    std::size_t operator()(std::string_view arg) const noexcept;
+    MAKESHIFT_DLLFUNC std::size_t operator()(std::string_view arg) const noexcept;
 };
 
 
@@ -75,7 +75,7 @@ private:
 public:
     constexpr string_less(string_comparison _comparison) noexcept : comparison_(_comparison) { }
 
-    bool operator()(std::string_view lhs, std::string_view rhs) const noexcept;
+    MAKESHIFT_DLLFUNC bool operator()(std::string_view lhs, std::string_view rhs) const noexcept;
 };
 
 
@@ -84,4 +84,4 @@ public:
 } // namespace makeshift
 
 
-#endif // MAKESHIFT_DETAIL_STRING_COMPARE_HPP_
+#endif // INCLUDED_MAKESHIFT_DETAIL_STRING_COMPARE_HPP_

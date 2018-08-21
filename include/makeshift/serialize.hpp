@@ -1,6 +1,6 @@
 ﻿
-#ifndef MAKESHIFT_SERIALIZE_EHPP_
-#define MAKESHIFT_SERIALIZE_EHPP_
+#ifndef INCLUDED_MAKESHIFT_SERIALIZE_EHPP_
+#define INCLUDED_MAKESHIFT_SERIALIZE_EHPP_
 
 
 #include <tuple>
@@ -146,4 +146,4 @@ template <typename... SerializersT>
 } // namespace makeshift
 
 
-#endif // MAKESHIFT_SERIALIZE_EHPP_
+#endif // INCLUDED_MAKESHIFT_SERIALIZE_EHPP_

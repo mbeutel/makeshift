@@ -1,6 +1,6 @@
 ﻿
-#ifndef MAKESHIFT_ARITHMETIC_HPP_
-#define MAKESHIFT_ARITHMETIC_HPP_
+#ifndef INCLUDED_MAKESHIFT_ARITHMETIC_HPP_
+#define INCLUDED_MAKESHIFT_ARITHMETIC_HPP_
 
 
 #include <limits>
@@ -479,4 +479,4 @@ template <typename DstT, typename SrcT>
 } // namespace makeshift
 
 
-#endif // MAKESHIFT_ARITHMETIC_HPP_
+#endif // INCLUDED_MAKESHIFT_ARITHMETIC_HPP_

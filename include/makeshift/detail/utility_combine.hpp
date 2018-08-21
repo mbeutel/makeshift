@@ -1,6 +1,6 @@
 ﻿
-#ifndef MAKESHIFT_DETAIL_UTILITY_COMBINE_HPP_
-#define MAKESHIFT_DETAIL_UTILITY_COMBINE_HPP_
+#ifndef INCLUDED_MAKESHIFT_DETAIL_UTILITY_COMBINE_HPP_
+#define INCLUDED_MAKESHIFT_DETAIL_UTILITY_COMBINE_HPP_
 
 
 #include <utility>     // for forward<>()
@@ -52,4 +52,4 @@ template <typename... Ts>
 } // namespace makeshift
 
 
-#endif // MAKESHIFT_DETAIL_UTILITY_COMBINE_HPP_
+#endif // INCLUDED_MAKESHIFT_DETAIL_UTILITY_COMBINE_HPP_

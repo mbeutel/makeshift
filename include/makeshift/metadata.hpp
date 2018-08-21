@@ -1,6 +1,6 @@
 ﻿
-#ifndef MAKESHIFT_METADATA_HPP_
-#define MAKESHIFT_METADATA_HPP_
+#ifndef INCLUDED_MAKESHIFT_METADATA_HPP_
+#define INCLUDED_MAKESHIFT_METADATA_HPP_
 
 
 #include <string_view>
@@ -212,4 +212,4 @@ template <typename SerializerT> using serializer_metadata_tag_t = typename seria
 } // namespace makeshift
 
 
-#endif // MAKESHIFT_METADATA_HPP_
+#endif // INCLUDED_MAKESHIFT_METADATA_HPP_

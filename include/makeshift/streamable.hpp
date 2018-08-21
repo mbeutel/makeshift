@@ -1,6 +1,6 @@
 ﻿
-#ifndef MAKESHIFT_STREAMABLE_HPP_
-#define MAKESHIFT_STREAMABLE_HPP_
+#ifndef INCLUDED_MAKESHIFT_STREAMABLE_HPP_
+#define INCLUDED_MAKESHIFT_STREAMABLE_HPP_
 
 
 #include <string>      // for string, to_string()
@@ -247,4 +247,4 @@ template <typename T>
 } // namespace makeshift
 
 
-#endif // MAKESHIFT_STREAMABLE_HPP_
+#endif // INCLUDED_MAKESHIFT_STREAMABLE_HPP_

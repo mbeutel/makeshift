@@ -1,6 +1,6 @@
 ﻿
-#ifndef MAKESHIFT_TYPE_TRAITS_HPP_
-#define MAKESHIFT_TYPE_TRAITS_HPP_
+#ifndef INCLUDED_MAKESHIFT_TYPE_TRAITS_HPP_
+#define INCLUDED_MAKESHIFT_TYPE_TRAITS_HPP_
 
 
 #include <type_traits> // for integral_constant<>, declval<>()
@@ -288,4 +288,4 @@ template <std::size_t I, typename... Ts> class tuple_element<I, makeshift::type_
 } // namespace std
 
 
-#endif // MAKESHIFT_TYPE_TRAITS_HPP_
+#endif // INCLUDED_MAKESHIFT_TYPE_TRAITS_HPP_

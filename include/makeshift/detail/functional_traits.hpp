@@ -1,6 +1,6 @@
 ﻿
-#ifndef MAKESHIFT_DETAIL_FUNCTIONAL_TRAITS_HPP_
-#define MAKESHIFT_DETAIL_FUNCTIONAL_TRAITS_HPP_
+#ifndef INCLUDED_MAKESHIFT_DETAIL_FUNCTIONAL_TRAITS_HPP_
+#define INCLUDED_MAKESHIFT_DETAIL_FUNCTIONAL_TRAITS_HPP_
 
 
 #include <utility>     // for forward<>()
@@ -169,4 +169,4 @@ template <typename F, typename C, typename Arg0T, typename... ArgsT>
 } // namespace makeshift
 
 
-#endif // MAKESHIFT_DETAIL_FUNCTIONAL_TRAITS_HPP_
+#endif // INCLUDED_MAKESHIFT_DETAIL_FUNCTIONAL_TRAITS_HPP_

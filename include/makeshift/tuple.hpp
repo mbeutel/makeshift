@@ -1,6 +1,6 @@
 ﻿
-#ifndef MAKESHIFT_TUPLE_HPP_
-#define MAKESHIFT_TUPLE_HPP_
+#ifndef INCLUDED_MAKESHIFT_TUPLE_HPP_
+#define INCLUDED_MAKESHIFT_TUPLE_HPP_
 
 
 #include <cstddef>     // for size_t
@@ -885,4 +885,4 @@ tuple_cat(void)
 #endif // MAKESHIFT_DETAIL_UTILITY_KEYWORD_HPP_
 
 
-#endif // MAKESHIFT_TUPLE_HPP_
+#endif // INCLUDED_MAKESHIFT_TUPLE_HPP_

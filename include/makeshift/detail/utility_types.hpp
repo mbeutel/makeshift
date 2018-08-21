@@ -1,6 +1,6 @@
 ﻿
-#ifndef MAKESHIFT_DETAIL_UTILITY_TYPES_HPP_
-#define MAKESHIFT_DETAIL_UTILITY_TYPES_HPP_
+#ifndef INCLUDED_MAKESHIFT_DETAIL_UTILITY_TYPES_HPP_
+#define INCLUDED_MAKESHIFT_DETAIL_UTILITY_TYPES_HPP_
 
 
 #include <cstddef>     // for ptrdiff_t
@@ -178,4 +178,4 @@ template <char... Cs>
 } // namespace makeshift
 
 
-#endif // MAKESHIFT_DETAIL_UTILITY_TYPES_HPP_
+#endif // INCLUDED_MAKESHIFT_DETAIL_UTILITY_TYPES_HPP_

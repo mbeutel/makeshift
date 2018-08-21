@@ -1,6 +1,6 @@
 
-#ifndef MAKESHIFT_DETAIL_CFG_HPP_
-#define MAKESHIFT_DETAIL_CFG_HPP_
+#ifndef INCLUDED_MAKESHIFT_DETAIL_CFG_HPP_
+#define INCLUDED_MAKESHIFT_DETAIL_CFG_HPP_
 
 
     // shared library implementation details
@@ -34,5 +34,5 @@
 
 
 
-#endif // MAKESHIFT_DETAIL_CFG_HPP_
+#endif // INCLUDED_MAKESHIFT_DETAIL_CFG_HPP_
 

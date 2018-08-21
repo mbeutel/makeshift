@@ -1,6 +1,6 @@
 ﻿
-#ifndef MAKESHIFT_DETAIL_UTILITY_KEYWORD_TUPLE_HPP_
-#define MAKESHIFT_DETAIL_UTILITY_KEYWORD_TUPLE_HPP_
+#ifndef INCLUDED_MAKESHIFT_DETAIL_UTILITY_KEYWORD_TUPLE_HPP_
+#define INCLUDED_MAKESHIFT_DETAIL_UTILITY_KEYWORD_TUPLE_HPP_
 
 
 #include <makeshift/detail/utility_keyword.hpp>
@@ -85,4 +85,4 @@ template <makeshift::detail::keyword_crc Name, typename TupleT,
 } // namespace makeshift
 
 
-#endif // MAKESHIFT_DETAIL_UTILITY_KEYWORD_TUPLE_HPP_
+#endif // INCLUDED_MAKESHIFT_DETAIL_UTILITY_KEYWORD_TUPLE_HPP_

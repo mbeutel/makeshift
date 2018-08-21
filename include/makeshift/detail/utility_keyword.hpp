@@ -1,6 +1,6 @@
 ﻿
-#ifndef MAKESHIFT_DETAIL_UTILITY_KEYWORD_HPP_
-#define MAKESHIFT_DETAIL_UTILITY_KEYWORD_HPP_
+#ifndef INCLUDED_MAKESHIFT_DETAIL_UTILITY_KEYWORD_HPP_
+#define INCLUDED_MAKESHIFT_DETAIL_UTILITY_KEYWORD_HPP_
 
 
 #include <type_traits> // for decay<>
@@ -296,4 +296,4 @@ constexpr inline makeshift::detail::keyword operator ""_kw(const char* data, std
 #endif // MAKESHIFT_TUPLE_HPP_
 
 
-#endif // MAKESHIFT_DETAIL_UTILITY_KEYWORD_HPP_
+#endif // INCLUDED_MAKESHIFT_DETAIL_UTILITY_KEYWORD_HPP_

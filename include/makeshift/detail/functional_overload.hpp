@@ -1,6 +1,6 @@
 ﻿
-#ifndef MAKESHIFT_DETAIL_FUNCTIONAL_OVERLOAD_HPP_
-#define MAKESHIFT_DETAIL_FUNCTIONAL_OVERLOAD_HPP_
+#ifndef INCLUDED_MAKESHIFT_DETAIL_FUNCTIONAL_OVERLOAD_HPP_
+#define INCLUDED_MAKESHIFT_DETAIL_FUNCTIONAL_OVERLOAD_HPP_
 
 
 #include <type_traits> // for declval<>(), decay<>, reference_wrapper<>, is_same<>
@@ -216,4 +216,4 @@ template <template <typename...> class T, typename F>
 } // namespace makeshift
 
 
-#endif // MAKESHIFT_DETAIL_FUNCTIONAL_OVERLOAD_HPP_
+#endif // INCLUDED_MAKESHIFT_DETAIL_FUNCTIONAL_OVERLOAD_HPP_

@@ -1,6 +1,6 @@
 
-#ifndef MAKESHIFT_VERSION_HPP_
-#define MAKESHIFT_VERSION_HPP_
+#ifndef INCLUDED_MAKESHIFT_VERSION_HPP_
+#define INCLUDED_MAKESHIFT_VERSION_HPP_
 
 
 #include <makeshift/detail/cfg.hpp> // for MAKESHIFT_DLLFUNC
@@ -28,4 +28,4 @@ MAKESHIFT_DLLFUNC void get_version(int& major, int& minor, int& patch, int& api)
 } // namespace makeshift
 
 
-#endif // MAKESHIFT_VERSION_HPP_
+#endif // INCLUDED_MAKESHIFT_VERSION_HPP_

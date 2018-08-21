@@ -1,6 +1,6 @@
 ﻿
-#ifndef MAKESHIFT_DETAIL_SERIALIZE_ENUM_HPP_
-#define MAKESHIFT_DETAIL_SERIALIZE_ENUM_HPP_
+#ifndef INCLUDED_MAKESHIFT_DETAIL_SERIALIZE_ENUM_HPP_
+#define INCLUDED_MAKESHIFT_DETAIL_SERIALIZE_ENUM_HPP_
 
 
 #include <string>      // for string, to_string()
@@ -193,4 +193,4 @@ template <typename MetadataTagT, typename T> struct is_enum_with_metadata : std:
 } // namespace makeshift
 
 
-#endif // MAKESHIFT_DETAIL_SERIALIZE_ENUM_HPP_
+#endif // INCLUDED_MAKESHIFT_DETAIL_SERIALIZE_ENUM_HPP_

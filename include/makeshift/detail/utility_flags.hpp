@@ -1,6 +1,6 @@
 ﻿
-#ifndef MAKESHIFT_DETAIL_UTILITY_FLAGS_HPP_
-#define MAKESHIFT_DETAIL_UTILITY_FLAGS_HPP_
+#ifndef INCLUDED_MAKESHIFT_DETAIL_UTILITY_FLAGS_HPP_
+#define INCLUDED_MAKESHIFT_DETAIL_UTILITY_FLAGS_HPP_
 
 
 #include <makeshift/type_traits.hpp> // for flags_base, none
@@ -76,4 +76,4 @@ template <typename FlagsT, typename UnderlyingTypeT = unsigned>
 } // namespace makeshift
 
 
-#endif // MAKESHIFT_DETAIL_UTILITY_FLAGS_HPP_
+#endif // INCLUDED_MAKESHIFT_DETAIL_UTILITY_FLAGS_HPP_

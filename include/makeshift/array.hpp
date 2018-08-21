@@ -1,6 +1,6 @@
 ﻿
-#ifndef MAKESHIFT_ARRAY_HPP_
-#define MAKESHIFT_ARRAY_HPP_
+#ifndef INCLUDED_MAKESHIFT_ARRAY_HPP_
+#define INCLUDED_MAKESHIFT_ARRAY_HPP_
 
 
 #include <type_traits> // for remove_cv<>, decay<>, index_sequence<>, integral_constant<>
@@ -244,4 +244,4 @@ template <typename TupleT,
 } // namespace makeshift
 
 
-#endif // MAKESHIFT_ARRAY_HPP_
+#endif // INCLUDED_MAKESHIFT_ARRAY_HPP_

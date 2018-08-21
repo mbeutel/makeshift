@@ -1,7 +1,6 @@
 ﻿
 #include <cstddef>     // for size_t
 #include <cctype>      // for tolower()
-#include <type_traits> // for is_trivial<>
 #include <algorithm>   // for equal(), lexicographical_compare()
 
 #include <makeshift/detail/string_compare.hpp>
