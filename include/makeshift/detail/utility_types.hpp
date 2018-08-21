@@ -22,6 +22,12 @@ using index_t = std::ptrdiff_t;
 
 
     //ᅟ
+    // Represents a difference value.
+    //
+using diff_t = std::ptrdiff_t;
+
+
+    //ᅟ
     // Represents an array stride.
     //
 using stride_t = std::ptrdiff_t;
