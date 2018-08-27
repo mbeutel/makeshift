@@ -130,16 +130,16 @@ struct tuple_size_aggregator
     std::size_t value;
     bool all_equal;
 
-    constexpr tuple_size_aggregator(void) noexcept : value(std::size_t(-1)), all_equal(true) { }
-    constexpr tuple_size_aggregator(std::size_t _value, bool _all_equal) noexcept : value(_value), all_equal(_all_equal) { }
+    //constexpr tuple_size_aggregator(void) noexcept : value(std::size_t(-1)), all_equal(true) { }
+    //constexpr tuple_size_aggregator(std::size_t _value, bool _all_equal) noexcept : value(_value), all_equal(_all_equal) { }
 
-    friend constexpr tuple_size_aggregator operator +(tuple_size_aggregator&& lhs, std::size_t rhs_size_or_default) noexcept
+    friend constexpr tuple_size_aggregator operator +(tuple_size_aggregator lhs, std::size_t rhs_size_or_default) noexcept
     {
         if (!lhs.all_equal || rhs_size_or_default == std::size_t(-1))
             return std::move(lhs);
         else if (lhs.value == std::size_t(-1))
-            return tuple_size_aggregator(rhs_size_or_default, true);
-        return tuple_size_aggregator(lhs.value, lhs.value == rhs_size_or_default);
+            return { rhs_size_or_default, true };
+        return { lhs.value, lhs.value == rhs_size_or_default };
     }
 };
 
@@ -172,7 +172,9 @@ private:
     template <typename... Ts>
         constexpr auto invoke(std::false_type /*scalar*/, Ts&&... args) const
     {
-        constexpr tuple_size_aggregator numElements = (tuple_size_aggregator() + ... + tuple_size_or_default_v<std::decay_t<Ts>>);
+        //constexpr tuple_size_aggregator term;
+        constexpr tuple_size_aggregator term{ std::size_t(-1), true };
+        constexpr tuple_size_aggregator numElements = (term + ... + tuple_size_or_default_v<std::decay_t<Ts>>);
         static_assert(numElements.all_equal, "all tuple arguments must have the same size");
         return invoke_tuple(std::integral_constant<bool, IsMap>{ }, std::make_index_sequence<numElements.value>{ }, std::forward<Ts>(args)...);
     }

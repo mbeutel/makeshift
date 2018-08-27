@@ -182,7 +182,7 @@ template <typename T, typename... AttributesT>
         static_assert(sizeof(T) == ~0, "unsupported type");
 }
 template <typename T, typename MetadataTagT = serialization_metadata_tag>
-    constexpr auto serialization_data = make_serialization_data(metadata_of<T, MetadataTagT>);
+    /*constexpr*/ auto serialization_data = make_serialization_data(metadata_of<T, MetadataTagT>);
 
 
 template <typename MetadataTagT, typename T> struct is_enum_with_metadata : std::conjunction<have_metadata<T, MetadataTagT>, std::is_enum<T>> { };
