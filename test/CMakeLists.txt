@@ -7,7 +7,7 @@
 cmake_minimum_required(VERSION 3.10)
 
 # dependencies
-find_package(Catch2 REQUIRED)
+find_package(Catch2 2.3.0 REQUIRED)
 
 # test target
 add_executable(test-makeshift
@@ -20,12 +20,11 @@ add_executable(test-makeshift
 # test dependencies
 target_link_libraries(test-makeshift
     PRIVATE
-        Catch2::Catch
+        Catch2::Catch2
         makeshift)
 
 # register tests
-find_package(CMakeshift 1.1 REQUIRED)
-include(CMakeshift/ParseAndAddCatchTests)
+include(ParseAndAddCatchTests)
 set(PARSE_CATCH_TESTS_NO_HIDDEN_TESTS CACHE BOOL ON)
 set(PARSE_CATCH_TESTS_ADD_TO_CONFIGURE_DEPENDS CACHE BOOL ON)
 set(PARSE_CATCH_TESTS_ADD_TARGET_IN_TEST_NAME CACHE BOOL OFF)
