@@ -203,6 +203,28 @@ template <typename T = void> constexpr tag_t<T> tag { };
 
 
     //ᅟ
+    // Helper for type dispatching.
+    //
+template <template <typename...> class T> struct template_tag_t { };
+
+    //ᅟ
+    // Helper for type dispatching.
+    //
+template <template <typename...> class T> constexpr template_tag_t<T> template_tag{ };
+
+
+    //ᅟ
+    // Encodes a value in a type.
+    //
+template <auto V, typename = decltype(V)> struct constant : std::integral_constant<decltype(V), V> { };
+
+    //ᅟ
+    // Encodes a value in the type of the expression.
+    //
+template <auto V, typename = decltype(V)> constexpr constant<V> c{ };
+
+
+    //ᅟ
     // Null type for tuple functions, flag enums and other purposes.
     //
 struct none_t { };

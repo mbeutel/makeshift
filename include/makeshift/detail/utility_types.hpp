@@ -44,7 +44,6 @@ using dim_t = std::ptrdiff_t;
     //
 template <index_t... Is> struct index_constant : std::integer_sequence<index_t, Is...> { };
 
-
     //ᅟ
     // Encodes a sequence of index values in the type of the expression.
     //
@@ -56,7 +55,6 @@ template <index_t... Is> constexpr index_constant<Is...> index_c{ };
     //
 template <dim_t... Ds> struct shape_constant : std::integer_sequence<dim_t, Ds...> { };
 
-
     //ᅟ
     // Encodes a sequence of dimension values in the type of the expression.
     //
@@ -67,7 +65,6 @@ template <dim_t... Ds> constexpr shape_constant<Ds...> shape_c{ };
     // Encodes a dimension value in a type.
     //
 template <dim_t D> using dim_constant = shape_constant<D>;
-
 
     //ᅟ
     // Encodes a dimension value in the type of the expression.
