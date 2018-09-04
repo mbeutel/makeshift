@@ -225,6 +225,44 @@ template <auto V, typename = decltype(V)> constexpr constant<V> c{ };
 
 
     //ᅟ
+    // Encodes a sequence of constants in a type.
+    //
+template <typename T, T... Vs>
+    struct sequence
+{
+    using value_type = T;
+
+    static constexpr std::size_t size(void) noexcept { return sizeof...(Vs); }
+
+    constexpr sequence(/*void*/) noexcept { }
+    template <typename U = T,
+              typename = std::enable_if_t<std::is_same<T, U>::value>>
+        constexpr sequence(std::integer_sequence<U, Vs...>) noexcept
+    {
+    }
+    constexpr sequence(std::integral_constant<T, Vs>...) noexcept { }
+};
+template <typename T>
+    struct sequence<T>
+{
+    using value_type = T;
+
+    static constexpr std::size_t size(void) noexcept { return 0; }
+
+    constexpr sequence(/*void*/) noexcept { }
+    template <typename U = T,
+              typename = std::enable_if_t<std::is_same<T, U>::value>>
+        constexpr sequence(std::integer_sequence<U>) noexcept
+    {
+    }
+};
+template <typename T, T... Vs>
+    sequence(std::integer_sequence<T, Vs...>) -> sequence<T, Vs...>;
+template <typename T, T... Vs>
+    sequence(std::integral_constant<T, Vs>...) -> sequence<T, Vs...>;
+
+
+    //ᅟ
     // Null type for tuple functions, flag enums and other purposes.
     //
 struct none_t { };
