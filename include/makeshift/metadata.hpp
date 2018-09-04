@@ -91,7 +91,7 @@ template <typename ValC, typename AttributesT>
     //ᅟ
     // Use `value<V>(...)` to declare metadata for a known value of a type.
     //
-template <auto Val, typename... AttrT>
+template <auto Val, typename... AttrT, typename = decltype(Val)>
     constexpr value_metadata<std::integral_constant<decltype(Val), Val>, std::tuple<literal_decay_t<AttrT>...>> value(AttrT&&... attributes)
 {
     return { std::tuple<literal_decay_t<AttrT>...>(std::forward<AttrT>(attributes)...) };
@@ -114,7 +114,7 @@ template <typename AccessorsC, typename AttributesT>
     //ᅟ
     // Use `property<Accessors...>(...)` to declare metadata for properties of a type.
     //
-template <auto... Accessors, typename... AttrT>
+template <auto... Accessors, typename... AttrT, typename = type_sequence<decltype(Accessors)...>>
     constexpr property_metadata<type_sequence<std::integral_constant<decltype(Accessors), Accessors>...>, std::tuple<literal_decay_t<AttrT>...>> property(AttrT&&... attributes)
 {
     return { std::tuple<literal_decay_t<AttrT>...>(std::forward<AttrT>(attributes)...) };
