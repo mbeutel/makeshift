@@ -630,7 +630,7 @@ template <typename ValT, typename F>
     constexpr makeshift::detail::tuple_bound_reduce_t<std::decay_t<ValT>, std::decay_t<F>>
     tuple_reduce(ValT&& initialValue, F&& func)
 {
-    return { std::forward<F>(func) };
+    return { std::forward<ValT>(initialValue), std::forward<F>(func) };
 }
 
 

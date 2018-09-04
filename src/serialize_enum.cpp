@@ -104,9 +104,9 @@ static std::string_view skipWhitespace(std::string_view s) noexcept
         s = s.substr(1);
     return s;
 }
-static bool isSeparator(char c) noexcept
+static bool isSeparator(char _c) noexcept
 {
-    return c == ',' || c == '|';
+    return _c == ',' || _c == '|';
 }
 static std::optional<std::string_view> expectSeparator(std::string_view s) noexcept
 {
