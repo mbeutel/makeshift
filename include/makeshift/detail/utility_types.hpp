@@ -8,6 +8,8 @@
 
 #include <makeshift/type_traits.hpp> // for sequence<>
 
+#include <makeshift/detail/workaround.hpp> // for csum<>(), cand()
+
 
 namespace makeshift
 {
@@ -87,24 +89,13 @@ constexpr inline std::ptrdiff_t cpow10(int I, int N) noexcept
         result *= 10;
     return result;
 }
-template <typename... Ts>
-    constexpr inline std::ptrdiff_t csum(Ts... vs) noexcept // workaround to make VC++ accept non-trivial fold expressions
-{
-    auto term = std::ptrdiff_t(0);
-    return (vs + ... + term);
-}
-template <typename... Ts>
-    constexpr inline bool cand(Ts... vs) noexcept // workaround to make VC++ accept non-trivial fold expressions
-{
-    return (vs && ...);
-}
 template <typename Is, char... Cs>
     struct make_index_constant_;
 template <std::size_t... Is, char... Cs>
     struct make_index_constant_<std::index_sequence<Is...>, Cs...>
 {
     static_assert(cand(Cs >= '0' && Cs <= '9'...), "invalid character: index must be an integral value");
-    static constexpr std::ptrdiff_t value = csum((Cs - '0') * cpow10(Is, sizeof...(Cs))...);
+    static constexpr std::ptrdiff_t value = csum<std::ptrdiff_t>((Cs - '0') * cpow10(Is, sizeof...(Cs))...);
 };
 template <char... Cs> struct make_index_constant : make_index_constant_<std::make_index_sequence<sizeof...(Cs)>, Cs...> { };
 template <char... Cs> constexpr std::ptrdiff_t make_index_constant_v = make_index_constant<Cs...>::value;

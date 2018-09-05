@@ -33,7 +33,8 @@ private:
     {
         using DTuple = std::decay_t<TupleT>;
         constexpr std::size_t matchIndex = makeshift::detail::tuple_kw_index<Name, DTuple>(std::make_index_sequence<std::tuple_size<DTuple>::value>{ });
-        return contextual_value(std::get<matchIndex>(std::forward<TupleT>(tuple)));
+        using std::get; // make std::get<>(std::pair<>&&) visible to enable ADL for template methods named get<>()
+        return contextual_value(get<matchIndex>(std::forward<TupleT>(tuple)));
     }
 public:
     template <typename TupleT,

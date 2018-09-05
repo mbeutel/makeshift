@@ -40,10 +40,11 @@ template <typename ElemT, typename ArrayT, typename TupleT, std::size_t N>
 template <typename ElemT, typename ArrayT, typename TupleT, std::size_t I, std::size_t N>
     constexpr auto concat_arrays(ArrayT&& initialValue, TupleT&& tuple, std::integral_constant<std::size_t, I>, std::integral_constant<std::size_t, N>)
 {
+    using std::get; // make std::get<>(std::pair<>&&) visible to enable ADL for template methods named get<>()
     using LArray = std::decay_t<ArrayT>;
     using RArray = std::tuple_element_t<I, std::decay_t<TupleT>>;
     return concat_arrays<ElemT>(
-        concat_two_arrays<ElemT>(std::forward<ArrayT>(initialValue), std::get<I>(std::forward<TupleT>(tuple)), std::make_index_sequence<array_size_<LArray>::value>{ }, std::make_index_sequence<array_size_<RArray>::value>{ }),
+        concat_two_arrays<ElemT>(std::forward<ArrayT>(initialValue), get<I>(std::forward<TupleT>(tuple)), std::make_index_sequence<array_size_<LArray>::value>{ }, std::make_index_sequence<array_size_<RArray>::value>{ }),
         std::forward<TupleT>(tuple),
         std::integral_constant<std::size_t, I + 1>{ }, std::integral_constant<std::size_t, N>{ }
     );
