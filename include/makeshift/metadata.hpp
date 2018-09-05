@@ -178,7 +178,16 @@ template <typename T, typename MetadataTagT> constexpr bool have_metadata_v = ha
     //ᅟ
     // Default tag type for `reflect()` methods which define type metadata for serialization.
     //
-struct serialization_metadata_tag { };
+struct serialization_metadata_tag
+{
+    static constexpr inline auto reflect(bool*, serialization_metadata_tag) noexcept
+    {
+        return type<bool>(
+            value<false>("false"),
+            value<true>("true")
+        );
+    }
+};
 
 
     //ᅟ
