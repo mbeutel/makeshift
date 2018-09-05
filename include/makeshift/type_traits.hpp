@@ -36,20 +36,73 @@ template <template <typename...> class TypeSeqT, typename... RSeqT, typename... 
 template <std::size_t I, typename T>
     struct type_pack_index_base
 {
+    static constexpr std::size_t index = I;
     using type = T;
+};
+struct type_pack_no_match
+{
+    static constexpr std::size_t index = std::size_t(-1);
 };
 template <typename IsT, typename... Ts> struct type_pack_indexer;
 template <std::size_t... Is, typename... Ts> struct type_pack_indexer<std::index_sequence<Is...>, Ts...> : type_pack_index_base<Is, Ts>... { };
 template <std::size_t I, typename T>
-    static type_pack_index_base<I, T> select_type_seq_entry(type_pack_index_base<I, T>);
+    static type_pack_index_base<I, T> select_type_seq_entry_by_idx(type_pack_index_base<I, T>);
+template <typename T, std::size_t I>
+    static type_pack_index_base<I, T> select_type_seq_entry_by_type(type_pack_index_base<I, T>);
+template <typename T>
+    static type_pack_no_match select_type_seq_entry_by_type(...);
 
 template <std::size_t I, typename... Ts>
     struct type_pack_element_
 {
-    using index_base = decltype(makeshift::detail::select_type_seq_entry<I>(type_pack_indexer<std::make_index_sequence<sizeof...(Ts)>, Ts...>{ }));
+    using index_base = decltype(makeshift::detail::select_type_seq_entry_by_idx<I>(type_pack_indexer<std::make_index_sequence<sizeof...(Ts)>, Ts...>{ }));
     using type = typename index_base::type;
 };
 
+template <typename T, typename... Ts>
+    struct try_type_pack_index_
+{
+    using index_base = decltype(makeshift::detail::select_type_seq_entry_by_type<T>(type_pack_indexer<std::make_index_sequence<sizeof...(Ts)>, Ts...>{ }));
+    static constexpr std::size_t value = index_base::index;
+};
+
+template <typename T, typename... Ts>
+    struct type_pack_index_
+{
+    static constexpr std::size_t value = type_pack_index_<T, Ts...>::value;
+    static_assert(value != ~std::size_t(0), "type T does not appear in type sequence");
+};
+
+
+    // borrowed from the VC++ STL's variant implementation
+template <typename T, std::size_t I>
+    struct type_with_index
+{
+    static constexpr std::size_t index = I;
+    using type = T;
+};
+template <std::size_t I, typename T>
+    struct value_overload_
+{
+    using type = type_with_index<T, I> (*)(T);
+    operator type(void) const;
+};
+template <typename Is, typename... Ts> struct value_overload_set_;
+template <std::size_t... Is, typename... Ts> struct value_overload_set_<std::index_sequence<Is...>, Ts...> : value_overload_<Is, Ts>... { };
+template <typename... Ts> using value_overload_set = value_overload_set_<std::make_index_sequence<sizeof...(Ts)>, Ts...>;
+
+template <typename EnableT, typename T, typename... Ts> struct value_overload_init_ { };
+template <typename T, typename... Ts>
+    struct value_overload_init_<void_t<decltype(value_overload_set<Ts...>{ }(std::declval<T>()))>, T, Ts...>
+{
+    using type = decltype(value_overload_set<Ts...>{ }(std::declval<T>()));
+};
+
+template <typename T, typename... Ts> struct value_overload_type { using type = typename value_overload_init_<void, T, Ts...>::type::type; };
+template <typename T, typename... Ts> using value_overload_type_t = typename value_overload_init_<void, T, Ts...>::type::type::type;
+
+template <typename T, typename... Ts> struct value_overload_index : std::integral_constant<std::size_t, value_overload_init_<void, T, Ts...>::type::index> { };
+template <typename T, typename... Ts> static constexpr std::size_t value_overload_index_v = value_overload_init_<void, T, Ts...>::type::index;
 
 #ifdef __clang__
  #if __has_builtin(__type_pack_element)
@@ -144,6 +197,28 @@ template <std::size_t N, typename... Ts> using nth_type_t = typename nth_type<N,
 
 
     //ᅟ
+    // Determines the index of the type `T` in the variadic type sequence. If `T` does not appear in the type sequence, the index is `size_t(-1)`.
+    //
+template <typename T, typename... Ts> struct try_index_of_type : std::integral_constant<std::size_t, makeshift::detail::try_type_pack_index_<T, Ts...>::value> { };
+
+    //ᅟ
+    // Determines the index of the type `T` in the variadic type sequence. If `T` does not appear in the type sequence, the index is `size_t(-1)`.
+    //
+template <typename T, typename... Ts> constexpr std::size_t try_index_of_type_v = try_index_of_type<T, Ts...>::value;
+
+
+    //ᅟ
+    // Determines the index of the type `T` in the variadic type sequence.
+    //
+template <typename T, typename... Ts> struct index_of_type : std::integral_constant<std::size_t, makeshift::detail::type_pack_index_<T, Ts...>::value> { };
+
+    //ᅟ
+    // Determines the index of the type `T` in the variadic type sequence.
+    //
+template <typename T, typename... Ts> constexpr std::size_t index_of_type_v = index_of_type<T, Ts...>::value;
+
+
+    //ᅟ
     // Determines the `N`-th value in the variadic sequence.
     //
 template <std::size_t N, auto... Vs> struct nth_value : nth_type_t<N, std::integral_constant<decltype(Vs), Vs>...> { };
@@ -165,6 +240,30 @@ template <std::size_t N, template <typename...> class TypeSeqT, typename... Ts> 
     // Determines the `N`-th type in the given type sequence.
     //
 template <std::size_t N, typename TypeSeqT> using nth_type_in_t = typename nth_type_in<N, TypeSeqT>::type;
+
+
+    //ᅟ
+    // Determines the index of the type `T` in the given type sequence. If `T` does not appear in the type sequence, the index is `size_t(-1)`.
+    //
+template <typename T, typename TypeSeqT> struct try_index_of_type_in;
+template <typename T, template <typename...> class TypeSeqT, typename... Ts> struct try_index_of_type_in<T, TypeSeqT<Ts...>> : std::integral_constant<std::size_t, makeshift::detail::try_type_pack_index_<T, Ts...>::value> { };
+
+    //ᅟ
+    // Determines the index of the type `T` in the given type sequence. If `T` does not appear in the type sequence, the index is `size_t(-1)`.
+    //
+template <typename T, typename TypeSeqT> constexpr std::size_t try_index_of_type_in_v = try_index_of_type_in<T, TypeSeqT>::value;
+
+
+    //ᅟ
+    // Determines the index of the type `T` in the given type sequence.
+    //
+template <typename T, typename TypeSeqT> struct index_of_type_in;
+template <typename T, template <typename...> class TypeSeqT, typename... Ts> struct index_of_type_in<T, TypeSeqT<Ts...>> : std::integral_constant<std::size_t, makeshift::detail::type_pack_index_<T, Ts...>::value> { };
+
+    //ᅟ
+    // Determines the index of the type `T` in the given type sequence.
+    //
+template <typename T, typename TypeSeqT> constexpr std::size_t index_of_type_in_v = index_of_type_in<T, TypeSeqT>::value;
 
 
     //ᅟ
