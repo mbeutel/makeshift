@@ -5,9 +5,11 @@
 
 #include <cstddef>     // for size_t
 #include <utility>     // for move(), forward<>(), tuple_element<>, tuple_size<>, get<>
-#include <type_traits> // for decay<>, integral_constant<>, index_sequence<>
+#include <type_traits> // for decay<>, integral_constant<>, index_sequence<>, is_nothrow_default_constructible<>
 
 #include <makeshift/type_traits.hpp> // for can_apply<>, none
+
+#include <makeshift/detail/workaround.hpp> // for cand()
 
 
 namespace makeshift
@@ -36,6 +38,60 @@ template <typename T> struct is_tuple_like : can_apply<makeshift::detail::is_tup
     // Determines whether a type has a tuple-like interface (i.e. whether `std::tuple_size<T>::value` is well-formed).
     //
 template <typename T> constexpr bool is_tuple_like_v = is_tuple_like<T>::value;
+
+
+    //ᅟ
+    // Type tuple (tuple without runtime value representation).
+    //
+template <typename... Ts>
+    struct type_tuple
+{
+    static_assert(makeshift::detail::cand(std::is_nothrow_default_constructible<Ts>::value...), "types must be no-throw default-constructible");
+
+    constexpr type_tuple(void) noexcept = default;
+    constexpr type_tuple(const type_tuple&) noexcept = default;
+    constexpr type_tuple& operator =(const type_tuple&) noexcept { }
+    constexpr type_tuple(const Ts&...) noexcept { }
+    template <typename TupleT,
+              typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>> && std::is_same<apply_t<type_sequence, std::decay_t<TupleT>>, type_sequence<Ts...>>::value>>
+        explicit constexpr type_tuple(const TupleT&) noexcept
+    {
+    }
+    constexpr void swap(type_tuple&) noexcept { }
+};
+template <typename... Ts>
+    type_tuple(Ts&&...) -> type_tuple<std::decay_t<Ts>...>;
+
+
+    //ᅟ
+    // Return a type sequence that represents the types of the given values.
+    //
+template <typename... Ts>
+    constexpr type_tuple<std::decay_t<Ts>...> make_type_tuple(Ts&&...) noexcept
+{
+    return { };
+}
+
+
+    //ᅟ
+    // Returns the `I`-th element in the type tuple.
+    //
+template <std::size_t I, typename... Ts>
+    constexpr nth_type_t<I, Ts...> get(const type_tuple<Ts...>&) noexcept
+{
+    static_assert(I < sizeof...(Ts), "tuple index out of range");
+    return { };
+}
+
+    //ᅟ
+    // Returns the type tuple element of type `T`.
+    //
+template <typename T, typename... Ts>
+    constexpr T get(const type_tuple<Ts...>&) noexcept
+{
+    static_assert(try_index_of_type_v<T, Ts...> != std::size_t(-1), "type T does not appear in type sequence");
+    return { };
+}
 
 
     //ᅟ
@@ -880,6 +936,18 @@ tuple_cat(void)
 } // inline namespace types
 
 } // namespace makeshift
+
+
+namespace std
+{
+
+
+    // Specialize `tuple_size<>` and `tuple_element<>` for `type_tuple<>`.
+template <typename... Ts> class tuple_size<makeshift::type_tuple<Ts...>> : public std::integral_constant<std::size_t, sizeof...(Ts)> { };
+template <std::size_t I, typename... Ts> class tuple_element<I, makeshift::type_tuple<Ts...>> : public makeshift::detail::nth_type_<I, Ts...> { };
+
+
+} // namespace std
 
 
 #ifdef MAKESHIFT_DETAIL_UTILITY_KEYWORD_HPP_
