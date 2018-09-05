@@ -216,7 +216,11 @@ template <template <typename...> class T> constexpr template_tag_t<T> template_t
     //ᅟ
     // Encodes a value in a type.
     //
-template <auto V, typename = decltype(V)> struct constant : std::integral_constant<decltype(V), V> { };
+template <auto V, typename = decltype(V)> struct constant : std::integral_constant<decltype(V), V>
+{
+    constexpr constant(void) noexcept = default;
+    constexpr constant(std::integral_constant<decltype(V), V>) noexcept { }
+};
 
     //ᅟ
     // Encodes a value in the type of the expression.
