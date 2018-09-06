@@ -24,8 +24,7 @@ option(BUILD_TESTS "Build tests" OFF)
 option(EXPORT_BUILD_DIR "Export build directory using CMake (enables external use without install)" OFF)
 
 # Load CMakeshift.
-find_package(CMakeshift 1.1 REQUIRED)
-include(CMakeshift/CMakeshift)
+find_package(CMakeshift 1.2.1 REQUIRED)
 
 # Add the CMakeshift find module path to the module path.
 list(APPEND CMAKE_MODULE_PATH "${CMAKESHIFT_MODULE_DIR}")

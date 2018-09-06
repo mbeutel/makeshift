@@ -263,22 +263,12 @@ public:
 
 
 template <typename F>
-    struct variant_reduce_t : F
+    struct variant_reduce_t : F, variant_stream_base<variant_reduce_t<F>>
 {
     constexpr variant_reduce_t(F func) : F(std::move(func)) { }
 
-private:
-    template <std::size_t... Is, typename ValT, typename VariantT>
-        constexpr auto invoke(std::index_sequence<Is...>, ValT&& initialValue, VariantT&& variant) const
-    {
-        (void) variant;
-        using std::get; // make std::get<>(std::pair<>&&) visible to enable ADL for template methods named get<>()
-        auto wrappedInitialValue = make_accumulator_wrapper(static_cast<const F&>(*this), std::forward<ValT>(initialValue));
-        return (std::move(wrappedInitialValue) + ... + get<Is>(std::forward<VariantT>(variant))).get();
-    }
-    
 public:
-    template <typename ValT, typename VariantT,
+    template <typename VariantT,
               typename = std::enable_if_t<is_variant_like_v<std::decay_t<VariantT>>>>
         constexpr auto operator ()(VariantT&& variant) const
     {

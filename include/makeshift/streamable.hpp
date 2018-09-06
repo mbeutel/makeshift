@@ -37,7 +37,7 @@ private:
     SerializerT serializer_;
 
 public:
-    constexpr streamable_rvalue(const T& _value, SerializerT&& _serializer) noexcept : value_(_value), serializer_(std::forward<SerializerT>(_serializer)) { }
+    constexpr streamable_rvalue(const T& _value, SerializerT _serializer) noexcept : value_(_value), serializer_(std::forward<SerializerT>(_serializer)) { }
 
     friend std::ostream& operator <<(std::ostream& stream, const streamable_rvalue& self)
     {
@@ -61,7 +61,7 @@ private:
     SerializerT serializer_;
 
 public:
-    constexpr streamable_lvalue(T& _value, SerializerT&& _serializer) noexcept : value_(_value), serializer_(std::forward<SerializerT>(_serializer)) { }
+    constexpr streamable_lvalue(T& _value, SerializerT _serializer) noexcept : value_(_value), serializer_(std::forward<SerializerT>(_serializer)) { }
 
     friend std::ostream& operator <<(std::ostream& stream, const streamable_lvalue& self)
     {

@@ -5,7 +5,7 @@
 
 #include <tuple>
 #include <utility>     // for move(), forward<>()
-#include <type_traits> // for decay<>
+#include <type_traits> // for decay<>, is_base_of<>
 
 #include <makeshift/type_traits.hpp> // for tag<>, type_sequence<>, type_sequence_cat<>
 
@@ -13,8 +13,29 @@
 namespace makeshift
 {
 
+namespace detail
+{
+
+
+struct serializer_base { };
+
+
+} // namespace detail
+
+
 inline namespace serialize
 {
+
+
+    //ᅟ
+    // Determines whether a type is a serializer.
+    //
+template <typename T> struct is_serializer : std::is_base_of<makeshift::detail::serializer_base, T> { };
+
+    //ᅟ
+    // Determines whether a type is a serializer.
+    //
+template <typename T> constexpr bool is_serializer_v = is_serializer<T>::value;
 
 
     //ᅟ
@@ -48,7 +69,7 @@ template <template <typename...> class SerializerT, typename BaseT, typename... 
     using BaseT::BaseT;
 };
 template <template <typename...> class SerializerT, typename SerializerArgsT, typename... Ts>
-    struct define_serializer<SerializerT, void, SerializerArgsT, Ts...> : SerializerArgsT
+    struct define_serializer<SerializerT, void, SerializerArgsT, Ts...> : SerializerArgsT, makeshift::detail::serializer_base
 {
     using args_sequence = type_sequence<SerializerArgsT>;
 
@@ -61,7 +82,7 @@ template <template <typename...> class SerializerT, typename SerializerArgsT, ty
     }
 };
 template <template <typename...> class SerializerT, typename... Ts>
-    struct define_serializer<SerializerT, void, void, Ts...>
+    struct define_serializer<SerializerT, void, void, Ts...> : makeshift::detail::serializer_base
 {
     using args_sequence = type_sequence<>;
     constexpr define_serializer(void) = default;
