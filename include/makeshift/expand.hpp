@@ -79,7 +79,7 @@ template <typename T, typename MetadataTagT = serialization_metadata_tag>
 
     auto values = metadata_of<T, MetadataTagT>.attributes
         | tuple_filter<makeshift::detail::is_value_metadata>()
-        //| tuple_map([](const auto& v) { return constant<std::decay_t<decltype(v)>::value_type::value>{ }; });
+        //| tuple_map([](const auto& v) { return c<std::decay_t<decltype(v)>::value_type::value>; });
         | tuple_map([](const auto& v) { return std::integral_constant<T, std::decay_t<decltype(v)>::value_type::value>{ }; }); // workaround for ICE in VC++
     using Values = decltype(values); // std::tuple<constant<Cs>...>
     return apply_t<type_tuple, Values>(std::move(values)); // type_tuple<constant<Cs>...>

@@ -69,7 +69,7 @@ template <typename R, typename T, typename TupleT, std::size_t I, typename F>
     if (runtimeKey == std::get<I>(map).first)
         return func(std::get<I>(map).second);
     else
-        return static_map_impl<decltype(func(std::get<I>(map).second))>(runtimeKey, std::forward<TupleT>(map), c<I + 1>, std::forward<F>(func));
+        return static_map_impl<decltype(func(std::get<I>(map).second))>(runtimeKey, std::forward<TupleT>(map), constant<I + 1>{ }, std::forward<F>(func)); // TODO
 }
 template <typename R, typename T, typename TupleT, std::size_t I, typename F>
     auto static_map_impl(const T& runtimeKey, TupleT&& map, constant<I>, F&& func)
@@ -81,7 +81,7 @@ template <typename R, typename T, typename TupleT, std::size_t I, typename F>
     if constexpr (I == numElements)
         return static_map_impl_throw<R>();
     else
-        return static_map_impl_recur<R>(runtimeKey, std::forward<TupleT>(map), c<I>, std::forward<F>(func));
+        return static_map_impl_recur<R>(runtimeKey, std::forward<TupleT>(map), constant<I>{ }, std::forward<F>(func)); // TODO
 }
 
 
@@ -93,15 +93,15 @@ inline namespace types
 
 
 template <typename T, T... Vs, typename F>
-    auto static_select(const T&, sequence<T>, F&& func) -> decltype(func(c<T{ }>))
+    auto static_select(const T&, sequence<T>, F&& func) -> decltype(func(constant<T{ }>{ })) // TODO
 {
     throw std::runtime_error("unknown value"); // TODO: we can do better than this!
 }
 template <typename T, T V0, T... Vs, typename F>
-    auto static_select(const T& value, sequence<T, V0, Vs...>, F&& func) -> decltype(func(c<T{ }>))
+    auto static_select(const T& value, sequence<T, V0, Vs...>, F&& func) -> decltype(func(constant<T{ }>{ })) // TODO
 {
     if (value == V0)
-        return func(c<V0>);
+        return func(constant<V0>{ }); // TODO
     else
         return static_select(value, sequence<T, Vs...>{ }, std::forward<F>(func));
 }
@@ -121,7 +121,7 @@ template <typename T, typename TupleT, typename F,
           typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
     auto static_map(const T& key, TupleT&& map, F&& func)
 {
-    return makeshift::detail::static_map_impl<void>(key, std::forward<TupleT>(map), c<std::size_t(0)>, std::forward<F>(func));
+    return makeshift::detail::static_map_impl<void>(key, std::forward<TupleT>(map), constant<std::size_t(0)>{ }, std::forward<F>(func)); // TODO
 }
 
 
