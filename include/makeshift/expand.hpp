@@ -56,11 +56,6 @@ template <template <typename...> class VariantT, template <typename...> class Tu
 template <template <typename...> class VariantT, template <typename...> class TupleT, typename... Ts> struct apply_variant_type<false, VariantT, TupleT<Ts...>> { using type = VariantT<std::monostate, Ts...>; };
 template <bool Raise, template <typename...> class VariantT, typename TupleT> using apply_variant_type_t = typename apply_variant_type<Raise, VariantT, TupleT>::type;
 
-template <bool Raise, typename TupleT> struct apply_default_variant_type : apply_variant_type<Raise, std::variant, TupleT> { };
-template <bool Raise, typename... Ts> struct apply_default_variant_type<Raise, type_sequence<Ts...>> : apply_variant_type<Raise, type_variant, type_sequence<Ts...>> { };
-template <bool Raise, typename... Ts> struct apply_default_variant_type<Raise, type_tuple<Ts...>> : apply_variant_type<Raise, type_variant, type_tuple<Ts...>> { };
-template <bool Raise, typename TupleT> using apply_default_variant_type_t = typename apply_default_variant_type<Raise, TupleT>::type;
-
 template <typename T> using is_value_metadata = is_same_template<T, value_metadata>;
 
 
@@ -108,18 +103,18 @@ template <template <typename...> class VariantT,
 
 template <typename T, typename TupleT,
           typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
-    makeshift::detail::apply_default_variant_type_t<true, std::decay_t<TupleT>> expand(T&& value, TupleT&& tuple)
+    makeshift::detail::apply_variant_type_t<true, std::variant, std::decay_t<TupleT>> expand(T&& value, TupleT&& tuple)
 {
-    using R = makeshift::detail::apply_default_variant_type_t<true, std::decay_t<TupleT>>;
+    using R = makeshift::detail::apply_variant_type_t<true, std::variant, std::decay_t<TupleT>>;
     return makeshift::detail::expand_to_impl<true, R, 0>(std::forward<T>(value), std::forward<TupleT>(tuple));
 }
 
 
 template <typename T, typename TupleT,
           typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
-    makeshift::detail::apply_default_variant_type_t<false, std::decay_t<TupleT>> try_expand(T&& value, TupleT&& tuple)
+    makeshift::detail::apply_variant_type_t<false, std::variant, std::decay_t<TupleT>> try_expand(T&& value, TupleT&& tuple)
 {
-    using R = makeshift::detail::apply_default_variant_type_t<false, std::decay_t<TupleT>>;
+    using R = makeshift::detail::apply_variant_type_t<false, std::variant, std::decay_t<TupleT>>;
     return makeshift::detail::expand_to_impl<false, R, 0>(std::forward<T>(value), std::forward<TupleT>(tuple));
 }
 
