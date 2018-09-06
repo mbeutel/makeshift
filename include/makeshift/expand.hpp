@@ -1,9 +1,10 @@
-
+﻿
 #ifndef INCLUDED_MAKESHIFT_EXPAND_HPP_
 #define INCLUDED_MAKESHIFT_EXPAND_HPP_
 
 
 #include <variant>
+#include <stdexcept>
 #include <type_traits> // for enable_if<>, decay<>
 
 #include <makeshift/type_traits.hpp> // for type_sequence<>, tag<>
@@ -24,7 +25,7 @@ template <bool Raise, typename R, std::size_t I, typename T, typename TupleT>
 template <typename R>
     constexpr R expand_to_impl_fail(std::true_type /* raise */)
 {
-    throw std::bad_variant_access(); // cannot happen, we just need to silence the compiler about not being able to formally return a value
+    throw std::runtime_error("invalid value"); // TODO: surely we can do better than that!
 }
 template <typename R>
     constexpr R expand_to_impl_fail(std::false_type /* raise */)
@@ -66,6 +67,11 @@ inline namespace types
 {
 
 
+    //ᅟ
+    // For bool and for enum types with metadata, returns a tuple of type-encoded possible values.
+    //ᅟ
+    //ᅟ    auto boolValues = values_from_metadata<bool>(); // returns std::tuple<constant<false>, constant<true>>
+    //
 template <typename T, typename MetadataTagT = serialization_metadata_tag>
     constexpr auto values_from_metadata(tag_t<T> = { }, tag_t<MetadataTagT> = { })
 {
@@ -81,6 +87,13 @@ template <typename T, typename MetadataTagT = serialization_metadata_tag>
 }
 
 
+    //ᅟ
+    // Given a variant class, a runtime value and a tuple of type-encoded possible values, returns a variant of the type-encoded possible values.
+    // Raises std::runtime_error if the runtime value does not appear in the tuple of possible values.
+    //ᅟ
+    //ᅟ    int runtimeBits = ...;
+    //ᅟ    auto bits = expand_to<type_variant>(runtimeBits, std::make_tuple(c<16>, c<32>, c<64>)); // returns type_variant<constant<16>, constant<32>, constant<64>>
+    //
 template <template <typename...> class VariantT,
           typename T, typename TupleT,
           typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
@@ -91,6 +104,13 @@ template <template <typename...> class VariantT,
 }
 
 
+    //ᅟ
+    // Given a variant class, a runtime value and a tuple of type-encoded possible values, returns a variant of the type-encoded possible values and `std::monostate`.
+    // The variant holds `std::monostate` if the runtime value does not appear in the tuple of possible values.
+    //ᅟ
+    //ᅟ    int runtimeBits = ...;
+    //ᅟ    auto bits = try_expand_to<type_variant>(runtimeBits, std::make_tuple(c<16>, c<32>, c<64>)); // returns type_variant<std::monostate, constant<16>, constant<32>, constant<64>>
+    //
 template <template <typename...> class VariantT,
           typename T, typename TupleT,
           typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
@@ -101,6 +121,13 @@ template <template <typename...> class VariantT,
 }
 
 
+    //ᅟ
+    // Given a runtime value and a tuple of type-encoded possible values, returns a variant of the type-encoded possible values.
+    // Raises std::runtime_error if the runtime value does not appear in the tuple of possible values.
+    //ᅟ
+    //ᅟ    int runtimeBits = ...;
+    //ᅟ    auto bits = expand(runtimeBits, std::make_tuple(c<16>, c<32>, c<64>)); // returns std::variant<constant<16>, constant<32>, constant<64>>
+    //
 template <typename T, typename TupleT,
           typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
     makeshift::detail::apply_variant_type_t<true, std::variant, std::decay_t<TupleT>> expand(T&& value, TupleT&& tuple)
@@ -110,6 +137,13 @@ template <typename T, typename TupleT,
 }
 
 
+    //ᅟ
+    // Given a runtime value and a tuple of type-encoded possible values, returns a variant of `std::monostate` and the type-encoded possible values.
+    // The variant holds `std::monostate` if the runtime value does not appear in the tuple of possible values.
+    //ᅟ
+    //ᅟ    int runtimeBits = ...;
+    //ᅟ    auto bits = try_expand(runtimeBits, std::make_tuple(c<16>, c<32>, c<64>)); // returns std::variant<std::monostate, constant<16>, constant<32>, constant<64>>
+    //
 template <typename T, typename TupleT,
           typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
     makeshift::detail::apply_variant_type_t<false, std::variant, std::decay_t<TupleT>> try_expand(T&& value, TupleT&& tuple)
@@ -119,22 +153,17 @@ template <typename T, typename TupleT,
 }
 
 
-template <typename T, typename MetadataTagT = serialization_metadata_tag>
-    auto expand(T&& value, tag_t<MetadataTagT> = { })
-{
-    /*constexpr*/ auto tuple = values_from_metadata(tag<std::decay_t<T>>, tag<MetadataTagT>); // TODO: currently not constexpr due to VC++ ICE
-    return expand(std::forward<T>(value), std::move(tuple));
-}
-
-
-template <typename T, typename MetadataTagT = serialization_metadata_tag>
-    auto try_expand(T&& value, tag_t<MetadataTagT> = { })
-{
-    /*constexpr*/ auto tuple = values_from_metadata(tag<std::decay_t<T>>, tag<MetadataTagT>); // TODO: currently not constexpr due to VC++ ICE
-    return try_expand(std::forward<T>(value), std::move(tuple));
-}
-
-
+    //ᅟ
+    // Given a variant class and a runtime value, returns a variant of the type-encoded possible values as defined by metadata.
+    // Raises std::runtime_error if the runtime value does not appear in the tuple of possible values.
+    //ᅟ
+    //ᅟ    enum Color { red, green, blue };
+    //ᅟ    constexpr inline auto reflect(Color*, serialization_metadata_tag) noexcept { ... }
+    //ᅟ
+    //ᅟ    Color runtimeColor = ...;
+    //ᅟ    auto color = expand_to<type_variant>(runtimeColor); // returns type_variant<constant<red>, constant<green>, constant<blue>>
+    //ᅟ    auto color = expand_to<type_variant>(runtimeColor); // returns type_variant<constant<red>, constant<green>, constant<blue>>
+    //
 template <template <typename...> class VariantT,
           typename T, typename MetadataTagT = serialization_metadata_tag>
     auto expand_to(T&& value, tag_t<MetadataTagT> = { })
@@ -144,12 +173,58 @@ template <template <typename...> class VariantT,
 }
 
 
+    //ᅟ
+    // Given a variant class and a runtime value, returns a variant of `std::monostate` and the type-encoded possible values as defined by metadata.
+    // The variant holds `std::monostate` if the runtime value does not appear in the tuple of possible values.
+    //ᅟ
+    //ᅟ    enum Color { red, green, blue };
+    //ᅟ    constexpr inline auto reflect(Color*, serialization_metadata_tag) noexcept { ... }
+    //ᅟ
+    //ᅟ    Color runtimeColor = ...;
+    //ᅟ    auto color = try_expand_to<type_variant>(runtimeColor); // returns type_variant<std::monostate, constant<red>, constant<green>, constant<blue>>
+    //
 template <template <typename...> class VariantT,
           typename T, typename MetadataTagT = serialization_metadata_tag>
     auto try_expand_to(T&& value, tag_t<MetadataTagT> = { })
 {
     /*constexpr*/ auto tuple = values_from_metadata(tag<std::decay_t<T>>, tag<MetadataTagT>); // TODO: currently not constexpr due to VC++ ICE
     return try_expand_to<VariantT>(std::forward<T>(value), std::move(tuple));
+}
+
+
+    //ᅟ
+    // Given a runtime value, returns a variant of the type-encoded possible values as defined by metadata.
+    // Raises std::runtime_error if the runtime value does not appear in the tuple of possible values.
+    //ᅟ
+    //ᅟ    enum Color { red, green, blue };
+    //ᅟ    constexpr inline auto reflect(Color*, serialization_metadata_tag) noexcept { ... }
+    //ᅟ
+    //ᅟ    Color runtimeColor = ...;
+    //ᅟ    auto color = expand(runtimeColor); // returns std::variant<constant<red>, constant<green>, constant<blue>>
+    //
+template <typename T, typename MetadataTagT = serialization_metadata_tag>
+    auto expand(T&& value, tag_t<MetadataTagT> = { })
+{
+    /*constexpr*/ auto tuple = values_from_metadata(tag<std::decay_t<T>>, tag<MetadataTagT>); // TODO: currently not constexpr due to VC++ ICE
+    return expand(std::forward<T>(value), std::move(tuple));
+}
+
+
+    //ᅟ
+    // Given a runtime value, returns a variant of `std::monostate` and the type-encoded possible values as defined by metadata.
+    // The variant holds `std::monostate` if the runtime value does not appear in the tuple of possible values.
+    //ᅟ
+    //ᅟ    enum Color { red, green, blue };
+    //ᅟ    constexpr inline auto reflect(Color*, serialization_metadata_tag) noexcept { ... }
+    //ᅟ
+    //ᅟ    Color runtimeColor = ...;
+    //ᅟ    auto color = try_expand(runtimeColor); // returns std::variant<std::monostate, constant<red>, constant<green>, constant<blue>>
+    //
+template <typename T, typename MetadataTagT = serialization_metadata_tag>
+    auto try_expand(T&& value, tag_t<MetadataTagT> = { })
+{
+    /*constexpr*/ auto tuple = values_from_metadata(tag<std::decay_t<T>>, tag<MetadataTagT>); // TODO: currently not constexpr due to VC++ ICE
+    return try_expand(std::forward<T>(value), std::move(tuple));
 }
 
 
