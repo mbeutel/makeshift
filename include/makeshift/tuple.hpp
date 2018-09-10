@@ -59,6 +59,19 @@ template <typename... Ts>
     }
     constexpr void swap(type_tuple&) noexcept { }
 };
+template <>
+    struct type_tuple<>
+{
+    constexpr type_tuple(void) noexcept = default;
+    constexpr type_tuple(const type_tuple&) noexcept = default;
+    constexpr type_tuple& operator =(const type_tuple&) noexcept { }
+    template <typename TupleT,
+              typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>> && std::is_same<apply_t<type_sequence, std::decay_t<TupleT>>, type_sequence<>>::value>>
+        explicit constexpr type_tuple(const TupleT&) noexcept
+    {
+    }
+    constexpr void swap(type_tuple&) noexcept { }
+};
 template <typename... Ts>
     type_tuple(Ts&&...) -> type_tuple<std::decay_t<Ts>...>;
 

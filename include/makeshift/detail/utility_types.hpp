@@ -89,19 +89,19 @@ constexpr inline std::ptrdiff_t cpow10(int I, int N) noexcept
         result *= 10;
     return result;
 }
-template <typename Is, char... Cs>
-    struct make_index_constant_;
-template <std::size_t... Is, char... Cs>
-    struct make_index_constant_<std::index_sequence<Is...>, Cs...>
+template <typename T, typename Is, char... Cs>
+    struct make_constant_;
+template <typename T, std::size_t... Is, char... Cs>
+    struct make_constant_<T, std::index_sequence<Is...>, Cs...>
 {
     static_assert(cand(Cs >= '0' && Cs <= '9'...), "invalid character: index must be an integral value");
-    static constexpr std::ptrdiff_t value = csum<std::ptrdiff_t>((Cs - '0') * cpow10(Is, sizeof...(Cs))...);
+    static constexpr T value = csum<T>((Cs - '0') * cpow10(Is, sizeof...(Cs))...);
 };
-template <char... Cs> struct make_index_constant : make_index_constant_<std::make_index_sequence<sizeof...(Cs)>, Cs...> { };
-template <char... Cs> constexpr std::ptrdiff_t make_index_constant_v = make_index_constant<Cs...>::value;
+template <typename T, char... Cs> struct make_constant : make_constant_<T, std::make_index_sequence<sizeof...(Cs)>, Cs...> { };
+template <typename T, char... Cs> constexpr std::ptrdiff_t make_constant_v = make_constant<T, Cs...>::value;
 
 
-template <auto I, auto V> using substitute = std::integral_constant<decltype(V), V>;
+template <auto I, auto V, typename = decltype(V)> using substitute = std::integral_constant<decltype(V), V>;
 template <typename Is> struct zero_index_0_;
 template <std::size_t... Is> struct zero_index_0_<std::index_sequence<Is...>> { using type = index_constant<substitute<Is, std::ptrdiff_t(0)>::value...>; };
 template <dim_t Dim> struct zero_index_ : zero_index_0_<std::make_index_sequence<Dim>> { };
@@ -137,12 +137,25 @@ inline namespace literals
 
 
     //ᅟ
+    // Encodes a value given as numeric literal in the type of the expression using `integral_constant<>`.
+    //ᅟ
+    //ᅟ    auto i = 42_c; // decltype(i) is integral_constant<long long, 42>
+    //
+template <char... Cs>
+    constexpr inline std::integral_constant<long long, makeshift::detail::make_constant<long long, Cs...>::value>
+    operator "" _c(void) noexcept
+{
+    return { };
+}
+
+
+    //ᅟ
     // Encodes an index value given as numeric literal in the type of the expression using `index_constant<>`.
     //ᅟ
     //ᅟ    auto i = 42_idx; // decltype(i) is index_constant<42>
     //
 template <char... Cs>
-    constexpr inline index_constant<makeshift::detail::make_index_constant<Cs...>::value>
+    constexpr inline index_constant<makeshift::detail::make_constant<index_t, Cs...>::value>
     operator "" _idx(void) noexcept
 {
     return { };
@@ -155,7 +168,7 @@ template <char... Cs>
     //ᅟ    auto d = 3_dim; // decltype(i) is dim_constant<3>
     //
 template <char... Cs>
-    constexpr inline dim_constant<makeshift::detail::make_index_constant<Cs...>::value>
+    constexpr inline dim_constant<makeshift::detail::make_constant<dim_t, Cs...>::value>
     operator "" _dim(void) noexcept
 {
     return { };

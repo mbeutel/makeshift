@@ -18,11 +18,11 @@ inline namespace types
     // A type that publicly inherits from all argument types and initializes its base classes with `std::forward<>()`.
     //
 template <typename... Ts>
-    struct combination_t : Ts...
+    struct combination : Ts...
 {
     template <typename... LTs,
               typename = std::enable_if_t<sizeof...(LTs) == sizeof...(Ts)>>
-        constexpr combination_t(LTs&&... args)
+        constexpr combination(LTs&&... args)
             : Ts(std::forward<LTs>(args))...
     {
     }
@@ -41,7 +41,7 @@ template <typename Ts>
     // Returns an instance of a type that publicly inherits from all argument types and initializes its base classes with `std::forward<Ts>(args)`.
     //
 template <typename... Ts>
-    constexpr combination_t<std::decay_t<Ts>...> combine(Ts&&... args)
+    constexpr combination<std::decay_t<Ts>...> combine(Ts&&... args)
 {
     return { std::forward<Ts>(args)... };
 }

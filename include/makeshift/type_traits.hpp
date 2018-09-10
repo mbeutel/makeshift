@@ -442,7 +442,7 @@ template <typename T> constexpr bool is_none_v = is_none<T>::value;
     //ᅟ
     // Retrieves the flag type (i.e. the `struct` which inherits from `define_flags<>` and defines flag values) of a flags enum.
     //
-template <typename T> struct flag_type_of : decltype(flag_type_of_(std::declval<T>(), std::declval<makeshift::detail::flags_tag>())) { };
+template <typename T> struct flag_type_of : decltype(flag_type_of_(std::declval<T>(), makeshift::detail::flags_tag{ })) { };
 
     //ᅟ
     // Retrieves the flag type (i.e. the `struct` which inherits from `define_flags<>` and defines flag values) of a flags enum.

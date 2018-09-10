@@ -3,7 +3,7 @@
 #define INCLUDED_MAKESHIFT_DETAIL_UTILITY_FLAGS_HPP_
 
 
-#include <makeshift/type_traits.hpp> // for flags_base, none
+#include <makeshift/type_traits.hpp> // for flags_base, none, tag<>
 
 
 namespace makeshift
