@@ -17,6 +17,8 @@ namespace detail
 struct flags_base { };
 struct flags_tag { };
 
+struct constrained_integer_base { };
+
 struct any_tag_tag { };
 template <typename... Ts> any_tag_tag any_tag_func(Ts...) { return { }; }
 
@@ -507,6 +509,17 @@ template <typename T> struct is_flags_enum : std::conjunction<std::is_enum<T>, c
     // Determines whether the given type is a flags enum.
     //
 template <typename T> constexpr bool is_flags_enum_v = is_flags_enum<T>::value;
+
+
+    //ᅟ
+    // Determines whether the given type is a constrained integer.
+    //
+template <typename T> struct is_constrained_integer : std::is_base_of<makeshift::detail::constrained_integer_base, T> { };
+
+    //ᅟ
+    // Determines whether the given type is a constrained integer.
+    //
+template <typename T> constexpr bool is_constrained_integer_v = is_constrained_integer<T>::value;
 
 
     //ᅟ

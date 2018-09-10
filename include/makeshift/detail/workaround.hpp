@@ -14,6 +14,11 @@ template <typename R, typename... Ts>
     return (vs + ... + term);
 }
 template <typename... Ts>
+    constexpr inline bool cor(Ts... vs) noexcept // workaround to make VC++ accept non-trivial fold expressions
+{
+    return (vs || ...);
+}
+template <typename... Ts>
     constexpr inline bool cand(Ts... vs) noexcept // workaround to make VC++ accept non-trivial fold expressions
 {
     return (vs && ...);

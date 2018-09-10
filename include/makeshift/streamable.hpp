@@ -114,6 +114,23 @@ template <typename EnumT, std::size_t N, typename SerializerT>
 }
 
 
+template <typename ConstrainedIntT, typename SerializerT>
+    void constrained_integer_to_stream_impl(ConstrainedIntT value, std::ostream& stream, SerializerT& serializer)
+{
+    stream << streamable_rvalue { value.value(), serializer };
+}
+
+template <typename ConstrainedIntT, typename SerializerT>
+    void constrained_integer_from_stream_impl(ConstrainedIntT& value, std::istream& stream, SerializerT& serializer)
+{
+    using Int = typename ConstrainedIntT::value_type;
+    Int result;
+    stream >> streamable_lvalue { result, serializer };
+    value = ConstrainedIntT::check(result);
+}
+
+
+
 } // namespace detail
 
 
@@ -166,6 +183,8 @@ template <typename BaseT = void>
         using D = std::decay_t<T>;
         if constexpr (std::is_enum<D>::value && have_metadata_v<D, serializer_metadata_tag_t<std::decay_t<SerializerT>>>)
             enum_to_stream_impl(value, stream, makeshift::detail::serialization_data<D, serializer_metadata_tag_t<std::decay_t<SerializerT>>>, streamSerializer.enum_options, serializer);
+        else if constexpr (is_constrained_integer_v<D>)
+            makeshift::detail::constrained_integer_to_stream_impl(value, stream, serializer);
         else
             stream << value;
     }
@@ -179,6 +198,8 @@ template <typename BaseT = void>
         using D = std::decay_t<T>;
         if constexpr (std::is_enum<D>::value && have_metadata_v<D, serializer_metadata_tag_t<std::decay_t<SerializerT>>>)
             enum_from_stream_impl(value, stream, makeshift::detail::serialization_data<D, serializer_metadata_tag_t<std::decay_t<SerializerT>>>, streamSerializer.enum_options, serializer);
+        else if constexpr (is_constrained_integer_v<D>)
+            makeshift::detail::constrained_integer_from_stream_impl(value, stream, serializer);
         else
             stream >> value;
     }
