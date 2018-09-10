@@ -417,6 +417,54 @@ template <typename T, T... Vs>
 
 
     //ᅟ
+    // Encodes an integer range in a type.
+    //
+template <typename T, T First, T Last>
+    struct integer_range
+{
+    static_assert(Last >= First, "invalid range");
+
+    using value_type = T;
+
+    static constexpr std::size_t size(void) noexcept { return std::size_t(Last - First); }
+    static constexpr T first(void) noexcept { return First; }
+    static constexpr T last(void) noexcept { return Last; }
+
+    constexpr integer_range(/*void*/) noexcept { }
+
+    // TODO: there is more to do here! (e.g. iterators)
+};
+
+
+    //ᅟ
+    // Encodes an upper-half integer range in a type.
+    //
+template <typename T, T First>
+    struct integer_upper_half_range
+{
+    using value_type = T;
+
+    static constexpr T first(void) noexcept { return First; }
+
+    constexpr integer_upper_half_range(/*void*/) noexcept { }
+};
+
+
+    //ᅟ
+    // Encodes a lower-half integer range in a type.
+    //
+template <typename T, T Last>
+    struct integer_lower_half_range
+{
+    using value_type = T;
+
+    static constexpr T last(void) noexcept { return Last; }
+
+    constexpr integer_lower_half_range(/*void*/) noexcept { }
+};
+
+
+    //ᅟ
     // Null type for tuple functions, flag enums and other purposes.
     //
 struct none_t { };
