@@ -19,7 +19,7 @@ enum class MyEnum
     foo,
     bar
 };
-static constexpr auto reflect(MyEnum*, mk::serialization_metadata_tag)
+static constexpr auto reflect(MyEnum*, mk::any_tag_of<mk::reflection_metadata_tag, mk::serialization_metadata_tag>)
 {
     using namespace makeshift::metadata;
     return type<MyEnum>(
@@ -47,7 +47,7 @@ struct Vegetables : mk::define_flags<Vegetables>
     static constexpr flags something_weird = chili | flag(128);
 };
 using Ratatouille = Vegetables::flags;
-static constexpr auto reflect(Vegetables*, mk::serialization_metadata_tag) // note: we reflect on Vegetables which is our own type, not on Ratatouille which is just an alias!
+static constexpr auto reflect(Vegetables*, mk::any_tag_of<mk::reflection_metadata_tag, mk::serialization_metadata_tag>) // note: we reflect on Vegetables which is our own type, not on Ratatouille which is just an alias!
 {
     using namespace makeshift::metadata;
     return type<Vegetables>(

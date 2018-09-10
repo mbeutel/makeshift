@@ -21,7 +21,7 @@ struct MyStruct
     void setBar(float) const { }
     double baz;
 };
-static constexpr auto reflect(MyStruct*, mk::serialization_metadata_tag)
+static constexpr auto reflect(MyStruct*, mk::any_tag_of<mk::reflection_metadata_tag, mk::serialization_metadata_tag>)
 {
     using namespace makeshift::metadata;
     return type<MyStruct>("MyStruct",
