@@ -35,4 +35,3 @@
 
 
 #endif // INCLUDED_MAKESHIFT_DETAIL_CFG_HPP_
-

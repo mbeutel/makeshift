@@ -3,7 +3,7 @@
 #define INCLUDED_MAKESHIFT_DETAIL_UTILITY_TYPES_HPP_
 
 
-#include <cstddef>     // for ptrdiff_t
+#include <cstddef>     // for size_t, ptrdiff_t
 #include <type_traits> // for integral_constant<>
 
 #include <makeshift/type_traits.hpp> // for sequence<>

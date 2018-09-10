@@ -90,7 +90,7 @@ template <typename ValC, typename... AttributesT>
     return valueMetadata.attributes
         | tuple_filter<is_string_view>()
         | tuple_map([](std::string_view lname) { return enum_value_serialization_data{ std::uint64_t(ValC::value), lname }; })
-        | to_array();
+        | to_array<enum_value_serialization_data>();
 }
 
 template <std::size_t N>
