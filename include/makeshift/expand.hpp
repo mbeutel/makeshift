@@ -107,34 +107,34 @@ public:
 
 
 template <bool Raise, typename R, std::size_t I, typename T, typename TupleT>
-    constexpr R expand_to_impl(T&& value, TupleT&& tuple);
+    constexpr R expand_impl(T&& value, TupleT&& tuple);
 template <typename R, typename T>
-    constexpr R expand_to_impl_fail(std::true_type /* raise */, T&&)
+    constexpr R expand_impl_fail(std::true_type /* raise */, T&&)
 {
     throw std::runtime_error("invalid value"); // TODO: surely we can do better than that!
 }
 template <typename R, typename T>
-    constexpr R expand_to_impl_fail(std::false_type /* raise */, T&& value)
+    constexpr R expand_impl_fail(std::false_type /* raise */, T&& value)
 {
     return unknown_value{ std::forward<T>(value) };
 }
 template <bool Raise, typename R, std::size_t I, typename T, typename TupleT>
-    constexpr R expand_to_impl_recur(T&& value, TupleT&& tuple)
+    constexpr R expand_impl_recur(T&& value, TupleT&& tuple)
 {
     if (value == get<I>(tuple))
         return { get<I>(std::forward<TupleT>(tuple)) };
     else
-        return expand_to_impl<Raise, R, I + 1>(std::forward<T>(value), std::forward<TupleT>(tuple));
+        return expand_impl<Raise, R, I + 1>(std::forward<T>(value), std::forward<TupleT>(tuple));
 }
 template <bool Raise, typename R, std::size_t I, typename T, typename TupleT>
-    constexpr R expand_to_impl(T&& value, TupleT&& tuple)
+    constexpr R expand_impl(T&& value, TupleT&& tuple)
 {
     (void) value;
     (void) tuple;
     if constexpr (I == std::tuple_size<std::decay_t<TupleT>>::value)
-        return expand_to_impl_fail<R>(std::integral_constant<bool, Raise>{ }, std::forward<T>(value));
+        return expand_impl_fail<R>(std::integral_constant<bool, Raise>{ }, std::forward<T>(value));
     else
-        return expand_to_impl_recur<Raise, R, I>(std::forward<T>(value), std::forward<TupleT>(tuple));
+        return expand_impl_recur<Raise, R, I>(std::forward<T>(value), std::forward<TupleT>(tuple));
 }
 
 
@@ -216,40 +216,6 @@ template <typename T, typename MetadataTagT = reflection_metadata_tag>
 
 
     //ᅟ
-    // Given a variant class, a runtime value and a tuple of type-encoded possible values, returns a variant of the type-encoded possible values.
-    // Raises std::runtime_error if the runtime value does not appear in the tuple of possible values.
-    //ᅟ
-    //ᅟ    int runtimeBits = ...;
-    //ᅟ    auto bits = expand_to<type_variant>(runtimeBits, std::make_tuple(c<16>, c<32>, c<64>)); // returns type_variant<constant<16>, constant<32>, constant<64>>
-    //
-template <template <typename...> class VariantT,
-          typename T, typename TupleT,
-          typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
-    makeshift::detail::apply_variant_type_t<true, VariantT, std::decay_t<T>, std::decay_t<TupleT>> expand_to(T&& value, TupleT&& tuple)
-{
-    using R = makeshift::detail::apply_variant_type_t<true, VariantT, std::decay_t<T>, std::decay_t<TupleT>>;
-    return makeshift::detail::expand_to_impl<true, R, 0>(std::forward<T>(value), std::forward<TupleT>(tuple));
-}
-
-
-    //ᅟ
-    // Given a variant class, a runtime value and a tuple of type-encoded possible values, returns a variant of `unknown_value<>` and the type-encoded possible values.
-    // The variant holds `unknown_value<>` if the runtime value does not appear in the tuple of possible values.
-    //ᅟ
-    //ᅟ    int runtimeBits = ...;
-    //ᅟ    auto bits = try_expand_to<type_variant>(runtimeBits, std::make_tuple(c<16>, c<32>, c<64>)); // returns type_variant<unknown_value<int>, constant<16>, constant<32>, constant<64>>
-    //
-template <template <typename...> class VariantT,
-          typename T, typename TupleT,
-          typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
-    makeshift::detail::apply_variant_type_t<false, VariantT, std::decay_t<T>, std::decay_t<TupleT>> try_expand_to(T&& value, TupleT&& tuple)
-{
-    using R = makeshift::detail::apply_variant_type_t<false, VariantT, std::decay_t<T>, std::decay_t<TupleT>>;
-    return makeshift::detail::expand_to_impl<false, R, 0>(std::forward<T>(value), std::forward<TupleT>(tuple));
-}
-
-
-    //ᅟ
     // Given a runtime value and a tuple of type-encoded possible values, returns a variant of the type-encoded possible values.
     // Raises std::runtime_error if the runtime value does not appear in the tuple of possible values.
     //ᅟ
@@ -261,7 +227,7 @@ template <typename T, typename TupleT,
     makeshift::detail::apply_variant_type_t<true, std::variant, std::decay_t<T>, std::decay_t<TupleT>> expand(T&& value, TupleT&& tuple)
 {
     using R = makeshift::detail::apply_variant_type_t<true, std::variant, std::decay_t<T>, std::decay_t<TupleT>>;
-    return makeshift::detail::expand_to_impl<true, R, 0>(std::forward<T>(value), std::forward<TupleT>(tuple));
+    return makeshift::detail::expand_impl<true, R, 0>(std::forward<T>(value), std::forward<TupleT>(tuple));
 }
 
 
@@ -277,46 +243,7 @@ template <typename T, typename TupleT,
     makeshift::detail::apply_variant_type_t<false, std::variant, std::decay_t<T>, std::decay_t<TupleT>> try_expand(T&& value, TupleT&& tuple)
 {
     using R = makeshift::detail::apply_variant_type_t<false, std::variant, std::decay_t<T>, std::decay_t<TupleT>>;
-    return makeshift::detail::expand_to_impl<false, R, 0>(std::forward<T>(value), std::forward<TupleT>(tuple));
-}
-
-
-    //ᅟ
-    // Given a variant class and a runtime value, returns a variant of the type-encoded possible values as defined by metadata.
-    // Raises std::runtime_error if the runtime value does not appear in the tuple of possible values.
-    //ᅟ
-    //ᅟ    enum Color { red, green, blue };
-    //ᅟ    constexpr inline auto reflect(Color*, serialization_metadata_tag) noexcept { ... }
-    //ᅟ
-    //ᅟ    Color runtimeColor = ...;
-    //ᅟ    auto color = expand_to<type_variant>(runtimeColor); // returns type_variant<constant<red>, constant<green>, constant<blue>>
-    //ᅟ    auto color = expand_to<type_variant>(runtimeColor); // returns type_variant<constant<red>, constant<green>, constant<blue>>
-    //
-template <template <typename...> class VariantT,
-          typename T, typename MetadataTagT = serialization_metadata_tag>
-    auto expand_to(T&& value, tag<MetadataTagT> = { })
-{
-    /*constexpr*/ auto tuple = values_from_type_or_metadata(tag_v<std::decay_t<T>>, MetadataTagT{ }); // TODO: currently not constexpr due to VC++ ICE
-    return expand_to<VariantT>(std::forward<T>(value), std::move(tuple));
-}
-
-
-    //ᅟ
-    // Given a variant class and a runtime value, returns a variant of `unknown_value<>` and the type-encoded possible values as defined by metadata.
-    // The variant holds `unknown_value<>` if the runtime value does not appear in the tuple of possible values.
-    //ᅟ
-    //ᅟ    enum Color { red, green, blue };
-    //ᅟ    constexpr inline auto reflect(Color*, serialization_metadata_tag) noexcept { ... }
-    //ᅟ
-    //ᅟ    Color runtimeColor = ...;
-    //ᅟ    auto color = try_expand_to<type_variant>(runtimeColor); // returns type_variant<unknown_value<Color>, constant<red>, constant<green>, constant<blue>>
-    //
-template <template <typename...> class VariantT,
-          typename T, typename MetadataTagT = serialization_metadata_tag>
-    auto try_expand_to(T&& value, tag<MetadataTagT> = { })
-{
-    /*constexpr*/ auto tuple = values_from_type_or_metadata(tag_v<std::decay_t<T>>, MetadataTagT{ }); // TODO: currently not constexpr due to VC++ ICE
-    return try_expand_to<VariantT>(std::forward<T>(value), std::move(tuple));
+    return makeshift::detail::expand_impl<false, R, 0>(std::forward<T>(value), std::forward<TupleT>(tuple));
 }
 
 
