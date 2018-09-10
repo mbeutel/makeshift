@@ -31,7 +31,7 @@ struct accumulate_sequence_t
 
 template <typename T> using is_value_metadata = is_same_template<T, value_metadata>;
 template <typename T, typename MetadataTagT = serialization_metadata_tag>
-    auto static_get_values(tag_t<T> = { }, tag_t<MetadataTagT> = { })
+    auto static_get_values(tag<T> = { }, tag<MetadataTagT> = { })
 {
     if constexpr (std::is_same<T, bool>::value)
         return sequence<bool, false, true>{ };
@@ -106,14 +106,14 @@ template <typename T, T V0, T... Vs, typename F>
         return static_select(value, sequence<T, Vs...>{ }, std::forward<F>(func));
 }
 template <typename T, typename MetadataTagT, typename F>
-    auto static_select(const T& value, tag_t<MetadataTagT>, F&& func)
+    auto static_select(const T& value, tag<MetadataTagT>, F&& func)
 {
-    return static_select(value, makeshift::detail::static_get_values(tag<T>, tag<MetadataTagT>), std::forward<F>(func));
+    return static_select(value, makeshift::detail::static_get_values(tag_v<T>, tag<MetadataTagT>), std::forward<F>(func));
 }
 template <typename T, typename F>
     auto static_select(const T& value, F&& func)
 {
-    return static_select(value, makeshift::detail::static_get_values(tag<T>), std::forward<F>(func));
+    return static_select(value, makeshift::detail::static_get_values(tag_v<T>), std::forward<F>(func));
 }
 
 

@@ -144,7 +144,7 @@ rhs:
 
 kwargs!!
 
-cfg[tag<T>]
+cfg[tag_v<T>]
 cfg[name<"foo"_kw>]
 retrieve(cfg)
 */

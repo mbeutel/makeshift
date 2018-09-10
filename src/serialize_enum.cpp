@@ -33,7 +33,7 @@ namespace detail
 }
 
 
-unsigned scalar_from_string(tag_t<unsigned>, const std::string& string)
+unsigned scalar_from_string(tag<unsigned>, const std::string& string)
 {
     return checked_cast<unsigned>(std::stoul(string));
 }

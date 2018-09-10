@@ -97,7 +97,7 @@ template <typename EnumT, std::size_t N, typename SerializerT>
 {
     std::string str;
     stream >> streamable_lvalue { str, serializer };
-    value = from_string_impl(tag<EnumT>, str, sdata, options);
+    value = from_string_impl(tag_v<EnumT>, str, sdata, options);
 }
 
 template <typename EnumT, std::size_t N, typename SerializerT>
@@ -110,7 +110,7 @@ template <typename EnumT, std::size_t N, typename SerializerT>
 {
     std::string str;
     stream >> streamable_lvalue { str, serializer };
-    value = from_string_impl(tag<EnumT>, str, sdata, options);
+    value = from_string_impl(tag_v<EnumT>, str, sdata, options);
 }
 
 
@@ -164,7 +164,7 @@ template <typename BaseT = void>
         (void) streamSerializer;
         (void) serializer;
         using D = std::decay_t<T>;
-        if constexpr (std::is_enum<D>::value)
+        if constexpr (std::is_enum<D>::value && have_metadata_v<D, serializer_metadata_tag_t<std::decay_t<SerializerT>>>)
             enum_to_stream_impl(value, stream, makeshift::detail::serialization_data<D, serializer_metadata_tag_t<std::decay_t<SerializerT>>>, streamSerializer.enum_options, serializer);
         else
             stream << value;
@@ -177,7 +177,7 @@ template <typename BaseT = void>
         (void) serializer;
         (void) streamSerializer;
         using D = std::decay_t<T>;
-        if constexpr (std::is_enum<D>::value)
+        if constexpr (std::is_enum<D>::value && have_metadata_v<D, serializer_metadata_tag_t<std::decay_t<SerializerT>>>)
             enum_from_stream_impl(value, stream, makeshift::detail::serialization_data<D, serializer_metadata_tag_t<std::decay_t<SerializerT>>>, streamSerializer.enum_options, serializer);
         else
             stream >> value;

@@ -120,7 +120,7 @@ template <typename EnumT, std::size_t N>
     return enum_to_string(std::uint64_t(value), sdata.data(), options);
 }
 template <typename EnumT, std::size_t N>
-    EnumT from_string_impl(tag_t<EnumT>, const std::string& string, const enum_serialization_data<N>& sdata, const enum_serialization_options_t& options)
+    EnumT from_string_impl(tag<EnumT>, const std::string& string, const enum_serialization_data<N>& sdata, const enum_serialization_options_t& options)
 {
     return EnumT(string_to_enum(string, sdata.data(), options));
 }
@@ -165,7 +165,7 @@ template <typename EnumT, std::size_t N>
     return flags_enum_to_string(std::uint64_t(value), sdata.data(), options);
 }
 template <typename EnumT, std::size_t N>
-    EnumT from_string_impl(tag_t<EnumT>, const std::string& string, const flags_enum_serialization_data<N>& sdata, const enum_serialization_options_t& options)
+    EnumT from_string_impl(tag<EnumT>, const std::string& string, const flags_enum_serialization_data<N>& sdata, const enum_serialization_options_t& options)
 {
     return EnumT(string_to_flags_enum(string, sdata.data(), options));
 }

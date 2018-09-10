@@ -73,7 +73,7 @@ inline namespace types
     //ᅟ    auto boolValues = values_from_metadata<bool>(); // returns std::tuple<constant<false>, constant<true>>
     //
 template <typename T, typename MetadataTagT = serialization_metadata_tag>
-    constexpr auto values_from_metadata(tag_t<T> = { }, tag_t<MetadataTagT> = { })
+    constexpr auto values_from_metadata(tag<T> = { }, tag<MetadataTagT> = { })
 {
     static_assert(have_metadata_v<T, MetadataTagT>, "no metadata available for given type and tag");
     static_assert(std::is_enum<T>::value || std::is_same<T, bool>::value, "values from metadata only supported for enum types and bool");
@@ -166,9 +166,9 @@ template <typename T, typename TupleT,
     //
 template <template <typename...> class VariantT,
           typename T, typename MetadataTagT = serialization_metadata_tag>
-    auto expand_to(T&& value, tag_t<MetadataTagT> = { })
+    auto expand_to(T&& value, tag<MetadataTagT> = { })
 {
-    /*constexpr*/ auto tuple = values_from_metadata(tag<std::decay_t<T>>, tag<MetadataTagT>); // TODO: currently not constexpr due to VC++ ICE
+    /*constexpr*/ auto tuple = values_from_metadata(tag_v<std::decay_t<T>>, tag_v<MetadataTagT>); // TODO: currently not constexpr due to VC++ ICE
     return expand_to<VariantT>(std::forward<T>(value), std::move(tuple));
 }
 
@@ -185,9 +185,9 @@ template <template <typename...> class VariantT,
     //
 template <template <typename...> class VariantT,
           typename T, typename MetadataTagT = serialization_metadata_tag>
-    auto try_expand_to(T&& value, tag_t<MetadataTagT> = { })
+    auto try_expand_to(T&& value, tag<MetadataTagT> = { })
 {
-    /*constexpr*/ auto tuple = values_from_metadata(tag<std::decay_t<T>>, tag<MetadataTagT>); // TODO: currently not constexpr due to VC++ ICE
+    /*constexpr*/ auto tuple = values_from_metadata(tag_v<std::decay_t<T>>, tag_v<MetadataTagT>); // TODO: currently not constexpr due to VC++ ICE
     return try_expand_to<VariantT>(std::forward<T>(value), std::move(tuple));
 }
 
@@ -203,9 +203,9 @@ template <template <typename...> class VariantT,
     //ᅟ    auto color = expand(runtimeColor); // returns std::variant<constant<red>, constant<green>, constant<blue>>
     //
 template <typename T, typename MetadataTagT = serialization_metadata_tag>
-    auto expand(T&& value, tag_t<MetadataTagT> = { })
+    auto expand(T&& value, tag<MetadataTagT> = { })
 {
-    /*constexpr*/ auto tuple = values_from_metadata(tag<std::decay_t<T>>, tag<MetadataTagT>); // TODO: currently not constexpr due to VC++ ICE
+    /*constexpr*/ auto tuple = values_from_metadata(tag_v<std::decay_t<T>>, tag_v<MetadataTagT>); // TODO: currently not constexpr due to VC++ ICE
     return expand(std::forward<T>(value), std::move(tuple));
 }
 
@@ -221,9 +221,9 @@ template <typename T, typename MetadataTagT = serialization_metadata_tag>
     //ᅟ    auto color = try_expand(runtimeColor); // returns std::variant<std::monostate, constant<red>, constant<green>, constant<blue>>
     //
 template <typename T, typename MetadataTagT = serialization_metadata_tag>
-    auto try_expand(T&& value, tag_t<MetadataTagT> = { })
+    auto try_expand(T&& value, tag<MetadataTagT> = { })
 {
-    /*constexpr*/ auto tuple = values_from_metadata(tag<std::decay_t<T>>, tag<MetadataTagT>); // TODO: currently not constexpr due to VC++ ICE
+    /*constexpr*/ auto tuple = values_from_metadata(tag_v<std::decay_t<T>>, tag_v<MetadataTagT>); // TODO: currently not constexpr due to VC++ ICE
     return try_expand(std::forward<T>(value), std::move(tuple));
 }
 

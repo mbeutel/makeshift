@@ -293,23 +293,23 @@ template <typename... Ts> using type_sequence_cat_t = typename type_sequence_cat
     //ᅟ
     // Helper for type dispatching.
     //
-template <typename T = void> struct tag_t { using type = T; };
+template <typename T = void> struct tag { using type = T; };
 
     //ᅟ
     // Helper for type dispatching.
     //
-template <typename T = void> constexpr tag_t<T> tag { };
+template <typename T = void> constexpr tag<T> tag_v { };
 
 
     //ᅟ
     // Helper for type dispatching.
     //
-template <template <typename...> class T> struct template_tag_t { };
+template <template <typename...> class T> struct template_tag { };
 
     //ᅟ
     // Helper for type dispatching.
     //
-template <template <typename...> class T> constexpr template_tag_t<T> template_tag{ };
+template <template <typename...> class T> constexpr template_tag<T> template_tag_v{ };
 
 
     //ᅟ

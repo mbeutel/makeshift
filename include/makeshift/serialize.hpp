@@ -98,7 +98,7 @@ namespace detail
 
 
 template <template <typename...> class SerializerT, typename SerializerArgsT, typename... Ts>
-    constexpr tag_t<define_serializer<SerializerT, void, SerializerArgsT, Ts...>> get_serializer_definition(const define_serializer<SerializerT, void, SerializerArgsT, Ts...>&)
+    constexpr tag<define_serializer<SerializerT, void, SerializerArgsT, Ts...>> get_serializer_definition(const define_serializer<SerializerT, void, SerializerArgsT, Ts...>&)
 {
     return { };
 }
@@ -106,7 +106,7 @@ template <template <typename...> class SerializerT, typename SerializerArgsT, ty
 template <typename... DefsT> struct chain_serializer_types;
 template <> struct chain_serializer_types<> { using type = void; };
 template <template <typename...> class SerializerT, typename SerializerArgsT, typename... Ts, typename... DefsT>
-    struct chain_serializer_types<tag_t<define_serializer<SerializerT, void, SerializerArgsT, Ts...>>, DefsT...>
+    struct chain_serializer_types<tag<define_serializer<SerializerT, void, SerializerArgsT, Ts...>>, DefsT...>
 {
     using type = SerializerT<Ts..., typename chain_serializer_types<DefsT...>::type>;
 };

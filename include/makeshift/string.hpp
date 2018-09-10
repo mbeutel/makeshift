@@ -36,16 +36,16 @@ inline std::string scalar_to_string(float val) { return std::to_string(val); }
 inline std::string scalar_to_string(double val) { return std::to_string(val); }
 inline std::string scalar_to_string(long double val) { return std::to_string(val); }
 
-inline std::string scalar_from_string(tag_t<std::string>, const std::string& s) { return s; }
-inline int scalar_from_string(tag_t<int>, const std::string& string) { return std::stoi(string); }
-MAKESHIFT_DLLFUNC unsigned scalar_from_string(tag_t<unsigned>, const std::string& string);
-inline long scalar_from_string(tag_t<long>, const std::string& string) { return std::stol(string); }
-inline unsigned long scalar_from_string(tag_t<unsigned long>, const std::string& string) { return std::stoul(string); }
-inline long long scalar_from_string(tag_t<long long>, const std::string& string) { return std::stoll(string); }
-inline unsigned long long scalar_from_string(tag_t<unsigned long long>, const std::string& string) { return std::stoull(string); }
-inline float scalar_from_string(tag_t<float>, const std::string& string) { return std::stof(string); }
-inline double scalar_from_string(tag_t<double>, const std::string& string) { return std::stod(string); }
-inline long double scalar_from_string(tag_t<long double>, const std::string& string) { return std::stold(string); }
+inline std::string scalar_from_string(tag<std::string>, const std::string& s) { return s; }
+inline int scalar_from_string(tag<int>, const std::string& string) { return std::stoi(string); }
+MAKESHIFT_DLLFUNC unsigned scalar_from_string(tag<unsigned>, const std::string& string);
+inline long scalar_from_string(tag<long>, const std::string& string) { return std::stol(string); }
+inline unsigned long scalar_from_string(tag<unsigned long>, const std::string& string) { return std::stoul(string); }
+inline long long scalar_from_string(tag<long long>, const std::string& string) { return std::stoll(string); }
+inline unsigned long long scalar_from_string(tag<unsigned long long>, const std::string& string) { return std::stoull(string); }
+inline float scalar_from_string(tag<float>, const std::string& string) { return std::stof(string); }
+inline double scalar_from_string(tag<double>, const std::string& string) { return std::stod(string); }
+inline long double scalar_from_string(tag<long double>, const std::string& string) { return std::stold(string); }
 
 
 template <typename MetadataTagT, typename T> struct have_string_conversion : is_enum_with_metadata<MetadataTagT, T> { };
@@ -120,13 +120,13 @@ template <typename BaseT = void>
     template <typename T, typename SerializerT/*,
               typename = std::enable_if_t<makeshift::detail::have_string_conversion_v<serializer_metadata_tag_t<std::decay_t<SerializerT>>, T>>*/>
         friend std::enable_if_t<makeshift::detail::have_string_conversion_v<serializer_metadata_tag_t<std::decay_t<SerializerT>>, T>, T>
-        from_string_impl(tag_t<T>, const std::string& string, const string_serializer_t& stringSerializer, SerializerT&)
+        from_string_impl(tag<T>, const std::string& string, const string_serializer_t& stringSerializer, SerializerT&)
     {
         (void) stringSerializer;
         if constexpr (std::is_enum<T>::value)
-            return from_string_impl(tag<T>, string, makeshift::detail::serialization_data<T, serializer_metadata_tag_t<std::decay_t<SerializerT>>>, stringSerializer.enum_options);
+            return from_string_impl(tag_v<T>, string, makeshift::detail::serialization_data<T, serializer_metadata_tag_t<std::decay_t<SerializerT>>>, stringSerializer.enum_options);
         else
-            return makeshift::detail::scalar_from_string(tag<T>, string);
+            return makeshift::detail::scalar_from_string(tag_v<T>, string);
     }
 };
 
@@ -163,24 +163,24 @@ template <typename T>
     //ᅟ
     // Deserializes the given value from a string using the provided serializer.
     //ᅟ
-    //ᅟ    int i = from_string(tag<int>, "42", string_serializer); // returns 42
+    //ᅟ    int i = from_string(tag_v<int>, "42", string_serializer); // returns 42
     //
 template <typename T, typename SerializerT>
-    T from_string(tag_t<T>, const std::string& string, SerializerT& serializer)
+    T from_string(tag<T>, const std::string& string, SerializerT& serializer)
 {
-    return from_string_impl(tag<T>, string, serializer, serializer);
+    return from_string_impl(tag_v<T>, string, serializer, serializer);
 }
 
 
     //ᅟ
     // Deserializes the given value from a string using `string_serializer`.
     //ᅟ
-    //ᅟ    int i = from_string(tag<int>, "42"); // returns 42
+    //ᅟ    int i = from_string(tag_v<int>, "42"); // returns 42
     //
 template <typename T>
-    T from_string(tag_t<T>, const std::string& string)
+    T from_string(tag<T>, const std::string& string)
 {
-    return from_string(tag<T>, string, string_serializer);
+    return from_string(tag_v<T>, string, string_serializer);
 }
 
 
