@@ -427,7 +427,7 @@ template <typename T, T... Vs>
 
 
     //ᅟ
-    // Encodes an integer range in a type.
+    // Encodes the integer range [First, Last) in a type.
     //
 template <typename T, T First, T Last>
     struct integer_range
@@ -447,7 +447,27 @@ template <typename T, T First, T Last>
 
 
     //ᅟ
-    // Encodes an upper-half integer range in a type.
+    // Encodes the integer range [First, Last] in a type.
+    //
+template <typename T, T First, T Last>
+    struct integer_inclusive_range
+{
+    static_assert(Last >= First, "invalid range");
+
+    using value_type = T;
+
+    static constexpr std::size_t size(void) noexcept { return std::size_t(Last - First + 1); }
+    static constexpr T first(void) noexcept { return First; }
+    static constexpr T last(void) noexcept { return Last; }
+
+    constexpr integer_inclusive_range(/*void*/) noexcept { }
+
+    // TODO: there is more to do here! (e.g. iterators, sequence conversions)
+};
+
+
+    //ᅟ
+    // Encodes the upper-half integer range [First, ...) in a type.
     //
 template <typename T, T First>
     struct integer_upper_half_range
@@ -461,7 +481,7 @@ template <typename T, T First>
 
 
     //ᅟ
-    // Encodes a lower-half integer range in a type.
+    // Encodes the lower-half integer range (, Last) in a type.
     //
 template <typename T, T Last>
     struct integer_lower_half_range
@@ -471,6 +491,20 @@ template <typename T, T Last>
     static constexpr T last(void) noexcept { return Last; }
 
     constexpr integer_lower_half_range(/*void*/) noexcept { }
+};
+
+
+    //ᅟ
+    // Encodes the lower-half integer range (, Last] in a type.
+    //
+template <typename T, T Last>
+    struct integer_lower_half_inclusive_range
+{
+    using value_type = T;
+
+    static constexpr T last(void) noexcept { return Last; }
+
+    constexpr integer_lower_half_inclusive_range(/*void*/) noexcept { }
 };
 
 
