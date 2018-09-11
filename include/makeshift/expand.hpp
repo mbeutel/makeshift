@@ -11,9 +11,7 @@
 
 #include <makeshift/type_traits.hpp> // for type_sequence<>, tag<>, is_same_template<>
 #include <makeshift/tuple.hpp>       // for type_tuple<>, is_tuple_like<>, tuple_foreach()
-#include <makeshift/variant.hpp>     // for type_variant<>
 #include <makeshift/metadata.hpp>    // for have_metadata<>, metadata_of<>
-#include <makeshift/streamable.hpp>  // for stream_serializer
 
 
 namespace makeshift
@@ -39,71 +37,6 @@ template <typename T>
 
 namespace detail
 {
-
-
-template <typename VariantT> struct variant_without_unknown_value;
-template <template <typename...> class VariantT, typename T, typename... Ts> struct variant_without_unknown_value<VariantT<unknown_value<T>, Ts...>> { using type = VariantT<Ts...>; };
-template <typename VariantT> using variant_without_unknown_value_t = typename variant_without_unknown_value<VariantT>::type;
-
-struct identity_transform
-{
-    template <typename T>
-        auto operator ()(T&& value)
-    {
-        return std::forward<T>(value);
-    }
-};
-
-template <typename SerializerT>
-    struct variant_fail_if_unknown_t : variant_stream_base<variant_fail_if_unknown_t<SerializerT>>
-{
-private:
-    std::string errorMessage_;
-    SerializerT serializer_;
-
-public:
-    variant_fail_if_unknown_t(std::string _errorMessage, SerializerT _serializer) : errorMessage_(std::move(_errorMessage)), serializer_(std::forward<SerializerT>(_serializer)) { }
-
-private:
-    template <typename VariantT>
-        void fail(const VariantT& v) const
-    {
-        using T = typename std::variant_alternative_t<0, VariantT>::value_type;
-        using ResultVariant = variant_without_unknown_value_t<std::decay_t<VariantT>>;
-        using ResultTuple = apply_t<type_tuple, ResultVariant>;
-        using std::get; // make std::get<>(std::pair<>&&) visible to enable ADL for template methods named get<>()
-
-        std::ostringstream sstr;
-        if (!errorMessage_.empty())
-            sstr << errorMessage_;
-        else
-            sstr << "unsupported value";
-        sstr << " (given value: " << streamable(get<0>(v).value, serializer_) << "; values supported: ";
-        bool first = true;
-        tuple_foreach(ResultTuple{ }, [&](auto element)
-        {
-            if (first)
-                first = false;
-            else
-                sstr << ", ";
-            T runtimeTypedElement = element;
-            sstr << streamable(runtimeTypedElement, serializer_);
-        });
-        sstr << ")";
-        throw std::runtime_error(sstr.str());
-    }
-
-public:
-    template <typename VariantT,
-              typename = std::enable_if_t<is_variant_like_v<std::decay_t<VariantT>> && is_same_template<std::variant_alternative_t<0, std::decay_t<VariantT>>, unknown_value>::value>>
-        auto operator ()(VariantT&& variant) const
-    {
-        using ResultVariant = variant_without_unknown_value_t<std::decay_t<VariantT>>;
-        if (variant.index() == 0) // unknown_value<>
-            fail(variant);
-        return variant_apply<ResultVariant, 1>(identity_transform{ }, std::forward<VariantT>(variant));
-    }
-};
 
 
 template <bool Raise, typename R, std::size_t I, typename T, typename TupleT>
@@ -280,67 +213,6 @@ template <typename T, typename MetadataTagT = serialization_metadata_tag>
 {
     /*constexpr*/ auto tuple = values_from_type_or_metadata(tag_v<std::decay_t<T>>, MetadataTagT{ }); // TODO: currently not constexpr due to VC++ ICE
     return try_expand(std::forward<T>(value), std::move(tuple));
-}
-
-
-
-    //ᅟ
-    // Returns a functor that maps a variant with unknown value alternative (as returned by `try_expand()`)  to a variant without (as returned by `expand()`),
-    // raising `std::runtime_error` with a detailed error error message if the variant holds an unknown value.
-    //ᅟ
-    //ᅟ    int runtimeBits = ...;
-    //ᅟ    auto bits = try_expand(runtimeBits, std::make_tuple(c<16>, c<32>, c<64>))
-    //                | variant_fail_if_unknown("unsupported number of bits", stream_serializer); // returns std::variant<constant<16>, constant<32>, constant<64>>
-    //
-template <typename SerializerT>
-    makeshift::detail::variant_fail_if_unknown_t<remove_rvalue_reference_t<SerializerT>>
-    variant_fail_if_unknown(std::string errorMessage, SerializerT&& serializer)
-{
-    return { std::move(errorMessage), std::forward<SerializerT>(serializer) };
-}
-
-    //ᅟ
-    // Returns a functor that maps a variant with unknown value alternative (as returned by `try_expand()`)  to a variant without (as returned by `expand()`),
-    // raising `std::runtime_error` with a detailed error error message if the variant holds an unknown value.
-    //ᅟ
-    //ᅟ    int runtimeBits = ...;
-    //ᅟ    auto bits = try_expand(runtimeBits, std::make_tuple(c<16>, c<32>, c<64>))
-    //                | variant_fail_if_unknown(stream_serializer); // returns std::variant<constant<16>, constant<32>, constant<64>>
-    //
-template <typename SerializerT,
-          typename = std::enable_if_t<is_serializer_v<std::decay_t<SerializerT>>>>
-    makeshift::detail::variant_fail_if_unknown_t<remove_rvalue_reference_t<SerializerT>>
-    variant_fail_if_unknown(SerializerT&& serializer)
-{
-    return { { }, std::forward<SerializerT>(serializer) };
-}
-
-    //ᅟ
-    // Returns a functor that maps a variant with unknown value alternative (as returned by `try_expand()`)  to a variant without (as returned by `expand()`),
-    // raising `std::runtime_error` with a detailed error error message if the variant holds an unknown value.
-    //ᅟ
-    //ᅟ    int runtimeBits = ...;
-    //ᅟ    auto bits = try_expand(runtimeBits, std::make_tuple(c<16>, c<32>, c<64>))
-    //                | variant_fail_if_unknown("unsupported number of bits"); // returns std::variant<constant<16>, constant<32>, constant<64>>
-    //
-makeshift::detail::variant_fail_if_unknown_t<stream_serializer_t<>>
-variant_fail_if_unknown(std::string errorMessage)
-{
-    return { std::move(errorMessage), stream_serializer };
-}
-
-    //ᅟ
-    // Returns a functor that maps a variant with unknown value alternative (as returned by `try_expand()`)  to a variant without (as returned by `expand()`),
-    // raising `std::runtime_error` with a detailed error error message if the variant holds an unknown value.
-    //ᅟ
-    //ᅟ    int runtimeBits = ...;
-    //ᅟ    auto bits = try_expand(runtimeBits, std::make_tuple(c<16>, c<32>, c<64>))
-    //                | variant_fail_if_unknown(); // returns std::variant<constant<16>, constant<32>, constant<64>>
-    //
-makeshift::detail::variant_fail_if_unknown_t<stream_serializer_t<>>
-variant_fail_if_unknown(void)
-{
-    return { std::string{ }, stream_serializer };
 }
 
 
