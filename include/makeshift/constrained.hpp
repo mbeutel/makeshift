@@ -6,6 +6,7 @@
 #include <cstddef>     // for size_t
 #include <cstdint>     // for [u]int64_t
 #include <utility>     // for integer_sequence<>
+#include <string>
 #include <string_view>
 #include <type_traits> // for is_signed<>, conditional<>
 
@@ -19,6 +20,17 @@
 
 namespace makeshift
 {
+
+
+inline namespace serialize
+{
+
+
+struct hint_options_t; // defined in makeshift/serializers/hint.hpp
+
+
+} // inline namespace serialize
+
 
 namespace detail
 {
@@ -39,6 +51,9 @@ struct constrained_integer_metadata
     std::string_view typeName;
     std::string_view caption;
 };
+
+MAKESHIFT_DLLFUNC std::string constrained_integer_hint(ConstraintType constraintType, const std::int64_t values[], std::size_t numValues, const hint_options_t& options);
+MAKESHIFT_DLLFUNC std::string constrained_integer_hint(ConstraintType constraintType, const std::uint64_t values[], std::size_t numValues, const hint_options_t& options);
 
 [[noreturn]] MAKESHIFT_DLLFUNC void raise_constrained_integer_error(std::int64_t value, ConstraintType constraintType, const std::int64_t values[], std::size_t numValues, const constrained_integer_metadata& metadata, bool isContractual);
 [[noreturn]] MAKESHIFT_DLLFUNC void raise_constrained_integer_error(std::uint64_t value, ConstraintType constraintType, const std::uint64_t values[], std::size_t numValues, const constrained_integer_metadata& metadata, bool isContractual);
@@ -107,6 +122,51 @@ template <typename T, T First, T Last>
 }
 
 
+template <typename T> using common_int = std::conditional_t<std::is_signed<T>::value, std::int64_t, std::uint64_t>;
+
+template <typename T, T... Vs>
+    std::string get_constrained_integer_hint(sequence<T, Vs...>, const hint_options_t& options)
+{
+    common_int<T> permittedValues[] = { common_int<T>(Vs)... };
+    return constrained_integer_hint(ConstraintType::sequence, permittedValues, sizeof...(Vs), options);
+}
+template <typename T, T... Vs>
+    std::string get_constrained_integer_hint(std::integer_sequence<T, Vs...>, const hint_options_t& options)
+{
+    return get_constrained_integer_hint(sequence<T, Vs...>{ }, options);
+}
+template <typename T, T First, T Last>
+    std::string get_constrained_integer_hint(integer_range<T, First, Last>, const hint_options_t& options)
+{
+    common_int<T> values[] = { common_int<T>(First), common_int<T>(Last) };
+    return constrained_integer_hint(ConstraintType::range, values, 2, options);
+}
+template <typename T, T First, T Last>
+    std::string get_constrained_integer_hint(integer_inclusive_range<T, First, Last>, const hint_options_t& options)
+{
+    common_int<T> values[] = { common_int<T>(First), common_int<T>(Last) };
+    return constrained_integer_hint(ConstraintType::inclusiveRange, values, 2, options);
+}
+template <typename T, T First>
+    std::string get_constrained_integer_hint(integer_upper_half_range<T, First>, const hint_options_t& options)
+{
+    common_int<T> values[] = { common_int<T>(First) };
+    return constrained_integer_hint(ConstraintType::upperHalfRange, values, 1, options);
+}
+template <typename T, T Last>
+    std::string get_constrained_integer_hint(integer_lower_half_range<T, Last>, const hint_options_t& options)
+{
+    common_int<T> values[] = { common_int<T>(Last) };
+    return constrained_integer_hint(ConstraintType::lowerHalfRange, values, 1, options);
+}
+template <typename T, T Last>
+    std::string get_constrained_integer_hint(integer_lower_half_inclusive_range<T, Last>, const hint_options_t& options)
+{
+    common_int<T> values[] = { common_int<T>(Last) };
+    return constrained_integer_hint(ConstraintType::lowerHalfInclusiveRange, values, 1, options);
+}
+
+
 template <typename T>
     constexpr constrained_integer_metadata get_constrained_integer_metadata(tag<T> = { }) noexcept
 {
@@ -120,57 +180,51 @@ template <typename T>
 }
 
 template <typename T, typename ConstrainedIntT, T... Vs>
-    void raise_constrained_integer_error(T value, tag<ConstrainedIntT>, std::integer_sequence<T, Vs...>, bool isContractual)
-{
-    using common_int_t = std::conditional_t<std::is_signed<T>::value, std::int64_t, std::uint64_t>;
-    common_int_t permittedValues[] = { common_int_t(Vs)... };
-    /*constexpr*/ constrained_integer_metadata metadata = get_constrained_integer_metadata<ConstrainedIntT>(); // TODO: currently not constexpr due to VC++ ICE
-    raise_constrained_integer_error(common_int_t(value), ConstraintType::sequence, permittedValues, sizeof...(Vs), metadata, isContractual);
-}
-template <typename T, typename ConstrainedIntT, T... Vs>
     void raise_constrained_integer_error(T value, tag<ConstrainedIntT>, sequence<T, Vs...>, bool isContractual)
 {
-    return raise_constrained_integer_error(value, tag<ConstrainedIntT>{ }, std::integer_sequence<T, Vs...>{ }, isContractual);
+    common_int<T> permittedValues[] = { common_int<T>(Vs)... };
+    /*constexpr*/ constrained_integer_metadata metadata = get_constrained_integer_metadata<ConstrainedIntT>(); // TODO: currently not constexpr due to VC++ ICE
+    raise_constrained_integer_error(common_int<T>(value), ConstraintType::sequence, permittedValues, sizeof...(Vs), metadata, isContractual);
+}
+template <typename T, typename ConstrainedIntT, T... Vs>
+    void raise_constrained_integer_error(T value, tag<ConstrainedIntT>, std::integer_sequence<T, Vs...>, bool isContractual)
+{
+    return raise_constrained_integer_error(value, tag<ConstrainedIntT>{ }, sequence<T, Vs...>{ }, isContractual);
 }
 template <typename T, typename ConstrainedIntT, T First, T Last>
     void raise_constrained_integer_error(T value, tag<ConstrainedIntT>, integer_range<T, First, Last>, bool isContractual)
 {
-    using common_int_t = std::conditional_t<std::is_signed<T>::value, std::int64_t, std::uint64_t>;
     /*constexpr*/ constrained_integer_metadata metadata = get_constrained_integer_metadata<ConstrainedIntT>(); // TODO: currently not constexpr due to VC++ ICE
-    common_int_t values[] { common_int_t(First), common_int_t(Last) };
-    raise_constrained_integer_error(common_int_t(value), ConstraintType::range, values, 2, metadata, isContractual);
+    common_int<T> values[] { common_int<T>(First), common_int<T>(Last) };
+    raise_constrained_integer_error(common_int<T>(value), ConstraintType::range, values, 2, metadata, isContractual);
 }
 template <typename T, typename ConstrainedIntT, T First, T Last>
     void raise_constrained_integer_error(T value, tag<ConstrainedIntT>, integer_inclusive_range<T, First, Last>, bool isContractual)
 {
-    using common_int_t = std::conditional_t<std::is_signed<T>::value, std::int64_t, std::uint64_t>;
     /*constexpr*/ constrained_integer_metadata metadata = get_constrained_integer_metadata<ConstrainedIntT>(); // TODO: currently not constexpr due to VC++ ICE
-    common_int_t values[] { common_int_t(First), common_int_t(Last) };
-    raise_constrained_integer_error(common_int_t(value), ConstraintType::inclusiveRange, values, 2, metadata, isContractual);
+    common_int<T> values[] { common_int<T>(First), common_int<T>(Last) };
+    raise_constrained_integer_error(common_int<T>(value), ConstraintType::inclusiveRange, values, 2, metadata, isContractual);
 }
 template <typename T, typename ConstrainedIntT, T First>
     void raise_constrained_integer_error(T value, tag<ConstrainedIntT>, integer_upper_half_range<T, First>, bool isContractual)
 {
-    using common_int_t = std::conditional_t<std::is_signed<T>::value, std::int64_t, std::uint64_t>;
     /*constexpr*/ constrained_integer_metadata metadata = get_constrained_integer_metadata<ConstrainedIntT>(); // TODO: currently not constexpr due to VC++ ICE
-    common_int_t values[] { common_int_t(First) };
-    raise_constrained_integer_error(common_int_t(value), ConstraintType::upperHalfRange, values, 1, metadata, isContractual);
+    common_int<T> values[] { common_int<T>(First) };
+    raise_constrained_integer_error(common_int<T>(value), ConstraintType::upperHalfRange, values, 1, metadata, isContractual);
 }
 template <typename T, typename ConstrainedIntT, T Last>
     void raise_constrained_integer_error(T value, tag<ConstrainedIntT>, integer_lower_half_range<T, Last>, bool isContractual)
 {
-    using common_int_t = std::conditional_t<std::is_signed<T>::value, std::int64_t, std::uint64_t>;
     /*constexpr*/ constrained_integer_metadata metadata = get_constrained_integer_metadata<ConstrainedIntT>(); // TODO: currently not constexpr due to VC++ ICE
-    common_int_t values[] { common_int_t(Last) };
-    raise_constrained_integer_error(common_int_t(value), ConstraintType::lowerHalfRange, values, 1, metadata, isContractual);
+    common_int<T> values[] { common_int<T>(Last) };
+    raise_constrained_integer_error(common_int<T>(value), ConstraintType::lowerHalfRange, values, 1, metadata, isContractual);
 }
 template <typename T, typename ConstrainedIntT, T Last>
     void raise_constrained_integer_error(T value, tag<ConstrainedIntT>, integer_lower_half_inclusive_range<T, Last>, bool isContractual)
 {
-    using common_int_t = std::conditional_t<std::is_signed<T>::value, std::int64_t, std::uint64_t>;
     /*constexpr*/ constrained_integer_metadata metadata = get_constrained_integer_metadata<ConstrainedIntT>(); // TODO: currently not constexpr due to VC++ ICE
-    common_int_t values[] { common_int_t(Last) };
-    raise_constrained_integer_error(common_int_t(value), ConstraintType::lowerHalfInclusiveRange, values, 1, metadata, isContractual);
+    common_int<T> values[] { common_int<T>(Last) };
+    raise_constrained_integer_error(common_int<T>(value), ConstraintType::lowerHalfInclusiveRange, values, 1, metadata, isContractual);
 }
 
 
@@ -189,21 +243,28 @@ inline namespace types
 struct default_integer_constraint_verifier
 {
     template <typename T, typename ConstraintT>
-        static constexpr bool is_valid(T value, ConstraintT) noexcept
+        static constexpr bool is_valid(T value, ConstraintT = { }) noexcept
     {
         using makeshift::detail::is_constrained_integer_valid; // permit ADL, fall back to default implementations above
 
         return is_constrained_integer_valid(value, ConstraintT{ });
     }
     template <typename ConstraintT>
-        static constexpr auto get_valid_values(ConstraintT) noexcept
+        static constexpr auto get_valid_values(ConstraintT = { }) noexcept
     {
         using makeshift::detail::get_valid_constrained_integer_values; // permit ADL, fall back to default implementations above
 
         return get_valid_constrained_integer_values(ConstraintT{ });
     }
+    template <typename ConstraintT>
+        static std::string get_hint(const hint_options_t& options, ConstraintT = { }) noexcept
+    {
+        using makeshift::detail::get_constrained_integer_hint; // permit ADL, fall back to default implementations above
+
+        return get_constrained_integer_hint(ConstraintT{ }, options);
+    }
     template <typename T, typename ConstrainedIntT>
-        static void raise_error(T value, tag<ConstrainedIntT>, bool isContractual)
+        static void raise_error(T value, bool isContractual, tag<ConstrainedIntT> = { })
     {
         using makeshift::detail::raise_constrained_integer_error; // permit ADL, fall back to default implementations above
 
@@ -244,7 +305,7 @@ private:
     }
     static void raise_error_(value_type value, bool isContractual)
     {
-        VerifierT::raise_error(value, tag_v<DerivedT>, isContractual);
+        VerifierT::raise_error(value, isContractual, tag_v<DerivedT>);
     }
 
 public:

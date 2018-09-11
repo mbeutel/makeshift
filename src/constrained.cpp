@@ -7,7 +7,7 @@
 #include <gsl/gsl_assert>
 
 #include <makeshift/constrained.hpp>
-#include <makeshift/serializers/hint.hpp> // for hint_serializer_args
+#include <makeshift/serializers/hint.hpp> // for hint_options_t
 
 
 namespace makeshift
@@ -18,7 +18,7 @@ namespace detail
 
 
 template <typename IntT>
-    static void constrained_integer_hint_impl(std::ostream& stream, ConstraintType constraintType, const IntT values[], std::size_t numValues, const hint_serializer_args& args)
+    static void constrained_integer_hint_impl(std::ostream& stream, ConstraintType constraintType, const IntT values[], std::size_t numValues, const hint_options_t& options)
 {
     switch (constraintType)
     {
@@ -30,7 +30,7 @@ template <typename IntT>
                 if (first)
                     first = false;
                 else
-                    stream << args.option_separator;
+                    stream << options.option_separator;
                 stream << values[i];
             }
         }
@@ -60,20 +60,20 @@ template <typename IntT>
     }
 }
 template <typename IntT>
-    static std::string constrained_integer_hint_impl(ConstraintType constraintType, const IntT values[], std::size_t numValues, const hint_serializer_args& args)
+    static std::string constrained_integer_hint_impl(ConstraintType constraintType, const IntT values[], std::size_t numValues, const hint_options_t& options)
 {
     std::ostringstream sstr;
-    constrained_integer_hint_impl(sstr, constraintType, values, numValues, args);
+    constrained_integer_hint_impl(sstr, constraintType, values, numValues, options);
     return sstr.str();
 }
 
-std::string constrained_integer_hint(ConstraintType constraintType, const std::int64_t values[], std::size_t numValues, const hint_serializer_args& args)
+std::string constrained_integer_hint(ConstraintType constraintType, const std::int64_t values[], std::size_t numValues, const hint_options_t& options)
 {
-    return constrained_integer_hint_impl(constraintType, values, numValues, args);
+    return constrained_integer_hint_impl(constraintType, values, numValues, options);
 }
-std::string constrained_integer_hint(ConstraintType constraintType, const std::uint64_t values[], std::size_t numValues, const hint_serializer_args& args)
+std::string constrained_integer_hint(ConstraintType constraintType, const std::uint64_t values[], std::size_t numValues, const hint_options_t& options)
 {
-    return constrained_integer_hint_impl(constraintType, values, numValues, args);
+    return constrained_integer_hint_impl(constraintType, values, numValues, options);
 }
 
 static void constrained_integer_error_msg(std::ostream& stream, const constrained_integer_metadata& metadata)
@@ -91,18 +91,18 @@ template <typename IntT>
     std::ostringstream sstr;
     sstr << value;
     constrained_integer_error_msg(sstr, metadata);
-    hint_serializer_args hint_args;
-    hint_args.option_separator = ", ";
+    hint_options_t options;
+    options.option_separator = ", ";
     switch (constraintType)
     {
     case ConstraintType::sequence:
         sstr << "; admissible values: ";
-        constrained_integer_hint_impl(sstr, constraintType, values, numValues, hint_args);
+        constrained_integer_hint_impl(sstr, constraintType, values, numValues, options);
         break;
     case ConstraintType::range:
     case ConstraintType::inclusiveRange:
         sstr << "; value must be in range ";
-        constrained_integer_hint_impl(sstr, constraintType, values, numValues, hint_args);
+        constrained_integer_hint_impl(sstr, constraintType, values, numValues, options);
         break;
     case ConstraintType::upperHalfRange:
         Expects(numValues == 1);

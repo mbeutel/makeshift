@@ -30,6 +30,9 @@ inline namespace serialize
 {
 
 
+struct hint_options_t; // defined in makeshift/serializers/hint.hpp
+
+
     //ᅟ
     // Options for serializing and deserializing enums and flag enums with metadata.
     //
@@ -77,6 +80,9 @@ struct flags_enum_serialization_data_ref
     std::string_view defTypeName; // name of the struct which defines the constants
     std::string_view typeDesc;
 };
+
+MAKESHIFT_DLLFUNC std::string enum_hint(const enum_serialization_data_ref& sdata, const hint_options_t& options);
+MAKESHIFT_DLLFUNC std::string flags_enum_hint(const flags_enum_serialization_data_ref& sdata, const hint_options_t& options);
 
 MAKESHIFT_DLLFUNC std::string_view enum_to_string(std::uint64_t enumValue, const enum_serialization_data_ref& sdata, const enum_serialization_options_t& options);
 MAKESHIFT_DLLFUNC void enum_from_string(std::string_view string, std::uint64_t& enumValue, const enum_serialization_data_ref& sdata, const enum_serialization_options_t& options);
@@ -130,6 +136,11 @@ template <typename EnumT, std::size_t N>
     enum_from_string(string, value, sdata.data_ref(), options);
     return EnumT(value);
 }
+template <typename EnumT, std::size_t N>
+    std::string hint_impl(const enum_serialization_data<N>& sdata, const hint_options_t& options)
+{
+    return enum_hint(sdata.data_ref(), options);
+}
 
 template <std::size_t N>
     struct flags_enum_serialization_data
@@ -176,6 +187,11 @@ template <typename EnumT, std::size_t N>
     std::uint64_t value;
     flags_enum_from_string(string, value, sdata.data_ref(), options);
     return EnumT(value);
+}
+template <typename EnumT, std::size_t N>
+    std::string hint_impl(const flags_enum_serialization_data<N>& sdata, const hint_options_t& options)
+{
+    return enum_hint(sdata.data_ref(), options);
 }
 
 

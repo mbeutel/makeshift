@@ -7,7 +7,7 @@
 
 #include <makeshift/detail/serialize_enum.hpp>
 
-#include <makeshift/serializers/hint.hpp> // for hint_serializer_args
+#include <makeshift/serializers/hint.hpp> // for hint_options_t
 
 
 namespace makeshift
@@ -31,7 +31,7 @@ namespace detail
 {
 
 
-static void enum_hint(std::ostream& stream, const enum_serialization_data_ref& sdata, const hint_serializer_args& args)
+static void enum_hint(std::ostream& stream, const enum_serialization_data_ref& sdata, const hint_options_t& options)
 {
     bool first = true;
     for (auto& value : sdata.values)
@@ -39,11 +39,11 @@ static void enum_hint(std::ostream& stream, const enum_serialization_data_ref& s
         if (first)
             first = false;
         else
-            stream << args.option_separator;
+            stream << options.option_separator;
         stream << value.string;
     }
 }
-static void flags_enum_hint(std::ostream& stream, const flags_enum_serialization_data_ref& sdata, const hint_serializer_args& args)
+static void flags_enum_hint(std::ostream& stream, const flags_enum_serialization_data_ref& sdata, const hint_options_t& options)
 {
     bool first = true;
     for (auto& value : sdata.values)
@@ -51,21 +51,21 @@ static void flags_enum_hint(std::ostream& stream, const flags_enum_serialization
         if (first)
             first = false;
         else
-            stream << args.flags_separator;
+            stream << options.flags_separator;
         stream << value.string;
     }
 }
 
-std::string enum_hint(const enum_serialization_data_ref& sdata, const hint_serializer_args& args)
+std::string enum_hint(const enum_serialization_data_ref& sdata, const hint_options_t& options)
 {
     std::ostringstream sstr;
-    enum_hint(sstr, sdata, args);
+    enum_hint(sstr, sdata, options);
     return sstr.str();
 }
-std::string flags_enum_hint(const flags_enum_serialization_data_ref& sdata, const hint_serializer_args& args)
+std::string flags_enum_hint(const flags_enum_serialization_data_ref& sdata, const hint_options_t& options)
 {
     std::ostringstream sstr;
-    flags_enum_hint(sstr, sdata, args);
+    flags_enum_hint(sstr, sdata, options);
     return sstr.str();
 }
 
@@ -88,9 +88,9 @@ static void enum_error_msg(std::ostream& stream, std::string_view typeDesc, std:
     std::ostringstream sstr;
     enum_error_msg(sstr, sdata.typeDesc, sdata.typeName);
     sstr << "; expected one of: ";
-    hint_serializer_args args;
-    args.option_separator = ", ";
-    enum_hint(sstr, sdata, args);
+    hint_options_t options;
+    options.option_separator = ", ";
+    enum_hint(sstr, sdata, options);
     throw parse_error(sstr.str(), std::string(string), 0);
 }
 static std::string mark_parser_position(std::string_view string, std::string_view sv)
@@ -110,9 +110,9 @@ static std::string mark_parser_position(std::string_view string, std::string_vie
     std::ostringstream sstr;
     enum_error_msg(sstr, sdata.typeDesc, sdata.flagTypeName);
     sstr << "; expected a ','-joined subset of: none, ";
-    hint_serializer_args args;
-    args.flags_separator = ", ";
-    flags_enum_hint(sstr, sdata, args);
+    hint_options_t options;
+    options.flags_separator = ", ";
+    flags_enum_hint(sstr, sdata, options);
     std::size_t offset = std::size_t(sv.data() - string.data());
     throw parse_error(sstr.str(), mark_parser_position(string, sv), offset);
 }
