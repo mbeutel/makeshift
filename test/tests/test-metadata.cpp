@@ -4,6 +4,9 @@
 #include <makeshift/string.hpp>
 #include <makeshift/streamable.hpp>
 
+#include <makeshift/serializers/string.hpp>
+#include <makeshift/serializers/stream.hpp>
+
 #include <sstream>
 #include <string>
 
@@ -79,8 +82,8 @@ TEST_CASE("serialize", "[serialize]")
     {
         CHECK(mk::to_string(MyEnum::foo) == "foo");
         CHECK(mk::to_string(MyEnum::bar) == "bar");
-        CHECK(mk::from_string(mk::tag_v<MyEnum>, "bar") == MyEnum::bar);
-        CHECK_THROWS(mk::from_string(mk::tag_v<MyEnum>, "baz"));
+        CHECK(mk::from_string<MyEnum>("bar") == MyEnum::bar);
+        CHECK_THROWS(mk::from_string<MyEnum>("baz"));
         std::stringstream sstr;
         sstr << mk::streamable(MyEnum::bar);
         MyEnum val = MyEnum::foo;

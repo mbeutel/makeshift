@@ -13,6 +13,7 @@ find_package(MS-GSL REQUIRED)
 add_library(makeshift
     "version.cpp"
     "serialize_enum.cpp"
+    "serializer_string.cpp"
     "string_compare.cpp"
     "constrained.cpp")
 
