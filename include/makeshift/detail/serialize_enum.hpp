@@ -40,6 +40,11 @@ struct enum_serialization_options_t
         //
     string_comparison enum_string_comparison_mode = string_comparison::ordinal_ignore_case;
 
+        //ᅟ
+        // Determines separator for flags enum values.
+        //
+    std::string_view flags_separator = ", ";
+
     constexpr enum_serialization_options_t(void) = default;
 };
 
@@ -73,13 +78,12 @@ struct flags_enum_serialization_data_ref
     std::string_view typeDesc;
 };
 
-MAKESHIFT_DLLFUNC std::string enum_to_string(std::uint64_t enumValue, const enum_serialization_data_ref& sdata, const enum_serialization_options_t& options);
-MAKESHIFT_DLLFUNC bool try_string_to_enum(std::uint64_t& enumValue, const std::string& string, const enum_serialization_data_ref& sdata, const enum_serialization_options_t& options) noexcept;
-MAKESHIFT_DLLFUNC std::uint64_t string_to_enum(const std::string& string, const enum_serialization_data_ref& sdata, const enum_serialization_options_t& options);
+MAKESHIFT_DLLFUNC std::string_view enum_to_string(std::uint64_t enumValue, const enum_serialization_data_ref& sdata, const enum_serialization_options_t& options);
+MAKESHIFT_DLLFUNC void enum_from_string(std::string_view string, std::uint64_t& enumValue, const enum_serialization_data_ref& sdata, const enum_serialization_options_t& options);
 
 MAKESHIFT_DLLFUNC std::string flags_enum_to_string(std::uint64_t enumValue, const flags_enum_serialization_data_ref& sdata, const enum_serialization_options_t& options);
-MAKESHIFT_DLLFUNC bool try_string_to_flags_enum(std::uint64_t& enumValue, const std::string& string, const flags_enum_serialization_data_ref& sdata, const enum_serialization_options_t& options) noexcept;
-MAKESHIFT_DLLFUNC std::uint64_t string_to_flags_enum(const std::string& string, const flags_enum_serialization_data_ref& sdata, const enum_serialization_options_t& options);
+MAKESHIFT_DLLFUNC void flags_enum_from_string(std::string_view string, std::uint64_t& enumValue, const flags_enum_serialization_data_ref& sdata, const enum_serialization_options_t& options);
+
 
 template <typename T> using is_string_view = std::is_same<T, std::string_view>;
 template <typename ValC, typename... AttributesT>
@@ -100,7 +104,7 @@ template <std::size_t N>
     std::string_view typeName;
     std::string_view typeDesc;
 
-    constexpr enum_serialization_data_ref data(void) const noexcept { return { values, typeName, typeDesc }; }
+    constexpr enum_serialization_data_ref data_ref(void) const noexcept { return { values, typeName, typeDesc }; }
 };
 template <typename T> using is_value_metadata = is_same_template<T, value_metadata>;
 template <typename EnumT, typename AttributesT>
@@ -115,14 +119,16 @@ template <typename EnumT, typename AttributesT>
     return enum_serialization_data<array_size_v<decltype(values)>> { values, typeName, typeDesc };
 }
 template <typename EnumT, std::size_t N>
-    std::string to_string_impl(EnumT value, const enum_serialization_data<N>& sdata, const enum_serialization_options_t& options)
+    std::string_view to_string_impl(EnumT value, const enum_serialization_data<N>& sdata, const enum_serialization_options_t& options)
 {
-    return enum_to_string(std::uint64_t(value), sdata.data(), options);
+    return enum_to_string(std::uint64_t(value), sdata.data_ref(), options);
 }
 template <typename EnumT, std::size_t N>
-    EnumT from_string_impl(tag<EnumT>, const std::string& string, const enum_serialization_data<N>& sdata, const enum_serialization_options_t& options)
+    EnumT from_string_impl(tag<EnumT>, std::string_view string, const enum_serialization_data<N>& sdata, const enum_serialization_options_t& options)
 {
-    return EnumT(string_to_enum(string, sdata.data(), options));
+    std::uint64_t value;
+    enum_from_string(string, value, sdata.data_ref(), options);
+    return EnumT(value);
 }
 
 template <std::size_t N>
@@ -133,7 +139,7 @@ template <std::size_t N>
     std::string_view defTypeName; // name of the struct which defines the constants
     std::string_view typeDesc;
 
-    constexpr flags_enum_serialization_data_ref data(void) const noexcept { return { values, flagTypeName, defTypeName, typeDesc }; }
+    constexpr flags_enum_serialization_data_ref data_ref(void) const noexcept { return { values, flagTypeName, defTypeName, typeDesc }; }
 };
 template <typename T> using is_flags = is_same_template<T, flags_t>;
 template <typename DefT, typename AttributesT>
@@ -162,12 +168,14 @@ template <typename DefT, typename AttributesT>
 template <typename EnumT, std::size_t N>
     std::string to_string_impl(EnumT value, const flags_enum_serialization_data<N>& sdata, const enum_serialization_options_t& options)
 {
-    return flags_enum_to_string(std::uint64_t(value), sdata.data(), options);
+    return flags_enum_to_string(std::uint64_t(value), sdata.data_ref(), options);
 }
 template <typename EnumT, std::size_t N>
-    EnumT from_string_impl(tag<EnumT>, const std::string& string, const flags_enum_serialization_data<N>& sdata, const enum_serialization_options_t& options)
+    EnumT from_string_impl(tag<EnumT>, std::string_view string, const flags_enum_serialization_data<N>& sdata, const enum_serialization_options_t& options)
 {
-    return EnumT(string_to_flags_enum(string, sdata.data(), options));
+    std::uint64_t value;
+    flags_enum_from_string(string, value, sdata.data_ref(), options);
+    return EnumT(value);
 }
 
 
