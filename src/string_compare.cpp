@@ -52,22 +52,36 @@ inline namespace utility
 
 bool string_equal_to::operator()(std::string_view lhs, std::string_view rhs) const noexcept
 {
-    return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end(),
-        [](char a, char b) { return std::tolower(a) == std::tolower(b); });
+    if (comparison_ == string_comparison::ordinal_ignore_case)
+        return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end(),
+            [](char a, char b) { return std::tolower(a) == std::tolower(b); });
+    else
+        return lhs == rhs;
 }
 
 std::size_t string_hash::operator()(std::string_view arg) const noexcept
 {
     makeshift::detail::fnv1a_hasher hasher;
-    for (auto ch : arg)
-        hasher.add_byte(static_cast<unsigned char>(char(std::tolower(ch))));
+    if (comparison_ == string_comparison::ordinal_ignore_case)
+    {
+        for (auto ch : arg)
+            hasher.add_byte(static_cast<unsigned char>(char(std::tolower(ch))));
+    }
+    else
+    {
+        for (auto ch : arg)
+            hasher.add_byte(static_cast<unsigned char>(char(ch)));
+    }
     return hasher.val;
 }
 
 bool string_less::operator()(std::string_view lhs, std::string_view rhs) const noexcept
 {
-    return std::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end(),
-        [](char a, char b) { return std::tolower(a) < std::tolower(b); });
+    if (comparison_ == string_comparison::ordinal_ignore_case)
+        return std::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end(),
+            [](char a, char b) { return std::tolower(a) < std::tolower(b); });
+    else
+        return lhs < rhs;
 }
 
 

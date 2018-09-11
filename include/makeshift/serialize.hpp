@@ -13,29 +13,8 @@
 namespace makeshift
 {
 
-namespace detail
-{
-
-
-struct serializer_base { };
-
-
-} // namespace detail
-
-
 inline namespace serialize
 {
-
-
-    //ᅟ
-    // Determines whether a type is a serializer.
-    //
-template <typename T> struct is_serializer : std::is_base_of<makeshift::detail::serializer_base, T> { };
-
-    //ᅟ
-    // Determines whether a type is a serializer.
-    //
-template <typename T> constexpr bool is_serializer_v = is_serializer<T>::value;
 
 
     //ᅟ
@@ -50,7 +29,7 @@ template <typename T> constexpr bool is_serializer_v = is_serializer<T>::value;
     //ᅟ        ...
     //ᅟ    };
     //
-template <template <typename...> class SerializerT, typename BaseT = void, typename SerializerArgsT = void, typename... Ts>
+template <template <typename...> class SerializerT, typename BaseT, typename SerializerArgsT = void, typename... Ts>
     struct define_serializer : SerializerArgsT, BaseT
 {
     using args_sequence = type_sequence_cat_t<type_sequence<SerializerArgsT>, typename BaseT::args_sequence>;
@@ -142,8 +121,7 @@ inline namespace serialize
 
 
     //ᅟ
-    // Chain the given sequence of serializers. Unlike combining unrelated serializers with `combine()`, chaining permits that a serializer
-    // partially overrides the behavior of a serializer further down the list.
+    // Chain the given sequence of serializers. Chaining permits that a serializer partially overrides the behavior of a serializer further down the list.
     //ᅟ
     //ᅟ    auto serializer = chain_serializers(
     //ᅟ        string_quoting_serializer, // hypothetical serializer which encloses strings in quotes and passes them on

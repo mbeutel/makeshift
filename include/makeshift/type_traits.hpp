@@ -14,6 +14,8 @@ namespace detail
 {
 
 
+struct serializer_base { };
+
 struct flags_base { };
 struct flags_tag { };
 
@@ -312,6 +314,11 @@ template <typename... Ts> using any_tag_of = makeshift::detail::any_tag_tag (&)(
     //
 template <typename... Ts> using all_tags_of = makeshift::detail::all_tags_tag (&)(Ts...);
 
+    //ᅟ
+    // Tag argument type compatible with any tag type.
+    //
+struct any_tag { };
+
 
     //ᅟ
     // Use `define_tag<>` to define a tag type. Tag types defined this way can be combined algebraically with `any_tag_of<>` or `all_tags_of<>`.
@@ -333,6 +340,7 @@ template <typename TagT, typename... BaseTagsT>
     {
         return makeshift::detail::all_tags_func<Ts...>;
     }
+    constexpr operator any_tag(/*void*/) const noexcept { return { }; }
 };
 
 
@@ -520,6 +528,17 @@ template <typename T> struct is_constrained_integer : std::is_base_of<makeshift:
     // Determines whether the given type is a constrained integer.
     //
 template <typename T> constexpr bool is_constrained_integer_v = is_constrained_integer<T>::value;
+
+
+    //ᅟ
+    // Determines whether a type is a serializer.
+    //
+template <typename T> struct is_serializer : std::is_base_of<makeshift::detail::serializer_base, T> { };
+
+    //ᅟ
+    // Determines whether a type is a serializer.
+    //
+template <typename T> constexpr bool is_serializer_v = is_serializer<T>::value;
 
 
     //ᅟ

@@ -154,21 +154,21 @@ struct default_integer_constraint_verifier
     template <typename T, typename ConstraintT>
         static constexpr bool is_valid(T value, ConstraintT) noexcept
     {
-        using makeshift::detail::is_constrained_integer_valid; // permit ADL lookup, fall back to default implementations above
+        using makeshift::detail::is_constrained_integer_valid; // permit ADL, fall back to default implementations above
 
         return is_constrained_integer_valid(value, ConstraintT{ });
     }
     template <typename ConstraintT>
         static constexpr auto get_valid_values(ConstraintT) noexcept
     {
-        using makeshift::detail::get_valid_constrained_integer_values; // permit ADL lookup, fall back to default implementations above
+        using makeshift::detail::get_valid_constrained_integer_values; // permit ADL, fall back to default implementations above
 
         return get_valid_constrained_integer_values(ConstraintT{ });
     }
     template <typename T, typename ConstrainedIntT>
         static void raise_error(T value, tag<ConstrainedIntT>, bool isContractual)
     {
-        using makeshift::detail::raise_constrained_integer_error; // permit ADL lookup, fall back to default implementations above
+        using makeshift::detail::raise_constrained_integer_error; // permit ADL, fall back to default implementations above
 
         return raise_constrained_integer_error(value, tag_v<ConstrainedIntT>, typename ConstrainedIntT::constraint{ }, isContractual);
     }
@@ -179,7 +179,7 @@ struct default_integer_constraint_verifier
     // Inherit from `define_constrained_integer<>` to define an integer type with a constraint for admissible values:
     //ᅟ
     //ᅟ    struct BitDepth : define_constrained_integer<BitDepth, sequence<int, 1, 8, 24>> { using base::base; };
-    //ᅟ    auto bitDepth = BitDepth{ 8 };
+    //ᅟ    auto bitDepth = 8_c;
     //
 template <typename DerivedT, typename ConstraintT, typename VerifierT = default_integer_constraint_verifier>
     struct define_constrained_integer : makeshift::detail::constrained_integer_base
@@ -257,27 +257,6 @@ public:
 
     constexpr operator value_type(void) const noexcept { return value_; }
     constexpr value_type value(void) const noexcept { return value_; }
-
-    /*friend constexpr bool operator ==(DerivedT lhs, DerivedT rhs) noexcept { return lhs.value_ == rhs.value_; }
-    friend constexpr bool operator !=(DerivedT lhs, DerivedT rhs) noexcept { return lhs.value_ != rhs.value_; }
-    friend constexpr bool operator < (DerivedT lhs, DerivedT rhs) noexcept { return lhs.value_ <  rhs.value_; }
-    friend constexpr bool operator > (DerivedT lhs, DerivedT rhs) noexcept { return lhs.value_ >  rhs.value_; }
-    friend constexpr bool operator <=(DerivedT lhs, DerivedT rhs) noexcept { return lhs.value_ <= rhs.value_; }
-    friend constexpr bool operator >=(DerivedT lhs, DerivedT rhs) noexcept { return lhs.value_ >= rhs.value_; }
-
-    friend constexpr bool operator ==(DerivedT lhs, value_type rhs) noexcept { return lhs.value_ == rhs; }
-    friend constexpr bool operator !=(DerivedT lhs, value_type rhs) noexcept { return lhs.value_ != rhs; }
-    friend constexpr bool operator < (DerivedT lhs, value_type rhs) noexcept { return lhs.value_ <  rhs; }
-    friend constexpr bool operator > (DerivedT lhs, value_type rhs) noexcept { return lhs.value_ >  rhs; }
-    friend constexpr bool operator <=(DerivedT lhs, value_type rhs) noexcept { return lhs.value_ <= rhs; }
-    friend constexpr bool operator >=(DerivedT lhs, value_type rhs) noexcept { return lhs.value_ >= rhs; }
-
-    friend constexpr bool operator ==(value_type lhs, DerivedT rhs) noexcept { return lhs == rhs.value_; }
-    friend constexpr bool operator !=(value_type lhs, DerivedT rhs) noexcept { return lhs != rhs.value_; }
-    friend constexpr bool operator < (value_type lhs, DerivedT rhs) noexcept { return lhs <  rhs.value_; }
-    friend constexpr bool operator > (value_type lhs, DerivedT rhs) noexcept { return lhs >  rhs.value_; }
-    friend constexpr bool operator <=(value_type lhs, DerivedT rhs) noexcept { return lhs <= rhs.value_; }
-    friend constexpr bool operator >=(value_type lhs, DerivedT rhs) noexcept { return lhs >= rhs.value_; }*/
 };
 
 

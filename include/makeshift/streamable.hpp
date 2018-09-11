@@ -139,17 +139,10 @@ inline namespace serialize
 
 
     // To customize stream serialization for arbitrary types, define your own serializer type along with `to_stream_impl()`, `from_stream_impl()`
-    // overloads in the same namespace.
+    // overloads discoverable by ADL.
     //
-    // To override parts of the behavior of an existing serializer, have your serializer inherit from the existing serializer. Do not inherit from
-    // serializers with orthogonal concerns and try to keep the scope of a serializer as small as possible to permit unambiguous combination.
-    //
-    // Orthogonal serializers can be combined with `combine()`:
-    //ᅟ
-    //ᅟ    auto serializer = combine(
-    //ᅟ        string_serializer,
-    //ᅟ        stream_serializer
-    //ᅟ    );
+    // To override parts of the behavior of an existing serializer, define a new serializer that handles only the types you want to customize, and
+    // chain it with the existing serializer using `chain_serializers()`.
 
 
     //ᅟ
