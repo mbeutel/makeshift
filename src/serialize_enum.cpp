@@ -12,6 +12,20 @@
 namespace makeshift
 {
 
+
+inline namespace serialize
+{
+
+
+std::string parse_error::concat_message(const std::string& error, const std::string& context)
+{
+    return error + "\nContext: \"" + context + "\"";
+}
+
+
+} // inline namespace serialize
+
+
 namespace detail
 {
 
