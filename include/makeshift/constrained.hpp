@@ -24,17 +24,24 @@ namespace detail
 {
 
 
-enum class RangeType
+enum class ConstraintType
 {
-    normal,
-    upperHalf,
-    lowerHalf
+    sequence,
+    range,
+    inclusiveRange,
+    upperHalfRange,
+    lowerHalfRange,
+    lowerHalfInclusiveRange
 };
 
-[[noreturn]] MAKESHIFT_DLLFUNC void raise_constrained_integer_error(std::int64_t value, RangeType rangeType, std::int64_t first, std::int64_t last, std::string_view caption, bool isContractual);
-[[noreturn]] MAKESHIFT_DLLFUNC void raise_constrained_integer_error(std::uint64_t value, RangeType rangeType, std::uint64_t first, std::uint64_t last, std::string_view caption, bool isContractual);
-[[noreturn]] MAKESHIFT_DLLFUNC void raise_constrained_integer_error(std::int64_t value, const std::int64_t permittedValues[], std::size_t numPermittedValues, std::string_view caption, bool isContractual);
-[[noreturn]] MAKESHIFT_DLLFUNC void raise_constrained_integer_error(std::uint64_t value, const std::uint64_t permittedValues[], std::size_t numPermittedValues, std::string_view caption, bool isContractual);
+struct constrained_integer_metadata
+{
+    std::string_view typeName;
+    std::string_view caption;
+};
+
+[[noreturn]] MAKESHIFT_DLLFUNC void raise_constrained_integer_error(std::int64_t value, ConstraintType constraintType, const std::int64_t values[], std::size_t numValues, const constrained_integer_metadata& metadata, bool isContractual);
+[[noreturn]] MAKESHIFT_DLLFUNC void raise_constrained_integer_error(std::uint64_t value, ConstraintType constraintType, const std::uint64_t values[], std::size_t numValues, const constrained_integer_metadata& metadata, bool isContractual);
 
 
 template <typename T, T... Vs>
@@ -52,6 +59,11 @@ template <typename T, T First, T Last>
 {
     return value >= First && value < Last;
 }
+template <typename T, T First, T Last>
+    constexpr bool is_constrained_integer_valid(T value, integer_inclusive_range<T, First, Last>) noexcept
+{
+    return value >= First && value <= Last;
+}
 template <typename T, T First>
     constexpr bool is_constrained_integer_valid(T value, integer_upper_half_range<T, First>) noexcept
 {
@@ -61,6 +73,11 @@ template <typename T, T Last>
     constexpr bool is_constrained_integer_valid(T value, integer_lower_half_range<T, Last>) noexcept
 {
     return value < Last;
+}
+template <typename T, T Last>
+    constexpr bool is_constrained_integer_valid(T value, integer_lower_half_inclusive_range<T, Last>) noexcept
+{
+    return value <= Last;
 }
 
 template <typename T, T... Vs>
@@ -83,19 +100,20 @@ template <typename T, T First, T Last>
 {
     return get_valid_constrained_integer_values_impl(std::integral_constant<T, First>{ }, std::make_integer_sequence<long long, (long long)(Last - First)>);
 }
+template <typename T, T First, T Last>
+    constexpr auto get_valid_constrained_integer_values(integer_inclusive_range<T, First, Last>) noexcept
+{
+    return get_valid_constrained_integer_values_impl(std::integral_constant<T, First>{ }, std::make_integer_sequence<long long, (long long)(Last - First + 1)>);
+}
 
 
 template <typename T>
-    constexpr std::string_view try_get_caption(tag<T> = { }) noexcept
+    constexpr constrained_integer_metadata get_constrained_integer_metadata(tag<T> = { }) noexcept
 {
     if constexpr (have_metadata_v<T, serialization_metadata_tag>)
     {
         auto theMetadata = metadata_of<T, serialization_metadata_tag>;
-        auto caption = get_or_none<caption_t>(theMetadata.attributes);
-        if constexpr (std::is_same<decltype(caption), caption_t>::value)
-            return caption.value;
-        else
-            return get_or_default<std::string_view>(theMetadata.attributes); // type name
+        return { get_or_default<std::string_view>(theMetadata.attributes), get_or_default<caption_t>(theMetadata.attributes).value };
     }
     else
         return { };
@@ -106,8 +124,8 @@ template <typename T, typename ConstrainedIntT, T... Vs>
 {
     using common_int_t = std::conditional_t<std::is_signed<T>::value, std::int64_t, std::uint64_t>;
     common_int_t permittedValues[] = { common_int_t(Vs)... };
-    /*constexpr*/ std::string_view caption = try_get_caption<ConstrainedIntT>(); // TODO: currently not constexpr due to VC++ ICE
-    raise_constrained_integer_error(common_int_t(value), permittedValues, sizeof...(Vs), caption, isContractual);
+    /*constexpr*/ constrained_integer_metadata metadata = get_constrained_integer_metadata<ConstrainedIntT>(); // TODO: currently not constexpr due to VC++ ICE
+    raise_constrained_integer_error(common_int_t(value), ConstraintType::sequence, permittedValues, sizeof...(Vs), metadata, isContractual);
 }
 template <typename T, typename ConstrainedIntT, T... Vs>
     void raise_constrained_integer_error(T value, tag<ConstrainedIntT>, sequence<T, Vs...>, bool isContractual)
@@ -118,22 +136,41 @@ template <typename T, typename ConstrainedIntT, T First, T Last>
     void raise_constrained_integer_error(T value, tag<ConstrainedIntT>, integer_range<T, First, Last>, bool isContractual)
 {
     using common_int_t = std::conditional_t<std::is_signed<T>::value, std::int64_t, std::uint64_t>;
-    /*constexpr*/ std::string_view caption = try_get_caption<ConstrainedIntT>(); // TODO: currently not constexpr due to VC++ ICE
-    raise_constrained_integer_error(common_int_t(value), RangeType::normal, common_int_t(First), common_int_t(Last), caption, isContractual);
+    /*constexpr*/ constrained_integer_metadata metadata = get_constrained_integer_metadata<ConstrainedIntT>(); // TODO: currently not constexpr due to VC++ ICE
+    common_int_t values[] { common_int_t(First), common_int_t(Last) };
+    raise_constrained_integer_error(common_int_t(value), ConstraintType::range, values, 2, metadata, isContractual);
+}
+template <typename T, typename ConstrainedIntT, T First, T Last>
+    void raise_constrained_integer_error(T value, tag<ConstrainedIntT>, integer_inclusive_range<T, First, Last>, bool isContractual)
+{
+    using common_int_t = std::conditional_t<std::is_signed<T>::value, std::int64_t, std::uint64_t>;
+    /*constexpr*/ constrained_integer_metadata metadata = get_constrained_integer_metadata<ConstrainedIntT>(); // TODO: currently not constexpr due to VC++ ICE
+    common_int_t values[] { common_int_t(First), common_int_t(Last) };
+    raise_constrained_integer_error(common_int_t(value), ConstraintType::inclusiveRange, values, 2, metadata, isContractual);
 }
 template <typename T, typename ConstrainedIntT, T First>
     void raise_constrained_integer_error(T value, tag<ConstrainedIntT>, integer_upper_half_range<T, First>, bool isContractual)
 {
     using common_int_t = std::conditional_t<std::is_signed<T>::value, std::int64_t, std::uint64_t>;
-    /*constexpr*/ std::string_view caption = try_get_caption<ConstrainedIntT>(); // TODO: currently not constexpr due to VC++ ICE
-    raise_constrained_integer_error(common_int_t(value), RangeType::upperHalf, common_int_t(First), 0, caption, isContractual);
+    /*constexpr*/ constrained_integer_metadata metadata = get_constrained_integer_metadata<ConstrainedIntT>(); // TODO: currently not constexpr due to VC++ ICE
+    common_int_t values[] { common_int_t(First) };
+    raise_constrained_integer_error(common_int_t(value), ConstraintType::upperHalfRange, values, 1, metadata, isContractual);
 }
 template <typename T, typename ConstrainedIntT, T Last>
     void raise_constrained_integer_error(T value, tag<ConstrainedIntT>, integer_lower_half_range<T, Last>, bool isContractual)
 {
     using common_int_t = std::conditional_t<std::is_signed<T>::value, std::int64_t, std::uint64_t>;
-    /*constexpr*/ std::string_view caption = try_get_caption<ConstrainedIntT>(); // TODO: currently not constexpr due to VC++ ICE
-    raise_constrained_integer_error(common_int_t(value), RangeType::lowerHalf, 0, common_int_t(Last), caption, isContractual);
+    /*constexpr*/ constrained_integer_metadata metadata = get_constrained_integer_metadata<ConstrainedIntT>(); // TODO: currently not constexpr due to VC++ ICE
+    common_int_t values[] { common_int_t(Last) };
+    raise_constrained_integer_error(common_int_t(value), ConstraintType::lowerHalfRange, values, 1, metadata, isContractual);
+}
+template <typename T, typename ConstrainedIntT, T Last>
+    void raise_constrained_integer_error(T value, tag<ConstrainedIntT>, integer_lower_half_inclusive_range<T, Last>, bool isContractual)
+{
+    using common_int_t = std::conditional_t<std::is_signed<T>::value, std::int64_t, std::uint64_t>;
+    /*constexpr*/ constrained_integer_metadata metadata = get_constrained_integer_metadata<ConstrainedIntT>(); // TODO: currently not constexpr due to VC++ ICE
+    common_int_t values[] { common_int_t(Last) };
+    raise_constrained_integer_error(common_int_t(value), ConstraintType::lowerHalfInclusiveRange, values, 1, metadata, isContractual);
 }
 
 
@@ -173,6 +210,12 @@ struct default_integer_constraint_verifier
         return raise_constrained_integer_error(value, tag_v<ConstrainedIntT>, typename ConstrainedIntT::constraint{ }, isContractual);
     }
 };
+
+
+template <typename T> using non_negative = integer_upper_half_range<T, 0>;
+template <typename T> using non_positive = integer_lower_half_inclusive_range<T, 0>;
+template <typename T> using negative = integer_lower_half_range<T, 0>;
+template <typename T> using positive = integer_upper_half_range<T, 1>;
 
 
     //ᅟ
@@ -218,12 +261,12 @@ public:
         //ᅟ
         // Constructs a constrained integer type from an integer. Raises `std::runtime_error` if the integer type is not an admissible value.
         //
-    explicit constexpr define_constrained_integer(value_type _value)
+    /*explicit constexpr define_constrained_integer(value_type _value)
         : value_(_value)
     {
         if (!is_valid_(_value))
             raise_error_(_value, false);
-    }
+    }*/
 
     explicit constexpr define_constrained_integer(internal_constructor_tag, value_type _value, bool isContractual)
         : value_(_value)
@@ -269,6 +312,27 @@ template <typename ConstraintT, typename VerifierT = default_integer_constraint_
     using base = define_constrained_integer<constrained_integer<ConstraintT, VerifierT>, ConstraintT, VerifierT>;
     using base::base;
 };
+
+
+    //ᅟ
+    // Refers to an ad-hoc non-negative integer type.
+    //
+template <typename T> using non_negative_integer = constrained_integer<non_negative<T>>;
+
+    //ᅟ
+    // Refers to an ad-hoc non-positive integer type.
+    //
+template <typename T> using non_positive_integer = constrained_integer<non_positive<T>>;
+
+    //ᅟ
+    // Refers to an ad-hoc negative integer type.
+    //
+template <typename T> using negative_integer = constrained_integer<negative<T>>;
+
+    //ᅟ
+    // Refers to an ad-hoc positive integer type.
+    //
+template <typename T> using positive_integer = constrained_integer<positive<T>>;
 
 
 } // inline namespace types
