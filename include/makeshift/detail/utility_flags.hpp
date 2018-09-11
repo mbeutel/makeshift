@@ -37,9 +37,9 @@ template <typename FlagsT, typename UnderlyingTypeT = unsigned>
         // We just forward the metadata defined for the derived type.
         // TODO: ensure that have_metadata<flag> is false if no metadata is defined for FlagsT.
     template <typename MetadataTagT>
-        friend constexpr auto reflect(flag*, MetadataTagT) -> decltype(reflect((FlagsT*) nullptr, MetadataTagT{ }))
+        friend constexpr auto reflect(tag<flag>, MetadataTagT) -> decltype(reflect(tag<FlagsT>{ }, MetadataTagT{ }))
     {
-        return reflect((FlagsT*) nullptr, MetadataTagT{ });
+        return reflect(tag<FlagsT>{ }, MetadataTagT{ });
     }
 
     friend constexpr flags operator |(flags lhs, flags rhs) noexcept { return flags(UnderlyingTypeT(lhs) | UnderlyingTypeT(rhs)); }

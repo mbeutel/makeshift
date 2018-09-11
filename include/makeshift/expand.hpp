@@ -97,7 +97,7 @@ inline namespace types
     // For enum types with metadata, returns a tuple of type-encoded possible values.
     //ᅟ
     //ᅟ    enum Color { red, green, blue };
-    //ᅟ    constexpr inline auto reflect(Color*, reflection_metadata_tag) noexcept
+    //ᅟ    constexpr inline auto reflect(tag<Color>, reflection_metadata_tag) noexcept
     //ᅟ    {
     //ᅟ        return type<Color>(value<red>(), value<green>(), value<blue>());
     //ᅟ    }
@@ -185,7 +185,7 @@ template <typename T, typename TupleT,
     // Raises std::runtime_error if the runtime value does not appear in the tuple of possible values.
     //ᅟ
     //ᅟ    enum Color { red, green, blue };
-    //ᅟ    constexpr inline auto reflect(Color*, serialization_metadata_tag) noexcept { ... }
+    //ᅟ    constexpr inline auto reflect(tag<Color>, serialization_metadata_tag) noexcept { ... }
     //ᅟ
     //ᅟ    Color runtimeColor = ...;
     //ᅟ    auto color = expand(runtimeColor); // returns std::variant<constant<red>, constant<green>, constant<blue>>
@@ -203,7 +203,7 @@ template <typename T, typename MetadataTagT = serialization_metadata_tag>
     // The variant holds `unknown_value<>` if the runtime value does not appear in the tuple of possible values.
     //ᅟ
     //ᅟ    enum Color { red, green, blue };
-    //ᅟ    constexpr inline auto reflect(Color*, serialization_metadata_tag) noexcept { ... }
+    //ᅟ    constexpr inline auto reflect(tag<Color>, serialization_metadata_tag) noexcept { ... }
     //ᅟ
     //ᅟ    Color runtimeColor = ...;
     //ᅟ    auto color = try_expand(runtimeColor); // returns std::variant<unknown_value<Color>, constant<red>, constant<green>, constant<blue>>
