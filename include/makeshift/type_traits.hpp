@@ -21,12 +21,6 @@ struct flags_tag { };
 
 struct constrained_integer_base { };
 
-struct any_tag_tag { };
-template <typename... Ts> any_tag_tag any_tag_func(Ts...) { return { }; }
-
-struct all_tags_tag { };
-template <typename... Ts> all_tags_tag all_tags_func(Ts...) { return { }; }
-
 
 template <typename...> using void_t = void; // ICC doesn't have std::void_t<> yet
 template <template <typename...> class, typename, typename...> struct can_apply_1_ : std::false_type { };
@@ -306,59 +300,43 @@ template <typename... Ts> using type_sequence_cat_t = typename type_sequence_cat
     // Tag argument type compatible with arguments that inherit from at least one of the given tag types, retaining ADL.
     // Requires that the argument type be defined as a tag with `define_tag<>`, or combined from existing tag types with `combine_tags<>`.
     //
-template <typename... Ts> using any_tag_of = makeshift::detail::any_tag_tag (&)(Ts...);
+template <typename... Ts>
+    struct any_tag_of
+{
+    template <typename T,
+              typename = std::enable_if_t<std::disjunction<std::is_convertible<T, Ts>...>::value>>
+        constexpr any_tag_of(const T&) noexcept
+    {
+    }
+};
 
     //ᅟ
     // Tag argument type compatible with arguments that inherit from all of the given tag types, retaining ADL.
     // Requires that the argument type be defined as a tag with `define_tag<>`, or combined from existing tag types with `combine_tags<>`.
     //
-template <typename... Ts> using all_tags_of = makeshift::detail::all_tags_tag (&)(Ts...);
+template <typename... Ts>
+    struct all_tags_of
+{
+    template <typename T,
+              typename = std::enable_if_t<std::conjunction<std::is_convertible<T, Ts>...>::value>>
+        constexpr all_tags_of(const T&) noexcept
+    {
+    }
+};
 
     //ᅟ
     // Tag argument type compatible with any tag type.
     //
-struct any_tag { };
-
-
-    //ᅟ
-    // Use `define_tag<>` to define a tag type. Tag types defined this way can be combined algebraically with `any_tag_of<>` or `all_tags_of<>`.
-    //ᅟ
-    //ᅟ    struct MyTag : define_tag<MyTag> { };
-    //
-template <typename TagT, typename... BaseTagsT>
-    struct define_tag : BaseTagsT...
+struct any_tag
 {
-    template <typename... Ts,
-              typename = std::enable_if_t<std::disjunction<std::is_base_of<Ts, TagT>...>::value>>
-        constexpr operator any_tag_of<Ts...>(/*void*/) const noexcept
-    {
-        return makeshift::detail::any_tag_func<Ts...>;
-    }
-    template <typename... Ts,
-              typename = std::enable_if_t<std::conjunction<std::is_base_of<Ts, TagT>...>::value>>
-        constexpr operator all_tags_of<Ts...>(/*void*/) const noexcept
-    {
-        return makeshift::detail::all_tags_func<Ts...>;
-    }
-    constexpr operator any_tag(/*void*/) const noexcept { return { }; }
+    template <typename T> constexpr any_tag(const T&) noexcept { }
 };
-
-
-    //ᅟ
-    // Refers to an ad-hoc tag type that inherits from the given list of tag types.
-    //
-template <typename... TagsT> struct combine_tags : define_tag<combine_tags<TagsT...>, TagsT...> { };
-
-    //ᅟ
-    // Refers to an instance of an ad-hoc tag type that inherits from the given list of tag types.
-    //
-template <typename... TagsT> constexpr combine_tags<TagsT...> combine_tags_v{ };
 
 
     //ᅟ
     // Helper for type dispatching.
     //
-template <typename T = void> struct tag : define_tag<tag<T>> { using type = T; };
+template <typename T = void> struct tag { using type = T; };
 
     //ᅟ
     // Helper for type dispatching.
@@ -369,7 +347,7 @@ template <typename T = void> constexpr tag<T> tag_v { };
     //ᅟ
     // Helper for type dispatching.
     //
-template <template <typename...> class T> struct template_tag : define_tag<template_tag<T>> { };
+template <template <typename...> class T> struct template_tag { };
 
     //ᅟ
     // Helper for type dispatching.

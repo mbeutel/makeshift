@@ -156,13 +156,13 @@ static inline constexpr caption_t caption(std::string_view value) { return { val
     //ᅟ
     // Default tag type for `reflect()` methods which define type metadata for correctness and value enumeration.
     //
-struct reflection_metadata_tag : define_tag<reflection_metadata_tag> { };
+struct reflection_metadata_tag { };
 
 
     //ᅟ
     // Default tag type for `reflect()` methods which define type metadata for serialization.
     //
-struct serialization_metadata_tag : define_tag<serialization_metadata_tag> { };
+struct serialization_metadata_tag { };
 
 
 constexpr inline auto reflect(bool*, any_tag_of<reflection_metadata_tag, serialization_metadata_tag>) noexcept
