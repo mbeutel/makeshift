@@ -6,7 +6,7 @@
 #include <string>
 #include <sstream>
 #include <variant>
-#include <stdexcept>
+#include <stdexcept>   // for runtime_error
 #include <type_traits> // for enable_if<>, decay<>
 
 #include <makeshift/type_traits.hpp> // for type_sequence<>, tag<>, is_same_template<>

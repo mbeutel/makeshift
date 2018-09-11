@@ -15,19 +15,6 @@
 namespace makeshift
 {
 
-inline namespace types
-{
-
-
-    // Like `std::decay<>` but with additional support for converting plain old literals to modern types.
-template <typename T> struct literal_decay { using type = std::decay_t<T>; };
-template <std::size_t N> struct literal_decay<const char (&)[N]> { using type = std::string_view; };
-template <typename T> using literal_decay_t = typename literal_decay<T>::type;
-    
-
-} // inline namespace types
-
-
 namespace detail
 {
 
@@ -41,6 +28,25 @@ template <typename SerializerT> using serializer_metadata_tag_rt = typename Seri
 
 
 } // namespace detail
+
+
+inline namespace types
+{
+
+
+    //ᅟ
+    // Like `std::decay<>` but with additional support for converting plain old literals to modern types.
+    //
+template <typename T> struct literal_decay { using type = std::decay_t<T>; };
+template <std::size_t N> struct literal_decay<const char (&)[N]> { using type = std::string_view; };
+
+    //ᅟ
+    // Like `std::decay<>` but with additional support for converting plain old literals to modern types.
+    //
+template <typename T> using literal_decay_t = typename literal_decay<T>::type;
+
+
+} // inline namespace types
 
 
 inline namespace metadata
