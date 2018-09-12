@@ -577,6 +577,37 @@ template <typename T> struct remove_rvalue_reference<T&&> { using type = T; };
 template <typename T> using remove_rvalue_reference_t = typename remove_rvalue_reference<T>::type;
 
 
+    //ᅟ
+    // Determines whether a type has a particular base class. Type argument inversion of `std::is_base_of<>`.
+    //
+template <typename DerivedT, typename BaseT> struct has_base : std::is_base_of<BaseT, DerivedT> { };
+
+    //ᅟ
+    // Determines whether a type has a particular base class. Type argument inversion of `std::is_base_of_v<>`.
+    //
+template <typename DerivedT, typename BaseT> constexpr bool has_base_v = has_base<DerivedT, BaseT>::value;
+
+
+    //ᅟ
+    // Determines whether a type is convertible from another type. Type argument inversion of `std::is_convertible<>`.
+    //
+template <typename FromT, typename ToT> struct is_convertible_to : std::is_convertible<FromT, ToT> { };
+
+    //ᅟ
+    // Determines whether a type is convertible from another type. Type argument inversion of `std::is_convertible_v<>`.
+    //
+template <typename FromT, typename ToT> constexpr bool is_convertible_to_v = is_convertible_to<FromT, ToT>::value;
+
+
+    //ᅟ
+    // Determines whether a type is convertible to another type.
+    //
+template <typename ToT, typename FromT> struct is_convertible_from : std::is_convertible<FromT, ToT> { };
+
+    //ᅟ
+    // Determines whether a type is convertible to another type.
+    //
+template <typename ToT, typename FromT> constexpr bool is_convertible_from_v = is_convertible_from<FromT, ToT>::value;
 } // inline namespace types
 
 } // namespace makeshift
