@@ -7,8 +7,9 @@
 #include <variant>     // for monostate, variant_size<>, variant_alternative<>
 #include <optional>
 #include <utility>     // for move(), forward<>(), get<>, in_place_index<>, swap()
-#include <stdexcept>   // for invalid_argument
 #include <type_traits> // for decay<>, integral_constant<>, index_sequence<>, is_nothrow_default_constructible<>
+
+#include <gsl/gsl_assert> // for Expects()
 
 #include <makeshift/type_traits.hpp> // for can_apply<>
 
@@ -72,8 +73,7 @@ public:
     explicit constexpr type_variant(makeshift::detail::runtime_index_t, std::size_t _index)
         : index_(_index)
     {
-        if (_index >= sizeof...(Ts))
-            throw std::invalid_argument("index out of range");
+        Expects(_index >= sizeof...(Ts));
     }
 
         //ᅟ
@@ -125,26 +125,24 @@ template <typename T, typename... Ts>
 
 
     //ᅟ
-    // Returns the `I`-th alternative in the type variant. Raises `std::bad_variant_access` if the variant does not currently hold the `I`-th alternative.
+    // Returns the `I`-th alternative in the type variant.
     //
 template <std::size_t I, typename... Ts>
     constexpr nth_type_t<I, Ts...> get(const type_variant<Ts...>& v)
 {
     static_assert(I < sizeof...(Ts), "variant index out of range");
-    if (v.index() != I)
-        throw std::bad_variant_access();
+    Expects(v.index() == I);
     return { };
 }
 
     //ᅟ
-    // Returns the type variant alternative of type `T`. Raises `std::bad_variant_access` if the variant does not currently hold the alternative of type `T`.
+    // Returns the type variant alternative of type `T`.
     //
 template <typename T, typename... Ts>
     constexpr T get(const type_variant<Ts...>& v)
 {
     static_assert(try_index_of_type_v<T, Ts...> != std::size_t(-1), "type T does not appear in type sequence");
-    if (v.index() != try_index_of_type_v<T, Ts...>)
-        throw std::bad_variant_access();
+    Expects(v.index() == try_index_of_type_v<T, Ts...>);
     return { };
 }
 
@@ -227,7 +225,7 @@ template <typename R, std::size_t I, typename F, typename VariantT>
     (void) func;
     (void) variant;
     if constexpr (I == std::variant_size<std::decay_t<VariantT>>::value)
-        throw std::bad_variant_access(); // cannot happen, we just need to silence the compiler about not being able to formally return a value
+        Expects(false); // cannot happen, we just need to silence the compiler about not being able to formally return a value
     else
         return variant_apply_recur<R, I>(std::forward<F>(func), std::forward<VariantT>(variant));
 }

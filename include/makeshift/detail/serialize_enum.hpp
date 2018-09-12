@@ -12,6 +12,8 @@
 #include <cstdint>     // for uint64_t
 #include <tuple>
 
+#include <gsl/span>
+
 #include <makeshift/type_traits.hpp> // for tag<>, flags_base
 #include <makeshift/metadata.hpp>
 #include <makeshift/tuple.hpp>
@@ -19,8 +21,6 @@
 
 #include <makeshift/detail/cfg.hpp>            // for MAKESHIFT_DLLFUNC
 #include <makeshift/detail/string_compare.hpp>
-
-#include <gsl/span>
 
 
 namespace makeshift

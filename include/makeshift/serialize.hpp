@@ -9,8 +9,9 @@
 #include <stdexcept>   // for runtime_error
 #include <type_traits> // for decay<>, is_base_of<>
 
-#include <makeshift/detail/cfg.hpp>  // for MAKESHIFT_DLLFUNC
 #include <makeshift/type_traits.hpp> // for tag<>, type_sequence<>, type_sequence_cat<>
+
+#include <makeshift/detail/cfg.hpp>  // for MAKESHIFT_DLLFUNC
 
 
 namespace makeshift
@@ -153,13 +154,8 @@ private:
     std::string context_;
     std::size_t column_;
 
-    MAKESHIFT_DLLFUNC static std::string concat_message(const std::string& error, const std::string& context);
-
 public:
-    parse_error(const std::string& _error, const std::string& _context, std::size_t _column)
-        : std::runtime_error(concat_message(_error, _context)), error_(_error), context_(_context), column_(_column)
-    {
-    }
+    MAKESHIFT_DLLFUNC parse_error(const std::string& _error, const std::string& _context, std::size_t _column);
 
     const std::string& error(void) const noexcept { return error_; }
     const std::string& context(void) const noexcept { return context_; }

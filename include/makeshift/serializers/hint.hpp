@@ -7,6 +7,7 @@
 
 #include <makeshift/type_traits.hpp>           // for tag<>
 #include <makeshift/serialize.hpp>             // for define_serializer<>
+
 #include <makeshift/detail/serialize_enum.hpp> // for serialization_data<>
 
 

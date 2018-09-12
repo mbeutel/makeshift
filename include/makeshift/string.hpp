@@ -7,9 +7,9 @@
 #include <string_view>
 #include <type_traits> // for decay<>, enable_if<>
 
-#include <makeshift/detail/string_compare.hpp>
-
 #include <makeshift/type_traits.hpp> // for tag<>, is_serializer<>
+
+#include <makeshift/detail/string_compare.hpp>
 
 
 namespace makeshift

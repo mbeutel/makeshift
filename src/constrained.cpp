@@ -2,9 +2,9 @@
 #include <cassert>
 #include <string>
 #include <sstream>
-#include <stdexcept> // for invalid_argument, runtime_error
+#include <stdexcept> // for runtime_error
 
-#include <gsl/gsl_assert>
+#include <gsl/gsl_assert> // for Expects()
 
 #include <makeshift/constrained.hpp>
 #include <makeshift/serializers/hint.hpp> // for hint_options_t
@@ -56,7 +56,7 @@ template <typename IntT>
         stream << ".." << values[0];
         break;
     default:
-        throw std::invalid_argument("invalid constraint type");
+        Expects(!"invalid constraint type");
     }
 }
 template <typename IntT>
@@ -117,12 +117,10 @@ template <typename IntT>
         sstr << "; value must be <= " << values[0];
         break;
     default:
-        throw std::invalid_argument("invalid constraint type");
+        Expects(!"invalid constraint type");
     }
-    if (isContractual)
-        throw std::invalid_argument(sstr.str());
-    else
-        throw std::runtime_error(sstr.str());
+    Expects(!isContractual);
+    throw std::runtime_error(sstr.str());
 }
 
 [[noreturn]] void raise_constrained_integer_error(std::int64_t value, ConstraintType constraintType, const std::int64_t values[], std::size_t numValues, const constrained_integer_metadata& metadata, bool isContractual)

@@ -6,8 +6,9 @@
 #include <string>
 #include <sstream>
 #include <variant>
-#include <stdexcept>   // for runtime_error
 #include <type_traits> // for enable_if<>, decay<>
+
+#include <gsl/gsl_assert> // for Expects()
 
 #include <makeshift/type_traits.hpp> // for type_sequence<>, tag<>, is_same_template<>
 #include <makeshift/tuple.hpp>       // for type_tuple<>, is_tuple_like<>, tuple_foreach()
@@ -44,7 +45,7 @@ template <bool Raise, typename R, std::size_t I, typename T, typename TupleT>
 template <typename R, typename T>
     constexpr R expand_impl_fail(std::true_type /* raise */, T&&)
 {
-    throw std::runtime_error("invalid value"); // TODO: surely we can do better than that!
+    Expects(!"value not supported"); // we end up here if the value was not found, which is a programming error
 }
 template <typename R, typename T>
     constexpr R expand_impl_fail(std::false_type /* raise */, T&& value)
@@ -150,16 +151,15 @@ template <typename T, typename MetadataTagT = reflection_metadata_tag>
 
     //ᅟ
     // Given a runtime value and a tuple of type-encoded possible values, returns a variant of the type-encoded possible values.
-    // Raises std::runtime_error if the runtime value does not appear in the tuple of possible values.
     //ᅟ
     //ᅟ    int runtimeBits = ...;
     //ᅟ    auto bits = expand(runtimeBits, std::make_tuple(c<16>, c<32>, c<64>)); // returns std::variant<constant<16>, constant<32>, constant<64>>
     //
 template <typename T, typename TupleT,
           typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
-    makeshift::detail::apply_variant_type_t<true, std::variant, std::decay_t<T>, std::decay_t<TupleT>> expand(T&& value, TupleT&& tuple)
+    typename apply<std::variant, std::decay_t<TupleT>>::type expand(T&& value, TupleT&& tuple)
 {
-    using R = makeshift::detail::apply_variant_type_t<true, std::variant, std::decay_t<T>, std::decay_t<TupleT>>;
+    using R = typename apply<std::variant, std::decay_t<TupleT>>::type;
     return makeshift::detail::expand_impl<true, R, 0>(std::forward<T>(value), std::forward<TupleT>(tuple));
 }
 
@@ -173,16 +173,15 @@ template <typename T, typename TupleT,
     //
 template <typename T, typename TupleT,
           typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
-    makeshift::detail::apply_variant_type_t<false, std::variant, std::decay_t<T>, std::decay_t<TupleT>> try_expand(T&& value, TupleT&& tuple)
+    typename makeshift::detail::apply_variant_type<false, std::variant, std::decay_t<T>, std::decay_t<TupleT>>::type try_expand(T&& value, TupleT&& tuple)
 {
-    using R = makeshift::detail::apply_variant_type_t<false, std::variant, std::decay_t<T>, std::decay_t<TupleT>>;
+    using R = typename makeshift::detail::apply_variant_type<false, std::variant, std::decay_t<T>, std::decay_t<TupleT>>::type;
     return makeshift::detail::expand_impl<false, R, 0>(std::forward<T>(value), std::forward<TupleT>(tuple));
 }
 
 
     //ᅟ
     // Given a runtime value, returns a variant of the type-encoded possible values as defined by metadata.
-    // Raises std::runtime_error if the runtime value does not appear in the tuple of possible values.
     //ᅟ
     //ᅟ    enum Color { red, green, blue };
     //ᅟ    constexpr inline auto reflect(tag<Color>, serialization_metadata_tag) noexcept { ... }

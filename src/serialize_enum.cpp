@@ -5,6 +5,8 @@
 #include <cctype>    // for isspace()
 #include <optional>
 
+#include <gsl/gsl_assert> // for Expects()
+
 #include <makeshift/detail/serialize_enum.hpp>
 
 #include <makeshift/serializers/hint.hpp> // for hint_options_t
@@ -18,10 +20,16 @@ inline namespace serialize
 {
 
 
-std::string parse_error::concat_message(const std::string& error, const std::string& context)
+static std::string concat_message(const std::string& error, const std::string& context)
 {
     return error + "\nContext: \"" + context + "\"";
 }
+
+parse_error::parse_error(const std::string& _error, const std::string& _context, std::size_t _column)
+    : std::runtime_error(concat_message(_error, _context)), error_(_error), context_(_context), column_(_column)
+{
+}
+
 
 
 } // inline namespace serialize
@@ -71,7 +79,7 @@ std::string flags_enum_hint(const flags_enum_serialization_data_ref& sdata, cons
 
 [[noreturn]] static void raise_invalid_value_error(void)
 {
-    throw std::logic_error("invalid value");
+    Expects(!"invalid value");
 }
 
 static void enum_error_msg(std::ostream& stream, std::string_view typeDesc, std::string_view typeName)
