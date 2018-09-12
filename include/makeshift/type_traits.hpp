@@ -653,6 +653,77 @@ template <template <typename, template <typename...> class> class PredT, templat
     //ᅟ    auto p = template_predicate_v<is_same_template, V>(U{ }); // p is of type is_same_template<U, V>
     //
 template <template <typename, template <typename...> class> class PredT, template <typename...> class ArgT> constexpr template_predicate<PredT, ArgT> template_predicate_v = { };
+
+
+    //ᅟ
+    // Conjunction of partially applied traits.
+    //ᅟ
+    //ᅟ    using P = typename predicate_conjunction<predicate<std::is_same, U>, predicate<std::is_same, V>>::template type<W>; // P is conjunction<std::is_same<U, W>, std::is_same<V, W>>
+    //
+template <typename... Ps>
+    struct predicate_conjunction
+{
+    constexpr predicate_conjunction(void) noexcept { }
+    constexpr predicate_conjunction(Ps...) noexcept { }
+
+    template <typename... Ts> constexpr std::conjunction<typename Ps::template type<Ts...>...> operator ()(tag<Ts>...) const noexcept { return { }; }
+    template <typename... Ts> struct type : std::conjunction<typename Ps::template type<Ts...>...> { };
+};
+template <>
+    struct predicate_conjunction<>
+{
+    constexpr predicate_conjunction(void) noexcept { }
+    
+    template <typename... Ts> constexpr std::true_type operator ()(tag<Ts>...) const noexcept { return { }; }
+    template <typename... Ts> struct type : std::true_type { };
+};
+template <typename... Ps>
+    predicate_conjunction(Ps&&...) -> predicate_conjunction<std::decay_t<Ps>...>;
+
+    //ᅟ
+    // Disjunction of partially applied traits.
+    //ᅟ
+    //ᅟ    using P = typename predicate_disjunction<predicate<std::is_same, U>, predicate<std::is_same, V>>::template type<W>; // P is disjunction<std::is_same<U, W>, std::is_same<V, W>>
+    //
+template <typename... Ps>
+    struct predicate_disjunction
+{
+    constexpr predicate_disjunction(Ps...) noexcept { }
+
+    template <typename... Ts> constexpr std::disjunction<typename Ps::template type<Ts...>...> operator ()(tag<Ts>...) const noexcept { return { }; }
+    template <typename... Ts> struct type : std::disjunction<typename Ps::template type<Ts...>...> { };
+};
+template <>
+    struct predicate_disjunction<>
+{
+    constexpr predicate_disjunction(void) noexcept { }
+    
+    template <typename... Ts> constexpr std::false_type operator ()(tag<Ts>...) const noexcept { return { }; }
+    template <typename... Ts> struct type : std::false_type { };
+};
+template <typename... Ps>
+    predicate_disjunction(Ps&&...) -> predicate_disjunction<std::decay_t<Ps>...>;
+
+
+    //ᅟ
+    // Negation of partially applied trait.
+    //ᅟ
+    //ᅟ    using P = typename predicate_negation<predicate<std::is_same, U>::template type<V>; // P is negation<std::is_same<U, V>>
+    //
+template <typename P>
+    struct predicate_negation
+{
+    constexpr predicate_negation(void) noexcept { }
+    constexpr predicate_negation(P) noexcept { }
+
+    template <typename... Ts> constexpr std::negation<typename P::template type<Ts...>> operator ()(tag<Ts>...) const noexcept { return { }; }
+    template <typename... Ts> struct type : std::negation<typename P::template type<Ts...>> { };
+};
+template <typename P>
+    predicate_negation(P&&) -> predicate_negation<std::decay_t<P>>;
+
+
+
 } // inline namespace types
 
 } // namespace makeshift
