@@ -23,7 +23,7 @@ struct hint_options_t
     std::string_view option_separator = "|";
     std::string_view flags_separator = ",";
 
-    constexpr hint_options_t(/*void*/) noexcept = default;
+    constexpr hint_options_t(void) noexcept = default;
 };
 
 
@@ -45,7 +45,7 @@ struct hint_serializer_args
 {
     hint_options_t hint_options;
 
-    constexpr hint_serializer_args(/*void*/) noexcept = default;
+    constexpr hint_serializer_args(void) noexcept = default;
     constexpr hint_serializer_args(hint_options_t _hintOptions) noexcept
         : hint_options(_hintOptions)
     {

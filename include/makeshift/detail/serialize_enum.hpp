@@ -19,8 +19,7 @@
 #include <makeshift/tuple.hpp>
 #include <makeshift/array.hpp>       // for to_array()
 
-#include <makeshift/detail/cfg.hpp>            // for MAKESHIFT_DLLFUNC
-#include <makeshift/detail/string_compare.hpp>
+#include <makeshift/detail/cfg.hpp>  // for MAKESHIFT_DLLFUNC
 
 
 namespace makeshift
@@ -31,25 +30,7 @@ inline namespace serialize
 
 
 struct hint_options_t; // defined in makeshift/serializers/hint.hpp
-
-
-    //ᅟ
-    // Options for serializing and deserializing enums and flag enums with metadata.
-    //
-struct enum_serialization_options_t
-{
-        //ᅟ
-        // Determines comparison mode for string representations of enum values.
-        //
-    string_comparison enum_string_comparison_mode = string_comparison::ordinal_ignore_case;
-
-        //ᅟ
-        // Determines separator for flags enum values.
-        //
-    std::string_view flags_separator = ", ";
-
-    constexpr enum_serialization_options_t(void) = default;
-};
+struct enum_serialization_options_t; // defined in serialize.hpp
 
 
 } // inline namespace serialize

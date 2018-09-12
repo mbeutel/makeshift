@@ -963,9 +963,9 @@ template <std::size_t I, typename... Ts> class tuple_element<I, makeshift::type_
 } // namespace std
 
 
-#ifdef MAKESHIFT_DETAIL_UTILITY_KEYWORD_HPP_
+#ifdef INCLUDED_MAKESHIFT_DETAIL_UTILITY_KEYWORD_HPP_
  #include <makeshift/detail/utility_keyword_tuple.hpp>
-#endif // MAKESHIFT_DETAIL_UTILITY_KEYWORD_HPP_
+#endif // INCLUDED_MAKESHIFT_DETAIL_UTILITY_KEYWORD_HPP_
 
 
 #endif // INCLUDED_MAKESHIFT_TUPLE_HPP_

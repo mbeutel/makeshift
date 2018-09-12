@@ -86,7 +86,7 @@ static void constrained_integer_error_msg(std::ostream& stream, const constraine
         stream << " is not a valid constrained integer value";
 }
 template <typename IntT>
-    [[noreturn]] static void raise_constrained_integer_error_impl(IntT value, ConstraintType constraintType, const IntT values[], std::size_t numValues, const constrained_integer_metadata& metadata, bool isContractual)
+    [[noreturn]] static void raise_constrained_integer_error_impl(IntT value, ConstraintType constraintType, const IntT values[], std::size_t numValues, const constrained_integer_metadata& metadata)
 {
     std::ostringstream sstr;
     sstr << value;
@@ -119,17 +119,16 @@ template <typename IntT>
     default:
         Expects(!"invalid constraint type");
     }
-    Expects(!isContractual);
     throw std::runtime_error(sstr.str());
 }
 
-[[noreturn]] void raise_constrained_integer_error(std::int64_t value, ConstraintType constraintType, const std::int64_t values[], std::size_t numValues, const constrained_integer_metadata& metadata, bool isContractual)
+[[noreturn]] void raise_constrained_integer_error(std::int64_t value, ConstraintType constraintType, const std::int64_t values[], std::size_t numValues, const constrained_integer_metadata& metadata)
 {
-    raise_constrained_integer_error_impl(value, constraintType, values, numValues, metadata, isContractual);
+    raise_constrained_integer_error_impl(value, constraintType, values, numValues, metadata);
 }
-[[noreturn]] void raise_constrained_integer_error(std::uint64_t value, ConstraintType constraintType, const std::uint64_t values[], std::size_t numValues, const constrained_integer_metadata& metadata, bool isContractual)
+[[noreturn]] void raise_constrained_integer_error(std::uint64_t value, ConstraintType constraintType, const std::uint64_t values[], std::size_t numValues, const constrained_integer_metadata& metadata)
 {
-    raise_constrained_integer_error_impl(value, constraintType, values, numValues, metadata, isContractual);
+    raise_constrained_integer_error_impl(value, constraintType, values, numValues, metadata);
 }
 
 

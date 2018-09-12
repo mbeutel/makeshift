@@ -11,7 +11,8 @@
 
 #include <makeshift/type_traits.hpp> // for tag<>, type_sequence<>, type_sequence_cat<>
 
-#include <makeshift/detail/cfg.hpp>  // for MAKESHIFT_DLLFUNC
+#include <makeshift/detail/cfg.hpp>            // for MAKESHIFT_DLLFUNC
+#include <makeshift/detail/string_compare.hpp> // for string_comparison
 
 
 namespace makeshift
@@ -19,6 +20,25 @@ namespace makeshift
 
 inline namespace serialize
 {
+
+
+    //ᅟ
+    // Options for serializing and deserializing enums and flag enums with metadata.
+    //
+struct enum_serialization_options_t
+{
+        //ᅟ
+        // Determines comparison mode for string representations of enum values.
+        //
+    string_comparison enum_string_comparison_mode = string_comparison::ordinal_ignore_case;
+
+        //ᅟ
+        // Determines separator for flags enum values.
+        //
+    std::string_view flags_separator = ", ";
+
+    constexpr enum_serialization_options_t(void) = default;
+};
 
 
     //ᅟ

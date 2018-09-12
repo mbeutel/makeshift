@@ -291,9 +291,9 @@ constexpr inline makeshift::detail::keyword operator ""_kw(const char* data, std
 } // namespace makeshift
 
 
-#ifdef MAKESHIFT_TUPLE_HPP_
+#ifdef INCLUDED_MAKESHIFT_TUPLE_HPP_
  #include <makeshift/detail/utility_keyword_tuple.hpp>
-#endif // MAKESHIFT_TUPLE_HPP_
+#endif // INCLUDED_MAKESHIFT_TUPLE_HPP_
 
 
 #endif // INCLUDED_MAKESHIFT_DETAIL_UTILITY_KEYWORD_HPP_

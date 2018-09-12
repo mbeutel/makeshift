@@ -376,7 +376,7 @@ template <typename T, T... Vs>
 
     static constexpr std::size_t size(void) noexcept { return sizeof...(Vs); }
 
-    constexpr sequence(/*void*/) noexcept { }
+    constexpr sequence(void) noexcept { }
     template <typename U = T,
               typename = std::enable_if_t<std::is_same<T, U>::value>>
         constexpr sequence(std::integer_sequence<U, Vs...>) noexcept
@@ -391,7 +391,7 @@ template <typename T>
 
     static constexpr std::size_t size(void) noexcept { return 0; }
 
-    constexpr sequence(/*void*/) noexcept { }
+    constexpr sequence(void) noexcept { }
     template <typename U = T,
               typename = std::enable_if_t<std::is_same<T, U>::value>>
         constexpr sequence(std::integer_sequence<U>) noexcept
@@ -418,7 +418,7 @@ template <typename T, T First, T Last>
     static constexpr T first(void) noexcept { return First; }
     static constexpr T last(void) noexcept { return Last; }
 
-    constexpr integer_range(/*void*/) noexcept { }
+    constexpr integer_range(void) noexcept { }
 
     // TODO: there is more to do here! (e.g. iterators)
 };
@@ -438,7 +438,7 @@ template <typename T, T First, T Last>
     static constexpr T first(void) noexcept { return First; }
     static constexpr T last(void) noexcept { return Last; }
 
-    constexpr integer_inclusive_range(/*void*/) noexcept { }
+    constexpr integer_inclusive_range(void) noexcept { }
 
     // TODO: there is more to do here! (e.g. iterators, sequence conversions)
 };
@@ -454,7 +454,7 @@ template <typename T, T First>
 
     static constexpr T first(void) noexcept { return First; }
 
-    constexpr integer_upper_half_range(/*void*/) noexcept { }
+    constexpr integer_upper_half_range(void) noexcept { }
 };
 
 
@@ -468,7 +468,7 @@ template <typename T, T Last>
 
     static constexpr T last(void) noexcept { return Last; }
 
-    constexpr integer_lower_half_range(/*void*/) noexcept { }
+    constexpr integer_lower_half_range(void) noexcept { }
 };
 
 
@@ -482,7 +482,7 @@ template <typename T, T Last>
 
     static constexpr T last(void) noexcept { return Last; }
 
-    constexpr integer_lower_half_inclusive_range(/*void*/) noexcept { }
+    constexpr integer_lower_half_inclusive_range(void) noexcept { }
 };
 
 
