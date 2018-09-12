@@ -1,12 +1,13 @@
+
 # Get the directory containing this file.
 get_filename_component(@PROJECT_NAME@_CURRENT_CONFIG_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-# Backup module path and add CMakeshift find module directory.
+# Backup module path.
 set(@PROJECT_NAME@_ORIGINAL_CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}")
-list(APPEND CMAKE_MODULE_PATH "@CMAKESHIFT_MODULE_DIR@")
 
 # Find all dependencies.
 include(CMakeFindDependencyMacro)
+find_dependency(CMakeshift 2.0 REQUIRED)
 find_dependency(MS-GSL REQUIRED)
 
 # Restore original module path.

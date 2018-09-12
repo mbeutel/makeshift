@@ -18,32 +18,20 @@ set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 project(makeshift
     VERSION 1.2.0
     LANGUAGES CXX)
+set(makeshift_APIVERSION 2)
 
 # Define build options.
 option(BUILD_TESTS "Build tests" OFF)
 option(EXPORT_BUILD_DIR "Export build directory using CMake (enables external use without install)" OFF)
 
-# Load CMakeshift.
-find_package(CMakeshift 1.2.1 REQUIRED)
-
-# Add the CMakeshift find module path to the module path.
-list(APPEND CMAKE_MODULE_PATH "${CMAKESHIFT_MODULE_DIR}")
-
-# Generate a version header file.
-configure_file("cmake/version.hpp.in"
-    "${PROJECT_BINARY_DIR}/include/makeshift/version.hpp" @ONLY)
-
 
 ## 2. Targets
 ## ==========
 
-# apply default flags
-include(CMakeshift/DefaultFlags)
-
-# define project targets
+# Define project targets.
 add_subdirectory(src)
 
-# define tests
+# Define tests.
 if(BUILD_TESTS)
     enable_testing()
     add_subdirectory(test)
@@ -61,16 +49,6 @@ write_basic_package_version_file("${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVer
 
     
 # Install method #1: Put library in CMAKE_INSTALL_PREFIX, i.e. /usr/local or equivalent.
-
-# Install public header files.
-install(
-    DIRECTORY "include/"
-    DESTINATION "include")
-
-# Install generated header files.
-install(
-    DIRECTORY "${PROJECT_BINARY_DIR}/include/"
-    DESTINATION "include")
 
 # Determine the install path for the *Config.cmake configuration file relative to CMAKE_INSTALL_PREFIX.
 set(RELATIVE_CONFIG_INSTALL_DIR "share/cmake/${PROJECT_NAME}-${PROJECT_VERSION}")
@@ -109,12 +87,13 @@ install(
 if(EXPORT_BUILD_DIR AND NOT CMAKE_EXPORT_NO_PACKAGE_REGISTRY)
     message("-- Exporting ${PROJECT_NAME} build directory to local CMake package registry.")
     
-    # Analogously to install(EXPORT ...), export the targets from the build directory as a package into the
-    # local CMake package registry.
+    # Analogously to install(EXPORT ...), export the targets from the build directory to a *Targets.cmake file.
     export(
         EXPORT ${PROJECT_NAME}Export
         NAMESPACE "${PROJECT_NAME}::"
         FILE "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake")
+
+    # Export the project build directory as a package into the local CMake package registry.
     export(
         PACKAGE ${PROJECT_NAME})
     

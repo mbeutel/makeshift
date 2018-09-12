@@ -1,6 +1,10 @@
 
-#ifndef INCLUDED_MAKESHIFT_CONFIG_HPP_
-#define INCLUDED_MAKESHIFT_CONFIG_HPP_
+#ifndef INCLUDED_MAKESHIFT_VERSION_HPP_
+#define INCLUDED_MAKESHIFT_VERSION_HPP_
+
+
+#include <makeshift/detail/cfg.hpp>     // for MAKESHIFT_DLLFUNC
+#include <makeshift/detail/version.hpp>
 
 
     // compiler-specific attributes
@@ -49,4 +53,20 @@
 #endif // _MSC_VER
 
 
-#endif // INCLUDED_MAKESHIFT_CONFIG_HPP_
+
+namespace makeshift
+{
+
+namespace detail
+{
+
+
+MAKESHIFT_DLLFUNC void get_version(int& major, int& minor, int& patch, int& api);
+
+
+} // namespace detail
+
+} // namespace makeshift
+
+
+#endif // INCLUDED_MAKESHIFT_VERSION_HPP_
