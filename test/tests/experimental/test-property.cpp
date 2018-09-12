@@ -85,7 +85,7 @@ template <typename T, typename AttributesT>
     std::string to_string(const mk::type_metadata<T, AttributesT>& typeMetadata, serialize_as_table_t)
 {
     return typeMetadata.attributes
-        | mk::tuple_filter<is_property_metadata>()
+        | mk::tuple_filter(predicate_v<is_property_metadata>)
         | mk::tuple_map([&](const auto& propMetadata)
           {
               constexpr auto accessor = mk::get_property_accessor(typeMetadata, propMetadata);
@@ -95,7 +95,7 @@ template <typename T, typename AttributesT>
               else
                   return none;
           })
-        | mk::tuple_filter<is_not_none>()
+        | mk::tuple_filter(predicate_v<is_not_none>)
         | string_join("\t");
 }
 

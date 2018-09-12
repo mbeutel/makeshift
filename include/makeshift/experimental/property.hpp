@@ -101,15 +101,15 @@ template <typename ObjT, typename ObjAttributesT, typename PropAccessorsC, typen
     constexpr auto get_property_accessor(const type_metadata<ObjT, ObjAttributesT>& typeMetadata, const property_metadata<PropAccessorsC, PropAttributesT>& propMetadata)
 {
     auto callablePropAttributes = propMetadata.attributes
-        | tuple_filter<is_callable>();
+        | tuple_filter(predicate_v<is_callable>);
     constexpr auto constAccessors = makeshift::detail::tuple_from_integral_constants<PropAccessorsC>()
-        | tuple_filter<is_callable>();
+        | tuple_filter(predicate_v<is_callable>);
     auto allAccessors = std::tuple_cat(callablePropAttributes, constAccessors);
     auto maybeGetter = allAccessors
-        | tuple_filter<makeshift::detail::is_getter>()
+        | tuple_filter(predicate_v<makeshift::detail::is_getter>)
         | single_or_default(makeshift::detail::invalid_getter{ });
     auto maybeSetter = allAccessors
-        | tuple_filter<makeshift::detail::is_setter>()
+        | tuple_filter(predicate_v<makeshift::detail::is_setter>)
         | single_or_default(makeshift::detail::invalid_setter{ });
     using Getter = decltype(maybeGetter);
     using Setter = decltype(maybeSetter);

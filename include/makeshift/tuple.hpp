@@ -282,21 +282,21 @@ template <typename F, typename T, typename U>
     return make_accumulator_wrapper(lhs.func(), lhs.func()(std::move(lhs).get(), std::forward<U>(rhs)));
 }
 
-template <typename SelectedIs, typename Is, typename TupleT, template <typename> class PredT> struct select_indices_0_;
+template <typename SelectedIs, typename Is, typename TupleT, typename PredT> struct select_indices_0_;
 template <typename SelectedIs, std::size_t NextI, bool TakeNextI> struct select_indices_1_;
 template <std::size_t... SelectedIs, std::size_t NextI> struct select_indices_1_<std::index_sequence<SelectedIs...>, NextI, true> { using type = std::index_sequence<SelectedIs..., NextI>; };
 template <std::size_t... SelectedIs, std::size_t NextI> struct select_indices_1_<std::index_sequence<SelectedIs...>, NextI, false> { using type = std::index_sequence<SelectedIs...>; };
-template <std::size_t... SelectedIs, std::size_t NextI, std::size_t... Is, typename TupleT, template <typename> class PredT>
+template <std::size_t... SelectedIs, std::size_t NextI, std::size_t... Is, typename TupleT, typename PredT>
     struct select_indices_0_<std::index_sequence<SelectedIs...>, std::index_sequence<NextI, Is...>, TupleT, PredT>
-        : select_indices_0_<typename select_indices_1_<std::index_sequence<SelectedIs...>, NextI, PredT<std::tuple_element_t<NextI, TupleT>>::value>::type, std::index_sequence<Is...>, TupleT, PredT>
+        : select_indices_0_<typename select_indices_1_<std::index_sequence<SelectedIs...>, NextI, PredT::template type<std::tuple_element_t<NextI, TupleT>>::value>::type, std::index_sequence<Is...>, TupleT, PredT>
 {
 };
-template <std::size_t... SelectedIs, typename TupleT, template <typename...> class PredT>
+template <std::size_t... SelectedIs, typename TupleT, typename PredT>
     struct select_indices_0_<std::index_sequence<SelectedIs...>, std::index_sequence<>, TupleT, PredT>
 {
     using type = std::index_sequence<SelectedIs...>;
 };
-template <typename TupleT, template <typename...> class PredT>
+template <typename TupleT, typename PredT>
     using select_indices = typename select_indices_0_<std::index_sequence<>, std::make_index_sequence<std::tuple_size<TupleT>::value>, TupleT, PredT>::type;
 
 
@@ -308,7 +308,7 @@ template <typename TupleT, std::size_t... Is>
     return std::make_tuple(get<Is>(std::forward<TupleT>(tuple))...);
 }
 
-template <template <typename> class PredT>
+template <typename PredT>
     struct tuple_filter_t : stream_base<tuple_filter_t<PredT>>
 {
     template <typename TupleT,
@@ -614,11 +614,11 @@ template <typename TupleT, typename F,
     //ᅟ
     //ᅟ    auto numbers = std::make_tuple(1, 2, 3u);
     //ᅟ    auto signedNumbers = numbers
-    //ᅟ        | tuple_filter<std::is_signed>(); // returns (1, 2)
+    //ᅟ        | tuple_filter(predicate_v<std::is_signed>); // returns (1, 2)
     //
-template <template <typename> class PredT>
-    constexpr makeshift::detail::tuple_filter_t<PredT>
-    tuple_filter(void) noexcept
+template <typename PredT>
+    constexpr makeshift::detail::tuple_filter_t<std::decay_t<PredT>>
+    tuple_filter(PredT&&) noexcept
 {
     return { };
 }
@@ -628,14 +628,14 @@ template <template <typename> class PredT>
     // Maps a tuple to a new tuple which contains only the values for which the given type predicate is true.
     //ᅟ
     //ᅟ    auto numbers = std::make_tuple(1, 2, 3u);
-    //ᅟ    auto signedNumbers = tuple_filter<std::is_signed>(numbers); // returns (1, 2)
+    //ᅟ    auto signedNumbers = tuple_filter(numbers, predicate_v<std::is_signed>); // returns (1, 2)
     //
-template <template <typename> class PredT, typename TupleT,
+template <typename PredT, typename TupleT,
           typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
     constexpr auto
-    tuple_filter(TupleT&& tuple) noexcept
+    tuple_filter(TupleT&& tuple, PredT&&) noexcept
 {
-    return tuple_filter<PredT>()(std::forward<TupleT>(tuple));
+    return tuple_filter(PredT{ })(std::forward<TupleT>(tuple));
 }
 
 
