@@ -608,6 +608,51 @@ template <typename ToT, typename FromT> struct is_convertible_from : std::is_con
     // Determines whether a type is convertible to another type.
     //
 template <typename ToT, typename FromT> constexpr bool is_convertible_from_v = is_convertible_from<FromT, ToT>::value;
+
+
+    //ᅟ
+    // Partial application of a trait.
+    //ᅟ
+    //ᅟ    using P = typename predicate<std::is_same, V>::template type<U>; // P is std::is_same<U, V>
+    //
+template <template <typename...> class PredT, typename... ArgsT>
+    struct predicate
+{
+    constexpr predicate(void) noexcept { }
+    constexpr predicate(template_tag<PredT>, tag<ArgsT>...) noexcept { }
+
+    template <typename... Ts> constexpr std::integral_constant<bool, PredT<Ts..., ArgsT...>::value> operator ()(tag<Ts>...) const noexcept { return { }; }
+    template <typename... Ts> struct type : std::integral_constant<bool, PredT<Ts..., ArgsT...>::value> { };
+};
+template <template <typename...> class PredT, typename... ArgsT>
+    predicate(template_tag<PredT>, tag<ArgsT>...) -> predicate<PredT, ArgsT...>;
+
+    //ᅟ
+    // Partial application of a trait.
+    //ᅟ
+    //ᅟ    auto p = predicate_v<std::is_same, V>(U{ }); // p is of type std::is_same<U, V>
+    //
+template <template <typename...> class PredT, typename... ArgsT> constexpr predicate<PredT, ArgsT...> predicate_v = { };
+
+
+    //ᅟ
+    // Partial application of a template trait.
+    //ᅟ
+    //ᅟ    using P = typename template_predicate<is_same_template, V>::template type<U>; // P is is_same_template<U, V>
+    //
+template <template <typename, template <typename...> class> class PredT, template <typename...> class ArgT>
+    struct template_predicate
+{
+    template <typename T> constexpr std::integral_constant<bool, PredT<T, ArgT>::value> operator ()(tag<T>) const noexcept { return { }; }
+    template <typename T> struct type : std::integral_constant<bool, PredT<T, ArgT>::value> { };
+};
+
+    //ᅟ
+    // Partial application of a template trait.
+    //ᅟ
+    //ᅟ    auto p = template_predicate_v<is_same_template, V>(U{ }); // p is of type is_same_template<U, V>
+    //
+template <template <typename, template <typename...> class> class PredT, template <typename...> class ArgT> constexpr template_predicate<PredT, ArgT> template_predicate_v = { };
 } // inline namespace types
 
 } // namespace makeshift
