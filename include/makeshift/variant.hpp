@@ -254,18 +254,78 @@ public:
 };
 
 
-template <typename F>
-    struct variant_reduce_t : F, variant_stream_base<variant_reduce_t<F>>
+template <typename T, typename F>
+    struct variant_map_to_t : F, variant_stream_base<variant_map_to_t<T, F>>
 {
-    constexpr variant_reduce_t(F func) : F(std::move(func)) { }
+    constexpr variant_map_to_t(F func) : F(std::move(func)) { }
 
+public:
+    template <typename VariantT,
+              typename = std::enable_if_t<is_variant_like_v<std::decay_t<VariantT>>>>
+        constexpr T operator ()(VariantT&& variant) const
+    {
+        static_assert(std::variant_size<std::decay_t<VariantT>>::value > 0);
+        return std::visit(static_cast<const F&>(*this), std::forward<VariantT>(variant));
+    }
+};
+
+
+template <typename SelectedIs, typename Is, typename VariantT, typename PredT> struct select_variant_indices_;
+template <std::size_t... SelectedIs, std::size_t NextI, std::size_t... Is, typename VariantT, typename PredT>
+    struct select_variant_indices_<std::index_sequence<SelectedIs...>, std::index_sequence<NextI, Is...>, VariantT, PredT>
+        : select_variant_indices_<typename select_next_index_<std::index_sequence<SelectedIs...>, NextI, PredT::template type<std::variant_alternative_t<NextI, VariantT>>::value>::type, std::index_sequence<Is...>, VariantT, PredT>
+{
+};
+template <std::size_t... SelectedIs, typename VariantT, typename PredT>
+    struct select_variant_indices_<std::index_sequence<SelectedIs...>, std::index_sequence<>, VariantT, PredT>
+{
+    using type = std::index_sequence<SelectedIs...>;
+};
+template <typename VariantT, typename PredT>
+    using select_variant_indices_t = typename select_variant_indices_<std::index_sequence<>, std::make_index_sequence<std::variant_size<VariantT>::value>, VariantT, PredT>::type;
+
+
+template <typename PredT>
+    struct variant_filter_t : variant_stream_base<variant_filter_t<PredT>>
+{
+private:
+    template <typename VariantT, std::size_t... Is>
+        static constexpr auto invoke(VariantT&& variant, std::index_sequence<Is...>)
+            -> rebind_template_t<std::decay_t<VariantT>, std::variant_alternative_t<Is, std::decay_t<VariantT>>...>
+    {
+        using ResultVariant = rebind_template_t<std::decay_t<VariantT>, std::variant_alternative_t<Is, std::decay_t<VariantT>>...>;
+        return variant_apply<ResultVariant>(std::index_sequence<Is...>{ }, identity_transform{ }, std::forward<VariantT>(variant));
+    }
+ 
 public:
     template <typename VariantT,
               typename = std::enable_if_t<is_variant_like_v<std::decay_t<VariantT>>>>
         constexpr auto operator ()(VariantT&& variant) const
     {
-        const F& func = *this;
-        return std::visit(func, std::forward<VariantT>(variant));
+        return invoke(std::forward<VariantT>(variant), select_variant_indices_t<std::decay_t<VariantT>, PredT>{ });
+    }
+};
+
+template <typename PredT, typename ExcFuncT>
+    struct variant_filter_or_throw_t : ExcFuncT, variant_stream_base<variant_filter_or_throw_t<PredT, ExcFuncT>>
+{
+    constexpr variant_filter_or_throw_t(ExcFuncT func) : ExcFuncT(std::move(func)) { }
+
+private:
+    template <typename VariantT, std::size_t... Is>
+        constexpr auto invoke(VariantT&& variant, std::index_sequence<Is...>) const
+            -> rebind_template_t<std::decay_t<VariantT>, std::variant_alternative_t<Is, std::decay_t<VariantT>>...>
+    {
+        using ResultVariant = rebind_template_t<std::decay_t<VariantT>, std::variant_alternative_t<Is, std::decay_t<VariantT>>...>;
+        return variant_apply_or_throw<ResultVariant, 0>(std::index_sequence<Is...>{ }, static_cast<const ExcFuncT&>(*this), std::forward<VariantT>(variant));
+    }
+ 
+public:
+    template <typename VariantT,
+              typename = std::enable_if_t<is_variant_like_v<std::decay_t<VariantT>>>>
+        constexpr auto operator ()(VariantT&& variant) const
+    {
+        return invoke(std::forward<VariantT>(variant), select_variant_indices_t<std::decay_t<VariantT>, PredT>{ });
     }
 };
 
@@ -314,6 +374,72 @@ public:
 
 inline namespace types
 {
+
+
+    //ᅟ
+    // Returns a functor that maps a variant to a new variant which can hold only the alternatives for which the given type predicate holds.
+    //ᅟ
+    //ᅟ    auto number = std::variant<int, unsigned>{ 3 };
+    //ᅟ    auto signedNumber = number
+    //ᅟ        | variant_filter(predicate_v<std::is_signed>); // returns variant<int>{ 3 }
+    //
+template <typename PredT>
+    constexpr makeshift::detail::variant_filter_t<std::decay_t<PredT>>
+    variant_filter(PredT&&) noexcept
+{
+    return { };
+}
+
+
+    //ᅟ
+    // Maps a variant to a new variant which can hold only the alternatives for which the given type predicate holds.
+    //ᅟ
+    //ᅟ    auto number = std::variant<int, unsigned>{ 3 };
+    //ᅟ    auto signedNumber = variant_filter(number, predicate_v<std::is_signed>); // returns variant<int>{ 3 }
+    //
+template <typename PredT, typename VariantT,
+          typename = std::enable_if_t<is_variant_like_v<std::decay_t<VariantT>>>>
+    constexpr auto
+    variant_filter(VariantT&& variant, PredT&&) noexcept
+{
+    return variant_filter(PredT{ })(std::forward<VariantT>(variant));
+}
+
+
+    //ᅟ
+    // Returns a functor that maps a variant to a new variant which can hold only the alternatives for which the given type predicate holds.
+    // If the variant holds an alternative for which the given type predicate does not hold, `excFunc` is called with the alternative held,
+    // and its return value is thrown.
+    //ᅟ
+    //ᅟ    auto number = std::variant<int, unsigned>{ 3 };
+    //ᅟ    auto signedNumber = number
+    //ᅟ        | variant_filter_or_throw(predicate_v<std::is_signed>,
+    //ᅟ              [](auto v) { return std::runtime_error("value is not a signed integer"); }); // returns variant<int>{ 3 }
+    //
+template <typename PredT, typename ExcFuncT>
+    constexpr makeshift::detail::variant_filter_or_throw_t<std::decay_t<PredT>, std::decay_t<ExcFuncT>>
+    variant_filter_or_throw(PredT&&, ExcFuncT&& excFunc) noexcept
+{
+    return { std::forward<ExcFuncT>(excFunc) };
+}
+
+
+    //ᅟ
+    // Returns a functor that maps a variant to a new variant which can hold only the alternatives for which the given type predicate holds.
+    // If the variant holds an alternative for which the given type predicate does not hold, `excFunc` is called with the alternative held,
+    // and its return value is thrown.
+    //ᅟ
+    //ᅟ    auto number = std::variant<int, unsigned>{ 3 };
+    //ᅟ    auto signedNumber = variant_filter_or_throw(number, predicate_v<std::is_signed>,
+    //ᅟ        [](auto v) { return std::runtime_error("value is not a signed integer"); }); // returns variant<int>{ 3 }
+    //
+template <typename PredT, typename VariantT, typename ExcFuncT,
+          typename = std::enable_if_t<is_variant_like_v<std::decay_t<VariantT>>>>
+    constexpr auto
+    variant_filter_or_throw(VariantT&& variant, PredT&&, ExcFuncT&& excFunc) noexcept
+{
+    return variant_filter_or_throw(PredT{ }, std::forward<ExcFuncT>(excFunc))(std::forward<VariantT>(variant));
+}
 
 
     //ᅟ
