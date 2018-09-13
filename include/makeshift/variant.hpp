@@ -10,9 +10,8 @@
 #include <utility>     // for move(), forward<>(), get<>, in_place_index<>, swap()
 #include <type_traits> // for decay<>, integral_constant<>, index_sequence<>, is_nothrow_default_constructible<>
 
-#include <gsl/gsl_assert> // for Expects()
-
 #include <makeshift/type_traits.hpp> // for can_apply<>
+#include <makeshift/tuple.hpp>       // for is_tuple_like<>
 
 #include <makeshift/detail/workaround.hpp> // for cand()
 
@@ -186,6 +185,17 @@ template <typename T> struct is_variant_like : can_apply<makeshift::detail::is_v
 template <typename T> constexpr bool is_variant_like_v = is_variant_like<T>::value;
 
 
+template <typename T>
+    struct unknown_value
+{
+    using value_type = T;
+
+    T value;
+};
+template <typename T>
+    unknown_value(T&&) -> unknown_value<std::decay_t<T>>;
+
+
 } // inline namespace types
 
 
@@ -211,13 +221,14 @@ template <typename DerivedT>
 };
 
 template <typename R, typename F, typename VariantT>
-    [[noreturn]] constexpr R variant_apply(std::index_sequence<>, F&&, VariantT&&)
+    [[noreturn]] R variant_apply(std::index_sequence<>, F&&, VariantT&&)
 {
     std::terminate(); // cannot happen, we just need to silence the compiler about not being able to formally return a value
 }
 template <typename R, std::size_t I0, std::size_t... Is, typename F, typename VariantT>
     constexpr R variant_apply(std::index_sequence<I0, Is...>, F&& func, VariantT&& variant)
 {
+    using std::get; // make std::get<>(std::pair<>&&) visible to enable ADL for template methods named get<>()
     if (variant.index() == I0)
         return { func(get<I0>(std::forward<VariantT>(variant))) };
     else
@@ -232,6 +243,7 @@ template <typename R, std::size_t I, typename ExcFuncT, typename VariantT>
 template <typename R, std::size_t I, std::size_t I0, std::size_t... Is, typename ExcFuncT, typename VariantT>
     constexpr R variant_apply_or_throw(std::index_sequence<I0, Is...>, ExcFuncT&& excFunc, VariantT&& variant)
 {
+    using std::get; // make std::get<>(std::pair<>&&) visible to enable ADL for template methods named get<>()
     static_assert(I <= I0); // sequence must be ordered
     if constexpr (I == I0)
     {
@@ -355,43 +367,30 @@ public:
 };
 
 
-    /*
-        which functions would be worth implementing?
+template <typename R, typename T, typename EqualToT, typename TupleT>
+    [[noreturn]] R expand_impl(std::true_type /* fail */, std::index_sequence<>, T&&, EqualToT&&, TupleT&&)
+{
+    std::terminate(); // we end up here if the value was not found, which is a programming error
+}
+template <typename R, typename T, typename EqualToT, typename TupleT>
+    constexpr R expand_impl(std::false_type /* fail */, std::index_sequence<>, T&& value, EqualToT&&, TupleT&&)
+{
+    return unknown_value{ std::forward<T>(value) };
+}
+template <typename R, typename RaiseT, std::size_t I0, std::size_t... Is, typename T, typename EqualToT, typename TupleT>
+    constexpr R expand_impl(const RaiseT&, std::index_sequence<I0, Is...>, T&& value, EqualToT&& equalToFunc, TupleT&& tuple)
+{
+    using std::get; // make std::get<>(std::pair<>&&) visible to enable ADL for template methods named get<>()
+    if (equalToFunc(value, get<I0>(tuple)))
+        return { get<I0>(std::forward<TupleT>(tuple)) };
+    else
+        return expand_impl<R>(RaiseT{ }, std::index_sequence<Is...>{ }, std::forward<T>(value), std::forward<EqualToT>(equalToFunc), std::forward<TupleT>(tuple));
+}
 
-        Sorting: ??
-        
-        Set operations:
-        - Distinct: ?
-        - Except: ?
-        - Intersect: ?
-        - Union: ?
 
-        Quantifiers:
-        - All/Any: ?
-        - Contains: ?
-
-        Projections:
-        - SelectMany: ?
-
-        Partitioning: ?
-
-        Join: ?
-
-        Group: ?
-
-        Generation:
-        - DefaultIfEmpty: ?
-        - Range: ?
-        - Repeat: ?
-
-        Element:
-        - ElementAtOrDefault: ?
-        - First/Last: ?
-        - FirstOrDefault/LastOrDefault: ?
-        
-        Concatenation: ?
-
-    */
+template <template <typename...> class VariantT, typename T, typename TupleT> struct apply_variant_type;
+template <template <typename...> class VariantT, typename T, template <typename...> class TupleT, typename... Ts> struct apply_variant_type<VariantT, T, TupleT<Ts...>> { using type = VariantT<unknown_value<T>, Ts...>; };
+template <template <typename...> class VariantT, typename T, typename TupleT> using apply_variant_type_t = typename apply_variant_type<VariantT, T, TupleT>::type;
 
 
 } // namespace detail
@@ -561,21 +560,84 @@ template <typename T, typename VariantT,
 }
 
 
+    //ᅟ
+    // Given a runtime value and a tuple of type-encoded possible values, returns a variant of the type-encoded possible values.
+    //ᅟ
+    //ᅟ    int runtimeBits = ...;
+    //ᅟ    auto bits = expand(runtimeBits, std::make_tuple(c<16>, c<32>, c<64>), std::equal_to<int>{ }); // returns std::variant<constant<16>, constant<32>, constant<64>>
+    //
+template <typename T, typename TupleT, typename EqualToT,
+          typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
+    constexpr typename apply<std::variant, std::decay_t<TupleT>>::type
+    expand(T&& value, TupleT&& tuple, EqualToT&& equalToFunc)
+{
+    using R = typename apply<std::variant, std::decay_t<TupleT>>::type;
+    return makeshift::detail::expand_impl<R>(std::true_type{ }, std::make_index_sequence<std::tuple_size<std::decay_t<TupleT>>::value>{ },
+        std::forward<T>(value), std::forward<EqualToT>(equalToFunc), std::forward<TupleT>(tuple));
+}
+
+
+    //ᅟ
+    // Given a runtime value and a tuple of type-encoded possible values, returns a variant of the type-encoded possible values.
+    //ᅟ
+    //ᅟ    int runtimeBits = ...;
+    //ᅟ    auto bits = expand(runtimeBits, std::make_tuple(c<16>, c<32>, c<64>)); // returns std::variant<constant<16>, constant<32>, constant<64>>
+    //
+template <typename T, typename TupleT,
+          typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
+    constexpr typename apply<std::variant, std::decay_t<TupleT>>::type
+    expand(T&& value, TupleT&& tuple)
+{
+    using R = typename apply<std::variant, std::decay_t<TupleT>>::type;
+    return makeshift::detail::expand_impl<R>(std::true_type{ }, std::make_index_sequence<std::tuple_size<std::decay_t<TupleT>>::value>{ },
+        std::forward<T>(value), [](const auto& lhs, const auto& rhs) noexcept { return lhs == rhs; }, std::forward<TupleT>(tuple));
+}
+
+
+    //ᅟ
+    // Given a runtime value and a tuple of type-encoded possible values, returns a variant of `unknown_value<>` and the type-encoded possible values.
+    // The variant holds `unknown_value<>` if the runtime value does not appear in the tuple of possible values.
+    //ᅟ
+    //ᅟ    int runtimeBits = ...;
+    //ᅟ    auto bits = try_expand(runtimeBits, std::make_tuple(c<16>, c<32>, c<64>), std::equal_to<int>{ }); // returns std::variant<unknown_value<int>, constant<16>, constant<32>, constant<64>>
+    //
+template <typename T, typename TupleT, typename EqualToT,
+          typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
+    constexpr typename makeshift::detail::apply_variant_type<std::variant, std::decay_t<T>, std::decay_t<TupleT>>::type
+    try_expand(T&& value, TupleT&& tuple, EqualToT&& equalToFunc)
+{
+    using R = typename makeshift::detail::apply_variant_type<std::variant, std::decay_t<T>, std::decay_t<TupleT>>::type;
+    return makeshift::detail::expand_impl<R>(std::false_type{ }, std::make_index_sequence<std::tuple_size<std::decay_t<TupleT>>::value>{ },
+        std::forward<T>(value), std::forward<EqualToT>(equalToFunc), std::forward<TupleT>(tuple));
+}
+
+
+    //ᅟ
+    // Given a runtime value and a tuple of type-encoded possible values, returns a variant of `unknown_value<>` and the type-encoded possible values.
+    // The variant holds `unknown_value<>` if the runtime value does not appear in the tuple of possible values.
+    //ᅟ
+    //ᅟ    int runtimeBits = ...;
+    //ᅟ    auto bits = try_expand(runtimeBits, std::make_tuple(c<16>, c<32>, c<64>)); // returns std::variant<unknown_value<int>, constant<16>, constant<32>, constant<64>>
+    //
+template <typename T, typename TupleT,
+          typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
+    constexpr typename makeshift::detail::apply_variant_type<std::variant, std::decay_t<T>, std::decay_t<TupleT>>::type
+    try_expand(T&& value, TupleT&& tuple)
+{
+    using R = typename makeshift::detail::apply_variant_type<std::variant, std::decay_t<T>, std::decay_t<TupleT>>::type;
+    return makeshift::detail::expand_impl<R>(std::false_type{ }, std::make_index_sequence<std::tuple_size<std::decay_t<TupleT>>::value>{ },
+        std::forward<T>(value), [](const auto& lhs, const auto& rhs) noexcept { return lhs == rhs; }, std::forward<TupleT>(tuple));
+}
+
+
 } // inline namespace types
 
 } // namespace makeshift
 
 
-namespace std
-{
-
-
-    // Specialize `variant_size<>` and `variant_alternative<>` for `type_variant<>`.
-template <typename... Ts> class variant_size<makeshift::type_variant<Ts...>> : public std::integral_constant<std::size_t, sizeof...(Ts)> { };
-template <std::size_t I, typename... Ts> class variant_alternative<I, makeshift::type_variant<Ts...>> : public makeshift::detail::nth_type_<I, Ts...> { };
-
-
-} // namespace std
+#ifdef INCLUDED_MAKESHIFT_REFLECT_HPP_
+ #include <makeshift/detail/variant_reflect.hpp>
+#endif // INCLUDED_MAKESHIFT_REFLECT_HPP_
 
 
 #endif // INCLUDED_MAKESHIFT_VARIANT_HPP_
