@@ -77,8 +77,6 @@ template <template <typename...> class VariantT, typename T, template <typename.
 template <template <typename...> class VariantT, typename T, template <typename...> class TupleT, typename... Ts> struct apply_variant_type<false, VariantT, T, TupleT<Ts...>> { using type = VariantT<unknown_value<T>, Ts...>; };
 template <bool Raise, template <typename...> class VariantT, typename T, typename TupleT> using apply_variant_type_t = typename apply_variant_type<Raise, VariantT, T, TupleT>::type;
 
-template <typename T> using is_value_metadata = is_same_template<T, value_metadata>;
-
 
 template <typename T, T... Vs>
     constexpr std::tuple<std::integral_constant<T, Vs>...> sequence_to_tuple(sequence<T, Vs...>) noexcept
@@ -111,7 +109,7 @@ template <typename T, typename MetadataTagT = reflection_metadata_tag>
     static_assert(std::is_enum<T>::value, "values from metadata only supported for enum types");
 
     auto values = metadata_of<T, MetadataTagT>.attributes
-        | tuple_filter<makeshift::detail::is_value_metadata>()
+        | tuple_filter(template_predicate_v<is_same_template, value_metadata>)
         //| tuple_map([](const auto& v) { return c<std::decay_t<decltype(v)>::value_type::value>; });
         | tuple_map([](const auto& v) { return std::integral_constant<T, std::decay_t<decltype(v)>::value_type::value>{ }; }); // workaround for ICE in VC++
     using Values = decltype(values); // std::tuple<constant<Cs>...>
