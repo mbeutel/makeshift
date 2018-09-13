@@ -504,8 +504,35 @@ template <typename T, typename VariantT, typename F,
 {
     return variant_map_to<T>(std::forward<F>(func))(std::forward<VariantT>(variant));
 }
+
+
+    //ᅟ
+    // Returns a function which maps a variant to a non-variant by converting the alternative held by the variant to the given type.
+    //ᅟ
+    //ᅟ    auto number = std::variant<int, unsigned>{ 3 };
+    //ᅟ    auto numberAsInt = number
+    //ᅟ        | variant_to_scalar<int>(); // returns 3
+    //
+template <typename T>
+    constexpr makeshift::detail::variant_map_to_t<T, makeshift::detail::implicit_conversion_transform<T>>
+    variant_to_scalar(void)
 {
-    return variant_reduce(std::forward<F>(func))(std::forward<VariantT>(variant));
+    return { { } };
+}
+
+
+    //ᅟ
+    // Maps a variant to a non-variant by converting the alternative held by the variant to the given type.
+    //ᅟ
+    //ᅟ    auto number = std::variant<int, unsigned>{ 3 };
+    //ᅟ    auto numberAsInt = variant_to_scalar<int>(number); // returns 3
+    //
+template <typename T, typename VariantT,
+          typename = std::enable_if_t<is_variant_like_v<std::decay_t<VariantT>>>>
+    constexpr T
+    variant_to_scalar(VariantT&& variant)
+{
+    return variant_to_scalar<T>()(std::forward<VariantT>(variant));
 }
 
 
