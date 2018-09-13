@@ -480,11 +480,11 @@ template <typename VariantT, typename F,
     //ᅟ
     //ᅟ    auto number = std::variant<int, unsigned>{ 3 };
     //ᅟ    auto numberAsInt = number
-    //ᅟ        | variant_reduce([](auto x) { return int(x); }); // returns 3
+    //ᅟ        | variant_map_to<int>([](auto x) { return int(x); }); // returns 3
     //
-template <typename F>
-    constexpr makeshift::detail::variant_reduce_t<std::decay_t<F>>
-    variant_reduce(F&& func)
+template <typename T, typename F>
+    constexpr makeshift::detail::variant_map_to_t<T, std::decay_t<F>>
+    variant_map_to(F&& func)
 {
     return { std::forward<F>(func) };
 }
@@ -495,12 +495,15 @@ template <typename F>
     // non-variant by calling the visitor function with using `std::visit()`.
     //ᅟ
     //ᅟ    auto number = std::variant<int, unsigned>{ 3 };
-    //ᅟ    auto numberAsInt = variant_reduce(number, [](auto x) { return int(x); }); // returns 3
+    //ᅟ    auto numberAsInt = variant_map_to<int>(number, [](auto x) { return int(x); }); // returns 3
     //
-template <typename VariantT, typename F,
+template <typename T, typename VariantT, typename F,
           typename = std::enable_if_t<is_variant_like_v<std::decay_t<VariantT>>>>
-    constexpr auto
-    variant_reduce(VariantT&& variant,F&& func)
+    constexpr T
+    variant_map_to(VariantT&& variant, F&& func)
+{
+    return variant_map_to<T>(std::forward<F>(func))(std::forward<VariantT>(variant));
+}
 {
     return variant_reduce(std::forward<F>(func))(std::forward<VariantT>(variant));
 }
