@@ -23,6 +23,13 @@ add_executable(test-makeshift
 include(CMakeshift/SetTargetCompilerSettings)
 cmakeshift_set_target_compiler_settings(test-makeshift PRIVATE default pedantic)
 
+# test properties
+target_compile_definitions(test-makeshift
+    PRIVATE
+        CATCH_CONFIG_CONSOLE_WIDTH=120
+        CATCH_CLARA_CONFIG_CONSOLE_WIDTH=120)
+set_target_properties(test-makeshift PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
+
 # test dependencies
 target_link_libraries(test-makeshift
     PRIVATE

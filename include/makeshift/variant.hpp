@@ -224,6 +224,31 @@ template <typename R, std::size_t I0, std::size_t... Is, typename F, typename Va
         return variant_apply<R>(std::index_sequence<Is...>{ }, std::forward<F>(func), std::forward<VariantT>(variant));
 }
 
+template <typename R, std::size_t I, typename ExcFuncT, typename VariantT>
+    [[noreturn]] constexpr R variant_apply_or_throw(std::index_sequence<>, ExcFuncT&&, VariantT&&)
+{
+    std::terminate(); // cannot happen, we just need to silence the compiler about not being able to formally return a value
+}
+template <typename R, std::size_t I, std::size_t I0, std::size_t... Is, typename ExcFuncT, typename VariantT>
+    constexpr R variant_apply_or_throw(std::index_sequence<I0, Is...>, ExcFuncT&& excFunc, VariantT&& variant)
+{
+    static_assert(I <= I0); // sequence must be ordered
+    if constexpr (I == I0)
+    {
+        if (variant.index() == I)
+            throw excFunc(get<I>(std::forward<VariantT>(variant)));
+        else
+            return variant_apply_or_throw<R, I + 1>(std::index_sequence<Is...>{ }, std::forward<ExcFuncT>(excFunc), std::forward<VariantT>(variant));
+    }
+    else
+    {
+        if (variant.index() == I)
+            return { get<I>(std::forward<VariantT>(variant)) };
+        else
+            return variant_apply_or_throw<R, I + 1>(std::index_sequence<I0, Is...>{ }, std::forward<ExcFuncT>(excFunc), std::forward<VariantT>(variant));
+    }
+}
+
 
 template <typename T, typename... Ts> struct rebind_template;
 template <template <typename...> class T, typename... Us, typename... Ts> struct rebind_template<T<Us...>, Ts...> { using type = T<Ts...>; };
