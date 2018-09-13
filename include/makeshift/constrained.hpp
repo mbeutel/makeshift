@@ -16,8 +16,9 @@
 #include <makeshift/tuple.hpp>       // for get_or_default<>(), get_or_none<>()
 #include <makeshift/type_traits.hpp> // for sequence<>, tag<>
 
-#include <makeshift/detail/cfg.hpp>        // for MAKESHIFT_DLLFUNC
-#include <makeshift/detail/workaround.hpp> // for cor()
+#include <makeshift/detail/cfg.hpp>             // for MAKESHIFT_DLLFUNC
+#include <makeshift/detail/workaround.hpp>      // for cor()
+#include <makeshift/detail/functional_hash.hpp>
 
 
 namespace makeshift
@@ -284,7 +285,7 @@ template <typename T> using positive = integer_upper_half_range<T, 1>;
     //ᅟ
     // Inherit from `define_constrained_integer<>` to define an integer type with a constraint for admissible values:
     //ᅟ
-    //ᅟ    struct BitDepth : define_constrained_integer<BitDepth, sequence<int, 1, 8, 24>> { using base::base; };
+    //ᅟ    struct BitDepth final : define_constrained_integer<BitDepth, sequence<int, 1, 8, 24>> { using base::base; };
     //ᅟ    auto bitDepth = 8_c;
     //
 template <typename DerivedT, typename ConstraintT, typename VerifierT = default_integer_constraint_verifier>
@@ -318,6 +319,7 @@ public:
         constexpr define_constrained_integer(std::integral_constant<T, V>) noexcept
             : value_(V)
     {
+        static_assert(std::is_final<DerivedT>::value, "constrained integers must be declared final");
         static_assert(is_valid_(V), "given value does not fulfill constraint");
     }
 
@@ -361,6 +363,26 @@ public:
 
     constexpr operator value_type(void) const noexcept { return value_; }
     constexpr value_type value(void) const noexcept { return value_; }
+
+    friend constexpr bool operator ==(DerivedT lhs, DerivedT rhs) noexcept { return lhs.value_ == rhs.value_; }
+    friend constexpr bool operator !=(DerivedT lhs, DerivedT rhs) noexcept { return lhs.value_ != rhs.value_; }
+    friend constexpr bool operator < (DerivedT lhs, DerivedT rhs) noexcept { return lhs.value_ <  rhs.value_; }
+    friend constexpr bool operator > (DerivedT lhs, DerivedT rhs) noexcept { return lhs.value_ >  rhs.value_; }
+    friend constexpr bool operator <=(DerivedT lhs, DerivedT rhs) noexcept { return lhs.value_ <= rhs.value_; }
+    friend constexpr bool operator >=(DerivedT lhs, DerivedT rhs) noexcept { return lhs.value_ >= rhs.value_; }
+};
+
+
+    // Specialize `hash<>` for anything that is a constrained integer.
+template <typename ConstrainedIntT>
+    struct hash<ConstrainedIntT, std::enable_if_t<is_constrained_integer_v<ConstrainedIntT>>>
+{
+    using argument_type = ConstrainedIntT;
+    using result_type = std::size_t;
+    constexpr result_type operator()(const argument_type& arg) const noexcept
+    {
+        return std::hash<typename argument_type::value_type>{ }(arg.value());
+    }
 };
 
 
@@ -399,6 +421,26 @@ template <typename T> using positive_integer = constrained_integer<positive<T>>;
 } // inline namespace types
 
 } // namespace makeshift
+
+
+namespace std
+{
+
+
+    // Specialize `std::hash<>` for constrained_integer<>.
+template <typename ConstraintT, typename VerifierT>
+    struct hash<makeshift::constrained_integer<ConstraintT, VerifierT>>
+{
+    using argument_type = makeshift::constrained_integer<ConstraintT, VerifierT>;
+    using result_type = std::size_t;
+    constexpr result_type operator()(const argument_type& arg) const noexcept
+    {
+        return hash<typename argument_type::value_type>{ }(arg.value());
+    }
+};
+
+
+} // namespace std
 
 
 #endif // INCLUDED_MAKESHIFT_CONSTRAINED_HPP_
