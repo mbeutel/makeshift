@@ -2,6 +2,7 @@
 #include <cassert>
 #include <string>
 #include <sstream>
+#include <exception> // for terminate()
 #include <stdexcept> // for runtime_error
 
 #include <gsl/gsl_assert> // for Expects()
@@ -56,7 +57,7 @@ template <typename IntT>
         stream << ".." << values[0];
         break;
     default:
-        Expects(!"invalid constraint type");
+        std::terminate(); // invalid constraint type
     }
 }
 template <typename IntT>
@@ -117,7 +118,7 @@ template <typename IntT>
         sstr << "; value must be <= " << values[0];
         break;
     default:
-        Expects(!"invalid constraint type");
+        std::terminate(); // invalid constraint type
     }
     throw std::runtime_error(sstr.str());
 }

@@ -746,7 +746,7 @@ template <typename T, typename TupleT, typename F,
     //ᅟ        | tuple_to_array<int>(); // returns {{ 1, 2, 3 }}
     //
 template <typename T>
-    constexpr makeshift::detail::tuple_map_to_t<std::remove_cv_t<T>, makeshift::detail::identity_transform>
+    constexpr makeshift::detail::tuple_map_to_t<std::remove_cv_t<T>, makeshift::detail::implicit_conversion_transform<T>>
     tuple_to_array(void)
 {
     return { { } };

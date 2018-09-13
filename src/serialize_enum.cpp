@@ -4,6 +4,7 @@
 #include <tuple>
 #include <cctype>    // for isspace()
 #include <optional>
+#include <exception> // for terminate()
 
 #include <gsl/gsl_assert> // for Expects()
 
@@ -79,7 +80,7 @@ std::string flags_enum_hint(const flags_enum_serialization_data_ref& sdata, cons
 
 [[noreturn]] static void raise_invalid_value_error(void)
 {
-    Expects(!"invalid value");
+    std::terminate();
 }
 
 static void enum_error_msg(std::ostream& stream, std::string_view typeDesc, std::string_view typeName)

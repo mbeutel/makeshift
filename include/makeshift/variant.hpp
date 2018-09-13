@@ -5,6 +5,7 @@
 
 #include <cstddef>     // for size_t
 #include <variant>     // for monostate, variant_size<>, variant_alternative<>
+#include <exception>   // for terminate()
 #include <optional>
 #include <utility>     // for move(), forward<>(), get<>, in_place_index<>, swap()
 #include <type_traits> // for decay<>, integral_constant<>, index_sequence<>, is_nothrow_default_constructible<>
@@ -142,7 +143,7 @@ template <typename T, typename... Ts>
     constexpr T get(const type_variant<Ts...>& v)
 {
     static_assert(try_index_of_type_v<T, Ts...> != std::size_t(-1), "type T does not appear in type sequence");
-    Expects(v.index() == try_index_of_type_v<T, Ts...>);
+    Expects((v.index() == try_index_of_type_v<T, Ts...>));
     return { };
 }
 
@@ -209,25 +210,18 @@ template <typename DerivedT>
     }
 };
 
-template <typename R, std::size_t I, typename F, typename VariantT>
-    constexpr R variant_apply(F&& func, VariantT&& variant);
-template <typename R, std::size_t I, typename F, typename VariantT>
-    constexpr R variant_apply_recur(F&& func, VariantT&& variant)
+template <typename R, typename F, typename VariantT>
+    [[noreturn]] constexpr R variant_apply(std::index_sequence<>, F&&, VariantT&&)
 {
-    if (variant.index() == I)
-        return { func(get<I>(std::forward<VariantT>(variant))) };
-    else
-        return variant_apply<R, I + 1>(std::forward<F>(func), std::forward<VariantT>(variant));
+    std::terminate(); // cannot happen, we just need to silence the compiler about not being able to formally return a value
 }
-template <typename R, std::size_t I, typename F, typename VariantT>
-    constexpr R variant_apply(F&& func, VariantT&& variant)
+template <typename R, std::size_t I0, std::size_t... Is, typename F, typename VariantT>
+    constexpr R variant_apply(std::index_sequence<I0, Is...>, F&& func, VariantT&& variant)
 {
-    (void) func;
-    (void) variant;
-    if constexpr (I == std::variant_size<std::decay_t<VariantT>>::value)
-        Expects(false); // cannot happen, we just need to silence the compiler about not being able to formally return a value
+    if (variant.index() == I0)
+        return { func(get<I0>(std::forward<VariantT>(variant))) };
     else
-        return variant_apply_recur<R, I>(std::forward<F>(func), std::forward<VariantT>(variant));
+        return variant_apply<R>(std::index_sequence<Is...>{ }, std::forward<F>(func), std::forward<VariantT>(variant));
 }
 
 
@@ -247,7 +241,7 @@ private:
             -> rebind_template_t<std::decay_t<VariantT>, decltype(func(std::declval<std::variant_alternative_t<Is, std::decay_t<VariantT>>>()))...>
     {
         using ResultVariant = rebind_template_t<std::decay_t<VariantT>, decltype(func(std::declval<std::variant_alternative_t<Is, std::decay_t<VariantT>>>()))...>;
-        return variant_apply<ResultVariant, 0>(func, std::forward<VariantT>(variant));
+        return variant_apply<ResultVariant>(std::index_sequence<Is...>{ }, func, std::forward<VariantT>(variant));
     }
     
 public:

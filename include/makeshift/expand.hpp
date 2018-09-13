@@ -6,9 +6,8 @@
 #include <string>
 #include <sstream>
 #include <variant>
+#include <exception>   // for terminate()
 #include <type_traits> // for enable_if<>, decay<>
-
-#include <gsl/gsl_assert> // for Expects()
 
 #include <makeshift/type_traits.hpp> // for type_sequence<>, tag<>, is_same_template<>
 #include <makeshift/tuple.hpp>       // for type_tuple<>, is_tuple_like<>, tuple_foreach()
@@ -45,7 +44,7 @@ template <bool Raise, typename R, std::size_t I, typename T, typename TupleT>
 template <typename R, typename T>
     constexpr R expand_impl_fail(std::true_type /* raise */, T&&)
 {
-    Expects(!"value not supported"); // we end up here if the value was not found, which is a programming error
+    std::terminate(); // we end up here if the value was not found, which is a programming error
 }
 template <typename R, typename T>
     constexpr R expand_impl_fail(std::false_type /* raise */, T&& value)

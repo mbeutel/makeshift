@@ -39,9 +39,18 @@ template <template <typename...> class TypeSeqT, typename... RSeqT, typename... 
 struct identity_transform
 {
     template <typename T>
-        auto operator ()(T&& value)
+        constexpr auto operator ()(T&& value) const
     {
         return std::forward<T>(value);
+    }
+};
+template <typename DstT>
+    struct implicit_conversion_transform
+{
+    template <typename SrcT>
+        constexpr DstT operator ()(SrcT&& value) const
+    {
+        return std::forward<SrcT>(value);
     }
 };
 
