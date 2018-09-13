@@ -73,25 +73,6 @@ public:
         return invoke(std::forward<TupleT>(tuple));
     }
 };
-template <>
-    struct array_cat_t<void> : stream_base<array_cat_t<void>>
-{
-private:
-    template <typename TupleT>
-        static constexpr auto invoke(TupleT&& tuple)
-    {
-        using Elem = common_array_value_type_t<std::decay_t<TupleT>>;
-        constexpr std::size_t n = std::tuple_size<std::decay_t<TupleT>>::value;
-        return concat_arrays<Elem>(std::array<Elem, 0>{ }, tuple, std::integral_constant<std::size_t, 0>{ }, std::integral_constant<std::size_t, n>{ });
-    }
-public:
-    template <typename TupleT,
-              typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
-        constexpr auto operator ()(TupleT&& tuple) const
-    {
-        return invoke(std::forward<TupleT>(tuple));
-    }
-};
 
 template <std::size_t N, typename T, std::size_t... Is>
     constexpr std::array<std::remove_cv_t<T>, N> to_array_impl(T array[], std::index_sequence<Is...>)
@@ -141,14 +122,13 @@ template <std::size_t N, typename T>
 
 
     //ᅟ
-    // Returns a functor that maps a tuple of arrays to an array of element type `T` that is initialized with the elements of the arrays in the tuple.
-    // If `T` is not specified, the common type of the array element types is used.
+    // Returns a functor that maps a tuple of arrays to an array of element type `T` that contains the concatenated values of the arrays in the tuple.
     //ᅟ
     //ᅟ    auto tuple = std::make_tuple(std::array{ 1, 2 }, std::array{ 3, 4, 5 });
     //ᅟ    auto array = tuple
-    //ᅟ        | array_cat(); // returns {{ 1, 2, 3, 4, 5 }}
+    //ᅟ        | array_cat<int>(); // returns {{ 1, 2, 3, 4, 5 }}
     //
-template <typename T = void>
+template <typename T>
     constexpr makeshift::detail::array_cat_t<std::remove_cv_t<T>>
     array_cat(void)
 {
@@ -157,16 +137,16 @@ template <typename T = void>
 
 
     //ᅟ
-    // Given a tuple of arrays, returns an array of the common type of the array element types that contains the concatenated values of the arrays in the tuple.
+    // Given a tuple of arrays, returns an array of element type `T` that contains the concatenated values of the arrays in the tuple.
     //ᅟ
     //ᅟ    auto tuple = std::make_tuple(std::array{ 1, 2 }, std::array{ 3, 4, 5 });
-    //ᅟ    auto array = array_cat(tuple); // returns {{ 1, 2, 3, 4, 5 }}
+    //ᅟ    auto array = array_cat<int>(tuple); // returns {{ 1, 2, 3, 4, 5 }}
     //
-template <typename TupleT,
+template <typename T, typename TupleT,
           typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
     constexpr auto array_cat(TupleT&& tuple)
 {
-    return array_cat()(std::forward<TupleT>(tuple));
+    return array_cat<T>()(std::forward<TupleT>(tuple));
 }
 
 
