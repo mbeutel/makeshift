@@ -707,6 +707,35 @@ template <typename TupleT, typename F,
 }
 
 
+    //ᅟ
+    // Returns a functor that maps a tuple to an array of element type `T` that is initialized with result of the functor applied to the elements
+    // in the tuple.
+    //ᅟ
+    //ᅟ    auto tuple = std::make_tuple(1, 2u, 3.0);
+    //ᅟ    auto array = tuple
+    //ᅟ        | tuple_map_to<int>([](auto v) { return int(v*v); }); // returns {{ 1, 4, 9 }}
+    //
+template <typename T, typename F>
+    constexpr makeshift::detail::tuple_map_to_t<std::remove_cv_t<T>, std::decay_t<F>>
+    tuple_map_to(F&& func)
+{
+    return { std::forward<F>(func) };
+}
+
+
+    //ᅟ
+    // Returns a `std::array<>` of element type `T` that is initialized with the result of the functor applied to the elements in the tuple.
+    //ᅟ
+    //ᅟ    auto tuple = std::make_tuple(1, 2u, 3.0);
+    //ᅟ    auto array = tuple_map_to<int>(tuple, [](auto v) { return int(v*v); }); // returns {{ 1, 2, 3 }}
+    //
+template <typename T, typename TupleT, typename F,
+          typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
+    constexpr std::array<std::remove_cv_t<T>, std::tuple_size<std::decay_t<TupleT>>::value>
+    tuple_map_to(TupleT&& tuple, F&& func)
+{
+    return tuple_map_to<T>()(std::forward<TupleT>(tuple), std::forward<F>(func));
+}
 
 
     //ᅟ

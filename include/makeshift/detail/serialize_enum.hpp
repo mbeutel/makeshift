@@ -17,7 +17,7 @@
 #include <makeshift/type_traits.hpp> // for tag<>, flags_base
 #include <makeshift/metadata.hpp>
 #include <makeshift/tuple.hpp>
-#include <makeshift/array.hpp>       // for to_array()
+#include <makeshift/array.hpp>       // for array_cat<>, array_size<>
 
 #include <makeshift/detail/cfg.hpp>  // for MAKESHIFT_DLLFUNC
 
@@ -79,8 +79,7 @@ template <typename ValC, typename... AttributesT>
 
     return valueMetadata.attributes
         | tuple_filter(predicate_v<std::is_same, std::string_view>)
-        | tuple_map([](std::string_view lname) { return enum_value_serialization_data{ std::uint64_t(ValC::value), lname }; })
-        | to_array<enum_value_serialization_data>();
+        | tuple_map_to<enum_value_serialization_data>([](std::string_view lname) { return enum_value_serialization_data{ std::uint64_t(ValC::value), lname }; });
 }
 
 template <std::size_t N>
