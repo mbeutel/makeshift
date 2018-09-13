@@ -15,6 +15,7 @@ add_executable(test-makeshift
     "main.cpp"
     "tests/test-arithmetic.cpp"
     "tests/test-tuple.cpp"
+    "tests/test-variant.cpp"
     "tests/test-utility.cpp"
     "tests/test-metadata.cpp")
 
