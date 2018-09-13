@@ -36,6 +36,21 @@ template <template <typename...> class TypeSeqT, typename... RSeqT, typename... 
 };
 
 
+struct identity_transform
+{
+    template <typename T>
+        auto operator ()(T&& value)
+    {
+        return std::forward<T>(value);
+    }
+};
+
+
+template <typename SelectedIs, std::size_t NextI, bool TakeNextI> struct select_next_index_;
+template <std::size_t... SelectedIs, std::size_t NextI> struct select_next_index_<std::index_sequence<SelectedIs...>, NextI, true> { using type = std::index_sequence<SelectedIs..., NextI>; };
+template <std::size_t... SelectedIs, std::size_t NextI> struct select_next_index_<std::index_sequence<SelectedIs...>, NextI, false> { using type = std::index_sequence<SelectedIs...>; };
+
+
     // taken from http://ldionne.com/2015/11/29/efficient-parameter-pack-indexing/
     // (cf. the same URL for a discussion of the benefits and drawbacks of the MI approach vs. a recursive one)
 template <std::size_t I, typename T>

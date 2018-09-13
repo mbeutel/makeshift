@@ -257,47 +257,41 @@ public:
     }
 };
 
-template <typename F, typename T>
-    struct accumulator_wrapper
+template <typename T, typename F>
+    struct tuple_map_to_t : F, stream_base<tuple_map_to_t<T, F>>
 {
-private:
-    F& func_;
-    T value_;
-public:
-    constexpr accumulator_wrapper(F& _func, T _value)
-        : func_(_func), value_(std::move(_value))
-    {
-    }
-    F& func(void) const noexcept { return func_; }
-    constexpr T&& get(void) && noexcept { return std::move(value_); }
-};
-template <typename F, typename T>
-    accumulator_wrapper<F, std::decay_t<T>> make_accumulator_wrapper(F& func, T&& value)
-{
-    return { func, std::forward<T>(value) };
-}
-template <typename F, typename T, typename U>
-    constexpr auto operator +(accumulator_wrapper<F, T>&& lhs, U&& rhs)
-{
-    return make_accumulator_wrapper(lhs.func(), lhs.func()(std::move(lhs).get(), std::forward<U>(rhs)));
-}
+    constexpr tuple_map_to_t(F func) : F(std::move(func)) { }
 
-template <typename SelectedIs, typename Is, typename TupleT, typename PredT> struct select_indices_0_;
-template <typename SelectedIs, std::size_t NextI, bool TakeNextI> struct select_indices_1_;
-template <std::size_t... SelectedIs, std::size_t NextI> struct select_indices_1_<std::index_sequence<SelectedIs...>, NextI, true> { using type = std::index_sequence<SelectedIs..., NextI>; };
-template <std::size_t... SelectedIs, std::size_t NextI> struct select_indices_1_<std::index_sequence<SelectedIs...>, NextI, false> { using type = std::index_sequence<SelectedIs...>; };
+private:
+    template <std::size_t... Is, typename TupleT>
+        constexpr std::array<T, sizeof...(Is)> invoke(std::index_sequence<Is...>, TupleT&& tuple) const
+    {
+        (void) tuple;
+        using std::get; // make std::get<>(std::pair<>&&) visible to enable ADL for template methods named get<>()
+        return {{ F::operator ()(get<Is>(std::forward<TupleT>(tuple)))... }};
+    }
+public:
+    template <typename TupleT,
+              typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
+        constexpr auto operator ()(TupleT&& tuple) const
+    {
+        return invoke(std::make_index_sequence<std::tuple_size<std::decay_t<TupleT>>::value>{ }, std::forward<TupleT>(tuple));
+    }
+};
+
+template <typename SelectedIs, typename Is, typename TupleT, typename PredT> struct select_tuple_indices_;
 template <std::size_t... SelectedIs, std::size_t NextI, std::size_t... Is, typename TupleT, typename PredT>
-    struct select_indices_0_<std::index_sequence<SelectedIs...>, std::index_sequence<NextI, Is...>, TupleT, PredT>
-        : select_indices_0_<typename select_indices_1_<std::index_sequence<SelectedIs...>, NextI, PredT::template type<std::tuple_element_t<NextI, TupleT>>::value>::type, std::index_sequence<Is...>, TupleT, PredT>
+    struct select_tuple_indices_<std::index_sequence<SelectedIs...>, std::index_sequence<NextI, Is...>, TupleT, PredT>
+        : select_tuple_indices_<typename select_next_index_<std::index_sequence<SelectedIs...>, NextI, PredT::template type<std::tuple_element_t<NextI, TupleT>>::value>::type, std::index_sequence<Is...>, TupleT, PredT>
 {
 };
 template <std::size_t... SelectedIs, typename TupleT, typename PredT>
-    struct select_indices_0_<std::index_sequence<SelectedIs...>, std::index_sequence<>, TupleT, PredT>
+    struct select_tuple_indices_<std::index_sequence<SelectedIs...>, std::index_sequence<>, TupleT, PredT>
 {
     using type = std::index_sequence<SelectedIs...>;
 };
 template <typename TupleT, typename PredT>
-    using select_indices = typename select_indices_0_<std::index_sequence<>, std::make_index_sequence<std::tuple_size<TupleT>::value>, TupleT, PredT>::type;
+    using select_tuple_indices_t = typename select_tuple_indices_<std::index_sequence<>, std::make_index_sequence<std::tuple_size<TupleT>::value>, TupleT, PredT>::type;
 
 
 template <typename TupleT, std::size_t... Is>
@@ -315,15 +309,47 @@ template <typename PredT>
               typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
         constexpr auto operator ()(TupleT&& tuple) const
     {
-        using SelectedIs = select_indices<std::decay_t<TupleT>, PredT>;
+        using SelectedIs = select_tuple_indices_t<std::decay_t<TupleT>, PredT>;
         return select_tuple_indices(std::forward<TupleT>(tuple), SelectedIs{ });
     }
 };
 
-template <typename F>
-    struct tuple_reduce_t : F
+template <typename F, typename T>
+    struct accumulator_wrapper
 {
-    constexpr tuple_reduce_t(F func) : F(std::move(func)) { }
+private:
+    F& func_;
+    T value_;
+public:
+    constexpr accumulator_wrapper(F& _func, T _value)
+        : func_(_func), value_(std::move(_value))
+    {
+    }
+    F& func(void) const noexcept { return func_; }
+    constexpr T&& get(void) && noexcept { return std::move(value_); }
+};
+template <typename F, typename T>
+    accumulator_wrapper(F&, T&&) -> accumulator_wrapper<F, std::decay_t<T>>;
+        /*template <typename F, typename T>
+    accumulator_wrapper<F, std::decay_t<T>> make_accumulator_wrapper(F& func, T&& value)
+{
+    return { func, std::forward<T>(value) };
+}*/
+template <typename F, typename T, typename U>
+    constexpr auto operator +(accumulator_wrapper<F, T> lhs, U&& rhs)
+{
+    return accumulator_wrapper(lhs.func(), lhs.func()(std::move(lhs).get(), std::forward<U>(rhs)));
+}
+template <typename U, typename F, typename T>
+    constexpr auto operator +(U&& lhs, accumulator_wrapper<F, T> rhs)
+{
+    return accumulator_wrapper(rhs.func(), rhs.func()(std::forward<U>(lhs), std::move(rhs).get()));
+}
+
+template <bool FoldLeft, typename F>
+    struct tuple_fold_t : F
+{
+    constexpr tuple_fold_t(F func) : F(std::move(func)) { }
 
 private:
     template <std::size_t... Is, typename ValT, typename TupleT>
@@ -331,8 +357,11 @@ private:
     {
         (void) tuple;
         using std::get; // make std::get<>(std::pair<>&&) visible to enable ADL for template methods named get<>()
-        auto wrappedInitialValue = make_accumulator_wrapper(static_cast<const F&>(*this), std::forward<ValT>(initialValue));
-        return (std::move(wrappedInitialValue) + ... + get<Is>(std::forward<TupleT>(tuple))).get();
+        auto wrappedInitialValue = accumulator_wrapper(static_cast<const F&>(*this), std::forward<ValT>(initialValue));
+        if constexpr (FoldLeft)
+            return (std::move(wrappedInitialValue) + ... + get<Is>(std::forward<TupleT>(tuple))).get();
+        else
+            return (get<Is>(std::forward<TupleT>(tuple)) + ... + std::move(wrappedInitialValue)).get();
     }
     
 public:
@@ -344,8 +373,8 @@ public:
     }
 };
 
-template <typename ValT, typename F>
-    struct tuple_bound_reduce_t : F, stream_base<tuple_bound_reduce_t<ValT, F>>
+template <bool FoldLeft, typename ValT, typename F>
+    struct tuple_bound_fold_t : F, stream_base<tuple_bound_fold_t<FoldLeft, ValT, F>>
 {
 private:
     ValT initialValue_;
@@ -356,7 +385,10 @@ private:
         (void) tuple;
         using std::get; // make std::get<>(std::pair<>&&) visible to enable ADL for template methods named get<>()
         auto wrappedInitialValue = make_accumulator_wrapper(static_cast<const F&>(*this), initialValue_);
-        return (std::move(wrappedInitialValue) + ... + get<Is>(std::forward<TupleT>(tuple))).get();
+        if constexpr (FoldLeft)
+            return (std::move(wrappedInitialValue) + ... + get<Is>(std::forward<TupleT>(tuple))).get();
+        else
+            return (get<Is>(std::forward<TupleT>(tuple)) + ... + std::move(wrappedInitialValue)).get();
     }
     template <std::size_t... Is, typename TupleT>
         constexpr auto invoke(std::index_sequence<Is...>, TupleT&& tuple) &&
@@ -364,11 +396,14 @@ private:
         (void) tuple;
         using std::get; // make std::get<>(std::pair<>&&) visible to enable ADL for template methods named get<>()
         auto wrappedInitialValue = make_accumulator_wrapper(static_cast<const F&>(*this), std::move(initialValue_));
-        return (std::move(wrappedInitialValue) + ... + get<Is>(std::forward<TupleT>(tuple))).get();
+        if constexpr (FoldLeft)
+            return (std::move(wrappedInitialValue) + ... + get<Is>(std::forward<TupleT>(tuple))).get();
+        else
+            return (get<Is>(std::forward<TupleT>(tuple)) + ... + std::move(wrappedInitialValue)).get();
     }
     
 public:
-    constexpr tuple_bound_reduce_t(ValT&& _initialValue, F func) : F(std::move(func)), initialValue_(std::move(_initialValue)) { }
+    constexpr tuple_bound_fold_t(ValT&& _initialValue, F func) : F(std::move(func)), initialValue_(std::move(_initialValue)) { }
 
     template <typename TupleT,
               typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
@@ -671,17 +706,51 @@ template <typename TupleT, typename F,
 }
 
 
+
+
     //ᅟ
     // Takes a binary accumulator function (i.e. a function with non-tuple arguments and non-tuple return type) and returns a function which reduces
-    // an initial value and a tuple to a scalar using the accumulator function.
+    // an initial value and a tuple to a scalar using the accumulator function by performing a left fold.
     //ᅟ
-    //ᅟ    auto sumTuple = tuple_reduce(std::plus<int>{ });
+    //ᅟ    auto sumTuple = tuple_fold(std::plus<int>{ });
     //ᅟ    auto numbers = std::make_tuple(2, 3u);
     //ᅟ    int sum = sumTuple(0, numbers); // returns 5
     //
 template <typename F>
-    constexpr makeshift::detail::tuple_reduce_t<std::decay_t<F>>
-    tuple_reduce(F&& func)
+    constexpr makeshift::detail::tuple_fold_t<true, std::decay_t<F>>
+    tuple_fold(F&& func)
+{
+    return { std::forward<F>(func) };
+}
+
+
+    //ᅟ
+    // Takes a binary accumulator function (i.e. a function with non-tuple arguments and non-tuple return type) and returns a function which reduces
+    // an initial value and a tuple to a scalar using the accumulator function by performing a left fold.
+    //ᅟ
+    //ᅟ    auto sumTuple = tuple_fold_left(std::plus<int>{ });
+    //ᅟ    auto numbers = std::make_tuple(2, 3u);
+    //ᅟ    int sum = sumTuple(0, numbers); // returns 5
+    //
+template <typename F>
+    constexpr makeshift::detail::tuple_fold_t<true, std::decay_t<F>>
+    tuple_fold_left(F&& func)
+{
+    return { std::forward<F>(func) };
+}
+
+
+    //ᅟ
+    // Takes a binary accumulator function (i.e. a function with non-tuple arguments and non-tuple return type) and returns a function which reduces
+    // an initial value and a tuple to a scalar using the accumulator function by performing a right fold.
+    //ᅟ
+    //ᅟ    auto sumTuple = tuple_fold_right(std::plus<int>{ });
+    //ᅟ    auto numbers = std::make_tuple(2, 3u);
+    //ᅟ    int sum = sumTuple(0, numbers); // returns 5
+    //
+template <typename F>
+    constexpr makeshift::detail::tuple_fold_t<false, std::decay_t<F>>
+    tuple_fold_right(F&& func)
 {
     return { std::forward<F>(func) };
 }
@@ -689,15 +758,47 @@ template <typename F>
 
     //ᅟ
     // Takes an initial value and a binary accumulator function (i.e. a function with non-tuple arguments and non-tuple type) and returns a function
-    // which reduces a tuple to a scalar using the accumulator function.
+    // which reduces a tuple to a scalar using the accumulator function by performing a left fold.
     //ᅟ
     //ᅟ    auto numbers = std::make_tuple(2, 3u);
     //ᅟ    int sum = numbers
-    //ᅟ        | tuple_reduce(0, std::plus<int>{ }); // returns 5
+    //ᅟ        | tuple_fold(0, std::plus<int>{ }); // returns 5
     //
 template <typename ValT, typename F>
-    constexpr makeshift::detail::tuple_bound_reduce_t<std::decay_t<ValT>, std::decay_t<F>>
-    tuple_reduce(ValT&& initialValue, F&& func)
+    constexpr makeshift::detail::tuple_bound_fold_t<true, std::decay_t<ValT>, std::decay_t<F>>
+    tuple_fold(ValT&& initialValue, F&& func)
+{
+    return { std::forward<ValT>(initialValue), std::forward<F>(func) };
+}
+
+
+    //ᅟ
+    // Takes an initial value and a binary accumulator function (i.e. a function with non-tuple arguments and non-tuple type) and returns a function
+    // which reduces a tuple to a scalar using the accumulator function by performing a left fold.
+    //ᅟ
+    //ᅟ    auto numbers = std::make_tuple(2, 3u);
+    //ᅟ    int sum = numbers
+    //ᅟ        | tuple_fold_left(0, std::plus<int>{ }); // returns 5
+    //
+template <typename ValT, typename F>
+    constexpr makeshift::detail::tuple_bound_fold_t<true, std::decay_t<ValT>, std::decay_t<F>>
+    tuple_fold_left(ValT&& initialValue, F&& func)
+{
+    return { std::forward<ValT>(initialValue), std::forward<F>(func) };
+}
+
+
+    //ᅟ
+    // Takes an initial value and a binary accumulator function (i.e. a function with non-tuple arguments and non-tuple type) and returns a function
+    // which reduces a tuple to a scalar using the accumulator function by performing a right fold.
+    //ᅟ
+    //ᅟ    auto numbers = std::make_tuple(2, 3u);
+    //ᅟ    int sum = numbers
+    //ᅟ        | tuple_fold_right(0, std::plus<int>{ }); // returns 5
+    //
+template <typename ValT, typename F>
+    constexpr makeshift::detail::tuple_bound_fold_t<false, std::decay_t<ValT>, std::decay_t<F>>
+    tuple_fold_right(ValT&& initialValue, F&& func)
 {
     return { std::forward<ValT>(initialValue), std::forward<F>(func) };
 }
@@ -705,17 +806,49 @@ template <typename ValT, typename F>
 
     //ᅟ
     // Takes a tuple, an initial value and a binary accumulator function (i.e. a function with non-tuple arguments and non-tuple type) and returns the
-    // reduction of the tuple (i.e. the left fold).
+    // left fold of the tuple.
     //ᅟ
     //ᅟ    auto numbers = std::make_tuple(2, 3u);
-    //ᅟ    int sum = tuple_reduce(numbers, 0, std::plus<int>{ }); // returns 5
+    //ᅟ    int sum = tuple_fold(numbers, 0, std::plus<int>{ }); // returns 5
     //
 template <typename TupleT, typename T, typename F,
           typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
     constexpr auto
-    tuple_reduce(TupleT&& tuple, T&& initialValue, F&& func)
+    tuple_fold(TupleT&& tuple, T&& initialValue, F&& func)
 {
-    return tuple_reduce(std::forward<F>(func))(std::forward<T>(initialValue), std::forward<TupleT>(tuple));
+    return tuple_fold_left(std::forward<F>(func))(std::forward<T>(initialValue), std::forward<TupleT>(tuple));
+}
+
+
+    //ᅟ
+    // Takes a tuple, an initial value and a binary accumulator function (i.e. a function with non-tuple arguments and non-tuple type) and returns the
+    // left fold of the tuple.
+    //ᅟ
+    //ᅟ    auto numbers = std::make_tuple(2, 3u);
+    //ᅟ    int sum = tuple_fold_left(numbers, 0, std::plus<int>{ }); // returns 5
+    //
+template <typename TupleT, typename T, typename F,
+          typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
+    constexpr auto
+    tuple_fold_left(TupleT&& tuple, T&& initialValue, F&& func)
+{
+    return tuple_fold_left(std::forward<F>(func))(std::forward<T>(initialValue), std::forward<TupleT>(tuple));
+}
+
+
+    //ᅟ
+    // Takes a tuple, an initial value and a binary accumulator function (i.e. a function with non-tuple arguments and non-tuple type) and returns the
+    // right fold of the tuple.
+    //ᅟ
+    //ᅟ    auto numbers = std::make_tuple(2, 3u);
+    //ᅟ    int sum = tuple_fold_right(numbers, 0, std::plus<int>{ }); // returns 5
+    //
+template <typename TupleT, typename T, typename F,
+          typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
+    constexpr auto
+    tuple_fold_right(TupleT&& tuple, T&& initialValue, F&& func)
+{
+    return tuple_fold_right(std::forward<F>(func))(std::forward<T>(initialValue), std::forward<TupleT>(tuple));
 }
 
 

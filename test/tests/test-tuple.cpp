@@ -15,7 +15,7 @@ namespace mk = makeshift;
 
 void testTupleReduce(void)
 {
-    auto sumTuple = mk::tuple_reduce(std::plus<int>{ });
+    auto sumTuple = mk::tuple_fold(std::plus<int>{ });
     auto numbers = std::make_tuple(2, 3u);
     int sum = sumTuple(0, numbers);
     CHECK(sum == 5);
@@ -57,7 +57,7 @@ void testOverloads(void)
         )
     );
     auto someTuple = std::make_tuple(42, 13.37f, 0);
-    auto joinStrings = mk::tuple_reduce(
+    auto joinStrings = mk::tuple_fold(
         [](const std::string& lhs, const std::string& rhs)
         {
             return !lhs.empty()
@@ -78,7 +78,7 @@ void testFunctionVariants(void)
     CHECK(numbers == std::make_tuple(1, 2u, 3));
     auto squares = mk::tuple_map(numbers, [](auto x) { return x*x; });
     CHECK(squares == std::make_tuple(1, 4u, 9));
-    auto sumOfSquares = mk::tuple_reduce(squares, 0, std::plus<>());
+    auto sumOfSquares = mk::tuple_fold(squares, 0, std::plus<>());
     CHECK(sumOfSquares == 14);
 }
 
