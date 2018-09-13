@@ -3,6 +3,7 @@
 #define INCLUDED_MAKESHIFT_TUPLE_HPP_
 
 
+#include <array>
 #include <cstddef>     // for size_t
 #include <utility>     // for move(), forward<>(), tuple_element<>, tuple_size<>, get<>
 #include <type_traits> // for decay<>, integral_constant<>, index_sequence<>, is_nothrow_default_constructible<>
@@ -706,6 +707,36 @@ template <typename TupleT, typename F,
 }
 
 
+
+
+    //ᅟ
+    // Returns a functor that maps a tuple to an array of element type `T` that is initialized with the elements in the tuple.
+    //ᅟ
+    //ᅟ    auto tuple = std::make_tuple(1, 2, 3);
+    //ᅟ    auto array = tuple
+    //ᅟ        | tuple_to_array<int>(); // returns {{ 1, 2, 3 }}
+    //
+template <typename T>
+    constexpr makeshift::detail::tuple_map_to_t<std::remove_cv_t<T>, makeshift::detail::identity_transform>
+    tuple_to_array(void)
+{
+    return { { } };
+}
+
+
+    //ᅟ
+    // Returns a `std::array<>` of element type `T` that is initialized with the elements in the tuple.
+    //ᅟ
+    //ᅟ    auto tuple = std::make_tuple(1, 2, 3);
+    //ᅟ    auto array = tuple_to_array<int>(tuple); // returns {{ 1, 2, 3 }}
+    //
+template <typename T, typename TupleT,
+          typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
+    constexpr std::array<std::remove_cv_t<T>, std::tuple_size<std::decay_t<TupleT>>::value>
+    tuple_to_array(TupleT&& tuple)
+{
+    return tuple_to_array<T>()(std::forward<TupleT>(tuple));
+}
 
 
     //ᅟ

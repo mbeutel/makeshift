@@ -50,45 +50,6 @@ template <typename ElemT, typename ArrayT, typename TupleT, std::size_t I, std::
     );
 }
 
-template <typename T>
-    struct to_array_t : stream_base<to_array_t<T>>
-{
-private:
-    template <std::size_t... Is, typename TupleT>
-        static constexpr std::array<T, sizeof...(Is)> invoke(std::index_sequence<Is...>, TupleT&& tuple)
-    {
-        (void) tuple;
-        using std::get; // make std::get<>(std::pair<>&&) visible to enable ADL for template methods named get<>()
-        return {{ get<Is>(std::forward<TupleT>(tuple))... }};
-    }
-public:
-    template <typename TupleT,
-              typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
-        constexpr auto operator ()(TupleT&& tuple) const
-    {
-        return invoke(std::make_index_sequence<std::tuple_size<std::decay_t<TupleT>>::value>{ }, std::forward<TupleT>(tuple));
-    }
-};
-template <>
-    struct to_array_t<void> : stream_base<to_array_t<void>>
-{
-private:
-    template <typename... Ts, std::size_t... Is, typename TupleT>
-        static constexpr std::array<std::common_type_t<Ts...>, sizeof...(Is)> invoke(type_sequence<Ts...>, std::index_sequence<Is...>, TupleT&& tuple)
-    {
-        (void) tuple;
-        using std::get; // make std::get<>(std::pair<>&&) visible to enable ADL for template methods named get<>()
-        return {{ get<Is>(std::forward<TupleT>(tuple))... }};
-    }
-public:
-    template <typename TupleT,
-              typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
-        constexpr auto operator ()(TupleT&& tuple) const
-    {
-        return invoke(args_sequence_of_t<std::decay_t<TupleT>>{ }, std::make_index_sequence<std::tuple_size<std::decay_t<TupleT>>::value>{ }, std::forward<TupleT>(tuple));
-    }
-};
-
 template <typename Is, typename TupleT> struct common_array_value_type_;
 template <std::size_t... Is, typename TupleT> struct common_array_value_type_<std::index_sequence<Is...>, TupleT> : std::common_type<std::tuple_element_t<Is, TupleT>...> { };
 template <typename TupleT> struct common_array_value_type : common_array_value_type_<std::make_index_sequence<std::tuple_size<TupleT>::value>, TupleT> { };
@@ -176,37 +137,6 @@ template <std::size_t N, typename T>
     to_array(T (&array)[N])
 {
     return makeshift::detail::to_array_impl(array, std::make_index_sequence<N>{ });
-}
-
-
-    //ᅟ
-    // Returns a functor that maps a tuple to an array of element type `T` that is initialized with the elements in the tuple.
-    // If `T` is not specified, the common type of the tuple element types is used.
-    //ᅟ
-    //ᅟ    auto tuple = std::make_tuple(1, 2, 3);
-    //ᅟ    auto array = tuple
-    //ᅟ        | to_array(); // returns {{ 1, 2, 3 }}
-    //
-template <typename T = void>
-    constexpr makeshift::detail::to_array_t<std::remove_cv_t<T>>
-    to_array(void)
-{
-    return { };
-}
-
-
-    //ᅟ
-    // Returns a `std::array<>` of element type `T` that is initialized with the elements in the tuple.
-    //ᅟ
-    //ᅟ    auto tuple = std::make_tuple(1, 2, 3);
-    //ᅟ    auto array = to_array(tuple); // returns {{ 1, 2, 3 }}
-    //
-template <typename T, typename TupleT,
-          typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
-    constexpr std::array<std::remove_cv_t<T>, std::tuple_size<std::decay_t<TupleT>>::value>
-    to_array(TupleT&& tuple)
-{
-    return to_array<T>()(std::forward<TupleT>(tuple));
 }
 
 
