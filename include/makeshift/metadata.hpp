@@ -21,7 +21,7 @@ namespace detail
 
 struct type_metadata_base { };
 struct value_metadata_base { };
-struct property_metadata_base { };
+struct member_metadata_base { };
 
 template <typename SerializerT> struct serializer_metadata_tag_r { using type = typename SerializerT::metadata_tag; };
 template <typename SerializerT> using serializer_metadata_tag_rt = typename SerializerT::metadata_tag;
@@ -105,23 +105,23 @@ template <auto Val, typename... AttrT, typename = decltype(Val)>
 
 
     //ᅟ
-    // Stores metadata for properties of a type.
+    // Stores metadata for members of a type.
     //
 template <typename AccessorsC, typename AttributesT>
-    struct property_metadata : makeshift::detail::property_metadata_base
+    struct member_metadata : makeshift::detail::member_metadata_base
 {
     using accessors = AccessorsC;
 
     AttributesT attributes;
 
-    constexpr property_metadata(AttributesT&& _attributes) : attributes(std::move(_attributes)) { }
+    constexpr member_metadata(AttributesT&& _attributes) : attributes(std::move(_attributes)) { }
 };
 
     //ᅟ
-    // Use `property<Accessors...>(...)` to declare metadata for properties of a type.
+    // Use `member<Accessors...>(...)` to declare metadata for members of a type.
     //
 template <auto... Accessors, typename... AttrT, typename = type_sequence<decltype(Accessors)...>>
-    constexpr property_metadata<type_sequence<std::integral_constant<decltype(Accessors), Accessors>...>, std::tuple<literal_decay_t<AttrT>...>> property(AttrT&&... attributes)
+    constexpr member_metadata<type_sequence<std::integral_constant<decltype(Accessors), Accessors>...>, std::tuple<literal_decay_t<AttrT>...>> member(AttrT&&... attributes)
 {
     return { std::tuple<literal_decay_t<AttrT>...>(std::forward<AttrT>(attributes)...) };
 }
