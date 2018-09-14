@@ -19,7 +19,7 @@ add_library(makeshift
     "string_compare.cpp"
     "constrained.cpp")
 
-# version header file
+# library version header file
 configure_file("${PROJECT_SOURCE_DIR}/cmake/detail_version.hpp.in"
     "${PROJECT_BINARY_DIR}/include/makeshift/detail/version.hpp" @ONLY)
 
@@ -58,7 +58,7 @@ install(
     DIRECTORY "${PROJECT_BINARY_DIR}/include/"
     DESTINATION "include")
 install(
-    TARGETS ${PROJECT_NAME}
+    TARGETS makeshift
     EXPORT ${PROJECT_NAME}Export
     ARCHIVE DESTINATION "lib"
     LIBRARY DESTINATION "lib"

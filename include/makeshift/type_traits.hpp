@@ -321,8 +321,7 @@ template <typename... Ts> using type_sequence_cat_t = typename type_sequence_cat
 
 
     //ᅟ
-    // Tag argument type compatible with arguments that inherit from at least one of the given tag types, retaining ADL.
-    // Requires that the argument type be defined as a tag with `define_tag<>`, or combined from existing tag types with `combine_tags<>`.
+    // Tag argument type compatible with arguments that inherit from at least one of the given tag types.
     //
 template <typename... Ts>
     struct any_tag_of
@@ -335,8 +334,7 @@ template <typename... Ts>
 };
 
     //ᅟ
-    // Tag argument type compatible with arguments that inherit from all of the given tag types, retaining ADL.
-    // Requires that the argument type be defined as a tag with `define_tag<>`, or combined from existing tag types with `combine_tags<>`.
+    // Tag argument type compatible with arguments that inherit from all of the given tag types.
     //
 template <typename... Ts>
     struct all_tags_of
