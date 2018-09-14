@@ -16,7 +16,7 @@ set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 
 # Define the project.
 project(makeshift
-    VERSION 1.2.0
+    VERSION 2.0.0
     LANGUAGES CXX)
 set(makeshift_APIVERSION 2)
 
