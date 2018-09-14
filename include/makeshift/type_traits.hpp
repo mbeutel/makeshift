@@ -632,10 +632,39 @@ template <typename ToT, typename FromT> struct is_convertible_from : std::is_con
 template <typename ToT, typename FromT> constexpr bool is_convertible_from_v = is_convertible_from<FromT, ToT>::value;
 
 
+
+/*
+
+trait comments:
+
+Why only for boolean?
+
+trait_func<bool>()
+
+trait(func)
+trait<X>
+
+type_
+
+//trait_func{ }, trait<>{ }, trait_v<>
+
+type_function<>()
+trait_func<>()
+template_trait_p<>()
+
+conjunction_p()
+
+
+integer type functions: common operators
+boolean functions: &&, ||, !
+
+
+*/
+
     //ᅟ
     // Partial application of a trait.
     //ᅟ
-    //ᅟ    using P = typename predicate<std::is_same, V>::template type<U>; // P is std::is_same<U, V>
+    //ᅟ    auto p = predicate_v<std::is_same, V>(tag_v<U>); // decltype(p) is std::is_same<U, V>
     //
 template <template <typename...> class PredT, typename... ArgsT>
     struct predicate
@@ -643,8 +672,26 @@ template <template <typename...> class PredT, typename... ArgsT>
     constexpr predicate(void) noexcept { }
     constexpr predicate(template_tag<PredT>, tag<ArgsT>...) noexcept { }
 
-    template <typename... Ts> constexpr std::integral_constant<bool, PredT<Ts..., ArgsT...>::value> operator ()(tag<Ts>...) const noexcept { return { }; }
-    template <typename... Ts> struct type : std::integral_constant<bool, PredT<Ts..., ArgsT...>::value> { };
+    template <typename... Ts> constexpr PredT<Ts..., ArgsT...> operator ()(tag<Ts>...) const noexcept { return { }; }
+    //template <typename... Ts> struct type : PredT<Ts..., ArgsT...> { };
+};
+template <template <typename...> class PredT, typename... ArgsT>
+    predicate(template_tag<PredT>, tag<ArgsT>...) -> predicate<PredT, ArgsT...>;
+
+
+    //ᅟ
+    // Partial application of a trait.
+    //ᅟ
+    //ᅟ    auto p = predicate_v<std::is_same, V>(tag_v<U>); // decltype(p) is std::is_same<U, V>
+    //
+template <template <typename...> class PredT, typename... ArgsT>
+    struct predicate
+{
+    constexpr predicate(void) noexcept { }
+    constexpr predicate(template_tag<PredT>, tag<ArgsT>...) noexcept { }
+
+    template <typename... Ts> constexpr PredT<Ts..., ArgsT...> operator ()(tag<Ts>...) const noexcept { return { }; }
+    //template <typename... Ts> struct type : PredT<Ts..., ArgsT...> { };
 };
 template <template <typename...> class PredT, typename... ArgsT>
     predicate(template_tag<PredT>, tag<ArgsT>...) -> predicate<PredT, ArgsT...>;
@@ -652,7 +699,7 @@ template <template <typename...> class PredT, typename... ArgsT>
     //ᅟ
     // Partial application of a trait.
     //ᅟ
-    //ᅟ    auto p = predicate_v<std::is_same, V>(U{ }); // p is of type std::is_same<U, V>
+    //ᅟ    auto p = predicate_v<std::is_same, V>(tag_v<U>); // decltype(p) is std::is_same<U, V>
     //
 template <template <typename...> class PredT, typename... ArgsT> constexpr predicate<PredT, ArgsT...> predicate_v = { };
 
@@ -660,14 +707,52 @@ template <template <typename...> class PredT, typename... ArgsT> constexpr predi
     //ᅟ
     // Partial application of a template trait.
     //ᅟ
-    //ᅟ    using P = typename template_predicate<is_same_template, V>::template type<U>; // P is is_same_template<U, V>
+    //ᅟ    auto p = template_predicate_v<is_same_template, V>(tag_v<U>); // decltype(p) is is_same_template<U, V>
     //
 template <template <typename, template <typename...> class> class PredT, template <typename...> class ArgT>
     struct template_predicate
 {
-    template <typename T> constexpr std::integral_constant<bool, PredT<T, ArgT>::value> operator ()(tag<T>) const noexcept { return { }; }
-    template <typename T> struct type : std::integral_constant<bool, PredT<T, ArgT>::value> { };
+    template <typename T> constexpr PredT<T, ArgT> operator ()(tag<T>) const noexcept { return { }; }
+    //template <typename T> struct type : PredT<T, ArgT> { };
 };
+
+    //ᅟ
+    // Partial application of a template trait.
+    //ᅟ
+    //ᅟ    auto p = template_predicate_v<is_same_template, V>(tag_v<U>); // decltype(p) is is_same_template<U, V>
+    //
+template <template <typename, template <typename...> class> class PredT, template <typename...> class ArgT> constexpr template_predicate<PredT, ArgT> template_predicate_v = { };
+
+
+    //ᅟ
+    // Applies a predicate to the `value_type` member of the argument type.
+    //ᅟ
+    //ᅟ    auto p = value_type_predicate{ predicate_v<is_signed> }(constant<C>{ }); // p is of type is_signed<constant<C>::value_type>
+    //
+template <typename PredT>
+    struct value_type_predicate
+{
+    template <typename T> constexpr decltype(std::declval<PredT>()(tag_v<typename T::value_type>)) typename PredT::template type<typename T::value_type> operator ()(tag<T>) const noexcept { return { }; }
+    //template <typename T> struct type : PredT::template type<typename T::value_type> { };
+};
+template <typename PredT>
+    value_type_predicate(PredT&&) -> value_type_predicate<std::decay_t<PredT>>;
+
+
+    //ᅟ
+    // Applies a predicate to the `type` member of the argument type.
+    //ᅟ
+    //ᅟ    auto p = type_predicate{ predicate_v<is_signed> }(tag_v<C>); // p is of type is_signed<tag<C>::type>
+    //
+template <typename PredT>
+    struct type_predicate
+{
+    template <typename T> constexpr typename PredT::template type<typename T::type> operator ()(tag<T>) const noexcept { return { }; }
+    template <typename T> struct type : PredT::template type<typename T::type> { };
+};
+template <typename PredT>
+    type_predicate(PredT&&) -> type_predicate<std::decay_t<PredT>>;
+
 
     //ᅟ
     // Partial application of a template trait.
