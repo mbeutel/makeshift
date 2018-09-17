@@ -25,12 +25,12 @@ TEST_CASE("variant", "[flags]")
     }
     SECTION("filter")
     {
-        auto signedAlternatives = mk::variant_filter(mk::predicate_v<std::is_signed>);
+        auto signedAlternatives = mk::variant_filter(mk::trait_v<std::is_signed>);
         CHECK(signedAlternatives(number) == std::variant<int>{ 3 });
     }
     SECTION("filter_or_throw")
     {
-        auto signedAlternatives = mk::variant_filter_or_throw(mk::predicate_v<std::is_signed>, [](auto) { return std::runtime_error(""); });
+        auto signedAlternatives = mk::variant_filter_or_throw(mk::trait_v<std::is_signed>, [](auto) { return std::runtime_error(""); });
         CHECK_THROWS_AS(signedAlternatives(number), std::runtime_error);
     }
     SECTION("expand")

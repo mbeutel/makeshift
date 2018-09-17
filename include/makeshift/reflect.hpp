@@ -62,7 +62,7 @@ template <typename T, typename MetadataTagT = reflection_metadata_tag>
     static_assert(std::is_enum<T>::value, "values from metadata only supported for enum types");
 
     auto values = metadata_of<T, MetadataTagT>.attributes
-        | tuple_filter(template_predicate_v<is_same_template, value_metadata>)
+        | tuple_filter(template_trait_v<is_same_template, value_metadata>)
         //| tuple_map([](const auto& v) { return c<std::decay_t<decltype(v)>::value_type::value>; });
         | tuple_map([](const auto& v) { return std::integral_constant<T, std::decay_t<decltype(v)>::value_type::value>{ }; }); // workaround for ICE in VC++
     using Values = decltype(values); // std::tuple<constant<Cs>...>
@@ -109,7 +109,7 @@ template <typename T, typename MetadataTagT = reflection_metadata_tag>
     static_assert(have_metadata_v<T, MetadataTagT>, "no metadata available for given type and tag");
     
     return metadata_of<T, MetadataTagT>.attributes
-        | tuple_filter(template_predicate_v<is_same_template, member_metadata>);
+        | tuple_filter(template_trait_v<is_same_template, member_metadata>);
 }
 
 
@@ -121,7 +121,7 @@ template <typename AccessorsC, typename AttributesT>
 {
     using AccessorsTuple = apply<type_tuple, AccessorsC>;
     auto memberObjectPointer = AccessorsTuple{ }
-        | tuple_filter(value_type_predicate{ predicate_v<std::is_member_object_pointer> })
+        | tuple_filter(trait_v<std::is_member_object_pointer>(value_type_transform_v))
         | single_or_none();
     if constexpr (!is_none_v<decltype(memberObjectPointer)>)
         return makeshift::detail::member_object_pointer_accessor{ memberObjectPointer };

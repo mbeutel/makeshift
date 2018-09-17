@@ -650,7 +650,7 @@ template <typename TupleT, typename F,
     //ᅟ
     //ᅟ    auto numbers = std::make_tuple(1, 2, 3u);
     //ᅟ    auto signedNumbers = numbers
-    //ᅟ        | tuple_filter(predicate_v<std::is_signed>); // returns (1, 2)
+    //ᅟ        | tuple_filter(trait_v<std::is_signed>); // returns (1, 2)
     //
 template <typename PredT>
     constexpr makeshift::detail::tuple_filter_t<std::decay_t<PredT>>
@@ -664,7 +664,7 @@ template <typename PredT>
     // Maps a tuple to a new tuple which contains only the values for which the given type predicate is true.
     //ᅟ
     //ᅟ    auto numbers = std::make_tuple(1, 2, 3u);
-    //ᅟ    auto signedNumbers = tuple_filter(numbers, predicate_v<std::is_signed>); // returns (1, 2)
+    //ᅟ    auto signedNumbers = tuple_filter(numbers, trait_v<std::is_signed>); // returns (1, 2)
     //
 template <typename PredT, typename TupleT,
           typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>

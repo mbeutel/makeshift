@@ -264,7 +264,7 @@ inline namespace types
     //ᅟ
     //ᅟ    auto number = std::variant<int, unsigned>{ 3 };
     //ᅟ    auto signedNumber = number
-    //ᅟ        | variant_filter(predicate_v<std::is_signed>); // returns variant<int>{ 3 }
+    //ᅟ        | variant_filter(trait_v<std::is_signed>); // returns variant<int>{ 3 }
     //
 template <typename PredT>
     constexpr makeshift::detail::variant_filter_t<std::decay_t<PredT>>
@@ -278,7 +278,7 @@ template <typename PredT>
     // Maps a variant to a new variant which can hold only the alternatives for which the given type predicate holds.
     //ᅟ
     //ᅟ    auto number = std::variant<int, unsigned>{ 3 };
-    //ᅟ    auto signedNumber = variant_filter(number, predicate_v<std::is_signed>); // returns variant<int>{ 3 }
+    //ᅟ    auto signedNumber = variant_filter(number, trait_v<std::is_signed>); // returns variant<int>{ 3 }
     //
 template <typename PredT, typename VariantT,
           typename = std::enable_if_t<is_variant_like_v<std::decay_t<VariantT>>>>
@@ -296,7 +296,7 @@ template <typename PredT, typename VariantT,
     //ᅟ
     //ᅟ    auto number = std::variant<int, unsigned>{ 3 };
     //ᅟ    auto signedNumber = number
-    //ᅟ        | variant_filter_or_throw(predicate_v<std::is_signed>,
+    //ᅟ        | variant_filter_or_throw(trait_v<std::is_signed>,
     //ᅟ              [](auto v) { return std::runtime_error("value is not a signed integer"); }); // returns variant<int>{ 3 }
     //
 template <typename PredT, typename ExcFuncT>
@@ -313,7 +313,7 @@ template <typename PredT, typename ExcFuncT>
     // and its return value is thrown.
     //ᅟ
     //ᅟ    auto number = std::variant<int, unsigned>{ 3 };
-    //ᅟ    auto signedNumber = variant_filter_or_throw(number, predicate_v<std::is_signed>,
+    //ᅟ    auto signedNumber = variant_filter_or_throw(number, trait_v<std::is_signed>,
     //ᅟ        [](auto v) { return std::runtime_error("value is not a signed integer"); }); // returns variant<int>{ 3 }
     //
 template <typename PredT, typename VariantT, typename ExcFuncT,

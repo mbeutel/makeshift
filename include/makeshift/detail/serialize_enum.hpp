@@ -78,7 +78,7 @@ template <typename ValC, typename... AttributesT>
     static_assert(sizeof(ValC::value) <= sizeof(std::uint64_t), "enums with an underlying type of more than 64 bits are not supported");
 
     return valueMetadata.attributes
-        | tuple_filter(predicate_v<std::is_same, std::string_view>)
+        | tuple_filter(trait_v<std::is_same, std::string_view>)
         | tuple_map_to<enum_value_serialization_data>([](std::string_view lname) { return enum_value_serialization_data{ std::uint64_t(ValC::value), lname }; });
 }
 
@@ -97,7 +97,7 @@ template <typename EnumT, typename AttributesT>
     std::string_view typeName = get_or_default<std::string_view>(enumMetadata.attributes);
     std::string_view typeDesc = get_or_default<caption_t>(enumMetadata.attributes).value;
     auto values = enumMetadata.attributes
-        | tuple_filter(template_predicate_v<is_same_template, value_metadata>)
+        | tuple_filter(template_trait_v<is_same_template, value_metadata>)
         | tuple_map([](const auto& v) { return make_enum_value_serialization_data(v); })
         | array_cat<enum_value_serialization_data>();
     return enum_serialization_data<array_size_v<decltype(values)>> { values, typeName, typeDesc };
@@ -134,7 +134,7 @@ template <typename DefT, typename AttributesT>
     constexpr std::string_view get_flag_type_name(const type_metadata<DefT, AttributesT>& enumMetadata)
 {
     auto maybeFlags = enumMetadata.attributes
-        | tuple_filter(template_predicate_v<is_same_template, flags_t>)
+        | tuple_filter(template_trait_v<is_same_template, flags_t>)
         | single_or_none();
     if constexpr (!std::is_same<decltype(maybeFlags), none_t>::value)
         return get_or_default<std::string_view>(maybeFlags.value.attributes);
@@ -148,7 +148,7 @@ template <typename DefT, typename AttributesT>
     std::string_view typeDesc = get_or_default<caption_t>(enumMetadata.attributes).value;
     std::string_view flagTypeName = get_flag_type_name(enumMetadata);
     auto values = enumMetadata.attributes
-        | tuple_filter(template_predicate_v<is_same_template, value_metadata>)
+        | tuple_filter(template_trait_v<is_same_template, value_metadata>)
         | tuple_map([](const auto& v) { return make_enum_value_serialization_data(v); })
         | array_cat<enum_value_serialization_data>();
     return flags_enum_serialization_data<array_size_v<decltype(values)>>{ values, flagTypeName, defTypeName, typeDesc };

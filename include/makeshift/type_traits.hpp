@@ -10,6 +10,35 @@
 namespace makeshift
 {
 
+inline namespace types
+{
+
+
+    //ᅟ
+    // Helper for type dispatching.
+    //
+template <typename T = void> struct tag { using type = T; };
+
+    //ᅟ
+    // Helper for type dispatching.
+    //
+template <typename T = void> constexpr tag<T> tag_v { };
+
+
+    //ᅟ
+    // Helper for type dispatching.
+    //
+template <template <typename...> class T> struct template_tag { };
+
+    //ᅟ
+    // Helper for type dispatching.
+    //
+template <template <typename...> class T> constexpr template_tag<T> template_tag_v{ };
+
+
+} // inline namespace types
+
+
 namespace detail
 {
 
@@ -20,6 +49,132 @@ struct flags_base { };
 struct flags_tag { };
 
 struct constrained_integer_base { };
+
+template <typename TransformT, typename InnerTransformT>
+    struct chained_transform;
+
+struct transform_base { };
+template <typename TransformT>
+    struct transform_crtp_base : transform_base
+{
+    template <typename InnerTransformT,
+              typename = std::enable_if_t<std::is_base_of<transform_base, std::decay_t<InnerTransformT>>::value>>
+        constexpr chained_transform<TransformT, std::decay_t<InnerTransformT>> operator ()(InnerTransformT&& innerTransform) const noexcept;
+};
+
+template <typename TransformT, typename InnerTransformT>
+    struct chained_transform : transform_crtp_base<chained_transform<TransformT, InnerTransformT>>
+{
+    template <typename T> constexpr tag<typename TransformT::template type_<typename InnerTransformT::template type_<T>::type>::type> operator ()(tag<T>) const noexcept { return { }; }
+    template <typename T> struct type_ : TransformT::template type_<typename InnerTransformT::template type_<T>::type> { };
+};
+
+template <typename TransformT>
+template <typename InnerTransformT,
+          typename>
+    constexpr chained_transform<TransformT, std::decay_t<InnerTransformT>> transform_crtp_base<TransformT>::operator ()(InnerTransformT&& innerTransform) const noexcept
+{
+    return { };
+}
+
+template <typename F>
+    struct functor_transform : F, transform_crtp_base<functor_transform<F>>
+{
+    constexpr functor_transform(F func) noexcept : F(std::move(func)) { }
+    using F::operator ();
+    using transform_crtp_base<functor_transform<F>>::operator ();
+    template <typename... Ts> struct type : decltype(std::declval<F>()(tag<Ts>...)) { };
+};
+template <typename F, bool IsTransform> struct functor_transform_0_;
+template <typename F> struct functor_transform_0_<F, true> { using type = F; };
+template <typename F> struct functor_transform_0_<F, false> { using type = functor_transform<F>; };
+template <typename F> struct functor_transform_ : functor_transform_0_<F, std::is_base_of<transform_base, F>::value> { };
+
+template <typename P, typename T>
+    struct transformed_predicate;
+
+struct predicate_base { };
+template <typename P>
+    struct predicate_crtp_base : predicate_base
+{
+    template <typename TransformT,
+              typename = std::enable_if_t<std::is_base_of<transform_base, std::decay_t<TransformT>>::value>>
+        constexpr transformed_predicate<P, std::decay_t<TransformT>> operator ()(TransformT&& transform) const noexcept;
+};
+
+template <typename P, typename TransformT>
+    struct transformed_predicate : predicate_crtp_base<transformed_predicate<P, TransformT>>
+{
+    template <typename... Ts> constexpr typename P::template type<typename TransformT::template type_<Ts>::type...> operator ()(tag<Ts>...) const noexcept { return { }; }
+    template <typename... Ts> struct type : P::template type<typename TransformT::template type_<Ts>::type...> { };
+};
+
+template <typename P>
+template <typename TransformT,
+          typename>
+    constexpr transformed_predicate<P, std::decay_t<TransformT>> predicate_crtp_base<P>::operator ()(TransformT&& transform) const noexcept
+{
+    return { };
+}
+
+template <typename F>
+    struct functor_predicate : F, predicate_crtp_base<functor_predicate<F>>
+{
+    constexpr functor_predicate(F func) noexcept : F(std::move(func)) { }
+    using F::operator ();
+    using predicate_crtp_base<functor_predicate<F>>::operator ();
+    template <typename... Ts> struct type : decltype(std::declval<F>()(tag<Ts>...)) { };
+};
+template <typename F, bool IsPred> struct functor_predicate_0_;
+template <typename F> struct functor_predicate_0_<F, true> { using type = F; };
+template <typename F> struct functor_predicate_0_<F, false> { using type = functor_predicate<F>; };
+template <typename F> struct functor_predicate_ : functor_predicate_0_<F, std::is_base_of<predicate_base, F>::value> { };
+
+template <typename P>
+    struct predicate_negation : predicate_crtp_base<predicate_negation<P>>
+{
+    template <typename... Ts> constexpr std::negation<typename P::template type<Ts...>> operator ()(tag<Ts>...) const noexcept { return { }; }
+    template <typename... Ts> struct type : std::negation<typename P::template type<Ts...>> { };
+};
+template <typename... Ps>
+    struct predicate_conjunction : predicate_crtp_base<predicate_conjunction<Ps...>>
+{
+    template <typename... Ts> constexpr std::conjunction<typename Ps::template type<Ts...>...> operator ()(tag<Ts>...) const noexcept { return { }; }
+    template <typename... Ts> struct type : std::conjunction<typename Ps::template type<Ts...>...> { };
+};
+template <typename... Ps>
+    struct predicate_disjunction : predicate_crtp_base<predicate_disjunction<Ps...>>
+{
+    template <typename... Ts> constexpr std::disjunction<typename Ps::template type<Ts...>...> operator ()(tag<Ts>...) const noexcept { return { }; }
+    template <typename... Ts> struct type : std::disjunction<typename Ps::template type<Ts...>...> { };
+};
+template <typename LhsP, typename RhsP> struct predicate_conjunction_ { using type = predicate_conjunction<LhsP, RhsP>; };
+template <typename... LhsPs, typename RhsP> struct predicate_conjunction_<predicate_conjunction<LhsPs...>, RhsP> { using type = predicate_conjunction<LhsPs..., RhsP>; };
+template <typename LhsP, typename... RhsPs> struct predicate_conjunction_<LhsP, predicate_conjunction<RhsPs...>> { using type = predicate_conjunction<LhsP, RhsPs...>; };
+template <typename... LhsPs, typename... RhsPs> struct predicate_conjunction_<predicate_conjunction<LhsPs...>, predicate_conjunction<RhsPs...>> { using type = predicate_conjunction<LhsPs..., RhsPs...>; };
+template <typename LhsP, typename RhsP> struct predicate_disjunction_ { using type = predicate_disjunction<LhsP, RhsP>; };
+template <typename... LhsPs, typename RhsP> struct predicate_disjunction_<predicate_disjunction<LhsPs...>, RhsP> { using type = predicate_disjunction<LhsPs..., RhsP>; };
+template <typename LhsP, typename... RhsPs> struct predicate_disjunction_<LhsP, predicate_disjunction<RhsPs...>> { using type = predicate_disjunction<LhsP, RhsPs...>; };
+template <typename... LhsPs, typename... RhsPs> struct predicate_disjunction_<predicate_disjunction<LhsPs...>, predicate_disjunction<RhsPs...>> { using type = predicate_disjunction<LhsPs..., RhsPs...>; };
+
+template <typename LhsP, typename RhsP,
+          typename = std::enable_if_t<std::conjunction<std::is_base_of<predicate_base, LhsP>, std::is_base_of<predicate_base, RhsP>>::value>>
+    constexpr typename predicate_conjunction_<LhsP, RhsP>::type operator &&(const LhsP& lhs, const RhsP& rhs) noexcept
+{
+    return { };
+}
+template <typename LhsP, typename RhsP,
+          typename = std::enable_if_t<std::conjunction<std::is_base_of<predicate_base, LhsP>, std::is_base_of<predicate_base, RhsP>>::value>>
+    constexpr typename predicate_disjunction_<LhsP, RhsP>::type operator ||(const LhsP& lhs, const RhsP& rhs) noexcept
+{
+    return { };
+}
+template <typename P,
+          typename = std::enable_if_t<std::is_base_of<predicate_base, P>::value>>
+    constexpr predicate_negation<P> operator !(const P& pred) noexcept
+{
+    return { };
+}
 
 
 template <typename...> using void_t = void; // ICC doesn't have std::void_t<> yet
@@ -356,28 +511,6 @@ struct any_tag
 
 
     //ᅟ
-    // Helper for type dispatching.
-    //
-template <typename T = void> struct tag { using type = T; };
-
-    //ᅟ
-    // Helper for type dispatching.
-    //
-template <typename T = void> constexpr tag<T> tag_v { };
-
-
-    //ᅟ
-    // Helper for type dispatching.
-    //
-template <template <typename...> class T> struct template_tag { };
-
-    //ᅟ
-    // Helper for type dispatching.
-    //
-template <template <typename...> class T> constexpr template_tag<T> template_tag_v{ };
-
-
-    //ᅟ
     // Encodes a value in a type.
     //
 template <auto V, typename = decltype(V)> using constant = std::integral_constant<decltype(V), V>;
@@ -632,203 +765,113 @@ template <typename ToT, typename FromT> struct is_convertible_from : std::is_con
 template <typename ToT, typename FromT> constexpr bool is_convertible_from_v = is_convertible_from<FromT, ToT>::value;
 
 
+    //ᅟ
+    // Wraps a functor as a type predicate.
+    //
+template <typename F>
+    constexpr typename makeshift::detail::functor_predicate_<std::decay_t<F>>::type
+    make_predicate(F&& func)
+{
+    return std::forward<F>(func);
+}
 
-/*
-
-trait comments:
-
-Why only for boolean?
-
-trait_func<bool>()
-
-trait(func)
-trait<X>
-
-type_
-
-//trait_func{ }, trait<>{ }, trait_v<>
-
-type_function<>()
-trait_func<>()
-template_trait_p<>()
-
-conjunction_p()
-
-
-integer type functions: common operators
-boolean functions: &&, ||, !
-
-
-*/
 
     //ᅟ
-    // Partial application of a trait.
+    // Wraps a type trait as a type predicate.
     //ᅟ
-    //ᅟ    auto p = predicate_v<std::is_same, V>(tag_v<U>); // decltype(p) is std::is_same<U, V>
+    //ᅟ    auto p = trait_v<std::is_same, V>(tag_v<U>); // decltype(p) is std::is_same<U, V>
     //
 template <template <typename...> class PredT, typename... ArgsT>
-    struct predicate
+    struct trait : makeshift::detail::predicate_crtp_base<trait<PredT, ArgsT...>>
 {
-    constexpr predicate(void) noexcept { }
-    constexpr predicate(template_tag<PredT>, tag<ArgsT>...) noexcept { }
+    constexpr trait(void) noexcept { }
+    constexpr trait(template_tag<PredT>, tag<ArgsT>...) noexcept { }
 
+    using makeshift::detail::predicate_crtp_base<trait<PredT, ArgsT...>>::operator ();
     template <typename... Ts> constexpr PredT<Ts..., ArgsT...> operator ()(tag<Ts>...) const noexcept { return { }; }
-    //template <typename... Ts> struct type : PredT<Ts..., ArgsT...> { };
+    template <typename... Ts> struct type : PredT<Ts..., ArgsT...> { };
 };
 template <template <typename...> class PredT, typename... ArgsT>
-    predicate(template_tag<PredT>, tag<ArgsT>...) -> predicate<PredT, ArgsT...>;
-
+    trait(template_tag<PredT>, tag<ArgsT>...) -> trait<PredT, ArgsT...>;
 
     //ᅟ
-    // Partial application of a trait.
+    // Wraps a type trait as a type predicate.
     //ᅟ
-    //ᅟ    auto p = predicate_v<std::is_same, V>(tag_v<U>); // decltype(p) is std::is_same<U, V>
+    //ᅟ    auto p = trait_v<std::is_same, V>(tag_v<U>); // decltype(p) is std::is_same<U, V>
     //
-template <template <typename...> class PredT, typename... ArgsT>
-    struct predicate
-{
-    constexpr predicate(void) noexcept { }
-    constexpr predicate(template_tag<PredT>, tag<ArgsT>...) noexcept { }
-
-    template <typename... Ts> constexpr PredT<Ts..., ArgsT...> operator ()(tag<Ts>...) const noexcept { return { }; }
-    //template <typename... Ts> struct type : PredT<Ts..., ArgsT...> { };
-};
-template <template <typename...> class PredT, typename... ArgsT>
-    predicate(template_tag<PredT>, tag<ArgsT>...) -> predicate<PredT, ArgsT...>;
-
-    //ᅟ
-    // Partial application of a trait.
-    //ᅟ
-    //ᅟ    auto p = predicate_v<std::is_same, V>(tag_v<U>); // decltype(p) is std::is_same<U, V>
-    //
-template <template <typename...> class PredT, typename... ArgsT> constexpr predicate<PredT, ArgsT...> predicate_v = { };
+template <template <typename...> class PredT, typename... ArgsT> constexpr trait<PredT, ArgsT...> trait_v = { };
 
 
     //ᅟ
-    // Partial application of a template trait.
+    // Wraps a template trait as a type predicate.
     //ᅟ
-    //ᅟ    auto p = template_predicate_v<is_same_template, V>(tag_v<U>); // decltype(p) is is_same_template<U, V>
+    //ᅟ    auto p = template_trait_v<is_same_template, V>(tag_v<U>); // decltype(p) is is_same_template<U, V>
     //
 template <template <typename, template <typename...> class> class PredT, template <typename...> class ArgT>
-    struct template_predicate
+    struct template_trait : makeshift::detail::predicate_crtp_base<template_trait<PredT, ArgT>>
 {
+    using makeshift::detail::predicate_crtp_base<template_trait<PredT, ArgT>>::operator ();
     template <typename T> constexpr PredT<T, ArgT> operator ()(tag<T>) const noexcept { return { }; }
-    //template <typename T> struct type : PredT<T, ArgT> { };
+    template <typename T> struct type : PredT<T, ArgT> { };
 };
 
     //ᅟ
-    // Partial application of a template trait.
+    // Wraps a template trait as a type predicate.
     //ᅟ
-    //ᅟ    auto p = template_predicate_v<is_same_template, V>(tag_v<U>); // decltype(p) is is_same_template<U, V>
+    //ᅟ    auto p = template_trait_v<is_same_template, V>(tag_v<U>); // decltype(p) is is_same_template<U, V>
     //
-template <template <typename, template <typename...> class> class PredT, template <typename...> class ArgT> constexpr template_predicate<PredT, ArgT> template_predicate_v = { };
+template <template <typename, template <typename...> class> class PredT, template <typename...> class ArgT> constexpr template_trait<PredT, ArgT> template_trait_v = { };
 
 
     //ᅟ
-    // Applies a predicate to the `value_type` member of the argument type.
-    //ᅟ
-    //ᅟ    auto p = value_type_predicate{ predicate_v<is_signed> }(constant<C>{ }); // p is of type is_signed<constant<C>::value_type>
+    // Wraps a functor as a type transform.
     //
-template <typename PredT>
-    struct value_type_predicate
+template <typename F>
+    constexpr typename makeshift::detail::functor_transform_<std::decay_t<F>>::type
+    make_transform(F&& func)
 {
-    template <typename T> constexpr decltype(std::declval<PredT>()(tag_v<typename T::value_type>)) typename PredT::template type<typename T::value_type> operator ()(tag<T>) const noexcept { return { }; }
-    //template <typename T> struct type : PredT::template type<typename T::value_type> { };
-};
-template <typename PredT>
-    value_type_predicate(PredT&&) -> value_type_predicate<std::decay_t<PredT>>;
+    return std::forward<F>(func);
+}
 
 
     //ᅟ
-    // Applies a predicate to the `type` member of the argument type.
+    // Transforms a type to its `type` member.
     //ᅟ
-    //ᅟ    auto p = type_predicate{ predicate_v<is_signed> }(tag_v<C>); // p is of type is_signed<tag<C>::type>
+    //ᅟ    auto v = type_transform_v(tag<std::true_type>); // decltype(v) is tag<std::true_type>
     //
-template <typename PredT>
-    struct type_predicate
+struct type_transform : makeshift::detail::transform_crtp_base<type_transform>
 {
-    template <typename T> constexpr typename PredT::template type<typename T::type> operator ()(tag<T>) const noexcept { return { }; }
-    template <typename T> struct type : PredT::template type<typename T::type> { };
+    using makeshift::detail::transform_crtp_base<type_transform>::operator ();
+    template <typename T> constexpr tag<typename T::type> operator ()(tag<T>) const noexcept { return { }; }
+    template <typename T> struct type_ { using type = typename T::type; };
 };
-template <typename PredT>
-    type_predicate(PredT&&) -> type_predicate<std::decay_t<PredT>>;
-
 
     //ᅟ
-    // Partial application of a template trait.
+    // Transforms a type to its `type` member.
     //ᅟ
-    //ᅟ    auto p = template_predicate_v<is_same_template, V>(U{ }); // p is of type is_same_template<U, V>
+    //ᅟ    auto v = type_transform_v(tag<std::true_type>); // decltype(v) is tag<std::true_type>
     //
-template <template <typename, template <typename...> class> class PredT, template <typename...> class ArgT> constexpr template_predicate<PredT, ArgT> template_predicate_v = { };
+constexpr type_transform type_transform_v { };
 
 
     //ᅟ
-    // Conjunction of partially applied traits.
+    // Transforms a type to its `value_type` member.
     //ᅟ
-    //ᅟ    using P = typename predicate_conjunction<predicate<std::is_same, U>, predicate<std::is_same, V>>::template type<W>; // P is conjunction<std::is_same<U, W>, std::is_same<V, W>>
+    //ᅟ    auto v = value_type_transform_v(tag<std::true_type>); // decltype(v) is tag<bool>
     //
-template <typename... Ps>
-    struct predicate_conjunction
+struct value_type_transform : makeshift::detail::transform_crtp_base<value_type_transform>
 {
-    constexpr predicate_conjunction(void) noexcept { }
-    constexpr predicate_conjunction(Ps...) noexcept { }
-
-    template <typename... Ts> constexpr std::conjunction<typename Ps::template type<Ts...>...> operator ()(tag<Ts>...) const noexcept { return { }; }
-    template <typename... Ts> struct type : std::conjunction<typename Ps::template type<Ts...>...> { };
+    using makeshift::detail::transform_crtp_base<value_type_transform>::operator ();
+    template <typename T> constexpr tag<typename T::value_type> operator ()(tag<T>) const noexcept { return { }; }
+    template <typename T> struct type_ { using type = typename T::value_type; };
 };
-template <>
-    struct predicate_conjunction<>
-{
-    constexpr predicate_conjunction(void) noexcept { }
-    
-    template <typename... Ts> constexpr std::true_type operator ()(tag<Ts>...) const noexcept { return { }; }
-    template <typename... Ts> struct type : std::true_type { };
-};
-template <typename... Ps>
-    predicate_conjunction(Ps&&...) -> predicate_conjunction<std::decay_t<Ps>...>;
 
     //ᅟ
-    // Disjunction of partially applied traits.
+    // Transforms a type to its `value_type` member.
     //ᅟ
-    //ᅟ    using P = typename predicate_disjunction<predicate<std::is_same, U>, predicate<std::is_same, V>>::template type<W>; // P is disjunction<std::is_same<U, W>, std::is_same<V, W>>
+    //ᅟ    auto v = value_type_transform_v(tag<std::true_type>); // decltype(v) is tag<bool>
     //
-template <typename... Ps>
-    struct predicate_disjunction
-{
-    constexpr predicate_disjunction(Ps...) noexcept { }
-
-    template <typename... Ts> constexpr std::disjunction<typename Ps::template type<Ts...>...> operator ()(tag<Ts>...) const noexcept { return { }; }
-    template <typename... Ts> struct type : std::disjunction<typename Ps::template type<Ts...>...> { };
-};
-template <>
-    struct predicate_disjunction<>
-{
-    constexpr predicate_disjunction(void) noexcept { }
-    
-    template <typename... Ts> constexpr std::false_type operator ()(tag<Ts>...) const noexcept { return { }; }
-    template <typename... Ts> struct type : std::false_type { };
-};
-template <typename... Ps>
-    predicate_disjunction(Ps&&...) -> predicate_disjunction<std::decay_t<Ps>...>;
-
-
-    //ᅟ
-    // Negation of partially applied trait.
-    //ᅟ
-    //ᅟ    using P = typename predicate_negation<predicate<std::is_same, U>::template type<V>; // P is negation<std::is_same<U, V>>
-    //
-template <typename P>
-    struct predicate_negation
-{
-    constexpr predicate_negation(void) noexcept { }
-    constexpr predicate_negation(P) noexcept { }
-
-    template <typename... Ts> constexpr std::negation<typename P::template type<Ts...>> operator ()(tag<Ts>...) const noexcept { return { }; }
-    template <typename... Ts> struct type : std::negation<typename P::template type<Ts...>> { };
-};
-template <typename P>
-    predicate_negation(P&&) -> predicate_negation<std::decay_t<P>>;
-
+constexpr value_type_transform value_type_transform_v { };
 
 
 } // inline namespace types
