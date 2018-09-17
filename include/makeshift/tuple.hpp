@@ -420,6 +420,32 @@ public:
     }
 };
 
+template <bool All, typename F>
+    struct tuple_all_any_t : F, stream_base<tuple_all_any_t<All, F>>
+{
+private:
+    template <std::size_t... Is, typename TupleT>
+        constexpr auto invoke(std::index_sequence<Is...>, TupleT&& tuple) const
+    {
+        (void) tuple;
+        using std::get; // make std::get<>(std::pair<>&&) visible to enable ADL for template methods named get<>()
+        if constexpr (All)
+            return (F::operator ()(get<Is>(std::forward<TupleT>(tuple))) && ...);
+        else
+            return (F::operator ()(get<Is>(std::forward<TupleT>(tuple))) || ...);
+    }
+    
+public:
+    constexpr tuple_all_any_t(F func) : F(std::move(func)) { }
+
+    template <typename TupleT,
+              typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
+        constexpr auto operator ()(TupleT&& tuple) const
+    {
+        return invoke(std::make_index_sequence<std::tuple_size<std::decay_t<TupleT>>::value>{ }, std::forward<TupleT>(tuple));
+    }
+};
+
 template <typename T, typename DefaultT>
     struct get_or_default_t : stream_base<get_or_default_t<T, DefaultT>>
 {
@@ -909,6 +935,66 @@ template <typename TupleT, typename T, typename F,
     tuple_fold_right(TupleT&& tuple, T&& initialValue, F&& func)
 {
     return tuple_fold_right(std::forward<F>(func))(std::forward<T>(initialValue), std::forward<TupleT>(tuple));
+}
+
+
+    //ᅟ
+    // Takes a unary predicate function and returns a function which evaluates the short-circuited conjunction of the predicate applied to all tuple elements.
+    //ᅟ
+    //ᅟ    auto numbers = std::make_tuple(2, 3u);
+    //ᅟ    auto allNumbersGreaterThanZero = numbers
+    //ᅟ        | tuple_all([](auto v) { return v > 0; }); // returns true
+    //
+template <typename F>
+    constexpr makeshift::detail::tuple_all_any_t<true, std::decay_t<F>>
+    tuple_all(F&& func)
+{
+    return { std::forward<F>(func) };
+}
+
+    //ᅟ
+    // Takes a unary predicate function and evaluates the short-circuited conjunction of the predicate applied to all tuple elements.
+    //ᅟ
+    //ᅟ    auto numbers = std::make_tuple(2, 3u);
+    //ᅟ    auto allNumbersGreaterThanZero = tuple_all(numbers,
+    //ᅟ        [](auto v) { return v > 0; })); // returns true
+    //
+template <typename TupleT, typename F,
+          typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
+    constexpr bool
+    tuple_all(TupleT&& tuple, F&& func)
+{
+    return tuple_all(std::forward<F>(func))(std::forward<TupleT>(tuple));
+}
+
+
+    //ᅟ
+    // Takes a unary predicate function and returns a function which evaluates the short-circuited disjunction of the predicate applied to all tuple elements.
+    //ᅟ
+    //ᅟ    auto numbers = std::make_tuple(2, 3u);
+    //ᅟ    auto anyNumberGreaterThanZero = numbers
+    //ᅟ        | tuple_any([](auto v) { return v > 0; }); // returns true
+    //
+template <typename F>
+    constexpr makeshift::detail::tuple_all_any_t<false, std::decay_t<F>>
+    tuple_any(F&& func)
+{
+    return { std::forward<F>(func) };
+}
+
+    //ᅟ
+    // Takes a unary predicate function and evaluates the short-circuited disjunction of the predicate applied to all tuple elements.
+    //ᅟ
+    //ᅟ    auto numbers = std::make_tuple(2, 3u);
+    //ᅟ    auto anyNumberGreaterThanZero = tuple_any(numbers,
+    //ᅟ        [](auto v) { return v > 0; })); // returns true
+    //
+template <typename TupleT, typename F,
+          typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
+    constexpr bool
+    tuple_any(TupleT&& tuple, F&& func)
+{
+    return tuple_any(std::forward<F>(func))(std::forward<TupleT>(tuple));
 }
 
 
