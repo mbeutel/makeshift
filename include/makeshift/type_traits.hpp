@@ -36,6 +36,30 @@ template <template <typename...> class T> struct template_tag { };
 template <template <typename...> class T> constexpr template_tag<T> template_tag_v{ };
 
 
+    //ᅟ
+    // Determines the category of a type.
+    //
+enum class type_category
+{
+        //ᅟ
+        // Indicates that the associated type is a value type (either a scalar type or a user-defined wrapper).
+        //
+    value,
+
+        //ᅟ
+        // Indicates that the associated type is an aggregate, i.e. it has the semantics of a named tuple with regard to identity and comparability.
+        // This type category does not necessarily require aggregate-ness as defined in the C++ standard (`std::is_aggregate<>`), which imposes
+        // unnecessary limitations (e.g. it makes sense for an aggregate to have a user-defined constructor).
+        //
+    aggregate,
+
+        //ᅟ
+        // Unknown type category.
+        //
+    other
+};
+
+
 } // inline namespace types
 
 
@@ -925,6 +949,54 @@ struct reflection_metadata_tag { };
 
 
 } // inline namespace metadata
+
+
+namespace detail
+{
+
+
+template <typename T>
+    constexpr type_category default_type_category(void) noexcept
+{
+    if constexpr (std::is_scalar<T>::value)
+        return type_category::value;
+    else if constexpr (std::is_aggregate<T>::value)
+        return type_category::aggregate;
+    else
+        return type_category::other;
+}
+template <typename T>
+    constexpr type_category infer_type_category(type_category cat) noexcept
+{
+    if (cat != type_category::other)
+        return cat;
+    else
+        return default_type_category<T>();
+}
+
+template <typename T, typename MetadataTagT>
+    constexpr type_category lookup_type_category(void) noexcept
+{
+    if constexpr (have_metadata_v<T, MetadataTagT>)
+        return metadata_of_t<T, MetadataTagT>::category;
+    else
+        return default_type_category<T>();
+}
+
+
+} // namespace detail
+
+
+inline namespace types
+{
+
+
+    //ᅟ
+    // Determines the category of a type.
+    //
+template <typename T, typename MetadataTagT, typename = void> constexpr type_category type_category_of = makeshift::detail::lookup_type_category<T, MetadataTagT>();
+
+
 } // inline namespace types
 
 } // namespace makeshift

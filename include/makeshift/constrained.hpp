@@ -418,6 +418,10 @@ template <typename T> using negative_integer = constrained_integer<negative<T>>;
 template <typename T> using positive_integer = constrained_integer<positive<T>>;
 
 
+    // Specialize `type_category_of<>` for anything that is a constrained integer.
+template <typename ConstrainedIntT, typename MetadataTagT> constexpr type_category type_category_of<ConstrainedIntT, MetadataTagT, std::enable_if_t<is_constrained_integer_v<ConstrainedIntT>>> = type_category::value;
+
+
 } // inline namespace types
 
 } // namespace makeshift
