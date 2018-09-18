@@ -177,15 +177,6 @@ static inline constexpr caption_t caption(std::string_view value) { return { val
 struct serialization_metadata_tag { };
 
 
-constexpr inline auto reflect(tag<bool>, any_tag_of<reflection_metadata_tag, serialization_metadata_tag>) noexcept
-{
-    return type<bool>(
-        value<false>("false"),
-        value<true>("true")
-    );
-}
-
-
     //ᅟ
     // Base class for metadata-based serializers.
     //ᅟ
@@ -213,6 +204,8 @@ template <typename SerializerT> using serializer_metadata_tag_t = typename seria
 
 
 } // inline namespace metadata
+
+
 
 } // namespace makeshift
 

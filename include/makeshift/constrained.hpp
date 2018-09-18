@@ -436,8 +436,7 @@ template <typename ConstraintT, typename VerifierT>
     struct hash<makeshift::constrained_integer<ConstraintT, VerifierT>>
 {
     using argument_type = makeshift::constrained_integer<ConstraintT, VerifierT>;
-    using result_type = std::size_t;
-    constexpr result_type operator()(const argument_type& arg) const noexcept
+    constexpr std::size_t operator()(const argument_type& arg) const noexcept
     {
         return hash<typename argument_type::value_type>{ }(arg.value());
     }

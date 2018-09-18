@@ -331,11 +331,7 @@ public:
 };
 template <typename F, typename T>
     accumulator_wrapper(F&, T&&) -> accumulator_wrapper<F, std::decay_t<T>>;
-        /*template <typename F, typename T>
-    accumulator_wrapper<F, std::decay_t<T>> make_accumulator_wrapper(F& func, T&& value)
-{
-    return { func, std::forward<T>(value) };
-}*/
+
 template <typename F, typename T, typename U>
     constexpr auto operator +(accumulator_wrapper<F, T> lhs, U&& rhs)
 {
@@ -385,7 +381,7 @@ private:
     {
         (void) tuple;
         using std::get; // make std::get<>(std::pair<>&&) visible to enable ADL for template methods named get<>()
-        auto wrappedInitialValue = make_accumulator_wrapper(static_cast<const F&>(*this), initialValue_);
+        auto wrappedInitialValue = accumulator_wrapper(static_cast<const F&>(*this), initialValue_);
         if constexpr (FoldLeft)
             return (std::move(wrappedInitialValue) + ... + get<Is>(std::forward<TupleT>(tuple))).get();
         else
@@ -396,7 +392,7 @@ private:
     {
         (void) tuple;
         using std::get; // make std::get<>(std::pair<>&&) visible to enable ADL for template methods named get<>()
-        auto wrappedInitialValue = make_accumulator_wrapper(static_cast<const F&>(*this), std::move(initialValue_));
+        auto wrappedInitialValue = accumulator_wrapper(static_cast<const F&>(*this), std::move(initialValue_));
         if constexpr (FoldLeft)
             return (std::move(wrappedInitialValue) + ... + get<Is>(std::forward<TupleT>(tuple))).get();
         else

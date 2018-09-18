@@ -3,8 +3,9 @@
 #define INCLUDED_MAKESHIFT_TYPE_TRAITS_HPP_
 
 
-#include <type_traits> // for integral_constant<>, declval<>()
-#include <utility>     // for integer_sequence<>
+#include <cstddef>     // for size_t
+#include <type_traits> // for integral_constant<>, declval<>(), is_aggregate<>, is_scalar<>, is_same<>, is_base_of<>, enable_if<>, is_convertible<>, decay<>, declval<>(), negation<>, conjunction<>, disjunction<>
+#include <utility>     // for integer_sequence<>, move(), forward<>()
 
 
 namespace makeshift
@@ -83,7 +84,7 @@ template <typename TransformT>
 {
     template <typename InnerTransformT,
               typename = std::enable_if_t<std::is_base_of<transform_base, std::decay_t<InnerTransformT>>::value>>
-        constexpr chained_transform<TransformT, std::decay_t<InnerTransformT>> operator ()(InnerTransformT&& innerTransform) const noexcept;
+        constexpr chained_transform<TransformT, std::decay_t<InnerTransformT>> operator ()(InnerTransformT&&) const noexcept;
 };
 
 template <typename TransformT, typename InnerTransformT>
@@ -96,7 +97,7 @@ template <typename TransformT, typename InnerTransformT>
 template <typename TransformT>
 template <typename InnerTransformT,
           typename>
-    constexpr chained_transform<TransformT, std::decay_t<InnerTransformT>> transform_crtp_base<TransformT>::operator ()(InnerTransformT&& innerTransform) const noexcept
+    constexpr chained_transform<TransformT, std::decay_t<InnerTransformT>> transform_crtp_base<TransformT>::operator ()(InnerTransformT&&) const noexcept
 {
     return { };
 }
@@ -123,7 +124,7 @@ template <typename P>
 {
     template <typename TransformT,
               typename = std::enable_if_t<std::is_base_of<transform_base, std::decay_t<TransformT>>::value>>
-        constexpr transformed_predicate<P, std::decay_t<TransformT>> operator ()(TransformT&& transform) const noexcept;
+        constexpr transformed_predicate<P, std::decay_t<TransformT>> operator ()(TransformT&&) const noexcept;
 };
 
 template <typename P, typename TransformT>
@@ -136,7 +137,7 @@ template <typename P, typename TransformT>
 template <typename P>
 template <typename TransformT,
           typename>
-    constexpr transformed_predicate<P, std::decay_t<TransformT>> predicate_crtp_base<P>::operator ()(TransformT&& transform) const noexcept
+    constexpr transformed_predicate<P, std::decay_t<TransformT>> predicate_crtp_base<P>::operator ()(TransformT&&) const noexcept
 {
     return { };
 }
@@ -183,19 +184,19 @@ template <typename... LhsPs, typename... RhsPs> struct predicate_disjunction_<pr
 
 template <typename LhsP, typename RhsP,
           typename = std::enable_if_t<std::conjunction<std::is_base_of<predicate_base, LhsP>, std::is_base_of<predicate_base, RhsP>>::value>>
-    constexpr typename predicate_conjunction_<LhsP, RhsP>::type operator &&(const LhsP& lhs, const RhsP& rhs) noexcept
+    constexpr typename predicate_conjunction_<LhsP, RhsP>::type operator &&(const LhsP&, const RhsP&) noexcept
 {
     return { };
 }
 template <typename LhsP, typename RhsP,
           typename = std::enable_if_t<std::conjunction<std::is_base_of<predicate_base, LhsP>, std::is_base_of<predicate_base, RhsP>>::value>>
-    constexpr typename predicate_disjunction_<LhsP, RhsP>::type operator ||(const LhsP& lhs, const RhsP& rhs) noexcept
+    constexpr typename predicate_disjunction_<LhsP, RhsP>::type operator ||(const LhsP&, const RhsP&) noexcept
 {
     return { };
 }
 template <typename P,
           typename = std::enable_if_t<std::is_base_of<predicate_base, P>::value>>
-    constexpr predicate_negation<P> operator !(const P& pred) noexcept
+    constexpr predicate_negation<P> operator !(const P&) noexcept
 {
     return { };
 }
