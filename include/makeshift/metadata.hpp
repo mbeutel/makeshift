@@ -180,7 +180,7 @@ struct serialization_metadata_tag { };
     //ᅟ
     // Base class for metadata-based serializers.
     //ᅟ
-    // Use this class with `chain_serializers()` to inject a metadata tag into a metadata-based serializer.
+    // Use this class with `chain()` to inject a metadata tag into a metadata-based serializer.
     //
 template <typename MetadataTagT = serialization_metadata_tag>
     struct metadata_serializer_t

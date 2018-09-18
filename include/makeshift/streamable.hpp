@@ -81,7 +81,7 @@ inline namespace serialize
     // overloads discoverable by ADL.
     //
     // To override parts of the behavior of an existing serializer, define a new serializer that handles only the types you want to customize, and
-    // chain it with the existing serializer using `chain_serializers()`.
+    // chain it with the existing serializer using `chain()`.
 
 
     //ᅟ
