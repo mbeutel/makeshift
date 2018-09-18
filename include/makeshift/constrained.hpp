@@ -16,9 +16,9 @@
 #include <makeshift/tuple.hpp>       // for get_or_default<>(), get_or_none<>()
 #include <makeshift/type_traits.hpp> // for sequence<>, tag<>
 
-#include <makeshift/detail/cfg.hpp>             // for MAKESHIFT_DLLFUNC
-#include <makeshift/detail/workaround.hpp>      // for cor()
-#include <makeshift/detail/functional_hash.hpp>
+#include <makeshift/detail/cfg.hpp>                  // for MAKESHIFT_DLLFUNC
+#include <makeshift/detail/workaround.hpp>           // for cor()
+#include <makeshift/detail/functional_operators.hpp> // for hash<>
 
 
 namespace makeshift
@@ -374,14 +374,12 @@ public:
 
 
     // Specialize `hash<>` for anything that is a constrained integer.
-template <typename ConstrainedIntT>
-    struct hash<ConstrainedIntT, std::enable_if_t<is_constrained_integer_v<ConstrainedIntT>>>
+template <typename ConstrainedIntT, typename MetadataTagT>
+    struct hash<ConstrainedIntT, MetadataTagT, std::enable_if_t<is_constrained_integer_v<ConstrainedIntT>>>
 {
-    using argument_type = ConstrainedIntT;
-    using result_type = std::size_t;
-    constexpr result_type operator()(const argument_type& arg) const noexcept
+    constexpr std::size_t operator()(const ConstrainedIntT& arg) const noexcept
     {
-        return std::hash<typename argument_type::value_type>{ }(arg.value());
+        return std::hash<typename ConstrainedIntT::value_type>{ }(arg.value());
     }
 };
 

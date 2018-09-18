@@ -3,6 +3,7 @@
 #include <makeshift/metadata.hpp>
 #include <makeshift/string.hpp>
 #include <makeshift/streamable.hpp>
+#include <makeshift/reflect.hpp>
 
 #include <makeshift/serializers/string.hpp>
 #include <makeshift/serializers/stream.hpp>
@@ -73,7 +74,89 @@ static constexpr auto reflect(mk::tag<Vegetables>, mk::any_tag_of<mk::reflection
     );
 }
 
+struct COOIndex
+{
+    int i;
+    int j;
+};
+static constexpr auto reflect(mk::tag<COOIndex>, mk::any_tag_of<mk::reflection_metadata_tag, mk::serialization_metadata_tag>)
+{
+    using namespace makeshift::metadata;
+    return type<COOIndex, type_category::aggregate>(
+        member<&COOIndex::i>(),
+        member<&COOIndex::j>()
+    );
+}
+
+struct COOValue
+{
+    COOIndex index;
+    double v;
+};
+static constexpr auto reflect(mk::tag<COOValue>, mk::any_tag_of<mk::reflection_metadata_tag, mk::serialization_metadata_tag>)
+{
+    using namespace makeshift::metadata;
+    return type<COOValue, type_category::aggregate>(
+        member<&COOValue::index>("index"),
+        member<&COOValue::v>("v")
+    );
+}
+
+
 } // anonymous namespace
+
+
+TEST_CASE("reflect", "[reflect]")
+{
+    SECTION("enum")
+    {
+        // TODO
+    }
+    SECTION("constrained integer")
+    {
+        // TODO
+    }
+    SECTION("struct")
+    {
+        COOIndex i1 { 1, 2 };
+        COOIndex i2 { 2, 1 };
+        COOIndex i3 { 2, 2 };
+        
+        CHECK(mk::less<>{ }(i1, i2));
+        CHECK(mk::less<>{ }(i2, i3));
+        CHECK_FALSE(mk::less<>{ }(i2, i1));
+        CHECK_FALSE(mk::less<>{ }(i3, i2));
+        CHECK_FALSE(mk::less<>{ }(i1, i1));
+
+        CHECK(mk::equal_to<>{ }(i1, i1));
+        CHECK(mk::equal_to<>{ }(i2, i2));
+        CHECK(mk::equal_to<>{ }(i3, i3));
+        CHECK_FALSE(mk::equal_to<>{ }(i1, i2));
+        CHECK_FALSE(mk::equal_to<>{ }(i2, i3));
+        CHECK_FALSE(mk::equal_to<>{ }(i1, i3));
+        
+        auto i2hash = mk::hash<COOIndex>{ }(i2);
+        auto i3hash = mk::hash<COOIndex>{ }(i3);
+        CHECK(i2hash != i3hash); // this is not strictly necessary, but it typically holds unless std::hash<int> is terrible
+        
+        COOValue v1a { i1, 0.0 };
+        COOValue v1b { i1, 1.0 };
+        COOValue v2 { i2, 42.0 };
+
+        CHECK(mk::less<>{ }(v1a, v1b));
+        CHECK(mk::less<>{ }(v1a, v2));
+        CHECK_FALSE(mk::less<>{ }(v1a, v1a));
+        CHECK_FALSE(mk::less<>{ }(v2, v1a));
+
+        CHECK(mk::equal_to<>{ }(v1a, v1a));
+        CHECK_FALSE(mk::equal_to<>{ }(v1a, v1b));
+        CHECK_FALSE(mk::equal_to<>{ }(v1a, v2));
+
+        auto v1ahash = mk::hash<COOValue>{ }(v1a);
+        auto v1bhash = mk::hash<COOValue>{ }(v1b);
+        CHECK(v1ahash != v1bhash); // this is not strictly necessary, but it typically holds unless std::hash<double> is terrible
+    }
+}
 
 
 TEST_CASE("serialize", "[serialize]")
@@ -97,5 +180,9 @@ TEST_CASE("serialize", "[serialize]")
         CHECK(mk::to_string(Vegetables::legume | Vegetables::potato) == "legume, potato"); // combined flags
         //CHECK(mk::to_string(Vegetables::spicy | Vegetables::nightshade) == "legume, potato"); // combined flags
         // TODO: not quite sure what we actually want here
+    }
+    SECTION("struct")
+    {
+        // TODO
     }
 }
