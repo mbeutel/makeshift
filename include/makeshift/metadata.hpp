@@ -160,12 +160,6 @@ static inline constexpr caption_t caption(std::string_view value) { return { val
 
 
     //ᅟ
-    // Default tag type for `reflect()` methods which define type metadata for correctness and value enumeration.
-    //
-struct reflection_metadata_tag { };
-
-
-    //ᅟ
     // Default tag type for `reflect()` methods which define type metadata for serialization.
     //
 struct serialization_metadata_tag { };
@@ -178,28 +172,6 @@ constexpr inline auto reflect(tag<bool>, any_tag_of<reflection_metadata_tag, ser
         value<true>("true")
     );
 }
-
-
-    //ᅟ
-    // Use `metadata_of<T, MetadataTagT>` to look up metadata for a type.
-    //
-template <typename T, typename MetadataTagT> static constexpr auto metadata_of = reflect(tag<T>{ }, MetadataTagT{ });
-
-    //ᅟ
-    // Use `metadata_of<T, MetadataTagT>` to look up metadata for a type.
-    //
-template <typename T, typename MetadataTagT> using metadata_of_t = decltype(reflect(tag<T>{ }, MetadataTagT{ }));
-
-
-    //ᅟ
-    // Determines whether there is metadata for the given type and the given tag.
-    //
-template <typename T, typename MetadataTagT> struct have_metadata : can_apply<metadata_of_t, T, MetadataTagT> { };
-
-    //ᅟ
-    // Determines whether there is metadata for the given type and the given tag.
-    //
-template <typename T, typename MetadataTagT> constexpr bool have_metadata_v = have_metadata<T, MetadataTagT>::value;
 
 
     //ᅟ

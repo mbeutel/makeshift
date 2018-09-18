@@ -876,6 +876,45 @@ constexpr value_type_transform value_type_transform_v { };
 
 } // inline namespace types
 
+
+inline namespace metadata
+{
+
+
+using makeshift::type_category;
+
+
+    //ᅟ
+    // Use `metadata_of<T, MetadataTagT>` to look up metadata for a type.
+    //
+template <typename T, typename MetadataTagT> static constexpr auto metadata_of = reflect(tag<T>{ }, MetadataTagT{ });
+
+    //ᅟ
+    // Use `metadata_of<T, MetadataTagT>` to look up metadata for a type.
+    //
+template <typename T, typename MetadataTagT> using metadata_of_t = decltype(reflect(tag<T>{ }, MetadataTagT{ }));
+
+
+    //ᅟ
+    // Determines whether there is metadata for the given type and the given tag.
+    //
+template <typename T, typename MetadataTagT> struct have_metadata : can_apply<metadata_of_t, T, MetadataTagT> { };
+
+    //ᅟ
+    // Determines whether there is metadata for the given type and the given tag.
+    //
+template <typename T, typename MetadataTagT> constexpr bool have_metadata_v = have_metadata<T, MetadataTagT>::value;
+
+
+    //ᅟ
+    // Default tag type for `reflect()` methods which define type metadata for correctness and value enumeration.
+    //
+struct reflection_metadata_tag { };
+
+
+} // inline namespace metadata
+} // inline namespace types
+
 } // namespace makeshift
 
 
