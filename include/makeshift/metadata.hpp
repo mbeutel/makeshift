@@ -141,7 +141,7 @@ template <typename TypeMetadataT>
     // When defining metadata for flag enums, use `flags(type<TheFlagsType>(...))` to define metadata for the bitflag type itself.
     //
 template <typename TypeMetadataT,
-          typename = std::enable_if_t<is_same_template_v<TypeMetadataT, type_metadata>>>
+          typename = std::enable_if_t<is_instantiation_of_v<TypeMetadataT, type_metadata>>>
     constexpr flags_t<std::decay_t<TypeMetadataT>> flags(TypeMetadataT&& typeMetadata)
 {
     return { std::forward<TypeMetadataT>(typeMetadata) };

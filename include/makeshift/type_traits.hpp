@@ -711,13 +711,13 @@ template <typename T> constexpr bool is_serializer_v = is_serializer<T>::value;
     //ᅟ
     // Determines whether a type is an instantiation of a particular class template.
     //
-template <typename T, template <typename...> class U> struct is_same_template : std::false_type { };
-template <template <typename...> class U, typename... Ts> struct is_same_template<U<Ts...>, U> : std::true_type { };
+template <typename T, template <typename...> class U> struct is_instantiation_of : std::false_type { };
+template <template <typename...> class U, typename... Ts> struct is_instantiation_of<U<Ts...>, U> : std::true_type { };
 
     //ᅟ
     // Determines whether a type is an instantiation of a particular class template.
     //
-template <typename T, template <typename...> class U> constexpr bool is_same_template_v = is_same_template<T, U>::value;
+template <typename T, template <typename...> class U> constexpr bool is_instantiation_of_v = is_instantiation_of<T, U>::value;
 
 
     //ᅟ
@@ -805,7 +805,7 @@ template <template <typename...> class PredT, typename... ArgsT> constexpr trait
     //ᅟ
     // Wraps a template trait as a type predicate.
     //ᅟ
-    //ᅟ    auto p = template_trait_v<is_same_template, V>(tag_v<U>); // decltype(p) is is_same_template<U, V>
+    //ᅟ    auto p = template_trait_v<is_instantiation_of, V>(tag_v<U>); // decltype(p) is is_instantiation_of<U, V>
     //
 template <template <typename, template <typename...> class> class PredT, template <typename...> class ArgT>
     struct template_trait : makeshift::detail::predicate_crtp_base<template_trait<PredT, ArgT>>
@@ -818,7 +818,7 @@ template <template <typename, template <typename...> class> class PredT, templat
     //ᅟ
     // Wraps a template trait as a type predicate.
     //ᅟ
-    //ᅟ    auto p = template_trait_v<is_same_template, V>(tag_v<U>); // decltype(p) is is_same_template<U, V>
+    //ᅟ    auto p = template_trait_v<is_instantiation_of, V>(tag_v<U>); // decltype(p) is is_instantiation_of<U, V>
     //
 template <template <typename, template <typename...> class> class PredT, template <typename...> class ArgT> constexpr template_trait<PredT, ArgT> template_trait_v = { };
 

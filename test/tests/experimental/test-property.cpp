@@ -78,7 +78,7 @@ serialize_as_table_t serialize_as_table(std::string separator = "\t")
     return { std::move(separator) };
 }
 
-template <typename T> using is_property_metadata = mk::is_same_template<T, mk::property_metadata>;
+template <typename T> using is_property_metadata = mk::is_instantiation_of<T, mk::property_metadata>;
 template <typename T> using is_not_none = std::negation<std::is_same<T, mk::none_t>>;
 
 template <typename T, typename AttributesT>

@@ -72,14 +72,14 @@ MAKESHIFT_DLLFUNC std::string flags_enum_to_string(std::uint64_t enumValue, cons
 MAKESHIFT_DLLFUNC void flags_enum_from_string(std::string_view string, std::uint64_t& enumValue, const flags_enum_serialization_data_ref& sdata, const enum_serialization_options_t& options);
 
 
-template <typename ValC, typename... AttributesT>
-    constexpr auto make_enum_value_serialization_data(const value_metadata<ValC, std::tuple<AttributesT...>>& valueMetadata)
+template <typename ValueMetadataT>
+    constexpr auto make_enum_value_serialization_data(const ValueMetadataT& valueMetadata)
 {
-    static_assert(sizeof(ValC::value) <= sizeof(std::uint64_t), "enums with an underlying type of more than 64 bits are not supported");
+    static_assert(sizeof(ValueMetadataT::value) <= sizeof(std::uint64_t), "enums with an underlying type of more than 64 bits are not supported");
 
     return valueMetadata.attributes
         | tuple_filter(trait_v<std::is_same, std::string_view>)
-        | tuple_map_to<enum_value_serialization_data>([](std::string_view lname) { return enum_value_serialization_data{ std::uint64_t(ValC::value), lname }; });
+        | tuple_map_to<enum_value_serialization_data>([](std::string_view lname) { return enum_value_serialization_data{ std::uint64_t(ValueMetadataT::value), lname }; });
 }
 
 template <std::size_t N>
@@ -91,13 +91,13 @@ template <std::size_t N>
 
     constexpr enum_serialization_data_ref data_ref(void) const noexcept { return { values, typeName, typeDesc }; }
 };
-template <typename EnumT, typename AttributesT>
-    constexpr auto make_enum_serialization_data(const type_metadata<EnumT, AttributesT>& enumMetadata)
+template <typename TypeMetadataT>
+    constexpr auto make_enum_serialization_data(const TypeMetadataT& enumMetadata)
 {
     std::string_view typeName = get_or_default<std::string_view>(enumMetadata.attributes);
     std::string_view typeDesc = get_or_default<caption_t>(enumMetadata.attributes).value;
     auto values = enumMetadata.attributes
-        | tuple_filter(template_trait_v<is_same_template, value_metadata>)
+        | tuple_filter(template_trait_v<is_instantiation_of, value_metadata>)
         | tuple_map([](const auto& v) { return make_enum_value_serialization_data(v); })
         | array_cat<enum_value_serialization_data>();
     return enum_serialization_data<array_size_v<decltype(values)>> { values, typeName, typeDesc };
@@ -130,25 +130,25 @@ template <std::size_t N>
 
     constexpr flags_enum_serialization_data_ref data_ref(void) const noexcept { return { values, flagTypeName, defTypeName, typeDesc }; }
 };
-template <typename DefT, typename AttributesT>
-    constexpr std::string_view get_flag_type_name(const type_metadata<DefT, AttributesT>& enumMetadata)
+template <typename TypeMetadataT>
+    constexpr std::string_view get_flag_type_name(const TypeMetadataT& enumMetadata)
 {
     auto maybeFlags = enumMetadata.attributes
-        | tuple_filter(template_trait_v<is_same_template, flags_t>)
+        | tuple_filter(template_trait_v<is_instantiation_of, flags_t>)
         | single_or_none();
     if constexpr (!std::is_same<decltype(maybeFlags), none_t>::value)
         return get_or_default<std::string_view>(maybeFlags.value.attributes);
     else
         return { };
 }
-template <typename DefT, typename AttributesT>
-    constexpr auto make_flags_enum_serialization_data(const type_metadata<DefT, AttributesT>& enumMetadata)
+template <typename TypeMetadataT>
+    constexpr auto make_flags_enum_serialization_data(const TypeMetadataT& enumMetadata)
 {
     std::string_view defTypeName = get_or_default<std::string_view>(enumMetadata.attributes);
     std::string_view typeDesc = get_or_default<caption_t>(enumMetadata.attributes).value;
     std::string_view flagTypeName = get_flag_type_name(enumMetadata);
     auto values = enumMetadata.attributes
-        | tuple_filter(template_trait_v<is_same_template, value_metadata>)
+        | tuple_filter(template_trait_v<is_instantiation_of, value_metadata>)
         | tuple_map([](const auto& v) { return make_enum_value_serialization_data(v); })
         | array_cat<enum_value_serialization_data>();
     return flags_enum_serialization_data<array_size_v<decltype(values)>>{ values, flagTypeName, defTypeName, typeDesc };
@@ -172,9 +172,11 @@ template <typename EnumT, std::size_t N>
 }
 
 
-template <typename T, typename... AttributesT>
-    constexpr auto make_serialization_data(const type_metadata<T, std::tuple<AttributesT...>>& typeMetadata)
+template <typename TypeMetadataT>
+    constexpr auto make_serialization_data(const TypeMetadataT& typeMetadata)
 {
+    using T = typename TypeMetadataT::type;
+
     if constexpr (std::is_enum<T>::value)
         return makeshift::detail::make_enum_serialization_data(typeMetadata);
     else if constexpr (std::is_base_of<makeshift::detail::flags_base, T>::value)
