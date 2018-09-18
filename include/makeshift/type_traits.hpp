@@ -721,6 +721,18 @@ template <typename T, template <typename...> class U> constexpr bool is_instanti
 
 
     //ᅟ
+    // Determines whether two class templates are identical.
+    //
+template <template <typename...> class T, template <typename...> class U> struct is_same_template : std::false_type { };
+template <template <typename...> class U> struct is_same_template<U, U> : std::true_type { };
+
+    //ᅟ
+    // Determines whether two class templates are identical.
+    //
+template <template <typename...> class T, template <typename...> class U> constexpr bool is_same_template_v = is_same_template<T, U>::value;
+
+
+    //ᅟ
     // Removes an rvalue reference from a type.
     //
 template <typename T> struct remove_rvalue_reference { using type = T; };
