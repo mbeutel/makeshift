@@ -18,6 +18,7 @@ namespace detail
 
 
 struct chainable_constructor_tag { };
+struct chainable_default_root { };
 
 
 } // namespace detail
@@ -28,7 +29,7 @@ inline namespace types
 
 
     //ᅟ
-    // Base class for chainable classes with argument class `ArgsT`.
+    // Base class for chainable classes with argument class `DataT`.
     //ᅟ
     //ᅟ    struct MySerializerData { ... };
     //ᅟ    template <typename BaseT = void>
@@ -40,15 +41,21 @@ inline namespace types
     //ᅟ    };
     //
 template <template <typename...> class ChainableT, typename BaseT, typename DataT = void, typename RootT = void, typename... Ts>
-    struct define_chainable : DataT, BaseT
+    struct define_chainable : BaseT
 {
     using chainable_sequence = type_sequence_cat_t<type_sequence<define_chainable<ChainableT, void, DataT, RootT, Ts...>>, typename BaseT::chainable_sequence>;
     using args_sequence = type_sequence_cat_t<type_sequence<DataT>, typename BaseT::args_sequence>;
 
+    DataT data;
+
+    constexpr friend const DataT& get_data(const define_chainable& chainable, tag<DataT>) noexcept { return chainable.data; }
+    constexpr friend DataT& get_data(define_chainable& chainable, tag<DataT>) noexcept { return chainable.data; }
+    constexpr friend DataT&& get_data(define_chainable&& chainable, tag<DataT>) noexcept { return std::move(chainable.data); }
+
     constexpr define_chainable(void) = default;
     template <typename... ArgsT>
         constexpr define_chainable(makeshift::detail::chainable_constructor_tag, std::tuple<ArgsT...>&& args)
-            : DataT(std::get<DataT>(std::move(args))), BaseT(makeshift::detail::chainable_constructor_tag{ }, std::move(args))
+            : BaseT(makeshift::detail::chainable_constructor_tag{ }, std::move(args)), data(std::get<DataT>(std::move(args)))
     {
     }
 };
@@ -58,47 +65,35 @@ template <template <typename...> class ChainableT, typename BaseT, typename Root
     using chainable_sequence = type_sequence_cat_t<type_sequence<define_chainable<ChainableT, void, void, RootT, Ts...>>, typename BaseT::chainable_sequence>;
 
     constexpr define_chainable(void) = default;
-    using BaseT::BaseT;
-};
-template <template <typename...> class ChainableT, typename DataT, typename RootT, typename... Ts>
-    struct define_chainable<ChainableT, void, DataT, RootT, Ts...> : DataT, RootT
-{
-    using chainable_sequence = type_sequence<define_chainable>;
-    using args_sequence = type_sequence<DataT>;
-
-    constexpr define_chainable(void) = default;
-    using DataT::DataT;
     template <typename... ArgsT>
         constexpr define_chainable(makeshift::detail::chainable_constructor_tag, std::tuple<ArgsT...>&& args)
-            : DataT(std::get<DataT>(std::move(args)))
+            : BaseT(makeshift::detail::chainable_constructor_tag{ }, std::move(args))
     {
     }
 };
-template <template <typename...> class ChainableT, typename DataT, typename... Ts>
-    struct define_chainable<ChainableT, void, DataT, void, Ts...> : DataT
+template <template <typename...> class ChainableT, typename DataT, typename RootT, typename... Ts>
+    struct define_chainable<ChainableT, void, DataT, RootT, Ts...> : std::conditional_t<std::is_void<RootT>::value, makeshift::detail::chainable_default_root, RootT>
 {
     using chainable_sequence = type_sequence<define_chainable>;
     using args_sequence = type_sequence<DataT>;
 
+    DataT data;
+
+    constexpr friend const DataT& get_data(const define_chainable& chainable, tag<DataT>) noexcept { return chainable.data; }
+    constexpr friend DataT& get_data(define_chainable& chainable, tag<DataT>) noexcept { return chainable.data; }
+    constexpr friend DataT&& get_data(define_chainable&& chainable, tag<DataT>) noexcept { return std::move(chainable.data); }
+
     constexpr define_chainable(void) = default;
-    using DataT::DataT;
+    constexpr define_chainable(const DataT& _data) : data(_data) { }
+    constexpr define_chainable(DataT&& _data) : data(std::move(_data)) { }
     template <typename... ArgsT>
         constexpr define_chainable(makeshift::detail::chainable_constructor_tag, std::tuple<ArgsT...>&& args)
-            : DataT(std::get<DataT>(std::move(args)))
+            : data(std::get<DataT>(std::move(args)))
     {
     }
 };
 template <template <typename...> class ChainableT, typename RootT, typename... Ts>
-    struct define_chainable<ChainableT, void, void, RootT, Ts...> : RootT
-{
-    using chainable_sequence = type_sequence<define_chainable>;
-    using args_sequence = type_sequence<>;
-
-    constexpr define_chainable(void) = default;
-    template <typename... ArgsT> constexpr define_chainable(makeshift::detail::chainable_constructor_tag, std::tuple<ArgsT...>&&) { }
-};
-template <template <typename...> class ChainableT, typename... Ts>
-    struct define_chainable<ChainableT, void, void, void, Ts...>
+    struct define_chainable<ChainableT, void, void, RootT, Ts...> : std::conditional_t<std::is_void<RootT>::value, makeshift::detail::chainable_default_root, RootT>
 {
     using chainable_sequence = type_sequence<define_chainable>;
     using args_sequence = type_sequence<>;
@@ -125,26 +120,11 @@ template <template <typename...> class ChainableT, typename DataT, typename Root
 template <typename ChainablesT> struct chain_types_;
 template <typename... ChainablesT> struct chain_types_<type_sequence<ChainablesT...>> : chain_types_0_<ChainablesT...> { };
 
-template <typename BaseT, typename DerivedT>
-    constexpr BaseT&& as_base(std::decay_t<DerivedT>&& derived)
-{
-    return static_cast<BaseT&&>(derived);
-}
-template <typename BaseT, typename DerivedT>
-    constexpr const BaseT& as_base(const std::decay_t<DerivedT>& derived)
-{
-    return derived;
-}
-template <typename BaseT, typename DerivedT>
-    constexpr BaseT& as_base(std::decay_t<DerivedT>& derived)
-{
-    return derived;
-}
 template <typename... ArgsT, typename ChainableT>
     constexpr std::tuple<ArgsT...> get_args_tuple(type_sequence<ArgsT...>, ChainableT&& chainable)
 {
     (void) chainable;
-    return { as_base<ArgsT, ChainableT>(std::forward<ChainableT>(chainable))... };
+    return { get_data(std::forward<ChainableT>(chainable), tag_v<ArgsT>)... };
 }
 
 
@@ -159,8 +139,8 @@ inline namespace types
     // Chain the given sequence of chainable classes.
     //ᅟ
     //ᅟ    auto serializer = chain(
-    //ᅟ        string_quoting_serializer, // hypothetical serializer which encloses strings in quotes and passes them on
-    //ᅟ        stream_serializer // serializes strings (and more)
+    //ᅟ        string_quoting_serializer_v, // hypothetical serializer which encloses strings in quotes and passes them on
+    //ᅟ        stream_serializer_v // serializes strings (and more)
     //ᅟ    );
     //
 template <typename... ChainablesT>
