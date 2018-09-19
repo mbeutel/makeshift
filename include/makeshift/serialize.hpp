@@ -26,7 +26,7 @@ inline namespace serialize
     //ᅟ
     // Options for serializing and deserializing enums and flag enums with metadata.
     //
-struct enum_serialization_options_t
+struct enum_serialization_options
 {
         //ᅟ
         // Determines comparison mode for string representations of enum values.
@@ -38,7 +38,7 @@ struct enum_serialization_options_t
         //
     std::string_view flags_separator = ", ";
 
-    constexpr enum_serialization_options_t(void) = default;
+    constexpr enum_serialization_options(void) = default;
 };
 
 

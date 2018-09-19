@@ -12,7 +12,7 @@ inline namespace serialize
 {
 
 
-std::vector<bool_serialization_options_t::bool_string> bool_serialization_options_t::default_strings(void)
+std::vector<bool_serialization_options::bool_string> bool_serialization_options::default_strings(void)
 {
     return {
         { "true",    true }, { "false",    false },
@@ -24,7 +24,7 @@ std::vector<bool_serialization_options_t::bool_string> bool_serialization_option
     };
 }
 
-[[noreturn]] static void raise_bool_error(const std::string& str, const bool_serialization_options_t& options)
+[[noreturn]] static void raise_bool_error(const std::string& str, const bool_serialization_options& options)
 {
     std::string msg = "invalid boolean value; expected one of: ";
     bool first = true;
@@ -57,25 +57,25 @@ std::vector<bool_serialization_options_t::bool_string> bool_serialization_option
     throw parse_error(msg, str, 0);
 }
 
-void bool_serializer_args::from_stream_impl_(bool& value, const std::string& str) const
+void bool_from_stream_impl(const bool_serialization_options& options, bool& value, const std::string& str)
 {
-    string_equal_to comparer{ bool_options.comparison };
-    if (comparer(str, bool_options.true_string))
+    string_equal_to comparer{ options.comparison };
+    if (comparer(str, options.true_string))
         value = true;
-    else if (comparer(str, bool_options.false_string))
+    else if (comparer(str, options.false_string))
         value = false;
     else
     {
-        auto it = std::find_if(bool_options.strings.begin(), bool_options.strings.end(),
+        auto it = std::find_if(options.strings.begin(), options.strings.end(),
             [&str, comparer]
             (const auto& entry)
             {
                 return comparer(entry.str, str);
             });
-        if (it != bool_options.strings.end())
+        if (it != options.strings.end())
             value = it->value;
         else
-            raise_bool_error(str, bool_options);
+            raise_bool_error(str, options);
     }
 }
 

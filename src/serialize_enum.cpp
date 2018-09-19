@@ -10,7 +10,7 @@
 
 #include <makeshift/detail/serialize_enum.hpp>
 
-#include <makeshift/serializers/hint.hpp> // for hint_options_t
+#include <makeshift/serializers/hint.hpp> // for hint_options
 
 
 namespace makeshift
@@ -40,7 +40,7 @@ namespace detail
 {
 
 
-static void enum_hint(std::ostream& stream, const enum_serialization_data_ref& sdata, const hint_options_t& options)
+static void enum_hint(std::ostream& stream, const enum_serialization_data_ref& sdata, const hint_options& options)
 {
     bool first = true;
     for (auto& value : sdata.values)
@@ -52,7 +52,7 @@ static void enum_hint(std::ostream& stream, const enum_serialization_data_ref& s
         stream << value.string;
     }
 }
-static void flags_enum_hint(std::ostream& stream, const flags_enum_serialization_data_ref& sdata, const hint_options_t& options)
+static void flags_enum_hint(std::ostream& stream, const flags_enum_serialization_data_ref& sdata, const hint_options& options)
 {
     bool first = true;
     for (auto& value : sdata.values)
@@ -65,13 +65,13 @@ static void flags_enum_hint(std::ostream& stream, const flags_enum_serialization
     }
 }
 
-std::string enum_hint(const enum_serialization_data_ref& sdata, const hint_options_t& options)
+std::string enum_hint(const enum_serialization_data_ref& sdata, const hint_options& options)
 {
     std::ostringstream sstr;
     enum_hint(sstr, sdata, options);
     return sstr.str();
 }
-std::string flags_enum_hint(const flags_enum_serialization_data_ref& sdata, const hint_options_t& options)
+std::string flags_enum_hint(const flags_enum_serialization_data_ref& sdata, const hint_options& options)
 {
     std::ostringstream sstr;
     flags_enum_hint(sstr, sdata, options);
@@ -97,7 +97,7 @@ static void enum_error_msg(std::ostream& stream, std::string_view typeDesc, std:
     std::ostringstream sstr;
     enum_error_msg(sstr, sdata.typeDesc, sdata.typeName);
     sstr << "; expected one of: ";
-    hint_options_t options;
+    hint_options options;
     options.option_separator = ", ";
     enum_hint(sstr, sdata, options);
     throw parse_error(sstr.str(), std::string(string), 0);
@@ -119,7 +119,7 @@ static std::string mark_parser_position(std::string_view string, std::string_vie
     std::ostringstream sstr;
     enum_error_msg(sstr, sdata.typeDesc, sdata.flagTypeName);
     sstr << "; expected a ','-joined subset of: none, ";
-    hint_options_t options;
+    hint_options options;
     options.flags_separator = ", ";
     flags_enum_hint(sstr, sdata, options);
     std::size_t offset = std::size_t(sv.data() - string.data());
@@ -127,14 +127,14 @@ static std::string mark_parser_position(std::string_view string, std::string_vie
 }
 
 
-std::string_view enum_to_string(std::uint64_t enumValue, const enum_serialization_data_ref& sdata, const enum_serialization_options_t&)
+std::string_view enum_to_string(std::uint64_t enumValue, const enum_serialization_data_ref& sdata, const enum_serialization_options&)
 {
     for (auto& value : sdata.values)
         if (value.value == enumValue)
             return value.string;
     raise_invalid_value_error();
 }
-void enum_from_string(std::string_view string, std::uint64_t& enumValue, const enum_serialization_data_ref& sdata, const enum_serialization_options_t& options)
+void enum_from_string(std::string_view string, std::uint64_t& enumValue, const enum_serialization_data_ref& sdata, const enum_serialization_options& options)
 {
     auto stringComparer = string_equal_to{ options.enum_string_comparison_mode };
     for (auto& value : sdata.values)
@@ -152,7 +152,7 @@ static constexpr bool isPowerOf2(std::uint64_t value) noexcept
 {
     return value != 0 && (value & (value - 1)) == 0;
 }
-std::string flags_enum_to_string(std::uint64_t enumValue, const flags_enum_serialization_data_ref& sdata, const enum_serialization_options_t& options)
+std::string flags_enum_to_string(std::uint64_t enumValue, const flags_enum_serialization_data_ref& sdata, const enum_serialization_options& options)
 {
         // match value to combined flags, then to non-combined flags, then to remaining combined flags permitting overlap
     std::string result;
@@ -206,7 +206,7 @@ static std::optional<std::string_view> expectSeparator(std::string_view s, std::
         return std::nullopt;
     return s.substr(sep.size());
 }
-void flags_enum_from_string(std::string_view string, std::uint64_t& enumValue, const flags_enum_serialization_data_ref& sdata, const enum_serialization_options_t& options)
+void flags_enum_from_string(std::string_view string, std::uint64_t& enumValue, const flags_enum_serialization_data_ref& sdata, const enum_serialization_options& options)
 {
     auto stringComparer = string_equal_to{ options.enum_string_comparison_mode };
     std::string_view sv = string;

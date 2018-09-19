@@ -8,7 +8,7 @@
 #include <gsl/gsl_assert> // for Expects()
 
 #include <makeshift/constrained.hpp>
-#include <makeshift/serializers/hint.hpp> // for hint_options_t
+#include <makeshift/serializers/hint.hpp> // for hint_options
 
 
 namespace makeshift
@@ -19,7 +19,7 @@ namespace detail
 
 
 template <typename IntT>
-    static void constrained_integer_hint_impl(std::ostream& stream, ConstraintType constraintType, const IntT values[], std::size_t numValues, const hint_options_t& options)
+    static void constrained_integer_hint_impl(std::ostream& stream, ConstraintType constraintType, const IntT values[], std::size_t numValues, const hint_options& options)
 {
     switch (constraintType)
     {
@@ -61,18 +61,18 @@ template <typename IntT>
     }
 }
 template <typename IntT>
-    static std::string constrained_integer_hint_impl(ConstraintType constraintType, const IntT values[], std::size_t numValues, const hint_options_t& options)
+    static std::string constrained_integer_hint_impl(ConstraintType constraintType, const IntT values[], std::size_t numValues, const hint_options& options)
 {
     std::ostringstream sstr;
     constrained_integer_hint_impl(sstr, constraintType, values, numValues, options);
     return sstr.str();
 }
 
-std::string constrained_integer_hint(ConstraintType constraintType, const std::int64_t values[], std::size_t numValues, const hint_options_t& options)
+std::string constrained_integer_hint(ConstraintType constraintType, const std::int64_t values[], std::size_t numValues, const hint_options& options)
 {
     return constrained_integer_hint_impl(constraintType, values, numValues, options);
 }
-std::string constrained_integer_hint(ConstraintType constraintType, const std::uint64_t values[], std::size_t numValues, const hint_options_t& options)
+std::string constrained_integer_hint(ConstraintType constraintType, const std::uint64_t values[], std::size_t numValues, const hint_options& options)
 {
     return constrained_integer_hint_impl(constraintType, values, numValues, options);
 }
@@ -92,7 +92,7 @@ template <typename IntT>
     std::ostringstream sstr;
     sstr << value;
     constrained_integer_error_msg(sstr, metadata);
-    hint_options_t options;
+    hint_options options;
     options.option_separator = ", ";
     switch (constraintType)
     {

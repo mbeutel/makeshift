@@ -94,12 +94,12 @@ inline namespace serialize
     //ᅟ
     // Runtime arguments for string serializers.
     //
-struct string_serializer_args
+struct string_serializer_options
 {
-    enum_serialization_options_t enum_options;
+    enum_serialization_options enum_options;
 
-    constexpr string_serializer_args(void) noexcept = default;
-    constexpr string_serializer_args(enum_serialization_options_t _enum_options) noexcept : enum_options(_enum_options) { }
+    constexpr string_serializer_options(void) noexcept = default;
+    constexpr string_serializer_options(enum_serialization_options _enum_options) noexcept : enum_options(_enum_options) { }
 };
 
 
@@ -107,21 +107,21 @@ struct string_serializer_args
     // String serializer for common scalar types (built-in types, enums, constrained integers, and `std::string`).
     //
 template <typename BaseT = void>
-    struct string_serializer_t : define_serializer<string_serializer_t, BaseT, string_serializer_args>
+    struct string_serializer : define_serializer<string_serializer, BaseT, string_serializer_options>
 {
-    using base = define_serializer<makeshift::string_serializer_t, BaseT, string_serializer_args>; // TODO: report VC++ bug
+    using base = define_serializer<makeshift::string_serializer, BaseT, string_serializer_options>; // TODO: report VC++ bug
     using base::base;
     
     template <typename T, typename SerializerT/*,
               typename = std::enable_if_t<makeshift::detail::have_string_conversion_v<serializer_metadata_tag_t<std::decay_t<SerializerT>>, std::decay_t<T>>>*/>
         friend std::enable_if_t<makeshift::detail::have_string_conversion_v<serializer_metadata_tag_t<std::decay_t<SerializerT>>, std::decay_t<T>>, std::string>
-        to_string_impl(const T& value, const string_serializer_t& stringSerializer, SerializerT& serializer)
+        to_string_impl(const T& value, const string_serializer& stringSerializer, SerializerT& serializer)
     {
         (void) stringSerializer;
         (void) serializer;
         using D = std::decay_t<T>;
         if constexpr (std::is_enum<D>::value && have_metadata_v<D, serializer_metadata_tag_t<std::decay_t<SerializerT>>>)
-            return std::string(to_string_impl(value, makeshift::detail::serialization_data<D, serializer_metadata_tag_t<std::decay_t<SerializerT>>>, stringSerializer.enum_options));
+            return std::string(to_string_impl(value, makeshift::detail::serialization_data<D, serializer_metadata_tag_t<std::decay_t<SerializerT>>>, stringSerializer.data.enum_options));
         else if constexpr (is_constrained_integer_v<D>)
             return makeshift::detail::constrained_integer_to_string_impl(value, serializer);
         else
@@ -130,12 +130,12 @@ template <typename BaseT = void>
     template <typename T, typename SerializerT/*,
               typename = std::enable_if_t<makeshift::detail::have_string_conversion_v<serializer_metadata_tag_t<std::decay_t<SerializerT>>, T>>*/>
         friend std::enable_if_t<makeshift::detail::have_string_conversion_v<serializer_metadata_tag_t<std::decay_t<SerializerT>>, T>, T>
-        from_string_impl(tag<T>, std::string_view string, const string_serializer_t& stringSerializer, SerializerT& serializer)
+        from_string_impl(tag<T>, std::string_view string, const string_serializer& stringSerializer, SerializerT& serializer)
     {
         (void) stringSerializer;
         (void) serializer;
         if constexpr (std::is_enum<T>::value && have_metadata_v<T, serializer_metadata_tag_t<std::decay_t<SerializerT>>>)
-            return from_string_impl(tag_v<T>, string, makeshift::detail::serialization_data<T, serializer_metadata_tag_t<std::decay_t<SerializerT>>>, stringSerializer.enum_options);
+            return from_string_impl(tag_v<T>, string, makeshift::detail::serialization_data<T, serializer_metadata_tag_t<std::decay_t<SerializerT>>>, stringSerializer.data.enum_options);
         else if constexpr (is_constrained_integer_v<T>)
             return makeshift::detail::constrained_integer_from_string_impl<T>(string, serializer);
         else
@@ -146,30 +146,30 @@ template <typename BaseT = void>
     //ᅟ
     // String serializer for common scalar types (built-in types, enums, constrained integers, and `std::string`).
     //
-constexpr string_serializer_t<> string_serializer{ };
+constexpr string_serializer<> string_serializer_v{ };
 
 
     //ᅟ
-    // Serializes the given value as string using `string_serializer`.
+    // Serializes the given value as string using `string_serializer_v`.
     //ᅟ
     //ᅟ    std::string s = to_string(42); // returns "42"s
     //
 template <typename T>
     std::string to_string(const T& value)
 {
-    return to_string(value, string_serializer);
+    return to_string(value, string_serializer_v);
 }
 
 
     //ᅟ
-    // Deserializes the given value from a string using `string_serializer`.
+    // Deserializes the given value from a string using `string_serializer_v`.
     //ᅟ
     //ᅟ    int i = from_string<int>("42"); // returns 42
     //
 template <typename T>
     T from_string(std::string_view string, tag<T> = { })
 {
-    return from_string<T>(string, string_serializer);
+    return from_string<T>(string, string_serializer_v);
 }
 
 

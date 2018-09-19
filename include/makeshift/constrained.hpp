@@ -29,7 +29,7 @@ inline namespace serialize
 {
 
 
-struct hint_options_t; // defined in makeshift/serializers/hint.hpp
+struct hint_options; // defined in makeshift/serializers/hint.hpp
 
 
 } // inline namespace serialize
@@ -55,8 +55,8 @@ struct constrained_integer_metadata
     std::string_view caption;
 };
 
-MAKESHIFT_DLLFUNC std::string constrained_integer_hint(ConstraintType constraintType, const std::int64_t values[], std::size_t numValues, const hint_options_t& options);
-MAKESHIFT_DLLFUNC std::string constrained_integer_hint(ConstraintType constraintType, const std::uint64_t values[], std::size_t numValues, const hint_options_t& options);
+MAKESHIFT_DLLFUNC std::string constrained_integer_hint(ConstraintType constraintType, const std::int64_t values[], std::size_t numValues, const hint_options& options);
+MAKESHIFT_DLLFUNC std::string constrained_integer_hint(ConstraintType constraintType, const std::uint64_t values[], std::size_t numValues, const hint_options& options);
 
 [[noreturn]] MAKESHIFT_DLLFUNC void raise_constrained_integer_error(std::int64_t value, ConstraintType constraintType, const std::int64_t values[], std::size_t numValues, const constrained_integer_metadata& metadata);
 [[noreturn]] MAKESHIFT_DLLFUNC void raise_constrained_integer_error(std::uint64_t value, ConstraintType constraintType, const std::uint64_t values[], std::size_t numValues, const constrained_integer_metadata& metadata);
@@ -128,42 +128,42 @@ template <typename T, T First, T Last>
 template <typename T> using common_int = std::conditional_t<std::is_signed<T>::value, std::int64_t, std::uint64_t>;
 
 template <typename T, T... Vs>
-    std::string get_constrained_integer_hint(sequence<T, Vs...>, const hint_options_t& options)
+    std::string get_constrained_integer_hint(sequence<T, Vs...>, const hint_options& options)
 {
     common_int<T> permittedValues[] = { common_int<T>(Vs)... };
     return constrained_integer_hint(ConstraintType::sequence, permittedValues, sizeof...(Vs), options);
 }
 template <typename T, T... Vs>
-    std::string get_constrained_integer_hint(std::integer_sequence<T, Vs...>, const hint_options_t& options)
+    std::string get_constrained_integer_hint(std::integer_sequence<T, Vs...>, const hint_options& options)
 {
     return get_constrained_integer_hint(sequence<T, Vs...>{ }, options);
 }
 template <typename T, T First, T Last>
-    std::string get_constrained_integer_hint(integer_range<T, First, Last>, const hint_options_t& options)
+    std::string get_constrained_integer_hint(integer_range<T, First, Last>, const hint_options& options)
 {
     common_int<T> values[] = { common_int<T>(First), common_int<T>(Last) };
     return constrained_integer_hint(ConstraintType::range, values, 2, options);
 }
 template <typename T, T First, T Last>
-    std::string get_constrained_integer_hint(integer_inclusive_range<T, First, Last>, const hint_options_t& options)
+    std::string get_constrained_integer_hint(integer_inclusive_range<T, First, Last>, const hint_options& options)
 {
     common_int<T> values[] = { common_int<T>(First), common_int<T>(Last) };
     return constrained_integer_hint(ConstraintType::inclusiveRange, values, 2, options);
 }
 template <typename T, T First>
-    std::string get_constrained_integer_hint(integer_upper_half_range<T, First>, const hint_options_t& options)
+    std::string get_constrained_integer_hint(integer_upper_half_range<T, First>, const hint_options& options)
 {
     common_int<T> values[] = { common_int<T>(First) };
     return constrained_integer_hint(ConstraintType::upperHalfRange, values, 1, options);
 }
 template <typename T, T Last>
-    std::string get_constrained_integer_hint(integer_lower_half_range<T, Last>, const hint_options_t& options)
+    std::string get_constrained_integer_hint(integer_lower_half_range<T, Last>, const hint_options& options)
 {
     common_int<T> values[] = { common_int<T>(Last) };
     return constrained_integer_hint(ConstraintType::lowerHalfRange, values, 1, options);
 }
 template <typename T, T Last>
-    std::string get_constrained_integer_hint(integer_lower_half_inclusive_range<T, Last>, const hint_options_t& options)
+    std::string get_constrained_integer_hint(integer_lower_half_inclusive_range<T, Last>, const hint_options& options)
 {
     common_int<T> values[] = { common_int<T>(Last) };
     return constrained_integer_hint(ConstraintType::lowerHalfInclusiveRange, values, 1, options);
@@ -260,7 +260,7 @@ struct default_integer_constraint_verifier
         return get_valid_constrained_integer_values(ConstraintT{ });
     }
     template <typename ConstraintT>
-        static std::string get_hint(const hint_options_t& options, ConstraintT = { }) noexcept
+        static std::string get_hint(const hint_options& options, ConstraintT = { }) noexcept
     {
         using makeshift::detail::get_constrained_integer_hint; // permit ADL, fall back to default implementations above
 

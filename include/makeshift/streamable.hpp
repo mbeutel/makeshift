@@ -87,7 +87,7 @@ inline namespace serialize
     //ᅟ
     // Wraps the given rvalue as a streamable object using the serializer provided.
     //ᅟ
-    //ᅟ    std::cout << streamable(vec.size(), stream_serializer) << '\n';
+    //ᅟ    std::cout << streamable(vec.size(), stream_serializer_v) << '\n';
     //
 template <typename T, typename SerializerT>
     auto streamable(const T& value, SerializerT&& serializer)
@@ -100,8 +100,8 @@ template <typename T, typename SerializerT>
     // Wraps the given lvalue as a streamable object using the serializer provided.
     //ᅟ
     //ᅟ    int i;
-    //ᅟ    std::cin >> streamable(i, stream_serializer);
-    //ᅟ    std::cout << streamable(i, stream_serializer) << '\n';
+    //ᅟ    std::cin >> streamable(i, stream_serializer_v);
+    //ᅟ    std::cout << streamable(i, stream_serializer_v) << '\n';
     //
 template <typename T, typename SerializerT>
     auto streamable(T& value, SerializerT&& serializer)
