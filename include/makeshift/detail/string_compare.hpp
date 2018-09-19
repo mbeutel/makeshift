@@ -42,6 +42,7 @@ private:
     string_comparison comparison_;
 
 public:
+    constexpr string_equal_to(void) noexcept : comparison_(string_comparison::ordinal) { }
     constexpr string_equal_to(string_comparison _comparison) noexcept : comparison_(_comparison) { }
 
     MAKESHIFT_DLLFUNC bool operator()(std::string_view lhs, std::string_view rhs) const noexcept;
@@ -57,6 +58,7 @@ private:
     string_comparison comparison_;
 
 public:
+    constexpr string_hash(void) noexcept : comparison_(string_comparison::ordinal) { }
     constexpr string_hash(string_comparison _comparison) noexcept : comparison_(_comparison) { }
 
     MAKESHIFT_DLLFUNC std::size_t operator()(std::string_view arg) const noexcept;
@@ -73,6 +75,7 @@ private:
     string_comparison comparison_;
 
 public:
+    constexpr string_less(void) noexcept : comparison_(string_comparison::ordinal) { }
     constexpr string_less(string_comparison _comparison) noexcept : comparison_(_comparison) { }
 
     MAKESHIFT_DLLFUNC bool operator()(std::string_view lhs, std::string_view rhs) const noexcept;
