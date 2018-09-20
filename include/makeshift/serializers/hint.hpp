@@ -15,6 +15,19 @@
 namespace makeshift
 {
 
+namespace detail
+{
+
+
+    // defined in serializers_hint-reflect.hpp
+template <typename T, typename SerializerT>
+    std::string get_compound_hint(SerializerT&& serializer, tag<T> = { });
+
+
+} // namespace detail
+
+
+
 inline namespace serialize
 {
 
@@ -38,8 +51,9 @@ template <typename BaseT = void>
     using base::base;
     
     template <typename T, typename SerializerT>
-        friend std::string get_hint_impl(tag<T>, const hint_serializer& hintSerializer, SerializerT&&)
+        friend std::string get_hint_impl(tag<T>, const hint_serializer& hintSerializer, SerializerT&& serializer)
     {
+        (void) serializer;
         (void) hintSerializer;
         using MetadataTag = metadata_tag_of_serializer_t<std::decay_t<SerializerT>>;
         if constexpr (std::is_enum<T>::value && have_metadata_v<T, MetadataTag>)
@@ -48,6 +62,8 @@ template <typename BaseT = void>
             return std::string("false") + hintSerializer.data.option_separator + std::string("true");
         else if constexpr (is_constrained_integer_v<T>)
             return T::verifier::get_hint(hintSerializer.data, typename T::constraint{ });
+        else if constexpr (makeshift::detail::is_any_compound<T, MetadataTag>)
+            return makeshift::detail::get_compound_hint<T>(serializer);
         else
             return { };
     }
@@ -68,6 +84,10 @@ template <typename T>
 
 } // namespace makeshift
 
+
+#ifdef INCLUDED_MAKESHIFT_REFLECT_HPP_
+ #include <makeshift/detail/serializers_hint-reflect.hpp>
+#endif // INCLUDED_MAKESHIFT_REFLECT_HPP_
 
 
 #endif // INCLUDED_MAKESHIFT_SERIALIZERS_HINT_HPP_

@@ -171,5 +171,9 @@ template <typename T, typename MetadataTagT>
  #include <makeshift/detail/serializers_stream-reflect.hpp>
 #endif // INCLUDED_MAKESHIFT_SERIALIZERS_STREAM_HPP_
 
+#ifdef INCLUDED_MAKESHIFT_SERIALIZERS_HINT_HPP_
+ #include <makeshift/detail/serializers_hint-reflect.hpp>
+#endif // INCLUDED_MAKESHIFT_SERIALIZERS_HINT_HPP_
+
 
 #endif // INCLUDED_MAKESHIFT_REFLECT_HPP_

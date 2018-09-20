@@ -188,6 +188,9 @@ TEST_CASE("serialize", "[serialize]")
     }
     SECTION("struct")
     {
+        CHECK(mk::get_hint<COOIndex>() == "{ val, val }");
+        CHECK(mk::get_hint<COOValue>() == "{ index, value }");
+
         COOIndex i2 { 2, 1 };
         COOValue v2 { i2, 42.0 };
 
