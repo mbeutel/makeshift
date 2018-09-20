@@ -66,6 +66,13 @@ MAKESHIFT_DLLFUNC void string_to_stream(std::ostream& stream, std::string_view s
 MAKESHIFT_DLLFUNC void string_from_stream(std::istream& stream, std::string& string);
 
 
+    // defined in serializers_stream-reflect.hpp
+template <typename T, typename SerializerT>
+    void aggregate_to_stream(std::ostream& stream, const T& value, SerializerT&& serializer);
+template <typename T, typename SerializerT>
+    void aggregate_from_stream(std::istream& stream, T& value, SerializerT&& serializer);
+
+
 template <typename ConstrainedIntT, typename SerializerT>
     void constrained_integer_to_stream(ConstrainedIntT value, std::ostream& stream, SerializerT&& serializer)
 {
@@ -159,6 +166,20 @@ template <typename BaseT = void>
     {
         makeshift::detail::constrained_integer_from_stream(value, stream, serializer);
     }
+    template <typename T, typename SerializerT/*,
+              typename = std::enable_if_t<makeshift::detail::is_aggregate<T, metadata_tag_of_serializer_t<std::decay_t<SerializerT>>>>*/>
+        friend std::enable_if_t<makeshift::detail::is_aggregate<T, metadata_tag_of_serializer_t<std::decay_t<SerializerT>>>>
+        to_stream_impl(const T& value, std::ostream& stream, const stream_serializer&, SerializerT&& serializer)
+    {
+        makeshift::detail::aggregate_to_stream(stream, value, serializer);
+    }
+    template <typename T, typename SerializerT/*,
+              typename = std::enable_if_t<makeshift::detail::is_aggregate<T, metadata_tag_of_serializer_t<std::decay_t<SerializerT>>>>*/>
+        friend std::enable_if_t<makeshift::detail::is_aggregate<T, metadata_tag_of_serializer_t<std::decay_t<SerializerT>>>>
+        from_stream_impl(T& value, std::istream& stream, const stream_serializer&, SerializerT&& serializer)
+    {
+        makeshift::detail::aggregate_from_stream(stream, value, serializer);
+    }
 };
 stream_serializer(void) -> stream_serializer<>;
 stream_serializer(const stream_serializer_options&) -> stream_serializer<>;
@@ -182,6 +203,11 @@ template <typename T>
 } // inline namespace serialize
 
 } // namespace makeshift
+
+
+#ifdef INCLUDED_MAKESHIFT_REFLECT_HPP_
+ #include <makeshift/detail/serializers_stream-reflect.hpp>
+#endif // INCLUDED_MAKESHIFT_REFLECT_HPP_
 
 
 #endif // INCLUDED_MAKESHIFT_SERIALIZERS_STREAM_HPP_

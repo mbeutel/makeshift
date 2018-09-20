@@ -167,5 +167,9 @@ template <typename T, typename MetadataTagT>
  #include <makeshift/detail/functional_comparer-reflect.hpp>
 #endif // INCLUDED_MAKESHIFT_DETAIL_FUNCTIONAL_COMPARER_HPP_
 
+#ifdef INCLUDED_MAKESHIFT_SERIALIZERS_STREAM_HPP_
+ #include <makeshift/detail/serializers_stream-reflect.hpp>
+#endif // INCLUDED_MAKESHIFT_SERIALIZERS_STREAM_HPP_
+
 
 #endif // INCLUDED_MAKESHIFT_REFLECT_HPP_

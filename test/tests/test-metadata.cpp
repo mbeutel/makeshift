@@ -183,6 +183,20 @@ TEST_CASE("serialize", "[serialize]")
     }
     SECTION("struct")
     {
-        // TODO
+        COOIndex i2 { 2, 1 };
+        COOValue v2 { i2, 42.0 };
+
+        {
+            std::stringstream sstr;
+            sstr << mk::streamable(i2);
+            CHECK(sstr.str() == "{ 2, 1 }");
+        }
+
+        {
+            std::stringstream sstrExpected, sstrActual;
+            sstrExpected << "{ \"index\": { 2, 1 }, \"value\": " << v2.value << " }";
+            sstrActual << mk::streamable(v2);
+            CHECK(sstrActual.str() == sstrExpected.str());
+        }
     }
 }
