@@ -102,12 +102,6 @@ template <typename BaseT = void>
         return boolSerializer.data.false_string + get_data(serializer, tag_v<hint_options>).option_separator + boolSerializer.data.true_string;
     }
 };
-
-    //ᅟ
-    // Stream serializer which serializes booleans from and to a number of common string representations
-    // (yes/no, true/false, on/off, enabled/disabled, 1/0, y/n).
-    //
-inline const bool_serializer<> bool_serializer_v{ };
 bool_serializer(void) -> bool_serializer<>;
 bool_serializer(const bool_serializer_options&) -> bool_serializer<>;
 bool_serializer(bool_serializer_options&&) -> bool_serializer<>;

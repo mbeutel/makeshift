@@ -142,37 +142,32 @@ template <typename BaseT = void>
             return makeshift::detail::scalar_from_string(tag_v<T>, std::string(string));
     }
 };
-
-    //ᅟ
-    // String serializer for common scalar types (built-in types, enums, constrained integers, and `std::string`).
-    //
-constexpr string_serializer<> string_serializer_v{ };
 string_serializer(void) -> string_serializer<>;
 string_serializer(const string_serializer_options&) -> string_serializer<>;
 string_serializer(string_serializer_options&&) -> string_serializer<>;
 
 
     //ᅟ
-    // Serializes the given value as string using `string_serializer_v`.
+    // Serializes the given value as string using `string_serializer`.
     //ᅟ
     //ᅟ    std::string s = to_string(42); // returns "42"s
     //
 template <typename T>
     std::string to_string(const T& value)
 {
-    return to_string(value, string_serializer_v);
+    return to_string(value, string_serializer());
 }
 
 
     //ᅟ
-    // Deserializes the given value from a string using `string_serializer_v`.
+    // Deserializes the given value from a string using `string_serializer`.
     //ᅟ
     //ᅟ    int i = from_string<int>("42"); // returns 42
     //
 template <typename T>
     T from_string(std::string_view string, tag<T> = { })
 {
-    return from_string<T>(string, string_serializer_v);
+    return from_string<T>(string, string_serializer());
 }
 
 

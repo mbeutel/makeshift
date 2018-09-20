@@ -143,30 +143,25 @@ template <typename BaseT = void>
             stream >> value;
     }
 };
-
-    //ᅟ
-    // Default stream serializer for enums with metadata and for types with overloaded stream operators.
-    //
-constexpr stream_serializer<> stream_serializer_v{ };
 stream_serializer(void) -> stream_serializer<>;
 stream_serializer(const stream_serializer_options&) -> stream_serializer<>;
 stream_serializer(stream_serializer_options&&) -> stream_serializer<>;
 
 
     //ᅟ
-    // Wraps the given rvalue as a streamable object using `stream_serializer_v`.
+    // Wraps the given rvalue as a streamable object using `stream_serializer`.
     //ᅟ
     //ᅟ    std::cout << streamable(vec.size()) << '\n';
     //
 template <typename T>
     auto streamable(const T& value)
 {
-    return streamable(value, stream_serializer_v);
+    return streamable(value, stream_serializer());
 }
 
 
     //ᅟ
-    // Wraps the given lvalue as a streamable object using `stream_serializer_v`.
+    // Wraps the given lvalue as a streamable object using `stream_serializer`.
     //ᅟ
     //ᅟ    int i;
     //ᅟ    std::cin >> streamable(i);
@@ -175,7 +170,7 @@ template <typename T>
 template <typename T>
     auto streamable(T& value)
 {
-    return streamable(value, stream_serializer_v);
+    return streamable(value, stream_serializer());
 }
 
 

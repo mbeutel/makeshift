@@ -29,7 +29,7 @@ inline namespace serialize
     //ᅟ
     // Serializes the given value as string using the provided serializer.
     //ᅟ
-    //ᅟ    std::string s = to_string(42, string_serializer_v); // returns "42"s
+    //ᅟ    std::string s = to_string(42, string_serializer()); // returns "42"s
     //
 template <typename T, typename SerializerT>
     std::string to_string(const T& value, SerializerT&& serializer)
@@ -41,7 +41,7 @@ template <typename T, typename SerializerT>
     //ᅟ
     // Deserializes the given value from a string using the provided serializer.
     //ᅟ
-    //ᅟ    int i = from_string<int>("42", string_serializer_v); // returns 42
+    //ᅟ    int i = from_string<int>("42", string_serializer()); // returns 42
     //
 template <typename T, typename SerializerT,
           typename = std::enable_if_t<is_serializer_v<std::decay_t<SerializerT>>>>

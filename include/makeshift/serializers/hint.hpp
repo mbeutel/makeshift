@@ -51,8 +51,6 @@ template <typename BaseT = void>
             return { };
     }
 };
-
-constexpr hint_serializer<> hint_serializer_v{ };
 hint_serializer(void) -> hint_serializer<>;
 hint_serializer(const hint_options&) -> hint_serializer<>;
 hint_serializer(hint_options&&) -> hint_serializer<>;
@@ -68,7 +66,7 @@ template <typename T, typename SerializerT,
 template <typename T>
     std::string hint(tag<T> = { })
 {
-    return hint(hint_serializer_v, tag_v<T>);
+    return hint(hint_serializer(), tag_v<T>);
 }
 
 

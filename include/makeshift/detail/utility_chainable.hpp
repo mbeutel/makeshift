@@ -139,8 +139,8 @@ inline namespace types
     // Chain the given sequence of chainable classes.
     //ᅟ
     //ᅟ    auto serializer = chain(
-    //ᅟ        string_quoting_serializer_v, // hypothetical serializer which encloses strings in quotes and passes them on
-    //ᅟ        stream_serializer_v // serializes strings (and more)
+    //ᅟ        bool_serializer(bool_serializer_options{ "yes", "no" }),
+    //ᅟ        stream_serializer()
     //ᅟ    );
     //
 template <typename... ChainablesT>
