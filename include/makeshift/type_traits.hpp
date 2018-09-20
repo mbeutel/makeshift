@@ -734,18 +734,6 @@ template <template <typename...> class T, template <typename...> class U> conste
 
 
     //ᅟ
-    // Removes an rvalue reference from a type.
-    //
-template <typename T> struct remove_rvalue_reference { using type = T; };
-template <typename T> struct remove_rvalue_reference<T&&> { using type = T; };
-
-    //ᅟ
-    // Removes an rvalue reference from a type.
-    //
-template <typename T> using remove_rvalue_reference_t = typename remove_rvalue_reference<T>::type;
-
-
-    //ᅟ
     // Determines whether a type has a particular base class. Type argument inversion of `std::is_base_of<>`.
     //
 template <typename DerivedT, typename BaseT> struct has_base : std::is_base_of<BaseT, DerivedT> { };
