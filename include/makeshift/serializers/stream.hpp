@@ -175,20 +175,6 @@ stream_serializer(const stream_serializer_options&) -> stream_serializer<>;
 stream_serializer(stream_serializer_options&&) -> stream_serializer<>;
 
 
-    //ᅟ
-    // Wraps the given lvalue as a streamable object using `stream_serializer`.
-    //ᅟ
-    //ᅟ    std::cout << streamable(vec.size()) << '\n';
-    //ᅟ    int i;
-    //ᅟ    std::cin >> streamable(i);
-    //
-template <typename T>
-    auto streamable(T&& value)
-{
-    return streamable(std::forward<T>(value), stream_serializer());
-}
-
-
 } // inline namespace serialize
 
 } // namespace makeshift

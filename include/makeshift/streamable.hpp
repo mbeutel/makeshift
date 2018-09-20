@@ -6,7 +6,7 @@
 #include <utility>     // for forward<>()
 #include <iosfwd>      // for istream, ostream
 
-#include <makeshift/type_traits.hpp> // for tag<>, remove_rvalue_reference<>
+#include <makeshift/type_traits.hpp> // for tag<>
 
 
 namespace makeshift
@@ -23,85 +23,10 @@ inline namespace serialize
     // chain it with the existing serializer using `chain()`.
 
 
-template <typename T, typename SerializerT>
-    struct streamable_t
-{
-private:
-    T value_;
-    SerializerT serializer_;
+    // defined in serializers/stream.hpp
 
-public:
-    constexpr streamable_t(const T& _value, SerializerT _serializer) : value_(_value), serializer_(std::forward<SerializerT>(_serializer)) { }
-    constexpr streamable_t(T&& _value, SerializerT _serializer) : value_(std::move(_value)), serializer_(std::forward<SerializerT>(_serializer)) { }
-
-    friend std::ostream& operator <<(std::ostream& stream, const streamable_t& self)
-    {
-        to_stream_impl(self.value_, stream, self.serializer_, self.serializer_);
-        return stream;
-    }
-    friend std::istream& operator >>(std::istream& stream, const streamable_t& self)
-    {
-        from_stream_impl(self.value_, stream, self.serializer_, self.serializer_);
-        return stream;
-    }
-
-    constexpr const T& value(void) noexcept { return value_; }
-};
-template <typename T, typename SerializerT>
-    struct streamable_t<T&&, SerializerT>
-{
-private:
-    T value_;
-    SerializerT serializer_;
-
-public:
-    constexpr streamable_t(T&& _value, SerializerT _serializer) : value_(std::move(_value)), serializer_(std::forward<SerializerT>(_serializer)) { }
-
-    friend std::ostream& operator <<(std::ostream& stream, const streamable_t& self)
-    {
-        to_stream_impl(self.value_, stream, self.serializer_, self.serializer_);
-        return stream;
-    }
-};
-template <typename T, typename SerializerT>
-    struct streamable_t<const T&, SerializerT>
-{
-private:
-    const T& value_;
-    SerializerT serializer_;
-
-public:
-    constexpr streamable_t(const T& _value, SerializerT _serializer) : value_(_value), serializer_(std::forward<SerializerT>(_serializer)) { }
-
-    friend std::ostream& operator <<(std::ostream& stream, const streamable_t& self)
-    {
-        to_stream_impl(self.value_, stream, self.serializer_, self.serializer_);
-        return stream;
-    }
-};
-template <typename T, typename SerializerT>
-    struct streamable_t<T&, SerializerT>
-{
-private:
-    T& value_;
-    SerializerT serializer_;
-
-public:
-    constexpr streamable_t(T& _value, SerializerT _serializer) : value_(_value), serializer_(std::forward<SerializerT>(_serializer)) { }
-
-    friend std::ostream& operator <<(std::ostream& stream, const streamable_t& self)
-    {
-        to_stream_impl(self.value_, stream, self.serializer_, self.serializer_);
-        return stream;
-    }
-    friend std::istream& operator >>(std::istream& stream, const streamable_t& self)
-    {
-        from_stream_impl(self.value_, stream, self.serializer_, self.serializer_);
-        return stream;
-    }
-};
-template <typename T, typename SerializerT>
-    streamable_t(T&& value, SerializerT&& serializer) -> streamable_t<T, remove_rvalue_reference_t<SerializerT>>;
+template <typename BaseT>
+    struct stream_serializer;
 
 
     //ᅟ
@@ -111,11 +36,135 @@ template <typename T, typename SerializerT>
     //ᅟ    int i;
     //ᅟ    std::cin >> streamable(i, stream_serializer());
     //
-template <typename T, typename SerializerT>
-    auto streamable(T&& value, SerializerT&& serializer)
+template <typename T, typename SerializerT = stream_serializer<void>>
+    struct streamable
 {
-    return streamable_t{ std::forward<T>(value), std::forward<SerializerT>(serializer) };
-}
+private:
+    T value_;
+    SerializerT serializer_;
+
+public:
+    template <typename = std::enable_if_t<std::is_default_constructible<T>::value && std::is_default_constructible<SerializerT>::value>>
+        constexpr streamable(void)
+            : value_{ }, serializer_{ }
+    {
+    }
+    template <typename = std::enable_if_t<std::is_copy_constructible<T>::value && std::is_default_constructible<SerializerT>::value>>
+        constexpr streamable(const T& _value)
+            : value_(_value), serializer_{ }
+    {
+    }
+    template <typename = std::enable_if_t<std::is_move_constructible<T>::value && std::is_default_constructible<SerializerT>::value>>
+        constexpr streamable(T&& _value)
+            : value_(std::move(_value)), serializer_{ }
+    {
+    }
+    template <typename = std::enable_if_t<std::is_copy_constructible<T>::value>>
+        constexpr streamable(const T& _value, SerializerT _serializer)
+            : value_(_value), serializer_(std::forward<SerializerT>(_serializer))
+    {
+    }
+    template <typename = std::enable_if_t<std::is_move_constructible<T>::value>>
+        constexpr streamable(T&& _value, SerializerT _serializer)
+            : value_(std::move(_value)), serializer_(std::forward<SerializerT>(_serializer))
+    {
+    }
+
+    friend std::ostream& operator <<(std::ostream& stream, const streamable& self)
+    {
+        to_stream_impl(self.value_, stream, self.serializer_, self.serializer_);
+        return stream;
+    }
+    friend std::istream& operator >>(std::istream& stream, const streamable& self)
+    {
+        from_stream_impl(self.value_, stream, self.serializer_, self.serializer_);
+        return stream;
+    }
+
+    constexpr const T& value(void) const & noexcept { return value_; }
+    constexpr T value(void) && noexcept { return std::move(value_); }
+};
+template <typename T, typename SerializerT>
+    struct streamable<T&&, SerializerT>
+{
+private:
+    T value_;
+    SerializerT serializer_;
+
+public:
+    template <typename = std::enable_if_t<std::is_default_constructible<SerializerT>::value>>
+        constexpr streamable(T&& _value)
+            : value_(std::move(_value)), serializer_{ }
+    {
+    }
+    constexpr streamable(T&& _value, SerializerT _serializer)
+        : value_(std::move(_value)), serializer_(std::forward<SerializerT>(_serializer))
+    {
+    }
+
+    friend std::ostream& operator <<(std::ostream& stream, const streamable& self)
+    {
+        to_stream_impl(self.value_, stream, self.serializer_, self.serializer_);
+        return stream;
+    }
+};
+template <typename T, typename SerializerT>
+    struct streamable<const T&, SerializerT>
+{
+private:
+    const T& value_;
+    SerializerT serializer_;
+
+public:
+    template <typename = std::enable_if_t<std::is_default_constructible<SerializerT>::value>>
+        constexpr streamable(const T& _value)
+            : value_(_value), serializer_{ }
+    {
+    }
+    constexpr streamable(const T& _value, SerializerT _serializer)
+        : value_(_value), serializer_(std::forward<SerializerT>(_serializer))
+    {
+    }
+
+    friend std::ostream& operator <<(std::ostream& stream, const streamable& self)
+    {
+        to_stream_impl(self.value_, stream, self.serializer_, self.serializer_);
+        return stream;
+    }
+};
+template <typename T, typename SerializerT>
+    struct streamable<T&, SerializerT>
+{
+private:
+    T& value_;
+    SerializerT serializer_;
+
+public:
+    template <typename = std::enable_if_t<std::is_default_constructible<SerializerT>::value>>
+        constexpr streamable(T& _value)
+            : value_(_value), serializer_{ }
+    {
+    }
+    constexpr streamable(T& _value, SerializerT _serializer)
+        : value_(_value), serializer_(std::forward<SerializerT>(_serializer))
+    {
+    }
+
+    friend std::ostream& operator <<(std::ostream& stream, const streamable& self)
+    {
+        to_stream_impl(self.value_, stream, self.serializer_, self.serializer_);
+        return stream;
+    }
+    friend std::istream& operator >>(std::istream& stream, const streamable& self)
+    {
+        from_stream_impl(self.value_, stream, self.serializer_, self.serializer_);
+        return stream;
+    }
+};
+template <typename T>
+    streamable(T&& value) -> streamable<T&&>;
+template <typename T, typename SerializerT>
+    streamable(T&& value, SerializerT&& serializer) -> streamable<T&&, SerializerT>;
 
 
 } // inline namespace serialize
