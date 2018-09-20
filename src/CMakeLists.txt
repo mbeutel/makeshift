@@ -16,6 +16,7 @@ add_library(makeshift
     "serialize_enum.cpp"
     "serializer_bool.cpp"
     "serializer_string.cpp"
+    "serializer_stream.cpp"
     "string_compare.cpp"
     "constrained.cpp")
 

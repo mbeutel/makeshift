@@ -62,6 +62,10 @@ template <typename EnumT, std::size_t N, typename SerializerT>
 }
 
 
+MAKESHIFT_DLLFUNC void string_to_stream(std::ostream& stream, std::string_view string);
+MAKESHIFT_DLLFUNC void string_from_stream(std::istream& stream, std::string& string);
+
+
 template <typename ConstrainedIntT, typename SerializerT>
     void constrained_integer_to_stream(ConstrainedIntT value, std::ostream& stream, SerializerT&& serializer)
 {
@@ -120,10 +124,10 @@ template <typename BaseT = void>
     {
         (void) streamSerializer;
         (void) serializer;
-        else if constexpr (is_constrained_integer_v<D>)
-            makeshift::detail::constrained_integer_to_stream_impl(value, stream, serializer);
         if constexpr (std::is_enum<T>::value && have_metadata_v<T, metadata_tag_of_serializer_t<std::decay_t<SerializerT>>>)
             enum_to_stream(value, stream, makeshift::detail::serialization_data<T, metadata_tag_of_serializer_t<std::decay_t<SerializerT>>>, streamSerializer.data.enum_options, serializer);
+        else if constexpr (std::is_convertible<T, std::string_view>::value)
+            makeshift::detail::string_to_stream(stream, value);
         else
             stream << value;
     }
@@ -134,12 +138,26 @@ template <typename BaseT = void>
     {
         (void) serializer;
         (void) streamSerializer;
-        else if constexpr (is_constrained_integer_v<D>)
-            makeshift::detail::constrained_integer_from_stream_impl(value, stream, serializer);
         if constexpr (std::is_enum<T>::value && have_metadata_v<T, metadata_tag_of_serializer_t<std::decay_t<SerializerT>>>)
             enum_from_stream(value, stream, makeshift::detail::serialization_data<T, metadata_tag_of_serializer_t<std::decay_t<SerializerT>>>, streamSerializer.data.enum_options, serializer);
+        else if constexpr (std::is_same<T, std::string>::value)
+            makeshift::detail::string_from_stream(stream, value);
         else
             stream >> value;
+    }
+    template <typename T, typename SerializerT/*,
+              typename = std::enable_if_t<is_constrained_integer_v<T>>*/>
+        friend std::enable_if_t<is_constrained_integer_v<T>>
+        to_stream_impl(const T& value, std::ostream& stream, const stream_serializer&, SerializerT&& serializer)
+    {
+        makeshift::detail::constrained_integer_to_stream(value, stream, serializer);
+    }
+    template <typename T, typename SerializerT/*,
+              typename = std::enable_if_t<is_constrained_integer_v<T>>*/>
+        friend std::enable_if_t<is_constrained_integer_v<T>>
+        from_stream_impl(T& value, std::istream& stream, const stream_serializer&, SerializerT&& serializer)
+    {
+        makeshift::detail::constrained_integer_from_stream(value, stream, serializer);
     }
 };
 stream_serializer(void) -> stream_serializer<>;
