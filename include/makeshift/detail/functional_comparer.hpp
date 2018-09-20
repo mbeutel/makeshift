@@ -64,8 +64,7 @@ namespace detail
 {
 
 
-    // defined in reflect.hpp
-
+    // defined in functional_comparer-reflect.hpp
 template <typename T, typename ComparerT>
     constexpr bool aggregate_less(const T& lhs, const T& rhs, ComparerT&& cmp) noexcept;
 template <typename T, typename ComparerT>
@@ -207,6 +206,11 @@ template <typename ComparerT>
 } // inline namespace types
 
 } // namespace makeshift
+
+
+#ifdef INCLUDED_MAKESHIFT_REFLECT_HPP_
+ #include <makeshift/detail/functional_comparer-reflect.hpp>
+#endif // INCLUDED_MAKESHIFT_REFLECT_HPP_
 
 
 #endif // INCLUDED_MAKESHIFT_DETAIL_FUNCTIONAL_COMPARER_HPP_
