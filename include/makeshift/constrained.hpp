@@ -326,12 +326,12 @@ public:
         //ᅟ
         // Constructs a constrained integer type from an integer. Raises `std::runtime_error` if the integer type is not an admissible value.
         //
-    /*explicit constexpr define_constrained_integer(value_type _value)
+    explicit constexpr define_constrained_integer(value_type _value)
         : value_(_value)
     {
         if (!is_valid_(_value))
             raise_error_(_value);
-    }*/
+    }
 
     explicit constexpr define_constrained_integer(unchecked_constructor_tag, value_type _value) : value_(_value) { }
 
@@ -353,7 +353,7 @@ public:
 
 
         //ᅟ
-        // Checks whether the given value is an admissible value, and raises `std::invalid_argument` if not.
+        // Construct from a given value.
         //
     static constexpr DerivedT assume(value_type value)
     {
