@@ -148,28 +148,16 @@ stream_serializer(stream_serializer_options&&) -> stream_serializer<>;
 
 
     //ᅟ
-    // Wraps the given rvalue as a streamable object using `stream_serializer`.
-    //ᅟ
-    //ᅟ    std::cout << streamable(vec.size()) << '\n';
-    //
-template <typename T>
-    auto streamable(const T& value)
-{
-    return streamable(value, stream_serializer());
-}
-
-
-    //ᅟ
     // Wraps the given lvalue as a streamable object using `stream_serializer`.
     //ᅟ
+    //ᅟ    std::cout << streamable(vec.size()) << '\n';
     //ᅟ    int i;
     //ᅟ    std::cin >> streamable(i);
-    //ᅟ    std::cout << streamable(i) << '\n';
     //
 template <typename T>
-    auto streamable(T& value)
+    auto streamable(T&& value)
 {
-    return streamable(value, stream_serializer());
+    return streamable(std::forward<T>(value), stream_serializer());
 }
 
 

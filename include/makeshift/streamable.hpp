@@ -17,57 +17,61 @@ namespace detail
 
 
 template <typename T, typename SerializerT>
-    struct streamable_rvalue
+    struct streamable_t
 {
-    streamable_rvalue(const streamable_rvalue&) = delete;
-    streamable_rvalue(streamable_rvalue&&) = delete;
-    streamable_rvalue& operator =(const streamable_rvalue&) = delete;
-    streamable_rvalue& operator =(streamable_rvalue&&) = delete;
-
 private:
-    const T& value_;
+    T value_;
     SerializerT serializer_;
 
 public:
-    constexpr streamable_rvalue(const T& _value, SerializerT _serializer) noexcept : value_(_value), serializer_(std::forward<SerializerT>(_serializer)) { }
+    constexpr streamable_t(const T& _value, SerializerT _serializer) : value_(_value), serializer_(std::forward<SerializerT>(_serializer)) { }
+    constexpr streamable_t(T&& _value, SerializerT _serializer) : value_(std::move(_value)), serializer_(std::forward<SerializerT>(_serializer)) { }
 
-    friend std::ostream& operator <<(std::ostream& stream, const streamable_rvalue& self)
+    friend std::ostream& operator <<(std::ostream& stream, const streamable_t& self)
     {
         to_stream_impl(self.value_, stream, self.serializer_, self.serializer_);
         return stream;
     }
 };
 template <typename T, typename SerializerT>
-    streamable_rvalue(const T& value, SerializerT&& serializer) -> streamable_rvalue<T, remove_rvalue_reference_t<SerializerT>>;
-
-template <typename T, typename SerializerT>
-    struct streamable_lvalue
+    struct streamable_t<const T&, SerializerT>
 {
-    streamable_lvalue(const streamable_lvalue&) = delete;
-    streamable_lvalue(streamable_lvalue&&) = delete;
-    streamable_lvalue& operator =(const streamable_lvalue&) = delete;
-    streamable_lvalue& operator =(streamable_lvalue&&) = delete;
+private:
+    const T& value_;
+    SerializerT serializer_;
 
+public:
+    constexpr streamable_t(const T& _value, SerializerT _serializer) : value_(_value), serializer_(std::forward<SerializerT>(_serializer)) { }
+
+    friend std::ostream& operator <<(std::ostream& stream, const streamable_t& self)
+    {
+        to_stream_impl(self.value_, stream, self.serializer_, self.serializer_);
+        return stream;
+    }
+};
+template <typename T, typename SerializerT>
+    struct streamable_t<T&, SerializerT>
+{
 private:
     T& value_;
     SerializerT serializer_;
 
 public:
-    constexpr streamable_lvalue(T& _value, SerializerT _serializer) noexcept : value_(_value), serializer_(std::forward<SerializerT>(_serializer)) { }
+    constexpr streamable_t(T& _value, SerializerT _serializer) : value_(_value), serializer_(std::forward<SerializerT>(_serializer)) { }
 
-    friend std::ostream& operator <<(std::ostream& stream, const streamable_lvalue& self)
+    friend std::ostream& operator <<(std::ostream& stream, const streamable_t& self)
     {
         to_stream_impl(self.value_, stream, self.serializer_, self.serializer_);
         return stream;
     }
-    friend std::istream& operator >>(std::istream& stream, const streamable_lvalue& self)
+    friend std::istream& operator >>(std::istream& stream, const streamable_t& self)
     {
         from_stream_impl(self.value_, stream, self.serializer_, self.serializer_);
         return stream;
     }
 };
 template <typename T, typename SerializerT>
-    streamable_lvalue(T& value, SerializerT&& serializer) -> streamable_lvalue<T, remove_rvalue_reference_t<SerializerT>>;
+    streamable_t(T&& value, SerializerT&& serializer) -> streamable_t<remove_rvalue_reference_t<T>, remove_rvalue_reference_t<SerializerT>>;
 
 
 } // namespace detail
@@ -85,28 +89,16 @@ inline namespace serialize
 
 
     //ᅟ
-    // Wraps the given rvalue as a streamable object using the serializer provided.
+    // Wraps the given lvalue or rvalue as a streamable object using the serializer provided.
     //ᅟ
     //ᅟ    std::cout << streamable(vec.size(), stream_serializer()) << '\n';
-    //
-template <typename T, typename SerializerT>
-    auto streamable(const T& value, SerializerT&& serializer)
-{
-    return makeshift::detail::streamable_rvalue { value, std::forward<SerializerT>(serializer) };
-}
-
-
-    //ᅟ
-    // Wraps the given lvalue as a streamable object using the serializer provided.
-    //ᅟ
     //ᅟ    int i;
     //ᅟ    std::cin >> streamable(i, stream_serializer());
-    //ᅟ    std::cout << streamable(i, stream_serializer()) << '\n';
     //
 template <typename T, typename SerializerT>
-    auto streamable(T& value, SerializerT&& serializer)
+    auto streamable(T&& value, SerializerT&& serializer)
 {
-    return makeshift::detail::streamable_lvalue { value, std::forward<SerializerT>(serializer) };
+    return makeshift::detail::streamable_t{ std::forward<T>(value), std::forward<SerializerT>(serializer) };
 }
 
 
