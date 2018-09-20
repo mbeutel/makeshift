@@ -10,6 +10,7 @@
 #include <makeshift/type_traits.hpp> // for can_apply<>
 
 #include <makeshift/detail/utility_chainable.hpp> // for define_chainable<>
+#include <makeshift/detail/metadata.hpp>          // for have_metadata<>
 
 
 namespace makeshift
@@ -105,7 +106,7 @@ template <typename BaseT = void>
     {
         (void) cmp;
         using MetadataTag = metadata_tag_of_comparer_t<std::decay_t<ComparerT>>;
-        if constexpr (makeshift::detail::is_any_compound<T, MetadataTag>)
+        if constexpr (has_flag(type_flag::compound, type_flags_of<T, MetadataTag>))
             return makeshift::detail::compound_less(lhs, rhs, cmp);
         else
             return lhs < rhs;
@@ -115,7 +116,7 @@ template <typename BaseT = void>
     {
         (void) cmp;
         using MetadataTag = metadata_tag_of_comparer_t<std::decay_t<ComparerT>>;
-        if constexpr (makeshift::detail::is_any_compound<T, MetadataTag>)
+        if constexpr (has_flag(type_flag::compound, type_flags_of<T, MetadataTag>))
             return makeshift::detail::compound_equal_to(lhs, rhs, cmp);
         else
             return lhs == rhs;
@@ -125,7 +126,7 @@ template <typename BaseT = void>
     {
         (void) cmp;
         using MetadataTag = metadata_tag_of_comparer_t<std::decay_t<ComparerT>>;
-        if constexpr (makeshift::detail::is_any_compound<T, MetadataTag>)
+        if constexpr (has_flag(type_flag::compound, type_flags_of<T, MetadataTag>))
             return makeshift::detail::compound_hash(obj, cmp);
         else
             return default_hash<T>{ }(obj);

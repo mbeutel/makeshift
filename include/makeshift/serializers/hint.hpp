@@ -7,6 +7,7 @@
 
 #include <makeshift/type_traits.hpp>           // for tag<>
 #include <makeshift/serialize.hpp>             // for define_serializer<>, metadata_tag_of_serializer<>
+#include <makeshift/metadata.hpp>              // for have_metadata<>, metadata_of<>
 #include <makeshift/hint.hpp>                  // for get_hint()
 
 #include <makeshift/detail/serialize_enum.hpp> // for serialization_data<>
@@ -62,7 +63,7 @@ template <typename BaseT = void>
             return std::string("false") + hintSerializer.data.option_separator + std::string("true");
         else if constexpr (is_constrained_integer_v<T>)
             return T::verifier::get_hint(hintSerializer.data, typename T::constraint{ });
-        else if constexpr (makeshift::detail::is_any_compound<T, MetadataTag>)
+        else if constexpr (has_flag(type_flag::compound, type_flags_of<T, MetadataTag>))
             return makeshift::detail::get_compound_hint<T>(serializer);
         else
             return { };

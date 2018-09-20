@@ -9,7 +9,9 @@
 #include <cstddef>     // for size_t
 #include <tuple>
 
-#include <makeshift/type_traits.hpp> // for tag<>, can_apply<>, is_flags_enum<>, type_category
+#include <makeshift/type_traits.hpp> // for tag<>, can_apply<>, is_flags_enum<>, type_flags
+
+#include <makeshift/detail/metadata.hpp>
 
 
 namespace makeshift
@@ -59,12 +61,12 @@ using namespace std::literals::string_view_literals;
     //
 template <typename T, typename CategoryC, typename AttributesT>
     struct type_metadata;
-template <typename T, type_category Category, typename AttributesT>
-    struct type_metadata<T, std::integral_constant<type_category, Category>, AttributesT> : makeshift::detail::type_metadata_base
+template <typename T, type_flags Flags, typename AttributesT>
+    struct type_metadata<T, std::integral_constant<type_flags, Flags>, AttributesT> : makeshift::detail::type_metadata_base
 {
     using type = T;
 
-    static constexpr type_category category = Category;
+    static constexpr type_flags flags = Flags;
 
     AttributesT attributes;
 
@@ -75,7 +77,7 @@ template <typename T, type_category Category, typename AttributesT>
     // Use `type<T>(...)` to declare metadata for a type.
     //
 template <typename T, typename... AttrT>
-    constexpr type_metadata<T, constant<makeshift::detail::default_type_category<T>()>, std::tuple<literal_decay_t<AttrT>...>> type(AttrT&&... attributes)
+    constexpr type_metadata<T, constant<makeshift::detail::default_type_flags<T>()>, std::tuple<literal_decay_t<AttrT>...>> type(AttrT&&... attributes)
 {
     return { std::tuple<literal_decay_t<AttrT>...>(std::forward<AttrT>(attributes)...) };
 }
@@ -83,8 +85,8 @@ template <typename T, typename... AttrT>
     //ᅟ
     // Use `type<T, Category>(...)` to declare metadata for a type with a given type category.
     //
-template <typename T, type_category Category, typename... AttrT>
-    constexpr type_metadata<T, constant<makeshift::detail::infer_type_category<T>(Category)>, std::tuple<literal_decay_t<AttrT>...>> type(AttrT&&... attributes)
+template <typename T, type_flags Flags, typename... AttrT>
+    constexpr type_metadata<T, constant<makeshift::detail::infer_type_flags<T>(Flags)>, std::tuple<literal_decay_t<AttrT>...>> type(AttrT&&... attributes)
 {
     return { std::tuple<literal_decay_t<AttrT>...>(std::forward<AttrT>(attributes)...) };
 }

@@ -11,7 +11,7 @@
 #include <makeshift/type_traits.hpp>      // for tag<>
 #include <makeshift/serialize.hpp>        // for metadata_tag_of_serializer<>
 #include <makeshift/reflect.hpp>          // for member_accessor()
-#include <makeshift/metadata.hpp>         // for caption_metadata
+#include <makeshift/metadata.hpp>         // for have_metadata<>, metadata_of<>, caption_metadata
 #include <makeshift/tuple.hpp>            // for tuple_foreach()
 
 

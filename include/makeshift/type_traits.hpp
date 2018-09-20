@@ -37,35 +37,6 @@ template <template <typename...> class T> struct template_tag { };
 template <template <typename...> class T> constexpr template_tag<T> template_tag_v{ };
 
 
-    //ᅟ
-    // Determines the category of a type.
-    //
-enum class type_category
-{
-        //ᅟ
-        // Indicates that the associated type is a value type (either a scalar type or a user-defined wrapper).
-        //
-    value,
-
-        //ᅟ
-        // Indicates that the associated type is a composite type which itself forms a value, e.g. a geometrical point defined as `struct Point { int x, y; };`.
-        //
-    compound_value,
-
-        //ᅟ
-        // Indicates that the associated type is a compound type, i.e. it has the semantics of a named tuple with regard to identity and comparability.
-        // This type category does not necessarily require aggregate-ness as defined in the C++ standard (`std::is_aggregate<>`), which imposes
-        // unnecessary limitations (e.g. it makes sense for an aggregate to have a user-defined constructor).
-        //
-    compound,
-
-        //ᅟ
-        // Unknown type category.
-        //
-    other
-};
-
-
 } // inline namespace types
 
 
@@ -674,22 +645,22 @@ template <typename T, T Last>
     //ᅟ
     // Null type for tuple functions, flag enums and other purposes.
     //
-struct none_t { };
+struct none { };
 
     //ᅟ
     // Null element for tuple functions, flag enums and other purposes.
     //
-constexpr none_t none { };
+constexpr none none_v { };
 
 
     //ᅟ
-    // Determines whether the given type is `none_t`.
+    // Determines whether the given type is `none`.
     //
 template <typename T> struct is_none : std::false_type { };
-template <> struct is_none<none_t> : std::true_type { };
+template <> struct is_none<none> : std::true_type { };
 
     //ᅟ
-    // Determines whether the given type is `none_t`.
+    // Determines whether the given type is `none`.
     //
 template <typename T> constexpr bool is_none_v = is_none<T>::value;
 
@@ -923,31 +894,6 @@ inline namespace metadata
 {
 
 
-using makeshift::type_category;
-
-
-    //ᅟ
-    // Use `metadata_of<T, MetadataTagT>` to look up metadata for a type.
-    //
-template <typename T, typename MetadataTagT> static constexpr auto metadata_of = reflect(tag<T>{ }, MetadataTagT{ });
-
-    //ᅟ
-    // Use `metadata_of<T, MetadataTagT>` to look up metadata for a type.
-    //
-template <typename T, typename MetadataTagT> using metadata_of_t = decltype(reflect(tag<T>{ }, MetadataTagT{ }));
-
-
-    //ᅟ
-    // Determines whether there is metadata for the given type and the given tag.
-    //
-template <typename T, typename MetadataTagT> struct have_metadata : can_apply<metadata_of_t, T, MetadataTagT> { };
-
-    //ᅟ
-    // Determines whether there is metadata for the given type and the given tag.
-    //
-template <typename T, typename MetadataTagT> constexpr bool have_metadata_v = have_metadata<T, MetadataTagT>::value;
-
-
     //ᅟ
     // Default tag type for `reflect()` methods which define type metadata for correctness and compile-time member and value enumeration.
     //
@@ -961,69 +907,6 @@ struct serialization_metadata_tag { };
 
 
 } // inline namespace metadata
-
-
-namespace detail
-{
-
-
-template <typename T>
-    constexpr type_category default_type_category(void) noexcept
-{
-    if constexpr (std::is_scalar<T>::value)
-        return type_category::value;
-    else if constexpr (std::is_aggregate<T>::value)
-        return type_category::compound;
-    else
-        return type_category::other;
-}
-template <typename T>
-    constexpr type_category infer_type_category(type_category cat) noexcept
-{
-    if (cat != type_category::other)
-        return cat;
-    else
-        return default_type_category<T>();
-}
-
-template <typename T, typename MetadataTagT>
-    constexpr type_category lookup_type_category(void) noexcept
-{
-    if constexpr (have_metadata_v<T, MetadataTagT>)
-        return metadata_of_t<T, MetadataTagT>::category;
-    else
-        return default_type_category<T>();
-}
-
-
-template <typename ChainableT> struct metadata_tag_r { using type = typename ChainableT::metadata_tag; };
-template <typename ChainableT> using metadata_tag_rt = typename ChainableT::metadata_tag;
-
-
-} // namespace detail
-
-
-inline namespace types
-{
-
-
-    //ᅟ
-    // Determines the category of a type.
-    //
-template <typename T, typename MetadataTagT, typename = void> constexpr type_category type_category_of = makeshift::detail::lookup_type_category<T, MetadataTagT>();
-
-
-} // inline namespace types
-
-
-namespace detail
-{
-
-
-template <typename KeyT, typename MetadataTagT> constexpr bool is_any_compound = type_category_of<KeyT, MetadataTagT> == type_category::compound || type_category_of<KeyT, MetadataTagT> == type_category::compound_value;
-
-
-} // namespace detail
 
 } // namespace makeshift
 
