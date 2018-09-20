@@ -1067,7 +1067,7 @@ template <typename T, typename TupleT,
     //ᅟ        | get_or_none<std::string>(); // returns none
     //
 template <typename T>
-    constexpr makeshift::detail::get_or_default_t<T, none_t>
+    constexpr makeshift::detail::get_or_default_t<T, none>
     get_or_none(void)
 {
     return {{ }};
@@ -1156,7 +1156,7 @@ template <typename TupleT, typename DefaultT,
     //ᅟ    auto elem = tuple
     //ᅟ        | single_or_none(); // returns none
     //
-constexpr inline makeshift::detail::single_or_default_t<none_t>
+constexpr inline makeshift::detail::single_or_default_t<none>
 single_or_none(void)
 {
     return {{ }};

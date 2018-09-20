@@ -136,7 +136,7 @@ template <typename TypeMetadataT>
     auto maybeFlags = enumMetadata.attributes
         | tuple_filter(template_trait_v<is_instantiation_of, flags_metadata>)
         | single_or_none();
-    if constexpr (!std::is_same<decltype(maybeFlags), none_t>::value)
+    if constexpr (!std::is_same<decltype(maybeFlags), none>::value)
         return get_or_default<std::string_view>(maybeFlags.value.attributes);
     else
         return { };

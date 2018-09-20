@@ -49,10 +49,10 @@ template <typename FlagsT, typename UnderlyingTypeT = unsigned>
     friend constexpr flags& operator |=(flags& lhs, flags rhs) noexcept { lhs = lhs | rhs; return lhs; }
     friend constexpr flags& operator &=(flags& lhs, flags rhs) noexcept { lhs = lhs & rhs; return lhs; }
     friend constexpr flags& operator ^=(flags& lhs, flags rhs) noexcept { lhs = lhs ^ rhs; return lhs; }
-    friend constexpr bool operator ==(flags lhs, none_t) noexcept { return lhs == flags::none; }
-    friend constexpr bool operator ==(none_t, flags rhs) noexcept { return rhs == flags::none; }
-    friend constexpr bool operator !=(flags lhs, none_t) noexcept { return lhs != flags::none; }
-    friend constexpr bool operator !=(none_t, flags rhs) noexcept { return rhs != flags::none; }
+    friend constexpr bool operator ==(flags lhs, none) noexcept { return lhs == flags::none; }
+    friend constexpr bool operator ==(none, flags rhs) noexcept { return rhs == flags::none; }
+    friend constexpr bool operator !=(flags lhs, none) noexcept { return lhs != flags::none; }
+    friend constexpr bool operator !=(none, flags rhs) noexcept { return rhs != flags::none; }
 
         //ᅟ
         // `has_flag(haystack, needle)` determines whether the flags enum `haystack` contains the flag `needle`. Equivalent to `(haystack & needle) != none`.
