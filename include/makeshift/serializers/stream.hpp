@@ -131,14 +131,16 @@ template <typename BaseT = void>
     using base = define_serializer<makeshift::stream_serializer, BaseT, stream_serializer_options>;
     using base::base;
     
-    template <typename T, typename SerializerT/*,
-              typename = std::enable_if_t<makeshift::detail::have_ostream_operator_v<metadata_tag_of_serializer_t<std::decay_t<SerializerT>>, T>>*/>
-        friend std::enable_if_t<makeshift::detail::have_ostream_operator_v<metadata_tag_of_serializer_t<std::decay_t<SerializerT>>, T>>
-        to_stream_impl(const T& value, std::ostream& stream, const stream_serializer& streamSerializer, SerializerT&& serializer)
+    template <typename T, typename SerializerT>
+        friend void to_stream_impl(const T& value, std::ostream& stream, const stream_serializer& streamSerializer, SerializerT&& serializer)
     {
         (void) streamSerializer;
         (void) serializer;
-        if constexpr (std::is_enum<T>::value && have_metadata_v<T, metadata_tag_of_serializer_t<std::decay_t<SerializerT>>>)
+        if constexpr (is_constrained_integer_v<T>)
+            makeshift::detail::constrained_integer_to_stream(value, stream, serializer);
+        else if constexpr (has_flag(type_flag::compound, type_flags_of<T, metadata_tag_of_serializer_t<std::decay_t<SerializerT>>>))
+            makeshift::detail::compound_to_stream(stream, value, serializer);
+        else if constexpr (std::is_enum<T>::value && have_metadata_v<T, metadata_tag_of_serializer_t<std::decay_t<SerializerT>>>)
             enum_to_stream(value, stream, makeshift::detail::serialization_data<T, metadata_tag_of_serializer_t<std::decay_t<SerializerT>>>, streamSerializer.data.enum_options, serializer);
         else if constexpr (std::is_convertible<T, std::string_view>::value)
             makeshift::detail::string_to_stream(stream, value);
@@ -148,14 +150,16 @@ template <typename BaseT = void>
                 makeshift::detail::raise_ostream_error(stream);
         }
     }
-    template <typename T, typename SerializerT/*,
-              typename = std::enable_if_t<makeshift::detail::have_istream_operator_v<metadata_tag_of_serializer_t<std::decay_t<SerializerT>>, T>>*/>
-        friend std::enable_if_t<makeshift::detail::have_ostream_operator_v<metadata_tag_of_serializer_t<std::decay_t<SerializerT>>, T>>
-        from_stream_impl(T& value, std::istream& stream, const stream_serializer& streamSerializer, SerializerT&& serializer)
+    template <typename T, typename SerializerT>
+        friend void from_stream_impl(T& value, std::istream& stream, const stream_serializer& streamSerializer, SerializerT&& serializer)
     {
-        (void) serializer;
         (void) streamSerializer;
-        if constexpr (std::is_enum<T>::value && have_metadata_v<T, metadata_tag_of_serializer_t<std::decay_t<SerializerT>>>)
+        (void) serializer;
+        if constexpr (is_constrained_integer_v<T>)
+            makeshift::detail::constrained_integer_from_stream(value, stream, serializer);
+        else if constexpr (has_flag(type_flag::compound, type_flags_of<T, metadata_tag_of_serializer_t<std::decay_t<SerializerT>>>))
+            makeshift::detail::compound_from_stream(stream, value, serializer);
+        else if constexpr (std::is_enum<T>::value && have_metadata_v<T, metadata_tag_of_serializer_t<std::decay_t<SerializerT>>>)
             enum_from_stream(value, stream, makeshift::detail::serialization_data<T, metadata_tag_of_serializer_t<std::decay_t<SerializerT>>>, streamSerializer.data.enum_options, serializer);
         else if constexpr (std::is_same<T, std::string>::value)
             makeshift::detail::string_from_stream(stream, value);
@@ -164,34 +168,6 @@ template <typename BaseT = void>
             if (!(stream >> value))
                 makeshift::detail::raise_istream_error(stream);
         }
-    }
-    template <typename T, typename SerializerT/*,
-              typename = std::enable_if_t<is_constrained_integer_v<T>>*/>
-        friend std::enable_if_t<is_constrained_integer_v<T>>
-        to_stream_impl(const T& value, std::ostream& stream, const stream_serializer&, SerializerT&& serializer)
-    {
-        makeshift::detail::constrained_integer_to_stream(value, stream, serializer);
-    }
-    template <typename T, typename SerializerT/*,
-              typename = std::enable_if_t<is_constrained_integer_v<T>>*/>
-        friend std::enable_if_t<is_constrained_integer_v<T>>
-        from_stream_impl(T& value, std::istream& stream, const stream_serializer&, SerializerT&& serializer)
-    {
-        makeshift::detail::constrained_integer_from_stream(value, stream, serializer);
-    }
-    template <typename T, typename SerializerT/*,
-              typename = std::enable_if_t<(type_flags_of<T, metadata_tag_of_serializer_t<std::decay_t<SerializerT>>> & type_flag::compound) != type_flags::none>*/>
-        friend std::enable_if_t<(type_flags_of<T, metadata_tag_of_serializer_t<std::decay_t<SerializerT>>> & type_flag::compound) != type_flags::none>
-        to_stream_impl(const T& value, std::ostream& stream, const stream_serializer&, SerializerT&& serializer)
-    {
-        makeshift::detail::compound_to_stream(stream, value, serializer);
-    }
-    template <typename T, typename SerializerT/*,
-              typename = std::enable_if_t<(type_flags_of<T, metadata_tag_of_serializer_t<std::decay_t<SerializerT>>> & type_flag::compound) != type_flags::none>*/>
-        friend std::enable_if_t<(type_flags_of<T, metadata_tag_of_serializer_t<std::decay_t<SerializerT>>> & type_flag::compound) != type_flags::none>
-        from_stream_impl(T& value, std::istream& stream, const stream_serializer&, SerializerT&& serializer)
-    {
-        makeshift::detail::compound_from_stream(stream, value, serializer);
     }
 };
 stream_serializer(void) -> stream_serializer<>;

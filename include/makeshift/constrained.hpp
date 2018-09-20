@@ -388,7 +388,7 @@ template <typename ConstrainedIntT>
     // Refers to an ad-hoc integer type with a constraint for admissible values.
     //
 template <typename ConstraintT, typename VerifierT = default_integer_constraint_verifier>
-    struct constrained_integer : define_constrained_integer<constrained_integer<ConstraintT, VerifierT>, ConstraintT, VerifierT>
+    struct constrained_integer final : define_constrained_integer<constrained_integer<ConstraintT, VerifierT>, ConstraintT, VerifierT>
 {
     using base = define_constrained_integer<constrained_integer<ConstraintT, VerifierT>, ConstraintT, VerifierT>;
     using base::base;

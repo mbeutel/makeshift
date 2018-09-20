@@ -47,7 +47,7 @@ write_basic_package_version_file("${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVer
     VERSION ${PROJECT_VERSION}
     COMPATIBILITY SameMajorVersion)
 
-    
+
 # Install method #1: Put library in CMAKE_INSTALL_PREFIX, i.e. /usr/local or equivalent.
 
 # Determine the install path for the *Config.cmake configuration file relative to CMAKE_INSTALL_PREFIX.
