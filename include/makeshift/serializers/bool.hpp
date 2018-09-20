@@ -27,11 +27,11 @@ inline namespace serialize
     //ᅟ
     // Options for serializing and deserializing booleans.
     //
-struct bool_serialization_options
+struct bool_serializer_options
 {
     struct bool_string
     {
-        std::string_view str;
+        std::string str;
         bool value;
     };
 
@@ -42,13 +42,13 @@ struct bool_serialization_options
     std::string_view false_string = "false";
     string_comparison comparison = string_comparison::ordinal_ignore_case;
 
-    bool_serialization_options(void) = default;
-    bool_serialization_options(std::string_view _true_string, std::string_view _false_string) : true_string(_true_string), false_string(_false_string) { }
-    bool_serialization_options(std::string_view _true_string, std::string_view _false_string, std::vector<bool_string> _strings)
+    bool_serializer_options(void) = default;
+    bool_serializer_options(std::string_view _true_string, std::string_view _false_string) : true_string(_true_string), false_string(_false_string) { }
+    bool_serializer_options(std::string_view _true_string, std::string_view _false_string, std::vector<bool_string> _strings)
         : strings(std::move(_strings)), true_string(_true_string), false_string(_false_string)
     {
     }
-    bool_serialization_options(std::vector<bool_string> _strings)
+    bool_serializer_options(std::vector<bool_string> _strings)
         : strings(std::move(_strings))
     {
     }
@@ -62,7 +62,7 @@ namespace detail
 {
 
 
-MAKESHIFT_DLLFUNC void bool_from_stream_impl(const bool_serialization_options& options, bool& value, const std::string& str);
+MAKESHIFT_DLLFUNC void bool_from_stream_impl(const bool_serializer_options& options, bool& value, const std::string& str);
 
 
 } // namespace detail
@@ -77,19 +77,19 @@ inline namespace serialize
     // (yes/no, true/false, on/off, enabled/disabled, 1/0, y/n).
     //
 template <typename BaseT = void>
-    struct bool_serializer : define_serializer<bool_serializer, BaseT, bool_serialization_options>
+    struct bool_serializer : define_serializer<bool_serializer, BaseT, bool_serializer_options>
 {
-    using base = define_serializer<makeshift::bool_serializer, BaseT, bool_serialization_options>;
+    using base = define_serializer<makeshift::bool_serializer, BaseT, bool_serializer_options>;
     using base::base;
 
     template <typename T, typename SerializerT>
         friend std::enable_if_t<std::is_same<T, bool>::value>
-        to_stream_impl(const T& value, std::ostream& stream, const bool_serializer& boolSerializer, SerializerT& serializer)
+        to_stream_impl(const T& value, std::ostream& stream, const bool_serializer& boolSerializer, SerializerT&& serializer)
     {
         stream << streamable(std::string(value ? boolSerializer.data.true_string : boolSerializer.data.false_string), serializer);
     }
     template <typename SerializerT>
-        friend void from_stream_impl(bool& value, std::istream& stream, const bool_serializer& boolSerializer, SerializerT& serializer)
+        friend void from_stream_impl(bool& value, std::istream& stream, const bool_serializer& boolSerializer, SerializerT&& serializer)
     {
         std::string str;
         stream >> streamable(str, serializer);
@@ -97,7 +97,7 @@ template <typename BaseT = void>
     }
 
     template <typename SerializerT>
-        friend std::string get_hint_impl(tag<bool>, const bool_serializer& boolSerializer, SerializerT& serializer)
+        friend std::string get_hint_impl(tag<bool>, const bool_serializer& boolSerializer, SerializerT&& serializer)
     {
         return boolSerializer.data.false_string + get_data(serializer, tag_v<hint_options>).option_separator + boolSerializer.data.true_string;
     }
@@ -108,6 +108,9 @@ template <typename BaseT = void>
     // (yes/no, true/false, on/off, enabled/disabled, 1/0, y/n).
     //
 inline const bool_serializer<> bool_serializer_v{ };
+bool_serializer(void) -> bool_serializer<>;
+bool_serializer(const bool_serializer_options&) -> bool_serializer<>;
+bool_serializer(bool_serializer_options&&) -> bool_serializer<>;
 
 
 } // inline namespace serialize

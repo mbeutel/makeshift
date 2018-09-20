@@ -136,7 +136,7 @@ std::string_view enum_to_string(std::uint64_t enumValue, const enum_serializatio
 }
 void enum_from_string(std::string_view string, std::uint64_t& enumValue, const enum_serialization_data_ref& sdata, const enum_serialization_options& options)
 {
-    auto stringComparer = string_equal_to{ options.enum_string_comparison_mode };
+    auto stringComparer = equal_to(string_comparer(string_comparer_options{ options.enum_string_comparison_mode }));
     for (auto& value : sdata.values)
         if (stringComparer(value.string, string))
         {
@@ -208,7 +208,7 @@ static std::optional<std::string_view> expectSeparator(std::string_view s, std::
 }
 void flags_enum_from_string(std::string_view string, std::uint64_t& enumValue, const flags_enum_serialization_data_ref& sdata, const enum_serialization_options& options)
 {
-    auto stringComparer = string_equal_to{ options.enum_string_comparison_mode };
+    auto stringComparer = equal_to(string_comparer(string_comparer_options{ options.enum_string_comparison_mode }));
     std::string_view sv = string;
     auto sep = trim(options.flags_separator);
     enumValue = 0;

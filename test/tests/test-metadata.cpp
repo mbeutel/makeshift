@@ -135,8 +135,8 @@ TEST_CASE("reflect", "[reflect]")
         CHECK_FALSE(mk::equal_to<>{ }(i2, i3));
         CHECK_FALSE(mk::equal_to<>{ }(i1, i3));
         
-        auto i2hash = mk::hash<COOIndex>{ }(i2);
-        auto i3hash = mk::hash<COOIndex>{ }(i3);
+        auto i2hash = mk::hash<>{ }(i2);
+        auto i3hash = mk::hash<>{ }(i3);
         CHECK(i2hash != i3hash); // this is not strictly necessary, but it typically holds unless std::hash<int> is terrible
         
         COOValue v1a { i1, 0.0 };
@@ -152,8 +152,8 @@ TEST_CASE("reflect", "[reflect]")
         CHECK_FALSE(mk::equal_to<>{ }(v1a, v1b));
         CHECK_FALSE(mk::equal_to<>{ }(v1a, v2));
 
-        auto v1ahash = mk::hash<COOValue>{ }(v1a);
-        auto v1bhash = mk::hash<COOValue>{ }(v1b);
+        auto v1ahash = mk::hash<>{ }(v1a);
+        auto v1bhash = mk::hash<>{ }(v1b);
         CHECK(v1ahash != v1bhash); // this is not strictly necessary, but it typically holds unless std::hash<double> is terrible
     }
 }

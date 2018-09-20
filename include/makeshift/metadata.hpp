@@ -23,9 +23,6 @@ struct type_metadata_base { };
 struct value_metadata_base { };
 struct member_metadata_base { };
 
-template <typename SerializerT> struct serializer_metadata_tag_r { using type = typename SerializerT::metadata_tag; };
-template <typename SerializerT> using serializer_metadata_tag_rt = typename SerializerT::metadata_tag;
-
 
 } // namespace detail
 
@@ -171,40 +168,7 @@ struct caption_t { std::string_view value; };
 static inline constexpr caption_t caption(std::string_view value) { return { value }; }
 
 
-    //ᅟ
-    // Default tag type for `reflect()` methods which define type metadata for serialization.
-    //
-struct serialization_metadata_tag { };
-
-
-    //ᅟ
-    // Base class for metadata-based serializers.
-    //ᅟ
-    // Use this class with `chain()` to inject a metadata tag into a metadata-based serializer.
-    //
-template <typename MetadataTagT = serialization_metadata_tag>
-    struct metadata_serializer_t
-{
-    using metadata_tag = MetadataTagT;
-};
-template <typename MetadataTagT = serialization_metadata_tag> constexpr metadata_serializer_t<MetadataTagT> metadata_serializer { };
-
-
-    //ᅟ
-    // Retrieves the metadata tag to be used for metadata-based serializers.
-    // Defaults to `serialization_metadata_tag` if the user did not override the tag by combining or chaining with a `metadata_serializer_t`.
-    //
-template <typename SerializerT> struct serializer_metadata_tag : std::conditional<can_apply_v<makeshift::detail::serializer_metadata_tag_rt, SerializerT>, makeshift::detail::serializer_metadata_tag_r<SerializerT>, serialization_metadata_tag> { };
-
-    //ᅟ
-    // Retrieves the metadata tag to be used for metadata-based serializers. Defaults to `serialization_metadata_tag` if the
-    // user did not override the tag by combining or chaining with a `metadata_serializer_t`.
-    //
-template <typename SerializerT> using serializer_metadata_tag_t = typename serializer_metadata_tag<SerializerT>::type;
-
-
 } // inline namespace metadata
-
 
 
 } // namespace makeshift

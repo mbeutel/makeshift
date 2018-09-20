@@ -32,7 +32,7 @@ inline namespace serialize
     //ᅟ    std::string s = to_string(42, string_serializer_v); // returns "42"s
     //
 template <typename T, typename SerializerT>
-    std::string to_string(const T& value, SerializerT& serializer)
+    std::string to_string(const T& value, SerializerT&& serializer)
 {
     return to_string_impl(value, serializer, serializer);
 }
@@ -45,7 +45,7 @@ template <typename T, typename SerializerT>
     //
 template <typename T, typename SerializerT,
           typename = std::enable_if_t<is_serializer_v<std::decay_t<SerializerT>>>>
-    T from_string(std::string_view string, SerializerT& serializer, tag<T> = { })
+    T from_string(std::string_view string, SerializerT&& serializer, tag<T> = { })
 {
     return from_string_impl(tag_v<T>, string, serializer, serializer);
 }

@@ -944,9 +944,15 @@ template <typename T, typename MetadataTagT> constexpr bool have_metadata_v = ha
 
 
     //ᅟ
-    // Default tag type for `reflect()` methods which define type metadata for correctness and value enumeration.
+    // Default tag type for `reflect()` methods which define type metadata for correctness and compile-time member and value enumeration.
     //
 struct reflection_metadata_tag { };
+
+
+    //ᅟ
+    // Default tag type for `reflect()` methods which define type metadata for serialization.
+    //
+struct serialization_metadata_tag { };
 
 
 } // inline namespace metadata
@@ -983,6 +989,10 @@ template <typename T, typename MetadataTagT>
     else
         return default_type_category<T>();
 }
+
+
+template <typename ChainableT> struct metadata_tag_r { using type = typename ChainableT::metadata_tag; };
+template <typename ChainableT> using metadata_tag_rt = typename ChainableT::metadata_tag;
 
 
 } // namespace detail

@@ -6,7 +6,8 @@
 #include <string_view>
 #include <cstddef>     // for size_t
 
-#include <makeshift/detail/cfg.hpp>  // for MAKESHIFT_DLLFUNC
+#include <makeshift/detail/cfg.hpp>                 // for MAKESHIFT_DLLFUNC
+#include <makeshift/detail/functional_comparer.hpp> // for define_comparer<>
 
 
 namespace makeshift
@@ -33,53 +34,63 @@ enum class string_comparison
 };
 
 
-    //ᅟ
-    // Compares the two strings for equality using the given string comparison mode.
-    //
-class string_equal_to
+struct string_comparer_options
 {
-private:
-    string_comparison comparison_;
+    string_comparison comparison = string_comparison::ordinal;
 
-public:
-    constexpr string_equal_to(void) noexcept : comparison_(string_comparison::ordinal) { }
-    constexpr string_equal_to(string_comparison _comparison) noexcept : comparison_(_comparison) { }
-
-    MAKESHIFT_DLLFUNC bool operator()(std::string_view lhs, std::string_view rhs) const noexcept;
+    constexpr string_comparer_options(void) noexcept = default;
+    constexpr string_comparer_options(string_comparison _comparison) noexcept : comparison(_comparison) { }
 };
 
 
-    //ᅟ
-    // Computes the hash of a string using the given string comparison mode.
-    //
-class string_hash
+} // inline namespace utility
+
+
+namespace detail
 {
-private:
-    string_comparison comparison_;
 
-public:
-    constexpr string_hash(void) noexcept : comparison_(string_comparison::ordinal) { }
-    constexpr string_hash(string_comparison _comparison) noexcept : comparison_(_comparison) { }
 
-    MAKESHIFT_DLLFUNC std::size_t operator()(std::string_view arg) const noexcept;
-};
+MAKESHIFT_DLLFUNC bool string_equal_to(const string_comparer_options& options, std::string_view lhs, std::string_view rhs) noexcept;
+MAKESHIFT_DLLFUNC bool string_less(const string_comparer_options& options, std::string_view lhs, std::string_view rhs) noexcept;
+MAKESHIFT_DLLFUNC std::size_t string_hash(const string_comparer_options& options, std::string_view obj) noexcept;
+
+
+} // namespace detail
+
+
+
+inline namespace utility
+{
 
 
     //ᅟ
-    // Compares the two strings lexicographically using the given string comparison mode. Returns `true` if lower-case `lhs`
-    // lexicographically precedes lower-case `rhs`, `false` otherwise.
+    // String comparer which handles different string comparison modes.
     //
-class string_less
+template <typename BaseT = void>
+    struct string_comparer : define_comparer<string_comparer, BaseT, string_comparer_options>
 {
-private:
-    string_comparison comparison_;
+    using base = define_comparer<makeshift::string_comparer, BaseT, string_comparer_options>;
+    using base::base;
 
-public:
-    constexpr string_less(void) noexcept : comparison_(string_comparison::ordinal) { }
-    constexpr string_less(string_comparison _comparison) noexcept : comparison_(_comparison) { }
-
-    MAKESHIFT_DLLFUNC bool operator()(std::string_view lhs, std::string_view rhs) const noexcept;
+    template <typename ComparerT>
+        friend bool less_impl(std::string_view lhs, std::string_view rhs, const string_comparer& stringComparer, ComparerT&&) noexcept
+    {
+        return makeshift::detail::string_less(stringComparer.data, lhs, rhs);
+    }
+    template <typename ComparerT>
+        friend bool equal_to_impl(std::string_view lhs, std::string_view rhs, const string_comparer& stringComparer, ComparerT&&) noexcept
+    {
+        return makeshift::detail::string_equal_to(stringComparer.data, lhs, rhs);
+    }
+    template <typename ComparerT>
+        friend std::size_t hash_impl(std::string_view obj, const string_comparer& stringComparer, ComparerT&&) noexcept
+    {
+        return makeshift::detail::string_hash(stringComparer.data, obj);
+    }
 };
+string_comparer(void) -> string_comparer<>;
+string_comparer(const string_comparer_options&) -> string_comparer<>;
+string_comparer(string_comparer_options&&) -> string_comparer<>;
 
 
 } // inline namespace utility

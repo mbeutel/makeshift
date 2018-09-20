@@ -9,8 +9,6 @@
 #include <makeshift/tuple.hpp>       // for type_tuple<>
 #include <makeshift/metadata.hpp>    // for have_metadata<>, metadata_of<>
 
-#include <makeshift/detail/functional_operators.hpp> // for hash<>
-
 
 namespace makeshift
 {
@@ -149,137 +147,58 @@ template <typename T, typename MetadataTagT>
         | tuple_map([](auto v) { return member_accessor(v); });
 }
 
+template <typename ComparerT, typename AccessorsT, typename T>
+    constexpr bool lexicographical_compare_members(ComparerT&&, const AccessorsT&, const T&, const T&, std::index_sequence<>) noexcept
+{
+    return false;
+}
+template <typename ComparerT, typename AccessorsT, typename T, std::size_t I0, std::size_t... Is>
+    constexpr bool lexicographical_compare_members(ComparerT&& cmp, const AccessorsT& memberAccessors, const T& lhs, const T& rhs, std::index_sequence<I0, Is...>) noexcept
+{
+    auto accessor = std::get<I0>(memberAccessors);
+    const auto& lhsMember = accessor(lhs);
+    const auto& rhsMember = accessor(rhs);
+    if (less_impl(lhsMember, rhsMember, cmp, cmp)) return true;
+    if (less_impl(rhsMember, lhsMember, cmp, cmp)) return false;
+    return lexicographical_compare_members(cmp, memberAccessors, lhs, rhs, std::index_sequence<Is...>{ });
+}
+template <typename T, typename ComparerT>
+    constexpr bool aggregate_less(const T& lhs, const T& rhs, ComparerT&& cmp) noexcept
+{
+    using MetadataTag = metadata_tag_of_comparer_t<std::decay_t<ComparerT>>;
+    constexpr auto memberAccessors = get_member_accessors<T, MetadataTag>();
+    using MemberAccessors = decltype(memberAccessors);
+
+    return lexicographical_compare_members(cmp, memberAccessors, lhs, rhs, std::make_index_sequence<std::tuple_size<MemberAccessors>::value>{ });
+}
+
+template <typename T, typename ComparerT>
+    constexpr bool aggregate_equal_to(const T& lhs, const T& rhs, ComparerT&& cmp) noexcept
+{
+    using MetadataTag = metadata_tag_of_comparer_t<std::decay_t<ComparerT>>;
+    constexpr auto memberAccessors = get_member_accessors<T, MetadataTag>();
+
+    return memberAccessors
+        | tuple_all([&lhs, &rhs, &cmp](auto&& accessor){ return equal_to_impl(accessor(lhs), accessor(rhs), cmp, cmp); });
+}
+
+static constexpr inline std::size_t hash_combine(std::size_t seed, std::size_t newHash) noexcept
+{
+        // taken from boost::hash_combine()
+    return seed ^ newHash + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+}
+template <typename T, typename ComparerT>
+    constexpr std::size_t aggregate_hash(const T& obj, ComparerT&& cmp) noexcept
+{
+    using MetadataTag = metadata_tag_of_comparer_t<std::decay_t<ComparerT>>;
+    constexpr auto memberAccessors = get_member_accessors<T, MetadataTag>();
+
+    return memberAccessors
+        | tuple_fold(0, [&obj, &cmp](std::size_t seed, auto&& accessor) { return hash_combine(seed, hash_impl(accessor(obj), cmp, cmp)); });
+}
+
 
 } // namespace detail
-
-
-inline namespace metadata
-{
-
-
-    //ᅟ
-    // Compares two struct objects for member-wise equality using metadata-based reflection.
-    //
-template <typename T, typename MetadataTagT = reflection_metadata_tag, typename MemberEqualToT = equal_to<MetadataTagT>>
-    class aggregate_equal_to : MemberEqualToT
-{
-private:
-    static constexpr auto memberAccessors_ = makeshift::detail::get_member_accessors<T, MetadataTagT>();
-
-public:
-    template <typename = std::enable_if_t<std::is_default_constructible<MemberEqualToT>::value>>
-        constexpr aggregate_equal_to(void) noexcept(std::is_nothrow_default_constructible<MemberEqualToT>::value)
-    {
-    }
-    constexpr aggregate_equal_to(MemberEqualToT _equalTo) : MemberEqualToT(_equalTo) { }
-    template <typename = std::enable_if_t<std::is_default_constructible<MemberEqualToT>::value>>
-        constexpr aggregate_equal_to(tag<T>, MetadataTagT = { }) noexcept(std::is_nothrow_default_constructible<MemberEqualToT>::value)
-    {
-    }
-    constexpr aggregate_equal_to(tag<T>, MetadataTagT, MemberEqualToT _equalTo) : MemberEqualToT(_equalTo) { }
-
-    constexpr bool operator()(const T& lhs, const T& rhs) const noexcept
-    {
-        return memberAccessors_
-            | tuple_all([this, &lhs, &rhs](auto&& accessor){ return static_cast<const MemberEqualToT&>(*this)(accessor(lhs), accessor(rhs)); });
-    }
-};
-template <typename T>
-    aggregate_equal_to(tag<T>) -> aggregate_equal_to<T>;
-template <typename T, typename MetadataTagT>
-    aggregate_equal_to(tag<T>, const MetadataTagT&) -> aggregate_equal_to<T, MetadataTagT>;
-template <typename T, typename MetadataTagT, typename MemberEqualToT>
-    aggregate_equal_to(tag<T>, const MetadataTagT&, MemberEqualToT&&) -> aggregate_equal_to<T, MetadataTagT, std::decay_t<MemberEqualToT>>;
-
-
-    //ᅟ
-    // Compares two struct objects for member-wise ordering using metadata-based reflection.
-    //
-template <typename T, typename MetadataTagT = reflection_metadata_tag, typename MemberLessT = less<MetadataTagT>>
-    class aggregate_less : MemberLessT
-{
-private:
-    static constexpr auto memberAccessors_ = makeshift::detail::get_member_accessors<T, MetadataTagT>();
-
-    constexpr bool lexicographical_compare_(const T&, const T&, std::index_sequence<>) const noexcept
-    {
-        return false;
-    }
-    template <std::size_t I0, std::size_t... Is>
-        constexpr bool lexicographical_compare_(const T& lhs, const T& rhs, std::index_sequence<I0, Is...>) const noexcept
-    {
-        auto accessor = std::get<I0>(memberAccessors_);
-        const auto& lhsMember = accessor(lhs);
-        const auto& rhsMember = accessor(rhs);
-        if (static_cast<const MemberLessT&>(*this)(lhsMember, rhsMember)) return true;
-        if (static_cast<const MemberLessT&>(*this)(rhsMember, lhsMember)) return false;
-        return lexicographical_compare_(lhs, rhs, std::index_sequence<Is...>{ });
-    }
-
-
-public:
-    template <typename = std::enable_if_t<std::is_default_constructible<MemberLessT>::value>>
-        constexpr aggregate_less(void) noexcept(std::is_nothrow_default_constructible<MemberLessT>::value)
-    {
-    }
-    constexpr aggregate_less(MemberLessT _less) : MemberLessT(_less) { }
-    template <typename = std::enable_if_t<std::is_default_constructible<MemberLessT>::value>>
-        constexpr aggregate_less(tag<T>, MetadataTagT = { }) noexcept(std::is_nothrow_default_constructible<MemberLessT>::value)
-    {
-    }
-    constexpr aggregate_less(tag<T>, MetadataTagT, MemberLessT _less) : MemberLessT(_less) { }
-
-    constexpr bool operator()(const T& lhs, const T& rhs) const noexcept
-    {
-        using MemberAccessors = decltype(memberAccessors_);
-        return lexicographical_compare_(lhs, rhs, std::make_index_sequence<std::tuple_size<MemberAccessors>::value>{ });
-    }
-};
-template <typename T>
-    aggregate_less(tag<T>) -> aggregate_less<T>;
-template <typename T, typename MetadataTagT>
-    aggregate_less(tag<T>, const MetadataTagT&) -> aggregate_less<T, MetadataTagT>;
-template <typename T, typename MetadataTagT, typename MemberLessT>
-    aggregate_less(tag<T>, const MetadataTagT&, MemberLessT&&) -> aggregate_less<T, MetadataTagT, std::decay_t<MemberLessT>>;
-
-
-    //ᅟ
-    // Computes the hash of a struct by combining member hashes using metadata-based reflection.
-    //
-template <typename T, typename MetadataTagT = reflection_metadata_tag, template <typename...> class MemberHashT = hash>
-    class aggregate_hash
-{
-private:
-    static constexpr auto memberAccessors_ = makeshift::detail::get_member_accessors<T, MetadataTagT>();
-
-    static std::size_t hash_combine_(std::size_t seed, std::size_t newHash) noexcept
-    {
-            // taken from boost::hash_combine()
-        return seed ^ newHash + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-    }
-
-public:
-    constexpr aggregate_hash(void) noexcept = default;
-    constexpr aggregate_hash(tag<T>, MetadataTagT = { }) noexcept { }
-
-    constexpr std::size_t operator()(const T& obj) const noexcept
-    {
-        return memberAccessors_
-            | tuple_fold(0, [&obj](std::size_t seed, auto&& accessor)
-              {
-                  using MemberType = typename std::decay_t<decltype(accessor)>::value_type;
-                  using MemberHash = std::conditional_t<is_same_template_v<MemberHashT, hash>, hash<MemberType, MetadataTagT>, MemberHashT<MemberType>>;
-                  return hash_combine_(seed, MemberHash{ }(accessor(obj)));
-              });
-    }
-};
-template <typename T>
-    aggregate_hash(tag<T>) -> aggregate_hash<T>;
-template <typename T, typename MetadataTagT>
-    aggregate_hash(tag<T>, const MetadataTagT&) -> aggregate_hash<T, MetadataTagT>;
-
-
-} // inline namespace metadata
 
 } // namespace makeshift
 

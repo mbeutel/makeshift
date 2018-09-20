@@ -12,7 +12,7 @@ inline namespace serialize
 {
 
 
-std::vector<bool_serialization_options::bool_string> bool_serialization_options::default_strings(void)
+std::vector<bool_serializer_options::bool_string> bool_serializer_options::default_strings(void)
 {
     return {
         { "true",    true }, { "false",    false },
@@ -24,13 +24,13 @@ std::vector<bool_serialization_options::bool_string> bool_serialization_options:
     };
 }
 
-[[noreturn]] static void raise_bool_error(const std::string& str, const bool_serialization_options& options)
+[[noreturn]] static void raise_bool_error(const std::string& str, const bool_serializer_options& options)
 {
     std::string msg = "invalid boolean value; expected one of: ";
     bool first = true;
     
         // check if true_string and false_string are duplicates, don't print them if they are
-    string_equal_to comparer{ options.comparison };
+    auto comparer = equal_to(string_comparer(string_comparer_options{ options.comparison }));
     auto append = [&first, &msg](std::string_view valueStr)
     {
         if (first)
@@ -44,7 +44,7 @@ std::vector<bool_serialization_options::bool_string> bool_serialization_options:
         return std::find_if(options.strings.begin(), options.strings.end(),
             [needle, comparer] (const auto& entry)
             {
-                return comparer(entry.str, needle);
+                return comparer(std::string_view(entry.str), needle);
             }) == options.strings.end();
     };
     if (!haveStr(options.false_string))
@@ -57,12 +57,12 @@ std::vector<bool_serialization_options::bool_string> bool_serialization_options:
     throw parse_error(msg, str, 0);
 }
 
-void bool_from_stream_impl(const bool_serialization_options& options, bool& value, const std::string& str)
+void bool_from_stream_impl(const bool_serializer_options& options, bool& value, const std::string& str)
 {
-    string_equal_to comparer{ options.comparison };
-    if (comparer(str, options.true_string))
+    auto comparer = equal_to(string_comparer(string_comparer_options{ options.comparison }));
+    if (comparer(std::string_view(str), options.true_string))
         value = true;
-    else if (comparer(str, options.false_string))
+    else if (comparer(std::string_view(str), options.false_string))
         value = false;
     else
     {

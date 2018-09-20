@@ -43,48 +43,40 @@ struct fnv1a_hasher
 };
 
 
-} // namespace detail
-
-
-inline namespace utility
+bool string_equal_to(const string_comparer_options& options, std::string_view lhs, std::string_view rhs) noexcept
 {
-
-
-bool string_equal_to::operator()(std::string_view lhs, std::string_view rhs) const noexcept
-{
-    if (comparison_ == string_comparison::ordinal_ignore_case)
+    if (options.comparison == string_comparison::ordinal_ignore_case)
         return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end(),
             [](char a, char b) { return std::tolower(a) == std::tolower(b); });
     else
         return lhs == rhs;
 }
+bool string_less(const string_comparer_options& options, std::string_view lhs, std::string_view rhs) noexcept
+{
+    if (options.comparison == string_comparison::ordinal_ignore_case)
+        return std::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end(),
+            [](char a, char b) { return std::tolower(a) < std::tolower(b); });
+    else
+        return lhs < rhs;
 
-std::size_t string_hash::operator()(std::string_view arg) const noexcept
+}
+std::size_t string_hash(const string_comparer_options& options, std::string_view obj) noexcept
 {
     makeshift::detail::fnv1a_hasher hasher;
-    if (comparison_ == string_comparison::ordinal_ignore_case)
+    if (options.comparison == string_comparison::ordinal_ignore_case)
     {
-        for (auto ch : arg)
+        for (auto ch : obj)
             hasher.add_byte(static_cast<unsigned char>(char(std::tolower(ch))));
     }
     else
     {
-        for (auto ch : arg)
+        for (auto ch : obj)
             hasher.add_byte(static_cast<unsigned char>(char(ch)));
     }
     return hasher.val;
 }
 
-bool string_less::operator()(std::string_view lhs, std::string_view rhs) const noexcept
-{
-    if (comparison_ == string_comparison::ordinal_ignore_case)
-        return std::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end(),
-            [](char a, char b) { return std::tolower(a) < std::tolower(b); });
-    else
-        return lhs < rhs;
-}
 
-
-} // inline namespace utility
+} // namespace detail
 
 } // namespace makeshift
