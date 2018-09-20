@@ -48,11 +48,16 @@ enum class type_category
     value,
 
         //ᅟ
-        // Indicates that the associated type is an aggregate, i.e. it has the semantics of a named tuple with regard to identity and comparability.
+        // Indicates that the associated type is a composite type which itself forms a value, e.g. a geometrical point defined as `struct Point { int x, y; };`.
+        //
+    compound_value,
+
+        //ᅟ
+        // Indicates that the associated type is a compound type, i.e. it has the semantics of a named tuple with regard to identity and comparability.
         // This type category does not necessarily require aggregate-ness as defined in the C++ standard (`std::is_aggregate<>`), which imposes
         // unnecessary limitations (e.g. it makes sense for an aggregate to have a user-defined constructor).
         //
-    aggregate,
+    compound,
 
         //ᅟ
         // Unknown type category.
@@ -968,7 +973,7 @@ template <typename T>
     if constexpr (std::is_scalar<T>::value)
         return type_category::value;
     else if constexpr (std::is_aggregate<T>::value)
-        return type_category::aggregate;
+        return type_category::compound;
     else
         return type_category::other;
 }
@@ -1015,7 +1020,7 @@ namespace detail
 {
 
 
-template <typename KeyT, typename MetadataTagT> constexpr bool is_aggregate = type_category_of<KeyT, MetadataTagT> == type_category::aggregate;
+template <typename KeyT, typename MetadataTagT> constexpr bool is_any_compound = type_category_of<KeyT, MetadataTagT> == type_category::compound || type_category_of<KeyT, MetadataTagT> == type_category::compound_value;
 
 
 } // namespace detail

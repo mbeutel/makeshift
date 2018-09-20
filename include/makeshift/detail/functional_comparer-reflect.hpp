@@ -34,7 +34,7 @@ template <typename ComparerT, typename AccessorsT, typename T, std::size_t I0, s
     return lexicographical_compare_members(cmp, memberAccessors, lhs, rhs, std::index_sequence<Is...>{ });
 }
 template <typename T, typename ComparerT>
-    constexpr bool aggregate_less(const T& lhs, const T& rhs, ComparerT&& cmp) noexcept
+    constexpr bool compound_less(const T& lhs, const T& rhs, ComparerT&& cmp) noexcept
 {
     using MetadataTag = metadata_tag_of_comparer_t<std::decay_t<ComparerT>>;
     constexpr auto memberAccessors = get_member_accessors<T, MetadataTag>();
@@ -44,7 +44,7 @@ template <typename T, typename ComparerT>
 }
 
 template <typename T, typename ComparerT>
-    constexpr bool aggregate_equal_to(const T& lhs, const T& rhs, ComparerT&& cmp) noexcept
+    constexpr bool compound_equal_to(const T& lhs, const T& rhs, ComparerT&& cmp) noexcept
 {
     using MetadataTag = metadata_tag_of_comparer_t<std::decay_t<ComparerT>>;
     constexpr auto memberAccessors = get_member_accessors<T, MetadataTag>();
@@ -59,7 +59,7 @@ static constexpr inline std::size_t hash_combine(std::size_t seed, std::size_t n
     return seed ^ newHash + 0x9e3779b9 + (seed << 6) + (seed >> 2);
 }
 template <typename T, typename ComparerT>
-    constexpr std::size_t aggregate_hash(const T& obj, ComparerT&& cmp) noexcept
+    constexpr std::size_t compound_hash(const T& obj, ComparerT&& cmp) noexcept
 {
     using MetadataTag = metadata_tag_of_comparer_t<std::decay_t<ComparerT>>;
     constexpr auto memberAccessors = get_member_accessors<T, MetadataTag>();

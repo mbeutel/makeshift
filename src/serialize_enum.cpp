@@ -26,6 +26,10 @@ static std::string concat_message(const std::string& error, const std::string& c
     return error + "\nContext: \"" + context + "\"";
 }
 
+parse_error::parse_error(const std::string& _error)
+    : std::runtime_error(_error), error_(_error), context_(""), column_(std::size_t(-1))
+{
+}
 parse_error::parse_error(const std::string& _error, const std::string& _context, std::size_t _column)
     : std::runtime_error(concat_message(_error, _context)), error_(_error), context_(_context), column_(_column)
 {

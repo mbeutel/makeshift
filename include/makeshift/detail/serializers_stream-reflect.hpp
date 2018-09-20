@@ -15,7 +15,7 @@ namespace detail
 
 
 template <typename T, typename SerializerT>
-    void aggregate_to_stream(std::ostream& stream, const T& value, SerializerT&& serializer)
+    void compound_to_stream(std::ostream& stream, const T& value, SerializerT&& serializer)
 {
     using MetadataTag = metadata_tag_of_serializer_t<std::decay_t<SerializerT>>;
     constexpr auto members = get_members<T, MetadataTag>();
@@ -41,7 +41,7 @@ template <typename T, typename SerializerT>
     stream << " }";
 }
 template <typename T, typename SerializerT>
-    void aggregate_from_stream(std::istream& stream, T& value, SerializerT&& serializer)
+    void compound_from_stream(std::istream& stream, T& value, SerializerT&& serializer)
 {
     static_assert(sizeof(T) == std::size_t(-1), "not implemented yet");
 }

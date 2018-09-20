@@ -82,7 +82,7 @@ struct COOIndex
 static constexpr auto reflect(mk::tag<COOIndex>, mk::any_tag_of<mk::reflection_metadata_tag, mk::serialization_metadata_tag>)
 {
     using namespace makeshift::metadata;
-    return type<COOIndex, type_category::aggregate>(
+    return type<COOIndex, type_category::compound_value>(
         member<&COOIndex::i>(),
         member<&COOIndex::j>()
     );
@@ -96,7 +96,7 @@ struct COOValue
 static constexpr auto reflect(mk::tag<COOValue>, mk::any_tag_of<mk::reflection_metadata_tag, mk::serialization_metadata_tag>)
 {
     using namespace makeshift::metadata;
-    return type<COOValue, type_category::aggregate>(
+    return type<COOValue, type_category::compound>(
         member<&COOValue::index>("index"),
         member<&COOValue::value>("value")
     );

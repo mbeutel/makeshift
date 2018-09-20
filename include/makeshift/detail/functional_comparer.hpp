@@ -66,11 +66,11 @@ namespace detail
 
     // defined in functional_comparer-reflect.hpp
 template <typename T, typename ComparerT>
-    constexpr bool aggregate_less(const T& lhs, const T& rhs, ComparerT&& cmp) noexcept;
+    constexpr bool compound_less(const T& lhs, const T& rhs, ComparerT&& cmp) noexcept;
 template <typename T, typename ComparerT>
-    constexpr bool aggregate_equal_to(const T& lhs, const T& rhs, ComparerT&& cmp) noexcept;
+    constexpr bool compound_equal_to(const T& lhs, const T& rhs, ComparerT&& cmp) noexcept;
 template <typename T, typename ComparerT>
-    constexpr std::size_t aggregate_hash(const T& obj, ComparerT&& cmp) noexcept;
+    constexpr std::size_t compound_hash(const T& obj, ComparerT&& cmp) noexcept;
 
 
 } // namespace detail
@@ -105,8 +105,8 @@ template <typename BaseT = void>
     {
         (void) cmp;
         using MetadataTag = metadata_tag_of_comparer_t<std::decay_t<ComparerT>>;
-        if constexpr (makeshift::detail::is_aggregate<T, MetadataTag>)
-            return makeshift::detail::aggregate_less(lhs, rhs, cmp);
+        if constexpr (makeshift::detail::is_any_compound<T, MetadataTag>)
+            return makeshift::detail::compound_less(lhs, rhs, cmp);
         else
             return lhs < rhs;
     }
@@ -115,8 +115,8 @@ template <typename BaseT = void>
     {
         (void) cmp;
         using MetadataTag = metadata_tag_of_comparer_t<std::decay_t<ComparerT>>;
-        if constexpr (makeshift::detail::is_aggregate<T, MetadataTag>)
-            return makeshift::detail::aggregate_equal_to(lhs, rhs, cmp);
+        if constexpr (makeshift::detail::is_any_compound<T, MetadataTag>)
+            return makeshift::detail::compound_equal_to(lhs, rhs, cmp);
         else
             return lhs == rhs;
     }
@@ -125,8 +125,8 @@ template <typename BaseT = void>
     {
         (void) cmp;
         using MetadataTag = metadata_tag_of_comparer_t<std::decay_t<ComparerT>>;
-        if constexpr (makeshift::detail::is_aggregate<T, MetadataTag>)
-            return makeshift::detail::aggregate_hash(obj, cmp);
+        if constexpr (makeshift::detail::is_any_compound<T, MetadataTag>)
+            return makeshift::detail::compound_hash(obj, cmp);
         else
             return default_hash<T>{ }(obj);
     }
