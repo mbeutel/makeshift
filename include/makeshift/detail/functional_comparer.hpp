@@ -64,9 +64,6 @@ namespace detail
 {
 
 
-template <typename KeyT, typename MetadataTagT> constexpr bool is_aggregate = type_category_of<KeyT, MetadataTagT> == type_category::aggregate;
-
-
     // defined in reflect.hpp
 
 template <typename T, typename ComparerT>

@@ -57,7 +57,7 @@ std::vector<bool_serializer_options::bool_string> bool_serializer_options::defau
     throw parse_error(msg, str, 0);
 }
 
-void bool_from_stream_impl(const bool_serializer_options& options, bool& value, const std::string& str)
+void bool_from_stream(const bool_serializer_options& options, bool& value, const std::string& str)
 {
     auto comparer = equal_to(string_comparer(string_comparer_options{ options.comparison }));
     if (comparer(std::string_view(str), options.true_string))

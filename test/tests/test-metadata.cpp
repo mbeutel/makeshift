@@ -91,14 +91,14 @@ static constexpr auto reflect(mk::tag<COOIndex>, mk::any_tag_of<mk::reflection_m
 struct COOValue
 {
     COOIndex index;
-    double v;
+    double value;
 };
 static constexpr auto reflect(mk::tag<COOValue>, mk::any_tag_of<mk::reflection_metadata_tag, mk::serialization_metadata_tag>)
 {
     using namespace makeshift::metadata;
     return type<COOValue, type_category::aggregate>(
         member<&COOValue::index>("index"),
-        member<&COOValue::v>("v")
+        member<&COOValue::value>("value")
     );
 }
 

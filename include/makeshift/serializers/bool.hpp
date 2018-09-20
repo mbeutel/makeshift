@@ -62,7 +62,7 @@ namespace detail
 {
 
 
-MAKESHIFT_DLLFUNC void bool_from_stream_impl(const bool_serializer_options& options, bool& value, const std::string& str);
+MAKESHIFT_DLLFUNC void bool_from_stream(const bool_serializer_options& options, bool& value, const std::string& str);
 
 
 } // namespace detail

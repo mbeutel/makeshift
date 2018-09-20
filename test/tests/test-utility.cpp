@@ -25,9 +25,9 @@ struct Vegetables : mk::define_flags<Vegetables>
 };
 using Ratatouille = Vegetables::flags;
 
-int assembleDecimal(const std::tuple<mk::named_t<int, "ones"_kw>, mk::named_t<int, "tens"_kw>>& args)
+int assembleDecimal(const std::tuple<mk::named_t<int, "ones"_k>, mk::named_t<int, "tens"_k>>& args)
 {
-    return 10*mk::get_by_name<"tens"_kw>(args) + mk::get_by_name<"ones"_kw>(args);
+    return 10*mk::get_by_key<"tens"_k>(args) + mk::get_by_key<"ones"_k>(args);
 }
 
 } // anonymous namespace
@@ -40,14 +40,14 @@ TEST_CASE("types", "[flags]")
     }
     SECTION("keys")
     {
-        using Width = mk::named_t<int, "width"_kw>;
+        using Width = mk::named_t<int, "width"_k>;
         Width val1 { 42 };
-        Width val2 = { mk::name<"width"_kw> = 42 };
+        Width val2 = { mk::name_v<"width"_k> = 42 };
         CHECK(get(val1) == get(val2));
-        CHECK("make"_kw + "shift"_kw == "makeshift"_kw);
+        CHECK("make"_k + "shift"_k == "makeshift"_k);
     }
     SECTION("kwargs")
     {
-        CHECK(assembleDecimal({ mk::name<"ones"_kw> = 7, mk::name<"tens"_kw> = 8 }) == 87);
+        CHECK(assembleDecimal({ mk::name_v<"ones"_k> = 7, mk::name_v<"tens"_k> = 8 }) == 87);
     }
 }

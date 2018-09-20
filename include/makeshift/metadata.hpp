@@ -140,7 +140,7 @@ template <auto... Accessors, typename... AttrT, typename = type_sequence<decltyp
     // Stores metadata for the bitflag type of a flags enum.
     //
 template <typename TypeMetadataT>
-    struct flags_t
+    struct flags_metadata
 {
     using value_type = TypeMetadataT;
     TypeMetadataT value;
@@ -151,7 +151,7 @@ template <typename TypeMetadataT>
     //
 template <typename TypeMetadataT,
           typename = std::enable_if_t<is_instantiation_of_v<TypeMetadataT, type_metadata>>>
-    constexpr flags_t<std::decay_t<TypeMetadataT>> flags(TypeMetadataT&& typeMetadata)
+    constexpr flags_metadata<std::decay_t<TypeMetadataT>> flags(TypeMetadataT&& typeMetadata)
 {
     return { std::forward<TypeMetadataT>(typeMetadata) };
 }
@@ -160,12 +160,12 @@ template <typename TypeMetadataT,
     //ᅟ
     // Encodes a human-readable caption of an entity in metadata.
     //
-struct caption_t { std::string_view value; };
+struct caption_metadata { std::string_view value; };
 
     //ᅟ
     // Use `caption("the caption")` to encode a human-readable caption of an entity in metadata.
     //
-static inline constexpr caption_t caption(std::string_view value) { return { value }; }
+static inline constexpr caption_metadata caption(std::string_view value) { return { value }; }
 
 
 } // inline namespace metadata

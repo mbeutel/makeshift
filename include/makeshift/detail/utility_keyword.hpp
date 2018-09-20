@@ -7,7 +7,6 @@
 #include <utility>     // for forward<>()
 #include <cstdint>     // for uint32_t
 #include <cstddef>     // for size_t
-#include <tuple>       // for tuple_element<>
 
 
 namespace makeshift
@@ -71,19 +70,19 @@ inline namespace types
 
 
     // Typed keyword args:
-    // Define a named type with `named_t<>` and the `""_kw` literal operator:
+    // Define a named type with `named_t<>` and the `""_k` literal operator:
     //ᅟ
-    //ᅟ    using Width = named_t<int, "width"_kw>;
+    //ᅟ    using Width = named_t<int, "width"_k>;
     //ᅟ
-    // Construct an object of a named type either with the explicit constructor, or by using `name<>`
+    // Construct an object of a named type either with the explicit constructor, or by using `name_v<>`
     // with assignment syntax:
     //ᅟ
     //ᅟ    Width w1 { 42 };
-    //ᅟ    Width w2 = { name<"width"_kw> = 42 };
+    //ᅟ    Width w2 = { name_v<"width"_k> = 42 };
     //ᅟ
     // Concatenate keywords with '+':
     //ᅟ
-    //ᅟ    "make"_kw + "shift"_kw == "makeshift"_kw
+    //ᅟ    "make"_k + "shift"_k == "makeshift"_k
     //ᅟ
     // This is currently implemented using CRC-32 to work around the inability to pass strings as template
     // arguments. This may change in C++20, cf. P0732. I hope to be able to switch to a P0732-based
@@ -93,9 +92,9 @@ inline namespace types
     //ᅟ
     // Wraps a value of type `T` with a compile-time keyword name and a scope:
     //ᅟ
-    //ᅟ    using Width = named_t<int, "width"_kw>;
-    //ᅟ    using LDist = scoped_t<int, "left"_kw>;
-    //ᅟ    using RDist = scoped_t<int, "right"_kw>;
+    //ᅟ    using Width = named_t<int, "width"_k>;
+    //ᅟ    using LDist = scoped_t<int, "left"_k>;
+    //ᅟ    using RDist = scoped_t<int, "right"_k>;
     //
 template <typename T, makeshift::detail::keyword_crc Name, makeshift::detail::keyword_crc... Scopes>
     struct contextual
@@ -117,8 +116,8 @@ template <typename T, makeshift::detail::keyword_crc Name, makeshift::detail::ke
     //ᅟ
     // Wraps a value of type `T` with a compile-time keyword scope:
     //ᅟ
-    //ᅟ    using SrcFile = scoped_t<File, "src"_kw>;
-    //ᅟ    using DstFile = scoped_t<File, "dst"_kw>;
+    //ᅟ    using SrcFile = scoped_t<File, "src"_k>;
+    //ᅟ    using DstFile = scoped_t<File, "dst"_k>;
     //
 template <typename T, makeshift::detail::keyword_crc... Scopes> struct scoped { using type = contextual<T, makeshift::detail::keyword_crc{ }, Scopes...>; };
 template <typename T, makeshift::detail::keyword_crc Name, makeshift::detail::keyword_crc... OldScopes, makeshift::detail::keyword_crc... NewScopes> struct scoped<contextual<T, Name, OldScopes...>, NewScopes...> { using type = contextual<T, Name, NewScopes..., OldScopes...>; };
@@ -126,8 +125,8 @@ template <typename T, makeshift::detail::keyword_crc Name, makeshift::detail::ke
     //ᅟ
     // Wraps a value of type `T` with a compile-time keyword scope:
     //ᅟ
-    //ᅟ    using SrcFile = scoped_t<File, "src"_kw>;
-    //ᅟ    using DstFile = scoped_t<File, "dst"_kw>;
+    //ᅟ    using SrcFile = scoped_t<File, "src"_k>;
+    //ᅟ    using DstFile = scoped_t<File, "dst"_k>;
     //
 template <typename T, makeshift::detail::keyword_crc... Scopes> using scoped_t = typename scoped<T, Scopes...>::type;
 
@@ -135,7 +134,7 @@ template <typename T, makeshift::detail::keyword_crc... Scopes> using scoped_t =
     //ᅟ
     // Wraps a value of type `T` with a compile-time keyword name:
     //ᅟ
-    //ᅟ    using Width = named_t<int, "width"_kw>;
+    //ᅟ    using Width = named_t<int, "width"_k>;
     //
 template <typename T, makeshift::detail::keyword_crc Name> struct named { using type = contextual<T, Name>; };
 template <typename T, makeshift::detail::keyword_crc OldName, makeshift::detail::keyword_crc... Scopes, makeshift::detail::keyword_crc NewName> struct named<contextual<T, OldName, Scopes...>, NewName>
@@ -147,7 +146,7 @@ template <typename T, makeshift::detail::keyword_crc OldName, makeshift::detail:
     //ᅟ
     // Wraps a value of type `T` with a compile-time keyword name:
     //ᅟ
-    //ᅟ    using Width = named_t<int, "width"_kw>;
+    //ᅟ    using Width = named_t<int, "width"_k>;
     //
 template <typename T, makeshift::detail::keyword_crc Name> using named_t = typename named<T, Name>::type;
 
@@ -155,7 +154,7 @@ template <typename T, makeshift::detail::keyword_crc Name> using named_t = typen
     //ᅟ
     // Retrieves the value type of a possibly contextual type.
     //ᅟ
-    //ᅟ    using Width = named_t<int, "width"_kw>;
+    //ᅟ    using Width = named_t<int, "width"_k>;
     //ᅟ    using RawWidth = unwrap_contextual_t<Width>; // RawWidth == int
     //
 template <typename T> struct unwrap_contextual { using type = T; };
@@ -164,20 +163,20 @@ template <typename T, makeshift::detail::keyword_crc Name, makeshift::detail::ke
     //ᅟ
     // Retrieves the value type of a possibly contextual type.
     //ᅟ
-    //ᅟ    using Width = named_t<int, "width"_kw>;
+    //ᅟ    using Width = named_t<int, "width"_k>;
     //ᅟ    using RawWidth = unwrap_contextual_t<Width>; // RawWidth == int
     //
 template <typename T> using unwrap_contextual_t = typename unwrap_contextual<T>::type;
 
 
     //ᅟ
-    // Retrieves the name of a possibly contextual type. The name of non-contextual types is `""_kw`.
+    // Retrieves the name of a possibly contextual type. The name of non-contextual types is `""_k`.
     //
 template <typename T> struct name_of { static constexpr makeshift::detail::keyword_crc value = { }; };
 template <typename T, makeshift::detail::keyword_crc Name, makeshift::detail::keyword_crc... Scopes> struct name_of<contextual<T, Name, Scopes...>> { static constexpr makeshift::detail::keyword_crc value = Name; };
 
     //ᅟ
-    // Retrieves the name of a possibly contextual type. The name of non-contextual types is `""_kw`.
+    // Retrieves the name of a possibly contextual type. The name of non-contextual types is `""_k`.
     //
 template <typename T> constexpr makeshift::detail::keyword_crc name_of_v = name_of<T>::value;
 
@@ -215,7 +214,7 @@ namespace detail
 
 
 template <keyword_crc Name, keyword_crc... Scopes>
-    struct key_t
+    struct key
 {
     template <typename T>
         constexpr contextual<std::decay_t<T>, Name, Scopes...> operator =(T&& rhs) const
@@ -235,42 +234,42 @@ inline namespace types
     //ᅟ
     // Permits constructing an object of contextual type with familiar assignment syntax:
     //ᅟ
-    //ᅟ    scope<"src"_kw> = srcFile
-    //ᅟ    name<"filename"_kw> | scope<"src"_kw> = "/src/file/path"
-    //ᅟ    scope<"outer"_kw> / scope<"inner"_kw> = 42
-    //ᅟ    scope<"outer"_kw, "inner"_kw> = 42
+    //ᅟ    scope_v<"src"_k> = srcFile
+    //ᅟ    name_v<"filename"_k> | scope_v<"src"_k> = "/src/file/path"
+    //ᅟ    scope_v<"outer"_k> / scope_v<"inner"_k> = 42
+    //ᅟ    scope_v<"outer"_k, "inner"_k> = 42
     //
 template <makeshift::detail::keyword_crc... Scopes>
-    struct scope_t : makeshift::detail::key_t<makeshift::detail::keyword_crc::none, Scopes...>
+    struct scope : makeshift::detail::key<makeshift::detail::keyword_crc::none, Scopes...>
 {
-    using makeshift::detail::key_t<makeshift::detail::keyword_crc::none, Scopes...>::operator =;
+    using makeshift::detail::key<makeshift::detail::keyword_crc::none, Scopes...>::operator =;
     template <makeshift::detail::keyword_crc LName, makeshift::detail::keyword_crc... LScopes>
-        friend constexpr makeshift::detail::key_t<LName, LScopes..., Scopes...> operator /(makeshift::detail::key_t<LName, LScopes...>, scope_t) noexcept
+        friend constexpr makeshift::detail::key<LName, LScopes..., Scopes...> operator /(makeshift::detail::key<LName, LScopes...>, scope) noexcept
     {
         return { };
     }
 };
-template <makeshift::detail::keyword_crc... Scopes> constexpr scope_t<Scopes...> scope = { };
+template <makeshift::detail::keyword_crc... Scopes> constexpr scope<Scopes...> scope_v = { };
 
 
     //ᅟ
     // Permits constructing an object of contextual type with familiar assignment syntax:
     //ᅟ
-    //ᅟ    name<"width"_kw> = 42
-    //ᅟ    name<"filename"_kw> | scope<"src"_kw> = "/src/file/path"
+    //ᅟ    name_v<"width"_k> = 42
+    //ᅟ    name_v<"filename"_k> | scope_v<"src"_k> = "/src/file/path"
     //
 template <makeshift::detail::keyword_crc Name>
-    struct name_t : makeshift::detail::key_t<Name>
+    struct name : makeshift::detail::key<Name>
 {
-    using makeshift::detail::key_t<Name>::operator =;
+    using makeshift::detail::key<Name>::operator =;
     template <makeshift::detail::keyword_crc... RScopes>
-        friend constexpr makeshift::detail::key_t<Name, RScopes...> operator |(name_t, scope_t<RScopes...>) noexcept
+        friend constexpr makeshift::detail::key<Name, RScopes...> operator |(name, scope<RScopes...>) noexcept
     {
         return { };
     }
     operator makeshift::detail::keyword_crc(void) const noexcept { return Name; }
 };
-template <makeshift::detail::keyword_crc Name> constexpr name_t<Name> name = { };
+template <makeshift::detail::keyword_crc Name> constexpr name<Name> name_v = { };
 
 
 } // inline namespace types
@@ -280,7 +279,7 @@ inline namespace literals
 {
 
 
-constexpr inline makeshift::detail::keyword operator ""_kw(const char* data, std::size_t size) noexcept
+constexpr inline makeshift::detail::keyword operator ""_k(const char* data, std::size_t size) noexcept
 {
     return { data, size };
 }
@@ -292,7 +291,7 @@ constexpr inline makeshift::detail::keyword operator ""_kw(const char* data, std
 
 
 #ifdef INCLUDED_MAKESHIFT_TUPLE_HPP_
- #include <makeshift/detail/utility_keyword_tuple.hpp>
+ #include <makeshift/detail/utility_keyword-tuple.hpp>
 #endif // INCLUDED_MAKESHIFT_TUPLE_HPP_
 
 

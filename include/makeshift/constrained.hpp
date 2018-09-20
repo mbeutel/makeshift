@@ -176,7 +176,7 @@ template <typename T>
     if constexpr (have_metadata_v<T, serialization_metadata_tag>)
     {
         auto theMetadata = metadata_of<T, serialization_metadata_tag>;
-        return { get_or_default<std::string_view>(theMetadata.attributes), get_or_default<caption_t>(theMetadata.attributes).value };
+        return { get_or_default<std::string_view>(theMetadata.attributes), get_or_default<caption_metadata>(theMetadata.attributes).value };
     }
     else
         return { };

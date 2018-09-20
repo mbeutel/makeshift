@@ -495,7 +495,7 @@ template <typename T, typename TupleT,
 
 
 #ifdef INCLUDED_MAKESHIFT_REFLECT_HPP_
- #include <makeshift/detail/variant_reflect.hpp>
+ #include <makeshift/detail/variant-reflect.hpp>
 #endif // INCLUDED_MAKESHIFT_REFLECT_HPP_
 
 

@@ -1010,6 +1010,16 @@ template <typename T, typename MetadataTagT, typename = void> constexpr type_cat
 
 } // inline namespace types
 
+
+namespace detail
+{
+
+
+template <typename KeyT, typename MetadataTagT> constexpr bool is_aggregate = type_category_of<KeyT, MetadataTagT> == type_category::aggregate;
+
+
+} // namespace detail
+
 } // namespace makeshift
 
 

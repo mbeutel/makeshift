@@ -42,7 +42,7 @@ template <typename BaseT = void>
     {
         (void) hintSerializer;
         if constexpr (std::is_enum<T>::value && have_metadata_v<T, metadata_tag_of_serializer_t<std::decay_t<SerializerT>>>)
-            return hint_impl(makeshift::detail::serialization_data<T, metadata_tag_of_serializer_t<std::decay_t<SerializerT>>>, hintSerializer.data);
+            return get_hint(makeshift::detail::serialization_data<T, metadata_tag_of_serializer_t<std::decay_t<SerializerT>>>, hintSerializer.data);
         else if constexpr (std::is_same<T, bool>::value)
             return std::string("false") + hintSerializer.data.option_separator + std::string("true");
         else if constexpr (is_constrained_integer_v<T>)

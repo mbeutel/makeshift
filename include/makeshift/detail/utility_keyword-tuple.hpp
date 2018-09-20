@@ -26,7 +26,7 @@ template <makeshift::detail::keyword_crc Name, typename TupleT, std::size_t... I
 }
 
 template <keyword_crc Name>
-    struct get_by_name_t : stream_base<get_by_name_t<Name>>
+    struct get_by_key_t : stream_base<get_by_key_t<Name>>
 {
 private:
     template <typename TupleT>
@@ -57,12 +57,12 @@ inline namespace types
     //ᅟ
     // Returns a functor which retrieves the tuple element with the given keyword name.
     //ᅟ
-    //ᅟ    auto tuple = std::make_tuple(name<"width"_kw> = 42);
+    //ᅟ    auto tuple = std::make_tuple(name<"width"_k> = 42);
     //ᅟ    int width = tuple
-    //ᅟ        | get_by_name<"width"_kw>(); // returns 42
+    //ᅟ        | get_by_name(name<"width"_k>); // returns 42
     //
 template <makeshift::detail::keyword_crc Name>
-    constexpr makeshift::detail::get_by_name_t<Name> get_by_name(void) noexcept
+    constexpr makeshift::detail::get_by_key_t<Name> get_by_key(name<Name> = { }) noexcept
 {
     return { };
 }
@@ -71,14 +71,14 @@ template <makeshift::detail::keyword_crc Name>
     //ᅟ
     // Retrieves a tuple element by keyword name.
     //ᅟ
-    //ᅟ    auto tuple = std::make_tuple(name<"width"_kw> = 42);
-    //ᅟ    int width = get_by_name<"width"_kw>(tuple); // returns 42
+    //ᅟ    auto tuple = std::make_tuple(name<"width"_k> = 42);
+    //ᅟ    int width = get_by_name(tuple, name<"width"_k>); // returns 42
     //
 template <makeshift::detail::keyword_crc Name, typename TupleT,
           typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
-    constexpr decltype(auto) get_by_name(TupleT&& tuple) noexcept
+    constexpr decltype(auto) get_by_key(TupleT&& tuple, name<Name> = { }) noexcept
 {
-    return get_by_name<Name>()(std::forward<TupleT>(tuple));
+    return get_by_key<Name>()(std::forward<TupleT>(tuple));
 }
 
 

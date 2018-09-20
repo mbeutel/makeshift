@@ -95,7 +95,7 @@ template <typename TypeMetadataT>
     constexpr auto make_enum_serialization_data(const TypeMetadataT& enumMetadata)
 {
     std::string_view typeName = get_or_default<std::string_view>(enumMetadata.attributes);
-    std::string_view typeDesc = get_or_default<caption_t>(enumMetadata.attributes).value;
+    std::string_view typeDesc = get_or_default<caption_metadata>(enumMetadata.attributes).value;
     auto values = enumMetadata.attributes
         | tuple_filter(template_trait_v<is_instantiation_of, value_metadata>)
         | tuple_map([](const auto& v) { return make_enum_value_serialization_data(v); })
@@ -103,19 +103,19 @@ template <typename TypeMetadataT>
     return enum_serialization_data<array_size_v<decltype(values)>> { values, typeName, typeDesc };
 }
 template <typename EnumT, std::size_t N>
-    std::string_view to_string_impl(EnumT value, const enum_serialization_data<N>& sdata, const enum_serialization_options& options)
+    std::string_view to_string(EnumT value, const enum_serialization_data<N>& sdata, const enum_serialization_options& options)
 {
     return enum_to_string(std::uint64_t(value), sdata.data_ref(), options);
 }
 template <typename EnumT, std::size_t N>
-    EnumT from_string_impl(tag<EnumT>, std::string_view string, const enum_serialization_data<N>& sdata, const enum_serialization_options& options)
+    EnumT from_string(tag<EnumT>, std::string_view string, const enum_serialization_data<N>& sdata, const enum_serialization_options& options)
 {
     std::uint64_t value;
     enum_from_string(string, value, sdata.data_ref(), options);
     return EnumT(value);
 }
 template <typename EnumT, std::size_t N>
-    std::string hint_impl(const enum_serialization_data<N>& sdata, const hint_options& options)
+    std::string get_hint(const enum_serialization_data<N>& sdata, const hint_options& options)
 {
     return enum_hint(sdata.data_ref(), options);
 }
@@ -134,7 +134,7 @@ template <typename TypeMetadataT>
     constexpr std::string_view get_flag_type_name(const TypeMetadataT& enumMetadata)
 {
     auto maybeFlags = enumMetadata.attributes
-        | tuple_filter(template_trait_v<is_instantiation_of, flags_t>)
+        | tuple_filter(template_trait_v<is_instantiation_of, flags_metadata>)
         | single_or_none();
     if constexpr (!std::is_same<decltype(maybeFlags), none_t>::value)
         return get_or_default<std::string_view>(maybeFlags.value.attributes);
@@ -145,7 +145,7 @@ template <typename TypeMetadataT>
     constexpr auto make_flags_enum_serialization_data(const TypeMetadataT& enumMetadata)
 {
     std::string_view defTypeName = get_or_default<std::string_view>(enumMetadata.attributes);
-    std::string_view typeDesc = get_or_default<caption_t>(enumMetadata.attributes).value;
+    std::string_view typeDesc = get_or_default<caption_metadata>(enumMetadata.attributes).value;
     std::string_view flagTypeName = get_flag_type_name(enumMetadata);
     auto values = enumMetadata.attributes
         | tuple_filter(template_trait_v<is_instantiation_of, value_metadata>)
@@ -154,19 +154,19 @@ template <typename TypeMetadataT>
     return flags_enum_serialization_data<array_size_v<decltype(values)>>{ values, flagTypeName, defTypeName, typeDesc };
 }
 template <typename EnumT, std::size_t N>
-    std::string to_string_impl(EnumT value, const flags_enum_serialization_data<N>& sdata, const enum_serialization_options& options)
+    std::string to_string(EnumT value, const flags_enum_serialization_data<N>& sdata, const enum_serialization_options& options)
 {
     return flags_enum_to_string(std::uint64_t(value), sdata.data_ref(), options);
 }
 template <typename EnumT, std::size_t N>
-    EnumT from_string_impl(tag<EnumT>, std::string_view string, const flags_enum_serialization_data<N>& sdata, const enum_serialization_options& options)
+    EnumT from_string(tag<EnumT>, std::string_view string, const flags_enum_serialization_data<N>& sdata, const enum_serialization_options& options)
 {
     std::uint64_t value;
     flags_enum_from_string(string, value, sdata.data_ref(), options);
     return EnumT(value);
 }
 template <typename EnumT, std::size_t N>
-    std::string hint_impl(const flags_enum_serialization_data<N>& sdata, const hint_options& options)
+    std::string get_hint(const flags_enum_serialization_data<N>& sdata, const hint_options& options)
 {
     return enum_hint(sdata.data_ref(), options);
 }
