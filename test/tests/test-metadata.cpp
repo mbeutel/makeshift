@@ -7,6 +7,7 @@
 
 #include <makeshift/serializers/string.hpp>
 #include <makeshift/serializers/stream.hpp>
+#include <makeshift/serializers/hint.hpp>
 
 #include <sstream>
 #include <string>
@@ -163,6 +164,8 @@ TEST_CASE("serialize", "[serialize]")
 {
     SECTION("enum")
     {
+        CHECK(mk::get_hint<MyEnum>() == "foo|bar");
+
         CHECK(mk::to_string(MyEnum::foo) == "foo");
         CHECK(mk::to_string(MyEnum::bar) == "bar");
         CHECK(mk::from_string<MyEnum>("bar") == MyEnum::bar);
@@ -175,6 +178,8 @@ TEST_CASE("serialize", "[serialize]")
     }
     SECTION("flags-enum")
     {
+        CHECK(mk::get_hint<Ratatouille>() == "potato,tomato,garlic,onion,chili,chili pepper,bean,lentil,legume,spicy,nightshade,something-weird");
+
         CHECK(mk::to_string(Vegetables::tomato) == "tomato");
         CHECK(mk::to_string(Vegetables::tomato | Vegetables::potato) == "potato, tomato");
         CHECK(mk::to_string(Vegetables::legume | Vegetables::potato) == "legume, potato"); // combined flags

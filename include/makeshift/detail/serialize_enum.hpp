@@ -114,7 +114,7 @@ template <typename EnumT, std::size_t N>
     enum_from_string(string, value, sdata.data_ref(), options);
     return EnumT(value);
 }
-template <typename EnumT, std::size_t N>
+template <std::size_t N>
     std::string get_hint(const enum_serialization_data<N>& sdata, const hint_options& options)
 {
     return enum_hint(sdata.data_ref(), options);
@@ -165,10 +165,10 @@ template <typename EnumT, std::size_t N>
     flags_enum_from_string(string, value, sdata.data_ref(), options);
     return EnumT(value);
 }
-template <typename EnumT, std::size_t N>
+template <std::size_t N>
     std::string get_hint(const flags_enum_serialization_data<N>& sdata, const hint_options& options)
 {
-    return enum_hint(sdata.data_ref(), options);
+    return flags_enum_hint(sdata.data_ref(), options);
 }
 
 

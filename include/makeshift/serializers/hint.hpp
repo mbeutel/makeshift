@@ -4,10 +4,10 @@
 
 
 #include <string>
-#include <type_traits> // for enable_if<>
 
-#include <makeshift/type_traits.hpp>           // for tag<>, is_serializer<>
+#include <makeshift/type_traits.hpp>           // for tag<>
 #include <makeshift/serialize.hpp>             // for define_serializer<>, metadata_tag_of_serializer<>
+#include <makeshift/hint.hpp>                  // for get_hint()
 
 #include <makeshift/detail/serialize_enum.hpp> // for serialization_data<>
 
@@ -41,8 +41,9 @@ template <typename BaseT = void>
         friend std::string get_hint_impl(tag<T>, const hint_serializer& hintSerializer, SerializerT&&)
     {
         (void) hintSerializer;
-        if constexpr (std::is_enum<T>::value && have_metadata_v<T, metadata_tag_of_serializer_t<std::decay_t<SerializerT>>>)
-            return get_hint(makeshift::detail::serialization_data<T, metadata_tag_of_serializer_t<std::decay_t<SerializerT>>>, hintSerializer.data);
+        using MetadataTag = metadata_tag_of_serializer_t<std::decay_t<SerializerT>>;
+        if constexpr (std::is_enum<T>::value && have_metadata_v<T, MetadataTag>)
+            return get_hint(makeshift::detail::serialization_data<T, MetadataTag>, hintSerializer.data);
         else if constexpr (std::is_same<T, bool>::value)
             return std::string("false") + hintSerializer.data.option_separator + std::string("true");
         else if constexpr (is_constrained_integer_v<T>)
@@ -56,17 +57,10 @@ hint_serializer(const hint_options&) -> hint_serializer<>;
 hint_serializer(hint_options&&) -> hint_serializer<>;
 
 
-template <typename T, typename SerializerT,
-          typename = std::enable_if_t<is_serializer_v<std::decay_t<SerializerT>>>>
-    std::string hint(SerializerT&& serializer, tag<T> = { })
-{
-    return get_hint_impl(tag_v<T>, serializer, serializer);
-}
-
 template <typename T>
-    std::string hint(tag<T> = { })
+    std::string get_hint(tag<T> = { })
 {
-    return hint(hint_serializer(), tag_v<T>);
+    return get_hint(hint_serializer(), tag_v<T>);
 }
 
 
