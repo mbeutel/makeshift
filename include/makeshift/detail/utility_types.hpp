@@ -100,43 +100,47 @@ constexpr inline int hex2num(char hex) noexcept
     else
         return 0; // should not happen
 }
-template <typename T, typename Is, char... Cs>
-    struct make_constant_;
+template <typename T, typename Is, char... Cs> struct make_constant_1_;
 template <typename T, std::size_t... Is, char... Cs>
-    struct make_constant_<T, std::index_sequence<Is...>, Cs...>
+    struct make_constant_1_<T, std::index_sequence<Is...>, Cs...>
 {
     static_assert(cand(Cs >= '0' && Cs <= '9'...), "invalid character: index must be a decimal integer literal");
     static constexpr T value = csum<T>((Cs - '0') * cpow(10, Is, sizeof...(Cs))...);
 };
+template <typename T, typename Is, char... Cs> struct make_constant_2_ : make_constant_1_<T, Is, Cs...> { };
 template <typename T, std::size_t... Is, char... Cs>
-    struct make_constant_<T, std::index_sequence<0, Is...>, '0', Cs...>
+    struct make_constant_2_<T, std::index_sequence<0, Is...>, '0', Cs...>
 {
     static_assert(cand(Cs >= '0' && Cs <= '7'...), "invalid character: index must be an octal integer literal");
     static constexpr T value = csum<T>((Cs - '0') * cpow(8, Is - 1, sizeof...(Cs))...);
 };
 template <typename T, std::size_t... Is, char... Cs>
-    struct make_constant_<T, std::index_sequence<0, 1, Is...>, '0', 'x', Cs...>
+    struct make_constant_2_<T, std::index_sequence<0, 1, Is...>, '0', 'x', Cs...>
 {
     static_assert(cand((Cs >= '0' && Cs <= '9') || (Cs >= 'A' && Cs <= 'F') || (Cs >= 'a' && Cs <= 'f')...), "invalid character: index must be a hexadecimal integer literal");
     static constexpr T value = csum<T>(hex2num(Cs) * cpow(16, Is - 2, sizeof...(Cs))...);
 };
+template <typename T, typename Is, char... Cs> struct make_constant_3_ : make_constant_2_<T, Is, Cs...> { };
 template <typename T, std::size_t... Is, char... Cs>
-    struct make_constant_<T, std::index_sequence<0, 1, Is...>, '0', 'X', Cs...>
-        : make_constant_<T, std::index_sequence<0, 1, Is...>, '0', 'x', Cs...>
+    struct make_constant_3_<T, std::index_sequence<0, 1, Is...>, '0', 'X', Cs...>
+        : make_constant_3_<T, std::index_sequence<0, 1, Is...>, '0', 'x', Cs...>
 {
 };
 template <typename T, std::size_t... Is, char... Cs>
-    struct make_constant_<T, std::index_sequence<0, 1, Is...>, '0', 'b', Cs...>
+    struct make_constant_3_<T, std::index_sequence<0, 1, Is...>, '0', 'b', Cs...>
 {
     static_assert(cand((Cs >= '0' && Cs <= '1')...), "invalid character: index must be a binary integer literal");
     static constexpr T value = csum<T>((Cs - '0') * cpow(2, Is - 2, sizeof...(Cs))...);
 };
 template <typename T, std::size_t... Is, char... Cs>
-    struct make_constant_<T, std::index_sequence<0, 1, Is...>, '0', 'B', Cs...>
-        : make_constant_<T, std::index_sequence<0, 1, Is...>, '0', 'b', Cs...>
+    struct make_constant_3_<T, std::index_sequence<0, 1, Is...>, '0', 'B', Cs...>
+        : make_constant_3_<T, std::index_sequence<0, 1, Is...>, '0', 'b', Cs...>
 {
 };
-template <typename T, char... Cs> struct make_constant : make_constant_<T, std::make_index_sequence<sizeof...(Cs)>, Cs...> { };
+template <typename T, std::size_t N, typename Is, char... Cs> struct make_constant_ : make_constant_3_<T, Is, Cs...> { };
+template <typename T, typename Is, char... Cs> struct make_constant_<T, 1, Is, Cs...> : make_constant_1_<T, Is, Cs...> { };
+template <typename T, typename Is, char... Cs> struct make_constant_<T, 2, Is, Cs...> : make_constant_2_<T, Is, Cs...> { };
+template <typename T, char... Cs> struct make_constant : make_constant_<T, sizeof...(Cs), std::make_index_sequence<sizeof...(Cs)>, Cs...> { };
 template <typename T, char... Cs> constexpr std::ptrdiff_t make_constant_v = make_constant<T, Cs...>::value;
 
 

@@ -43,7 +43,7 @@ inline namespace types
 template <template <typename...> class ChainableT, typename BaseT, typename DataT = void, typename RootT = void, typename... Ts>
     struct define_chainable : BaseT
 {
-    using chainable_sequence = type_sequence_cat_t<type_sequence<define_chainable<ChainableT, void, DataT, RootT, Ts...>>, typename BaseT::chainable_sequence>;
+    using chainable_sequence = type_sequence_cat_t<type_sequence<makeshift::define_chainable<ChainableT, void, DataT, RootT, Ts...>>, typename BaseT::chainable_sequence>;
     using args_sequence = type_sequence_cat_t<type_sequence<DataT>, typename BaseT::args_sequence>;
 
     DataT data;
@@ -62,7 +62,7 @@ template <template <typename...> class ChainableT, typename BaseT, typename Data
 template <template <typename...> class ChainableT, typename BaseT, typename RootT, typename... Ts>
     struct define_chainable<ChainableT, BaseT, void, RootT, Ts...> : BaseT
 {
-    using chainable_sequence = type_sequence_cat_t<type_sequence<define_chainable<ChainableT, void, void, RootT, Ts...>>, typename BaseT::chainable_sequence>;
+    using chainable_sequence = type_sequence_cat_t<type_sequence<makeshift::define_chainable<ChainableT, void, void, RootT, Ts...>>, typename BaseT::chainable_sequence>;
 
     constexpr define_chainable(void) = default;
     template <typename... ArgsT>
@@ -144,7 +144,7 @@ inline namespace types
     //ᅟ    );
     //
 template <typename... ChainablesT>
-    typename makeshift::detail::chain_types_<type_sequence_cat_t<typename std::decay_t<ChainablesT>::chainable_sequence...>>::type
+    constexpr typename makeshift::detail::chain_types_<typename type_sequence_cat<typename std::decay_t<ChainablesT>::chainable_sequence...>::type>::type
     chain(ChainablesT&&... chainables)
 {
     return {
