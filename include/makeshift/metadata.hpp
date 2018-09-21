@@ -77,7 +77,7 @@ template <typename T, type_flags Flags, typename AttributesT>
     // Use `type<T>(...)` to declare metadata for a type.
     //
 template <typename T, typename... AttrT>
-    constexpr type_metadata<T, constant<makeshift::detail::default_type_flags<T>()>, std::tuple<literal_decay_t<AttrT>...>> type(AttrT&&... attributes)
+    constexpr type_metadata<T, constant<makeshift::detail::default_type_flags<T>>, std::tuple<literal_decay_t<AttrT>...>> type(AttrT&&... attributes)
 {
     return { std::tuple<literal_decay_t<AttrT>...>(std::forward<AttrT>(attributes)...) };
 }
@@ -86,7 +86,7 @@ template <typename T, typename... AttrT>
     // Use `type<T, Category>(...)` to declare metadata for a type with a given type category.
     //
 template <typename T, type_flags Flags, typename... AttrT>
-    constexpr type_metadata<T, constant<makeshift::detail::infer_type_flags<T>(Flags)>, std::tuple<literal_decay_t<AttrT>...>> type(AttrT&&... attributes)
+    constexpr type_metadata<T, constant<Flags>, std::tuple<literal_decay_t<AttrT>...>> type(AttrT&&... attributes)
 {
     return { std::tuple<literal_decay_t<AttrT>...>(std::forward<AttrT>(attributes)...) };
 }

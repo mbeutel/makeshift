@@ -62,13 +62,13 @@ template <typename MetadataTagT, typename T> constexpr bool have_string_conversi
 
 
 template <typename ConstrainedIntT, typename SerializerT>
-    std::string constrained_integer_to_string_impl(ConstrainedIntT value, SerializerT&& serializer)
+    std::string constrained_integer_to_string(ConstrainedIntT value, SerializerT&& serializer)
 {
     return to_string(value.value(), serializer);
 }
 
 template <typename ConstrainedIntT, typename SerializerT>
-    ConstrainedIntT constrained_integer_from_string_impl(std::string_view string, SerializerT&& serializer)
+    ConstrainedIntT constrained_integer_from_string(std::string_view string, SerializerT&& serializer)
 {
     using Int = typename ConstrainedIntT::value_type;
     Int result = from_string(string, serializer);
@@ -155,7 +155,7 @@ string_serializer(string_serializer_options&&) -> string_serializer<>;
 template <typename T>
     std::string to_string(const T& value)
 {
-    return to_string(value, string_serializer());
+    return to_string(value, string_serializer{ });
 }
 
 
@@ -167,7 +167,7 @@ template <typename T>
 template <typename T>
     T from_string(std::string_view string, tag<T> = { })
 {
-    return from_string<T>(string, string_serializer());
+    return from_string<T>(string, string_serializer{ });
 }
 
 

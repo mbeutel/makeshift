@@ -4,6 +4,7 @@
 
 
 #include <array>
+#include <tuple>       // for make_tuple(), tuple_cat()
 #include <cstddef>     // for size_t
 #include <utility>     // for move(), forward<>(), tuple_element<>, tuple_size<>, get<>
 #include <type_traits> // for decay<>, integral_constant<>, index_sequence<>, is_nothrow_default_constructible<>
@@ -51,7 +52,7 @@ template <typename... Ts>
 
     constexpr type_tuple(void) noexcept = default;
     constexpr type_tuple(const type_tuple&) noexcept = default;
-    constexpr type_tuple& operator =(const type_tuple&) noexcept { }
+    constexpr type_tuple& operator =(const type_tuple&) noexcept { return *this; }
     constexpr type_tuple(const Ts&...) noexcept { }
     template <typename TupleT,
               typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>> && std::is_same<apply_t<type_sequence, std::decay_t<TupleT>>, type_sequence<Ts...>>::value>>
@@ -65,7 +66,7 @@ template <>
 {
     constexpr type_tuple(void) noexcept = default;
     constexpr type_tuple(const type_tuple&) noexcept = default;
-    constexpr type_tuple& operator =(const type_tuple&) noexcept { }
+    constexpr type_tuple& operator =(const type_tuple&) noexcept { return *this; }
     template <typename TupleT,
               typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>> && std::is_same<apply_t<type_sequence, std::decay_t<TupleT>>, type_sequence<>>::value>>
         explicit constexpr type_tuple(const TupleT&) noexcept

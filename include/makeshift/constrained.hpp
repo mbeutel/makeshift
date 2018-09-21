@@ -116,12 +116,12 @@ template <typename T, T Base, long long... Offsets>
 template <typename T, T First, T Last>
     constexpr auto get_valid_constrained_integer_values(integer_range<T, First, Last>) noexcept
 {
-    return get_valid_constrained_integer_values_impl(std::integral_constant<T, First>{ }, std::make_integer_sequence<long long, (long long)(Last - First)>);
+    return get_valid_constrained_integer_values_impl(std::integral_constant<T, First>{ }, std::make_integer_sequence<long long, (long long)(Last - First)>{ });
 }
 template <typename T, T First, T Last>
     constexpr auto get_valid_constrained_integer_values(integer_inclusive_range<T, First, Last>) noexcept
 {
-    return get_valid_constrained_integer_values_impl(std::integral_constant<T, First>{ }, std::make_integer_sequence<long long, (long long)(Last - First + 1)>);
+    return get_valid_constrained_integer_values_impl(std::integral_constant<T, First>{ }, std::make_integer_sequence<long long, (long long)(Last - First + 1)>{ });
 }
 
 

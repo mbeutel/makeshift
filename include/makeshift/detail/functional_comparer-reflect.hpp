@@ -56,7 +56,7 @@ template <typename T, typename ComparerT>
 static constexpr inline std::size_t hash_combine(std::size_t seed, std::size_t newHash) noexcept
 {
         // taken from boost::hash_combine()
-    return seed ^ newHash + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+    return seed ^ (newHash + 0x9e3779b9 + (seed << 6) + (seed >> 2));
 }
 template <typename T, typename ComparerT>
     constexpr std::size_t compound_hash(const T& obj, ComparerT&& cmp) noexcept

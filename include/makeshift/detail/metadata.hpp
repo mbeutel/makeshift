@@ -68,21 +68,7 @@ namespace detail
 
 
 template <typename T>
-    constexpr type_flags default_type_flags(void) noexcept
-{
-    if constexpr (std::is_scalar<T>::value || is_constrained_integer_v<T>)
-        return type_flag::value;
-    else
-        return type_flags::none;
-}
-template <typename T>
-    constexpr type_flags infer_type_flags(type_flags cat) noexcept
-{
-    if (cat != type_flags::none)
-        return cat;
-    else
-        return default_type_flags<T>();
-}
+    constexpr type_flags default_type_flags = std::conditional_t<std::disjunction<std::is_scalar<T>, is_constrained_integer<T>>::value, constant<type_flag::value>, constant<type_flags::none>>::value;
 
 template <typename T, typename MetadataTagT>
     constexpr type_flags lookup_type_flags(void) noexcept
@@ -90,7 +76,7 @@ template <typename T, typename MetadataTagT>
     if constexpr (have_metadata_v<T, MetadataTagT>)
         return metadata_of_t<T, MetadataTagT>::flags;
     else
-        return default_type_flags<T>();
+        return default_type_flags<T>;
 }
 
 

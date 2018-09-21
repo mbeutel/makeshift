@@ -29,7 +29,17 @@ template <typename T = void> constexpr tag<T> tag_v { };
     //ᅟ
     // Helper for type dispatching.
     //
-template <template <typename...> class T> struct template_tag { };
+template <template <typename...> class T>
+    struct template_tag
+{
+    constexpr template_tag(void) noexcept = default;
+    template <typename... Ts>
+        constexpr template_tag(tag<T<Ts...>>) noexcept
+    {
+    }
+};
+template <template <typename...> class T, typename... Ts>
+    template_tag(tag<T<Ts...>>) -> template_tag<T>;
 
     //ᅟ
     // Helper for type dispatching.
@@ -84,7 +94,7 @@ template <typename F>
     constexpr functor_transform(F func) noexcept : F(std::move(func)) { }
     using F::operator ();
     using transform_crtp_base<functor_transform<F>>::operator ();
-    template <typename... Ts> struct type : decltype(std::declval<F>()(tag<Ts>...)) { };
+    template <typename... Ts> struct type : decltype(std::declval<F>()(tag_v<Ts>...)) { };
 };
 template <typename F, bool IsTransform> struct functor_transform_0_;
 template <typename F> struct functor_transform_0_<F, true> { using type = F; };
@@ -124,7 +134,7 @@ template <typename F>
     constexpr functor_predicate(F func) noexcept : F(std::move(func)) { }
     using F::operator ();
     using predicate_crtp_base<functor_predicate<F>>::operator ();
-    template <typename... Ts> struct type : decltype(std::declval<F>()(tag<Ts>...)) { };
+    template <typename... Ts> struct type : decltype(std::declval<F>()(tag_v<Ts>...)) { };
 };
 template <typename F, bool IsPred> struct functor_predicate_0_;
 template <typename F> struct functor_predicate_0_<F, true> { using type = F; };

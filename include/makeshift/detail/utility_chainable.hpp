@@ -140,7 +140,7 @@ inline namespace types
     //ᅟ
     //ᅟ    auto serializer = chain(
     //ᅟ        bool_serializer(bool_serializer_options{ "yes", "no" }),
-    //ᅟ        stream_serializer()
+    //ᅟ        stream_serializer{ }
     //ᅟ    );
     //
 template <typename... ChainablesT>

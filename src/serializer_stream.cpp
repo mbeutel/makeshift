@@ -36,7 +36,9 @@ namespace detail
 
 void string_to_stream(std::ostream& stream, std::string_view string)
 {
-    if (!(stream << std::quoted(string)))
+        // workaround for missing string_view overload in libstdc++
+    //if (!(stream << std::quoted(string)))
+    if (!(stream << std::quoted(std::string(string))))
         raise_ostream_error(stream);
 }
 void string_from_stream(std::istream& stream, std::string& string)

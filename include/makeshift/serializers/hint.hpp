@@ -77,7 +77,7 @@ hint_serializer(hint_options&&) -> hint_serializer<>;
 template <typename T>
     std::string get_hint(tag<T> = { })
 {
-    return get_hint(hint_serializer(), tag_v<T>);
+    return get_hint(hint_serializer{ }, tag_v<T>);
 }
 
 

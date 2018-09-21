@@ -94,7 +94,7 @@ template <typename BaseT = void>
     {
         std::string str;
         stream >> streamable(str, serializer);
-        makeshift::detail::bool_from_stream_impl(boolSerializer.data, value, str);
+        makeshift::detail::bool_from_stream(boolSerializer.data, value, str);
     }
     template <typename T, typename SerializerT>
         friend std::enable_if_t<std::is_same<T, bool>::value, std::string> // need to use SFINAE here to enforce exact match and suppress value conversions

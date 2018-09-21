@@ -57,7 +57,8 @@ template <typename T, typename SerializerT>
                 {
                     auto caption = get_or_default<caption_metadata>(metadata_of<Member, MetadataTag>.attributes);
                     if (!caption.value.empty())
-                        sstr << std::quoted(caption.value);
+                        //sstr << std::quoted(caption.value);
+                        sstr << std::quoted(std::string(caption.value)); // workaround for missing string_view overload in libstdc++
                     else
                         sstr << "val";
                 }

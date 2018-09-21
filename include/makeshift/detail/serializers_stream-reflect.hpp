@@ -112,11 +112,8 @@ template <typename T, typename SerializerT>
         if (ch == '"') // either a named argument or a positional string value
         {
             std::string str;
-            if (!(stream >> std::quoted(str)))
-                throw parse_error("error parsing compound argument: expected name or value");
-#if defined(_MSC_VER) && _MSC_VER == 1915
-            stream.get(ch); // workaround for VS 2017 15.8 bug https://developercommunity.visualstudio.com/content/problem/314993/stdquoted-broken-in-158-fails-to-properly-extract.html
-#endif // defined(_MSC_VER) && _MSC_VER == 1915
+
+            string_from_stream(stream, str);
             stream >> std::ws;
             if (!stream.get(ch) || (ch != ':' && ch != ',' && ch != '}'))
                 throw parse_error("error parsing compound argument: expected ':', ',', or '}'");
@@ -136,7 +133,7 @@ template <typename T, typename SerializerT>
 
                     // this is awkward: we have to put the value back in a stream and deserialize it using the serializer and the proper type
                 std::stringstream sstr;
-                sstr << std::quoted(str);
+                string_to_stream(sstr, str);
                 compound_member_by_index_from_stream(sstr, value, pos, serializer);
                 ++pos;
             }
