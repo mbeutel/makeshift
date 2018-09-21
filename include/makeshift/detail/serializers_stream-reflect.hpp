@@ -58,7 +58,7 @@ template <typename T, typename SerializerT>
         {
             auto accessor = member_accessor(member);
             using Member = typename std::decay_t<decltype(accessor)>::value_type;
-            Member memberValue{ };
+            Member memberValue{ accessor(value) };
             stream >> streamable(memberValue, serializer);
             accessor(value, std::move(memberValue));
             return true;
@@ -82,7 +82,7 @@ template <typename T, typename SerializerT>
         {
             auto accessor = member_accessor(member);
             using Member = typename std::decay_t<decltype(accessor)>::value_type;
-            Member memberValue{ };
+            Member memberValue{ accessor(value) };
             stream >> streamable(memberValue, serializer);
             accessor(value, std::move(memberValue));
             return true;
