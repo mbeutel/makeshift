@@ -2,6 +2,7 @@
 #include <string>
 #include <string_view>
 #include <iostream>
+#include <sstream>
 #include <iomanip>
 
 #include <makeshift/serializers/stream.hpp>
@@ -65,7 +66,7 @@ static void compound_from_stream_impl(std::istream& stream, stream_compound_memb
         bool found = true;
         try
         {
-            found = memberDeserializer.by_name(stream, name);
+            found = memberDeserializer.by_name(istream, name);
         }
         catch (const std::runtime_error&)
         {
@@ -79,7 +80,7 @@ static void compound_from_stream_impl(std::istream& stream, stream_compound_memb
         bool found = true;
         try
         {
-            found = memberDeserializer.by_index(stream, index);
+            found = memberDeserializer.by_index(istream, index);
         }
         catch (const std::runtime_error&)
         {

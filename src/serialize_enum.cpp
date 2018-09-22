@@ -171,7 +171,7 @@ char trim_delim_char(std::string_view s)
 {
     std::string_view st = trim(s);
     if (st.size() != 1)
-        throw std::runtime_error("invalid single-character delimiter '" + std::string(st) + "'");
+        throw std::invalid_argument("invalid single-character delimiter '" + std::string(st) + "'");
     return st[0];
 }
 static std::optional<std::string_view> expectSeparator(std::string_view s, std::string_view sep) noexcept
