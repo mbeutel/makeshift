@@ -75,17 +75,17 @@ template <typename BaseT = void>
     template <typename ComparerT>
         friend bool less_impl(std::string_view lhs, std::string_view rhs, const string_comparer& stringComparer, ComparerT&&) noexcept
     {
-        return makeshift::detail::string_less(stringComparer.data, lhs, rhs);
+        return makeshift::detail::string_less(data(stringComparer), lhs, rhs);
     }
     template <typename ComparerT>
         friend bool equal_to_impl(std::string_view lhs, std::string_view rhs, const string_comparer& stringComparer, ComparerT&&) noexcept
     {
-        return makeshift::detail::string_equal_to(stringComparer.data, lhs, rhs);
+        return makeshift::detail::string_equal_to(data(stringComparer), lhs, rhs);
     }
     template <typename ComparerT>
         friend std::size_t hash_impl(std::string_view obj, const string_comparer& stringComparer, ComparerT&&) noexcept
     {
-        return makeshift::detail::string_hash(stringComparer.data, obj);
+        return makeshift::detail::string_hash(data(stringComparer), obj);
     }
 };
 string_comparer(void) -> string_comparer<>;

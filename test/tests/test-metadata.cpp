@@ -84,8 +84,8 @@ static constexpr auto reflect(mk::tag<COOIndex>, mk::any_tag_of<mk::reflection_m
 {
     using namespace makeshift::metadata;
     return type<COOIndex, type_flag::value | type_flag::compound>(
-        member<&COOIndex::i>(),
-        member<&COOIndex::j>()
+        member<&COOIndex::i>("i"),
+        member<&COOIndex::j>("j")
     );
 }
 
@@ -188,7 +188,7 @@ TEST_CASE("serialize", "[serialize]")
     }
     SECTION("struct")
     {
-        CHECK(mk::get_hint<COOIndex>() == "{ val, val }");
+        CHECK(mk::get_hint<COOIndex>() == "(i,j)");
         CHECK(mk::get_hint<COOValue>() == "{ index, value }");
 
         COOIndex i2 { 2, 1 };
@@ -197,7 +197,7 @@ TEST_CASE("serialize", "[serialize]")
         {
             std::stringstream sstr;
             sstr << mk::streamable(i2);
-            CHECK(sstr.str() == "{ 2, 1 }");
+            CHECK(sstr.str() == "(2, 1)");
             COOIndex i2r { };
             sstr >> mk::streamable(i2r);
             CHECK(mk::equal_to{ }(i2, i2r));
@@ -206,7 +206,7 @@ TEST_CASE("serialize", "[serialize]")
 
         {
             std::stringstream sstrExpected, sstrActual;
-            sstrExpected << "{ \"index\": { 2, 1 }, \"value\": " << v2.value << " }";
+            sstrExpected << "{ \"index\": (2, 1), \"value\": " << v2.value << " }";
             sstrActual << mk::streamable(v2);
             CHECK(sstrActual.str() == sstrExpected.str());
             COOValue v2r { };
@@ -216,7 +216,7 @@ TEST_CASE("serialize", "[serialize]")
 
         {
             std::stringstream sstr;
-            sstr.str("{ \"value\": 42.0, \"index\": { 2, 1 } }");
+            sstr.str("{ \"value\": 42.0, \"index\": (2, 1) }");
             COOValue v2r{ };
             sstr >> mk::streamable(v2r);
             CHECK(mk::equal_to{ }(v2, v2r));
@@ -224,7 +224,7 @@ TEST_CASE("serialize", "[serialize]")
 
         {
             std::stringstream sstr;
-            sstr.str("{ { 2, 1 }, \"value\": 42.0 }");
+            sstr.str("{ (2, 1), \"value\": 42.0 }");
             COOValue v2r{ };
             sstr >> mk::streamable(v2r);
             CHECK(mk::equal_to{ }(v2, v2r));
@@ -232,14 +232,14 @@ TEST_CASE("serialize", "[serialize]")
 
         {
             std::stringstream sstr;
-            sstr.str("{ \"index\": { 2, 1 }, 42.0 }");
+            sstr.str("{ \"index\": (2, 1), 42.0 }");
             COOValue v2r{ };
             CHECK_THROWS_AS(sstr >> mk::streamable(v2r), mk::parse_error);
         }
 
         {
             std::stringstream sstr;
-            sstr.str("{ \"index\": { 2, 1 } }");
+            sstr.str("{ \"index\": (2, 1) }");
             COOValue v{ { 2, 1 }, 42.0 };
             COOValue vr{ { }, 42.0 };
             sstr >> mk::streamable(vr);

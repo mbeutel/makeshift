@@ -23,13 +23,15 @@ namespace detail
 
 
 template <typename T, typename SerializerT>
-    std::string get_compound_hint(SerializerT&&, tag<T>)
+    std::string get_compound_hint(SerializerT&&, const any_compound_hint_options& compoundOptions)
 {
     using MetadataTag = metadata_tag_of_serializer_t<std::decay_t<SerializerT>>;
     constexpr auto members = get_members<T, MetadataTag>();
+    constexpr bool isCompoundValue = (type_flags_of<T, MetadataTag> & type_flag::value) != type_flags::none;
+    const auto& options = isCompoundValue ? compoundOptions.compound_value : compoundOptions.compound;
 
     std::ostringstream sstr;
-    sstr << "{ ";
+    sstr << options.opening_delimiter;
     bool first = true;
     tuple_foreach(members, [&](auto&& member)
     {
@@ -39,7 +41,7 @@ template <typename T, typename SerializerT>
         if (first)
             first = false;
         else
-            sstr << ", ";
+            sstr << options.element_delimiter;
 
         std::string_view theName = get_or_default<std::string_view>(member.attributes);
         if (!theName.empty())
@@ -47,7 +49,7 @@ template <typename T, typename SerializerT>
         else
         {
             if constexpr (!have_metadata_v<Member, MetadataTag>)
-                sstr << "val";
+                sstr << options.unnamed_member_placeholder;
             else
             {
                 auto slug = get_or_default<std::string_view>(metadata_of<Member, MetadataTag>.attributes);
@@ -60,12 +62,12 @@ template <typename T, typename SerializerT>
                         //sstr << std::quoted(caption.value);
                         sstr << std::quoted(std::string(caption.value)); // workaround for missing string_view overload in libstdc++
                     else
-                        sstr << "val";
+                        sstr << options.unnamed_member_placeholder;
                 }
             }
         }
     });
-    sstr << " }";
+    sstr << options.closing_delimiter;
     return sstr.str();
 }
 

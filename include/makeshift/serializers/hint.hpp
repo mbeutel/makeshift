@@ -22,7 +22,7 @@ namespace detail
 
     // defined in serializers_hint-reflect.hpp
 template <typename T, typename SerializerT>
-    std::string get_compound_hint(SerializerT&& serializer, tag<T> = { });
+    std::string get_compound_hint(SerializerT&& serializer, const any_compound_hint_options& compoundOptions);
 
 
 } // namespace detail
@@ -38,8 +38,11 @@ inline namespace serialize
 
 struct hint_options
 {
-    std::string_view option_separator = "|";
-    std::string_view flags_separator = ",";
+    enum_hint_options enum_options;
+    any_compound_hint_options any_compound_options;
+
+    //std::string_view option_separator = "|";
+    //std::string_view flags_separator = ",";
 
     constexpr hint_options(void) noexcept = default;
 };
@@ -62,9 +65,9 @@ template <typename BaseT = void>
         else if constexpr (std::is_same<T, bool>::value)
             return std::string("false") + data(hintSerializer).enum_options.option_separator + std::string("true");
         else if constexpr (is_constrained_integer_v<T>)
-            return T::verifier::get_hint(data(hintSerializer), typename T::constraint{ });
+            return T::verifier::get_hint(data(hintSerializer).enum_options, typename T::constraint{ });
         else if constexpr (has_flag(type_flag::compound, type_flags_of<T, MetadataTag>))
-            return makeshift::detail::get_compound_hint<T>(serializer);
+            return makeshift::detail::get_compound_hint<T>(serializer, data(hintSerializer).any_compound_options);
         else
             return { };
     }

@@ -43,6 +43,56 @@ struct enum_serialization_options
 
 
     //ᅟ
+    // Options for serializing and deserializing compound types.
+    //
+struct compound_serialization_options
+{
+        //ᅟ
+        // Determines opening compound delimiter.
+        //
+    std::string_view opening_delimiter = "{ ";
+
+        //ᅟ
+        // Determines closing compound delimiter.
+        //
+    std::string_view closing_delimiter = " }";
+
+        //ᅟ
+        // Determines the name--value separator.
+        //
+    std::string_view name_value_separator = ": ";
+
+        //ᅟ
+        // Determines the element delimiter.
+        //
+    std::string_view element_delimiter = ", ";
+
+        //ᅟ
+        // Determines whether member names are written out.
+        //
+    bool with_member_names = true;
+
+        //ᅟ
+        // Determines comparison mode for string representations of member names.
+        //
+    string_comparison member_name_comparison_mode = string_comparison::ordinal_ignore_case;
+
+    constexpr compound_serialization_options(void) = default;
+};
+
+    //ᅟ
+    // Options for serializing and deserializing compound types and compound value types.
+    //
+struct any_compound_serialization_options
+{
+    compound_serialization_options compound = { "{ ", " }", ": ", ", ", true, string_comparison::ordinal_ignore_case };
+    compound_serialization_options compound_value = { "(", ")", ": ", ", ", false, string_comparison::ordinal_ignore_case };
+
+    constexpr any_compound_serialization_options(void) = default;
+};
+
+
+    //ᅟ
     // Base class for serializers with argument class `SerializerArgsT`. Permits chaining of serializers.
     //ᅟ
     //ᅟ    struct MySerializerArgs { ... };

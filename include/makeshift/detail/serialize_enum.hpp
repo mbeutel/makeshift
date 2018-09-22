@@ -29,7 +29,7 @@ inline namespace serialize
 {
 
 
-struct hint_options; // defined in makeshift/serializers/hint.hpp
+struct enum_hint_options; // defined in hint.hpp
 struct enum_serialization_options; // defined in serialize.hpp
 
 
@@ -62,8 +62,8 @@ struct flags_enum_serialization_data_ref
     std::string_view typeDesc;
 };
 
-MAKESHIFT_DLLFUNC std::string enum_hint(const enum_serialization_data_ref& sdata, const hint_options& options);
-MAKESHIFT_DLLFUNC std::string flags_enum_hint(const flags_enum_serialization_data_ref& sdata, const hint_options& options);
+MAKESHIFT_DLLFUNC std::string enum_hint(const enum_serialization_data_ref& sdata, const enum_hint_options& options);
+MAKESHIFT_DLLFUNC std::string flags_enum_hint(const flags_enum_serialization_data_ref& sdata, const enum_hint_options& options);
 
 MAKESHIFT_DLLFUNC std::string_view enum_to_string(std::uint64_t enumValue, const enum_serialization_data_ref& sdata, const enum_serialization_options& options);
 MAKESHIFT_DLLFUNC void enum_from_string(std::string_view string, std::uint64_t& enumValue, const enum_serialization_data_ref& sdata, const enum_serialization_options& options);
@@ -115,7 +115,7 @@ template <typename EnumT, std::size_t N>
     return EnumT(value);
 }
 template <std::size_t N>
-    std::string get_hint(const enum_serialization_data<N>& sdata, const hint_options& options)
+    std::string get_hint(const enum_serialization_data<N>& sdata, const enum_hint_options& options)
 {
     return enum_hint(sdata.data_ref(), options);
 }
@@ -166,7 +166,7 @@ template <typename EnumT, std::size_t N>
     return EnumT(value);
 }
 template <std::size_t N>
-    std::string get_hint(const flags_enum_serialization_data<N>& sdata, const hint_options& options)
+    std::string get_hint(const flags_enum_serialization_data<N>& sdata, const enum_hint_options& options)
 {
     return flags_enum_hint(sdata.data_ref(), options);
 }

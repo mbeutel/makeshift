@@ -75,9 +75,9 @@ MAKESHIFT_DLLFUNC void string_from_stream(std::istream& stream, std::string& str
 
     // defined in serializers_stream-reflect.hpp
 template <typename T, typename SerializerT>
-    void compound_to_stream(std::ostream& stream, const T& value, SerializerT&& serializer);
+    void compound_to_stream(std::ostream& stream, const T& value, SerializerT&& serializer, const any_compound_serialization_options& compoundOptions);
 template <typename T, typename SerializerT>
-    void compound_from_stream(std::istream& stream, T& value, SerializerT&& serializer);
+    void compound_from_stream(std::istream& stream, T& value, SerializerT&& serializer, const any_compound_serialization_options& compoundOptions);
 
 
 template <typename ConstrainedIntT, typename SerializerT>
@@ -116,6 +116,7 @@ inline namespace serialize
 struct stream_serializer_options
 {
     enum_serialization_options enum_options;
+    any_compound_serialization_options any_compound_options;
 
     constexpr stream_serializer_options(void) noexcept = default;
     constexpr stream_serializer_options(enum_serialization_options _enum_options) noexcept : enum_options(_enum_options) { }
@@ -139,7 +140,7 @@ template <typename BaseT = void>
         if constexpr (is_constrained_integer_v<T>)
             makeshift::detail::constrained_integer_to_stream(value, stream, serializer);
         else if constexpr (has_flag(type_flag::compound, type_flags_of<T, metadata_tag_of_serializer_t<std::decay_t<SerializerT>>>))
-            makeshift::detail::compound_to_stream(stream, value, serializer);
+            makeshift::detail::compound_to_stream(stream, value, serializer, data(streamSerializer).any_compound_options);
         else if constexpr (std::is_enum<T>::value && have_metadata_v<T, metadata_tag_of_serializer_t<std::decay_t<SerializerT>>>)
             enum_to_stream(value, stream, makeshift::detail::serialization_data<T, metadata_tag_of_serializer_t<std::decay_t<SerializerT>>>, data(streamSerializer).enum_options, serializer);
         else if constexpr (std::is_convertible<T, std::string_view>::value)
@@ -158,7 +159,7 @@ template <typename BaseT = void>
         if constexpr (is_constrained_integer_v<T>)
             makeshift::detail::constrained_integer_from_stream(value, stream, serializer);
         else if constexpr (has_flag(type_flag::compound, type_flags_of<T, metadata_tag_of_serializer_t<std::decay_t<SerializerT>>>))
-            makeshift::detail::compound_from_stream(stream, value, serializer);
+            makeshift::detail::compound_from_stream(stream, value, serializer, data(streamSerializer).any_compound_options);
         else if constexpr (std::is_enum<T>::value && have_metadata_v<T, metadata_tag_of_serializer_t<std::decay_t<SerializerT>>>)
             enum_from_stream(value, stream, makeshift::detail::serialization_data<T, metadata_tag_of_serializer_t<std::decay_t<SerializerT>>>, data(streamSerializer).enum_options, serializer);
         else if constexpr (std::is_same<T, std::string>::value)
