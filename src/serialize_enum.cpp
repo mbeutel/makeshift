@@ -169,7 +169,7 @@ static std::string_view trim(std::string_view s) noexcept
         s = s.substr(0, s.size() - 1);
     return s;
 }
-MAKESHIFT_DLLFUNC char trim_delim_char(std::string_view s)
+char trim_delim_char(std::string_view s)
 {
     std::string_view st = trim(s);
     if (st.size() != 1)
