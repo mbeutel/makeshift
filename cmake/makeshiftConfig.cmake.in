@@ -1,17 +1,14 @@
 
-# Get the directory containing this file.
-get_filename_component(@PROJECT_NAME@_CURRENT_CONFIG_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
-
 # Backup module path.
 set(@PROJECT_NAME@_ORIGINAL_CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}")
 
 # Find all dependencies.
 include(CMakeFindDependencyMacro)
-find_dependency(CMakeshift 2.0 REQUIRED)
-find_dependency(MS-GSL REQUIRED)
+find_dependency(CMakeshift 2.0 QUIET REQUIRED)
+find_dependency(MS-GSL QUIET REQUIRED)
 
 # Restore original module path.
 set(CMAKE_MODULE_PATH "${@PROJECT_NAME@_ORIGINAL_CMAKE_MODULE_PATH}")
 
 # Import targets.
-include("${@PROJECT_NAME@_CURRENT_CONFIG_DIR}/@PROJECT_NAME@Targets.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@Targets.cmake")

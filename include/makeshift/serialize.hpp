@@ -154,6 +154,7 @@ private:
 public:
     MAKESHIFT_DLLFUNC parse_error(std::string_view _error);
     MAKESHIFT_DLLFUNC parse_error(std::string_view _error, std::size_t _column);
+    MAKESHIFT_DLLFUNC parse_error(std::string_view _error, std::string_view _context);
     MAKESHIFT_DLLFUNC parse_error(std::string_view _error, std::string_view _context, std::size_t _column);
 
     const std::string& error(void) const noexcept { return error_; }

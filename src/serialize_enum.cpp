@@ -82,7 +82,7 @@ static void enum_error_msg(std::ostream& stream, std::string_view typeDesc, std:
     enum_hint_options options;
     options.option_separator = ", ";
     enum_hint(sstr, sdata, options);
-    throw parse_error(sstr.str(), string, 0);
+    throw parse_error(sstr.str(), string);
 }
 [[noreturn]] static void raise_invalid_string_error(std::string_view string, std::string_view sv, const flags_enum_serialization_data_ref& sdata)
 {
