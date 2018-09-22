@@ -1,6 +1,7 @@
 ﻿
 #include <stdexcept>
 #include <sstream>
+#include <string>
 #include <tuple>
 #include <cctype>    // for isspace()
 #include <optional>
@@ -16,30 +17,6 @@
 
 namespace makeshift
 {
-
-
-inline namespace serialize
-{
-
-
-static std::string concat_message(const std::string& error, const std::string& context)
-{
-    return error + "\nContext: \"" + context + "\"";
-}
-
-parse_error::parse_error(const std::string& _error)
-    : std::runtime_error(_error), error_(_error), context_(""), column_(std::size_t(-1))
-{
-}
-parse_error::parse_error(const std::string& _error, const std::string& _context, std::size_t _column)
-    : std::runtime_error(concat_message(_error, _context)), error_(_error), context_(_context), column_(_column)
-{
-}
-
-
-
-} // inline namespace serialize
-
 
 namespace detail
 {
@@ -105,19 +82,7 @@ static void enum_error_msg(std::ostream& stream, std::string_view typeDesc, std:
     enum_hint_options options;
     options.option_separator = ", ";
     enum_hint(sstr, sdata, options);
-    throw parse_error(sstr.str(), std::string(string), 0);
-}
-static std::string mark_parser_position(std::string_view string, std::string_view sv)
-{
-    std::string result;
-    std::ptrdiff_t offset = sv.data() - string.data();
-    result += std::string(string.substr(0, std::size_t(offset)));
-    if(result.empty())
-        result += "^ ";
-    else
-        result += " ^ ";
-    result += std::string(string.substr(std::size_t(offset)));
-    return result;
+    throw parse_error(sstr.str(), string, 0);
 }
 [[noreturn]] static void raise_invalid_string_error(std::string_view string, std::string_view sv, const flags_enum_serialization_data_ref& sdata)
 {
@@ -128,7 +93,7 @@ static std::string mark_parser_position(std::string_view string, std::string_vie
     options.flags_separator = ", ";
     flags_enum_hint(sstr, sdata, options);
     std::size_t offset = std::size_t(sv.data() - string.data());
-    throw parse_error(sstr.str(), mark_parser_position(string, sv), offset);
+    throw parse_error(sstr.str(), string, offset);
 }
 
 
@@ -235,7 +200,7 @@ void flags_enum_from_string(std::string_view string, std::uint64_t& enumValue, c
             if (nsv)
                 sv = *nsv;
             else
-                throw parse_error("syntax error: expected separator", mark_parser_position(string, sv), std::size_t(sv.data() - string.data()));
+                throw parse_error("syntax error: expected separator", string, std::size_t(sv.data() - string.data()));
         }
 
         sv = skipWhitespace(sv);

@@ -146,8 +146,9 @@ private:
     std::size_t column_;
 
 public:
-    MAKESHIFT_DLLFUNC parse_error(const std::string& _error);
-    MAKESHIFT_DLLFUNC parse_error(const std::string& _error, const std::string& _context, std::size_t _column);
+    MAKESHIFT_DLLFUNC parse_error(std::string_view _error);
+    MAKESHIFT_DLLFUNC parse_error(std::string_view _error, std::size_t _column);
+    MAKESHIFT_DLLFUNC parse_error(std::string_view _error, std::string_view _context, std::size_t _column);
 
     const std::string& error(void) const noexcept { return error_; }
     const std::string& context(void) const noexcept { return context_; }
