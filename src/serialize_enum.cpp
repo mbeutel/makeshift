@@ -116,8 +116,6 @@ void enum_from_string(std::string_view string, std::uint64_t& enumValue, const e
     raise_invalid_string_error(string, sdata);
 }
 
-static constexpr std::string_view noneStr = "none";
-
 static constexpr bool isPowerOf2(std::uint64_t value) noexcept
 {
     return value != 0 && (value & (value - 1)) == 0;
@@ -149,7 +147,7 @@ std::string flags_enum_to_string(std::uint64_t enumValue, const flags_enum_seria
     }
 
     if (enumValue == 0 && result.empty())
-        return std::string(noneStr);
+        return std::string(options.none_string);
     else if (matchedEnumValue != 0)
         raise_invalid_value_error();
 
@@ -219,9 +217,9 @@ void flags_enum_from_string(std::string_view string, std::uint64_t& enumValue, c
         }
         if (!haveMatch)
         {
-            if (stringComparer(noneStr, sv.substr(0, noneStr.size())))
+            if (stringComparer(options.none_string, sv.substr(0, options.none_string.size())))
             {
-                sv = sv.substr(noneStr.size());
+                sv = sv.substr(options.none_string.size());
                 haveMatch = true;
             }
         }

@@ -5,6 +5,7 @@
 
 #include <tuple>
 #include <string>
+#include <string_view>
 #include <utility>     // for move(), forward<>()
 #include <stdexcept>   // for runtime_error
 #include <type_traits> // for decay<>, is_base_of<>
@@ -37,6 +38,11 @@ struct enum_serialization_options
         // Determines separator for flags enum values.
         //
     std::string_view flags_separator = ", ";
+
+        //ᅟ
+        // Determines string that indicates an empty flag set.
+        //
+    std::string_view none_string = "none";
 
     constexpr enum_serialization_options(void) = default;
 };
