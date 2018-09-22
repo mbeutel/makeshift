@@ -46,16 +46,21 @@ template <template <typename...> class ChainableT, typename BaseT, typename Data
     using chainable_sequence = type_sequence_cat_t<type_sequence<makeshift::define_chainable<ChainableT, void, DataT, RootT, Ts...>>, typename BaseT::chainable_sequence>;
     using args_sequence = type_sequence_cat_t<type_sequence<DataT>, typename BaseT::args_sequence>;
 
-    DataT data;
+private:
+    DataT data_;
 
-    constexpr friend const DataT& get_data(const define_chainable& chainable, tag<DataT>) noexcept { return chainable.data; }
-    constexpr friend DataT& get_data(define_chainable& chainable, tag<DataT>) noexcept { return chainable.data; }
-    constexpr friend DataT&& get_data(define_chainable&& chainable, tag<DataT>) noexcept { return std::move(chainable.data); }
+public:
+    constexpr friend const DataT& data(const define_chainable& chainable) noexcept { return chainable.data_; }
+    constexpr friend DataT& data(define_chainable& chainable) noexcept { return chainable.data_; }
+    constexpr friend DataT&& data(define_chainable&& chainable) noexcept { return std::move(chainable.data_); }
+    constexpr friend const DataT& data(const define_chainable& chainable, tag<DataT>) noexcept { return chainable.data_; }
+    constexpr friend DataT& data(define_chainable& chainable, tag<DataT>) noexcept { return chainable.data_; }
+    constexpr friend DataT&& data(define_chainable&& chainable, tag<DataT>) noexcept { return std::move(chainable.data_); }
 
     constexpr define_chainable(void) = default;
     template <typename... ArgsT>
         constexpr define_chainable(makeshift::detail::chainable_constructor_tag, std::tuple<ArgsT...>&& args)
-            : BaseT(makeshift::detail::chainable_constructor_tag{ }, std::move(args)), data(std::get<DataT>(std::move(args)))
+            : BaseT(makeshift::detail::chainable_constructor_tag{ }, std::move(args)), data_(std::get<DataT>(std::move(args)))
     {
     }
 };
@@ -77,18 +82,23 @@ template <template <typename...> class ChainableT, typename DataT, typename Root
     using chainable_sequence = type_sequence<define_chainable>;
     using args_sequence = type_sequence<DataT>;
 
-    DataT data;
+private:
+    DataT data_;
 
-    constexpr friend const DataT& get_data(const define_chainable& chainable, tag<DataT>) noexcept { return chainable.data; }
-    constexpr friend DataT& get_data(define_chainable& chainable, tag<DataT>) noexcept { return chainable.data; }
-    constexpr friend DataT&& get_data(define_chainable&& chainable, tag<DataT>) noexcept { return std::move(chainable.data); }
+public:
+    constexpr friend const DataT& data(const define_chainable& chainable) noexcept { return chainable.data_; }
+    constexpr friend DataT& data(define_chainable& chainable) noexcept { return chainable.data_; }
+    constexpr friend DataT&& data(define_chainable&& chainable) noexcept { return std::move(chainable.data_); }
+    constexpr friend const DataT& data(const define_chainable& chainable, tag<DataT>) noexcept { return chainable.data_; }
+    constexpr friend DataT& data(define_chainable& chainable, tag<DataT>) noexcept { return chainable.data_; }
+    constexpr friend DataT&& data(define_chainable&& chainable, tag<DataT>) noexcept { return std::move(chainable.data_); }
 
     constexpr define_chainable(void) = default;
-    constexpr define_chainable(const DataT& _data) : data(_data) { }
-    constexpr define_chainable(DataT&& _data) : data(std::move(_data)) { }
+    constexpr define_chainable(const DataT& _data) : data_(_data) { }
+    constexpr define_chainable(DataT&& _data) : data_(std::move(_data)) { }
     template <typename... ArgsT>
         constexpr define_chainable(makeshift::detail::chainable_constructor_tag, std::tuple<ArgsT...>&& args)
-            : data(std::get<DataT>(std::move(args)))
+            : data_(std::get<DataT>(std::move(args)))
     {
     }
 };
@@ -124,7 +134,7 @@ template <typename... ArgsT, typename ChainableT>
     constexpr std::tuple<ArgsT...> get_args_tuple(type_sequence<ArgsT...>, ChainableT&& chainable)
 {
     (void) chainable;
-    return { get_data(std::forward<ChainableT>(chainable), tag_v<ArgsT>)... };
+    return { data(std::forward<ChainableT>(chainable), tag_v<ArgsT>)... };
 }
 
 

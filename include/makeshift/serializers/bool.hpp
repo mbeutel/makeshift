@@ -86,7 +86,7 @@ template <typename BaseT = void>
         friend std::enable_if_t<std::is_same<T, bool>::value> // need to use SFINAE here to enforce exact match and suppress value conversions
         to_stream_impl(const T& value, std::ostream& stream, const bool_serializer& boolSerializer, SerializerT&& serializer)
     {
-        stream << streamable(std::string(value ? boolSerializer.data.true_string : boolSerializer.data.false_string), serializer);
+        stream << streamable(std::string(value ? data(boolSerializer).true_string : data(boolSerializer).false_string), serializer);
     }
     template <typename T, typename SerializerT>
         friend std::enable_if_t<std::is_same<T, bool>::value> // need to use SFINAE here to enforce exact match and suppress value conversions
@@ -94,13 +94,13 @@ template <typename BaseT = void>
     {
         std::string str;
         stream >> streamable(str, serializer);
-        makeshift::detail::bool_from_stream(boolSerializer.data, value, str);
+        makeshift::detail::bool_from_stream(data(boolSerializer), value, str);
     }
     template <typename T, typename SerializerT>
         friend std::enable_if_t<std::is_same<T, bool>::value, std::string> // need to use SFINAE here to enforce exact match and suppress value conversions
         get_hint_impl(tag<T>, const bool_serializer& boolSerializer, SerializerT&& serializer)
     {
-        return boolSerializer.data.false_string + get_data(serializer, tag_v<hint_options>).option_separator + boolSerializer.data.true_string;
+        return data(boolSerializer).false_string + data(serializer, tag_v<hint_options>).option_separator + data(boolSerializer).true_string;
     }
 };
 bool_serializer(void) -> bool_serializer<>;

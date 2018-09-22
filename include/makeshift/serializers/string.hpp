@@ -121,7 +121,7 @@ template <typename BaseT = void>
         (void) serializer;
         using D = std::decay_t<T>;
         if constexpr (std::is_enum<D>::value && have_metadata_v<D, metadata_tag_of_serializer_t<std::decay_t<SerializerT>>>)
-            return std::string(to_string(value, makeshift::detail::serialization_data<D, metadata_tag_of_serializer_t<std::decay_t<SerializerT>>>, stringSerializer.data.enum_options));
+            return std::string(to_string(value, makeshift::detail::serialization_data<D, metadata_tag_of_serializer_t<std::decay_t<SerializerT>>>, data(stringSerializer).enum_options));
         else if constexpr (is_constrained_integer_v<D>)
             return makeshift::detail::constrained_integer_to_string(value, serializer);
         else
@@ -135,7 +135,7 @@ template <typename BaseT = void>
         (void) stringSerializer;
         (void) serializer;
         if constexpr (std::is_enum<T>::value && have_metadata_v<T, metadata_tag_of_serializer_t<std::decay_t<SerializerT>>>)
-            return from_string(tag_v<T>, string, makeshift::detail::serialization_data<T, metadata_tag_of_serializer_t<std::decay_t<SerializerT>>>, stringSerializer.data.enum_options);
+            return from_string(tag_v<T>, string, makeshift::detail::serialization_data<T, metadata_tag_of_serializer_t<std::decay_t<SerializerT>>>, data(stringSerializer).enum_options);
         else if constexpr (is_constrained_integer_v<T>)
             return makeshift::detail::constrained_integer_from_string<T>(string, serializer);
         else

@@ -141,7 +141,7 @@ template <typename BaseT = void>
         else if constexpr (has_flag(type_flag::compound, type_flags_of<T, metadata_tag_of_serializer_t<std::decay_t<SerializerT>>>))
             makeshift::detail::compound_to_stream(stream, value, serializer);
         else if constexpr (std::is_enum<T>::value && have_metadata_v<T, metadata_tag_of_serializer_t<std::decay_t<SerializerT>>>)
-            enum_to_stream(value, stream, makeshift::detail::serialization_data<T, metadata_tag_of_serializer_t<std::decay_t<SerializerT>>>, streamSerializer.data.enum_options, serializer);
+            enum_to_stream(value, stream, makeshift::detail::serialization_data<T, metadata_tag_of_serializer_t<std::decay_t<SerializerT>>>, data(streamSerializer).enum_options, serializer);
         else if constexpr (std::is_convertible<T, std::string_view>::value)
             makeshift::detail::string_to_stream(stream, value);
         else
@@ -160,7 +160,7 @@ template <typename BaseT = void>
         else if constexpr (has_flag(type_flag::compound, type_flags_of<T, metadata_tag_of_serializer_t<std::decay_t<SerializerT>>>))
             makeshift::detail::compound_from_stream(stream, value, serializer);
         else if constexpr (std::is_enum<T>::value && have_metadata_v<T, metadata_tag_of_serializer_t<std::decay_t<SerializerT>>>)
-            enum_from_stream(value, stream, makeshift::detail::serialization_data<T, metadata_tag_of_serializer_t<std::decay_t<SerializerT>>>, streamSerializer.data.enum_options, serializer);
+            enum_from_stream(value, stream, makeshift::detail::serialization_data<T, metadata_tag_of_serializer_t<std::decay_t<SerializerT>>>, data(streamSerializer).enum_options, serializer);
         else if constexpr (std::is_same<T, std::string>::value)
             makeshift::detail::string_from_stream(stream, value);
         else

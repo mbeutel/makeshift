@@ -58,11 +58,11 @@ template <typename BaseT = void>
         (void) hintSerializer;
         using MetadataTag = metadata_tag_of_serializer_t<std::decay_t<SerializerT>>;
         if constexpr (std::is_enum<T>::value && have_metadata_v<T, MetadataTag>)
-            return get_hint(makeshift::detail::serialization_data<T, MetadataTag>, hintSerializer.data);
+            return get_hint(makeshift::detail::serialization_data<T, MetadataTag>, data(hintSerializer).enum_options);
         else if constexpr (std::is_same<T, bool>::value)
-            return std::string("false") + hintSerializer.data.option_separator + std::string("true");
+            return std::string("false") + data(hintSerializer).enum_options.option_separator + std::string("true");
         else if constexpr (is_constrained_integer_v<T>)
-            return T::verifier::get_hint(hintSerializer.data, typename T::constraint{ });
+            return T::verifier::get_hint(data(hintSerializer), typename T::constraint{ });
         else if constexpr (has_flag(type_flag::compound, type_flags_of<T, MetadataTag>))
             return makeshift::detail::get_compound_hint<T>(serializer);
         else
