@@ -50,11 +50,18 @@ template <template <typename...> class T> constexpr template_tag<T> template_tag
 } // inline namespace types
 
 
-namespace detail
+inline namespace serialize
 {
 
 
 struct serializer_base { };
+
+
+} // inline namespace serialize
+
+namespace detail
+{
+
 
 struct flags_base { };
 struct flags_tag { };
@@ -711,7 +718,7 @@ template <typename T> constexpr bool is_constrained_integer_v = is_constrained_i
     //ᅟ
     // Determines whether a type is a serializer.
     //
-template <typename T> struct is_serializer : std::is_base_of<makeshift::detail::serializer_base, T> { };
+template <typename T> struct is_serializer : std::is_base_of<serializer_base, T> { };
 
     //ᅟ
     // Determines whether a type is a serializer.
