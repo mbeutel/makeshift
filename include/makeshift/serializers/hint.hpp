@@ -66,7 +66,7 @@ template <typename BaseT = void>
             return std::string("false") + data(hintSerializer).enum_options.option_separator + std::string("true");
         else if constexpr (is_constrained_integer_v<T>)
             return T::verifier::get_hint(data(hintSerializer).enum_options, typename T::constraint{ });
-        else if constexpr (has_flag(type_flag::compound, type_flags_of<T, MetadataTag>))
+        else if constexpr (has_flag(type_flag::compound, type_flags_of_v<T, MetadataTag>))
             return makeshift::detail::get_compound_hint<T>(serializer, data(hintSerializer).any_compound_options);
         else
             return { };

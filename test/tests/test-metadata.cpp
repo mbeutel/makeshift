@@ -84,7 +84,7 @@ static constexpr auto reflect(mk::tag<COOIndex>, mk::any_tag_of<mk::reflection_t
 {
     using namespace makeshift::metadata;
     return type<COOIndex>(
-        mk::constant<type_flag::value | type_flag::compound>{ },
+        constant<type_flag::value | type_flag::compound>{ },
         member<&COOIndex::i>("i"),
         member<&COOIndex::j>("j")
     );
@@ -99,7 +99,7 @@ static constexpr auto reflect(mk::tag<COOValue>, mk::any_tag_of<mk::reflection_t
 {
     using namespace makeshift::metadata;
     return type<COOValue>(
-        mk::constant<type_flag::compound>{ },
+        constant<type_flag::compound>{ },
         member<&COOValue::index>("index"),
         member<&COOValue::value>("value")
     );

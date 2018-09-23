@@ -26,7 +26,7 @@ struct value_metadata_base { };
 struct member_metadata_base { };
 
 template <typename T, typename... AttributesT> struct type_flags_from_attributes_0;
-template <typename T> struct type_flags_from_attributes_0<T> : std::integral_constant<type_flags, makeshift::detail::default_type_flags<T>> { };
+template <typename T> struct type_flags_from_attributes_0<T> : std::integral_constant<type_flags, makeshift::detail::default_type_flags_v<T>> { };
 template <typename T, typename Attr0T, typename... AttributesT> struct type_flags_from_attributes_0<T, Attr0T, AttributesT...> : type_flags_from_attributes_0<T, AttributesT...> { };
 template <typename T, type_flags Flags, typename... AttributesT> struct type_flags_from_attributes_0<T, std::integral_constant<type_flags, Flags>, AttributesT...> : std::integral_constant<type_flags, Flags | type_flags_from_attributes_0<T, AttributesT...>::value> { };
 template <typename T, typename... AttributesT> using type_flags_from_attributes = typename type_flags_from_attributes_0<T, AttributesT...>::type;
@@ -63,6 +63,10 @@ inline namespace metadata
 using namespace std::literals::string_view_literals;
 
 
+using makeshift::constant;
+using makeshift::c;
+
+
     //ᅟ
     // Stores metadata for a type.
     //
@@ -73,6 +77,7 @@ template <typename T, type_flags Flags, typename AttributesT>
 {
     using type = T;
 
+    using flags_type = constant<Flags>;
     static constexpr type_flags flags = Flags;
 
     AttributesT attributes;
