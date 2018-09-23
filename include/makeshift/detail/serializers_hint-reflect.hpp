@@ -3,9 +3,8 @@
 #define INCLUDED_MAKESHIFT_DETAIL_SERIALIZERS_HINT_REFLECT_HPP_
 
 
-#include <string>
+#include <iosfwd>
 #include <sstream>
-#include <iomanip>
 
 #include <makeshift/serializers/hint.hpp>
 #include <makeshift/type_traits.hpp>      // for tag<>
@@ -21,6 +20,9 @@ namespace makeshift
 namespace detail
 {
 
+    // defined in serializer_stream.cpp
+MAKESHIFT_DLLFUNC void raw_string_to_stream(std::ostream& stream, std::string_view string);
+MAKESHIFT_DLLFUNC void name_to_stream(std::ostream& stream, std::string_view name);
 
 template <typename T, typename SerializerT>
     std::string get_compound_hint(SerializerT&&, const any_compound_hint_options& compoundOptions)
@@ -31,7 +33,7 @@ template <typename T, typename SerializerT>
     const auto& options = isCompoundValue ? compoundOptions.compound_value : compoundOptions.compound;
 
     std::ostringstream sstr;
-    sstr << options.opening_delimiter;
+    raw_string_to_stream(sstr, options.opening_delimiter);
     bool first = true;
     tuple_foreach(members, [&](auto&& member)
     {
@@ -41,33 +43,32 @@ template <typename T, typename SerializerT>
         if (first)
             first = false;
         else
-            sstr << options.element_delimiter;
+            raw_string_to_stream(sstr, options.element_delimiter);
 
         std::string_view theName = get_or_default<std::string_view>(member.attributes);
         if (!theName.empty())
-            sstr << theName;
+            name_to_stream(sstr, theName);
         else
         {
             if constexpr (!have_metadata_v<Member, MetadataTag>)
-                sstr << options.unnamed_member_placeholder;
+                name_to_stream(sstr, options.unnamed_member_placeholder);
             else
             {
                 auto slug = get_or_default<std::string_view>(metadata_of<Member, MetadataTag>.attributes);
                 if (!slug.empty())
-                    sstr << slug;
+                    name_to_stream(sstr, slug);
                 else
                 {
                     auto caption = get_or_default<caption_metadata>(metadata_of<Member, MetadataTag>.attributes);
                     if (!caption.value.empty())
-                        //sstr << std::quoted(caption.value);
-                        sstr << std::quoted(std::string(caption.value)); // workaround for missing string_view overload in libstdc++
+                        name_to_stream(sstr, caption.value);
                     else
-                        sstr << options.unnamed_member_placeholder;
+                        name_to_stream(sstr, options.unnamed_member_placeholder);
                 }
             }
         }
     });
-    sstr << options.closing_delimiter;
+    raw_string_to_stream(sstr, options.closing_delimiter);
     return sstr.str();
 }
 

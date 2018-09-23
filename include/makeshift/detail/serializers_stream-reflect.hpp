@@ -3,7 +3,8 @@
 #define INCLUDED_MAKESHIFT_DETAIL_SERIALIZERS_STREAM_REFLECT_HPP_
 
 
-#include <iostream>
+#include <iosfwd>
+#include <string_view>
 #include <utility>  // for move(), forward<>()
 
 #include <makeshift/serialize.hpp> // for metadata_tag_of_serializer<>, parse_error
@@ -22,6 +23,9 @@ namespace detail
 {
 
 
+MAKESHIFT_DLLFUNC void raw_string_to_stream(std::ostream& stream, std::string_view string);
+MAKESHIFT_DLLFUNC void name_to_stream(std::ostream& stream, std::string_view name);
+
 template <typename T, typename SerializerT>
     void compound_to_stream(std::ostream& stream, const T& value, SerializerT&& serializer, const any_compound_serialization_options& compoundOptions)
 {
@@ -30,25 +34,25 @@ template <typename T, typename SerializerT>
     constexpr bool isCompoundValue = has_flag(type_flag::value, type_flags_of_v<T, MetadataTag>);
     const auto& options = isCompoundValue ? compoundOptions.compound_value : compoundOptions.compound;
 
-    stream << options.opening_delimiter;
+    raw_string_to_stream(stream, options.opening_delimiter);
     bool first = true;
     tuple_foreach(members, [&](auto&& member)
     {
         if (first)
             first = false;
         else
-            stream << options.element_delimiter;
+            raw_string_to_stream(stream, options.element_delimiter);
 
         auto accessor = member_accessor(member);
         auto theName = get_or_default<std::string_view>(member.attributes);
-        if (options.with_member_names && !theName.empty())
+        if (options.with_member_names)
         {
-            string_to_stream(stream, theName);
-            stream << options.name_value_separator;
+            name_to_stream(stream, theName);
+            raw_string_to_stream(stream, options.name_value_separator);
         }
         stream << streamable(accessor(value), serializer);
     });
-    stream << options.closing_delimiter;
+    raw_string_to_stream(stream, options.closing_delimiter);
 }
 class stream_compound_member_deserializer_base
 {
