@@ -68,16 +68,17 @@ namespace detail
 
 
 template <typename T>
-    constexpr type_flags default_type_flags = std::conditional_t<std::disjunction<std::is_scalar<T>, is_constrained_integer<T>>::value, constant<type_flag::value>, constant<type_flags::none>>::value;
-
+    using default_type_flags
+        = std::conditional_t<std::disjunction<std::is_scalar<T>, is_constrained_integer<T>>::value, constant<type_flag::value>,
+          std::conditional_t<std::is_aggregate<T>::value, constant<type_flag::compound>,
+          constant<type_flags::none>>>;
+template <typename T> constexpr type_flags default_type_flags_v = default_type_flags<T>::value;
+template <typename T, typename MetadataTagT> struct metadata_flags : metadata_of_t<T, MetadataTagT>::flags_type { };
 template <typename T, typename MetadataTagT>
-    constexpr type_flags lookup_type_flags(void) noexcept
-{
-    if constexpr (have_metadata_v<T, MetadataTagT>)
-        return metadata_of_t<T, MetadataTagT>::flags;
-    else
-        return default_type_flags<T>;
-}
+    using lookup_type_flags
+        = typename std::conditional_t<have_metadata_v<T, MetadataTagT>, metadata_flags<T, MetadataTagT>, default_type_flags<T>>::type;
+template <typename T, typename MetadataTagT>
+    constexpr type_flags lookup_type_flags_v = lookup_type_flags<T, MetadataTagT>::value;
 
 
 template <typename ChainableT> struct metadata_tag_r { using type = typename ChainableT::metadata_tag; };
@@ -94,7 +95,12 @@ inline namespace metadata
     //ᅟ
     // Determines qualities of a type.
     //
-template <typename T, typename MetadataTagT, typename = void> constexpr type_flags type_flags_of = makeshift::detail::lookup_type_flags<T, MetadataTagT>();
+template <typename T, typename MetadataTagT, typename = void> constexpr type_flags type_flags_of_v = makeshift::detail::lookup_type_flags_v<T, MetadataTagT>;
+
+    //ᅟ
+    // Determines qualities of a type.
+    //
+template <typename T, typename MetadataTagT> using type_flags_of = constant<type_flags_of_v<T, MetadataTagT>>;
 
 
 } // inline namespace metadata

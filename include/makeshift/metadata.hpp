@@ -26,7 +26,7 @@ struct value_metadata_base { };
 struct member_metadata_base { };
 
 template <typename T, typename... AttributesT> struct type_flags_from_attributes_0;
-template <typename T> struct type_flags_from_attributes_0<T> : std::integral_constant<type_flags, makeshift::detail::default_type_flags<T>> { };
+template <typename T> struct type_flags_from_attributes_0<T> : std::integral_constant<type_flags, makeshift::detail::default_type_flags_v<T>> { };
 template <typename T, typename Attr0T, typename... AttributesT> struct type_flags_from_attributes_0<T, Attr0T, AttributesT...> : type_flags_from_attributes_0<T, AttributesT...> { };
 template <typename T, type_flags Flags, typename... AttributesT> struct type_flags_from_attributes_0<T, std::integral_constant<type_flags, Flags>, AttributesT...> : std::integral_constant<type_flags, Flags | type_flags_from_attributes_0<T, AttributesT...>::value> { };
 template <typename T, typename... AttributesT> using type_flags_from_attributes = typename type_flags_from_attributes_0<T, AttributesT...>::type;
@@ -63,30 +63,33 @@ inline namespace metadata
 using namespace std::literals::string_view_literals;
 
 
+using makeshift::constant;
+using makeshift::c;
+
+
     //ᅟ
     // Stores metadata for a type.
     //
-template <typename T, typename CategoryC, typename AttributesT>
+template <typename T, typename AttributesT>
     struct type_metadata;
-template <typename T, type_flags Flags, typename AttributesT>
-    struct type_metadata<T, std::integral_constant<type_flags, Flags>, AttributesT> : makeshift::detail::type_metadata_base
+template <typename T, typename... AttributesT>
+    struct type_metadata<T, std::tuple<AttributesT...>> : makeshift::detail::type_metadata_base
 {
     using type = T;
 
-    static constexpr type_flags flags = Flags;
+    using flags_type = makeshift::detail::type_flags_from_attributes<T, AttributesT...>;
+    static constexpr type_flags flags = flags_type::value;
 
-    AttributesT attributes;
+    std::tuple<AttributesT...> attributes;
 
-    constexpr type_metadata(AttributesT&& _attributes) : attributes(std::move(_attributes)) { }
+    constexpr type_metadata(std::tuple<AttributesT...>&& _attributes) : attributes(std::move(_attributes)) { }
 };
 
     //ᅟ
     // Use `type<T>(...)` to declare metadata for a type.
     //
 template <typename T, typename... AttrT>
-    constexpr type_metadata<T,
-        makeshift::detail::type_flags_from_attributes<T, literal_decay_t<AttrT>...>,
-        std::tuple<literal_decay_t<AttrT>...>>
+    constexpr type_metadata<T, std::tuple<literal_decay_t<AttrT>...>>
     type(AttrT&&... attributes)
 {
     return { std::tuple<literal_decay_t<AttrT>...>(std::forward<AttrT>(attributes)...) };
