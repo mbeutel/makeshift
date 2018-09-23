@@ -55,7 +55,7 @@ struct type_flag : define_flags<type_flag>
         //ᅟ
         // Indicates that the associated type is a composite type which itself forms a value, e.g. a geometrical point defined as `struct Point { int x, y; };`.
         //
-    static constexpr flag compound_value { 1 | 2 };
+    static constexpr flag compound_value = compound | value;
 };
 using type_flags = type_flag::flags;
 
