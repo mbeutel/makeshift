@@ -83,7 +83,8 @@ struct COOIndex
 static constexpr auto reflect(mk::tag<COOIndex>, mk::any_tag_of<mk::reflection_tag, mk::serialization_tag>)
 {
     using namespace makeshift::metadata;
-    return type<COOIndex, type_flag::value | type_flag::compound>(
+    return type<COOIndex>(
+        mk::constant<type_flag::value | type_flag::compound>{ },
         member<&COOIndex::i>("i"),
         member<&COOIndex::j>("j")
     );
@@ -97,7 +98,8 @@ struct COOValue
 static constexpr auto reflect(mk::tag<COOValue>, mk::any_tag_of<mk::reflection_tag, mk::serialization_tag>)
 {
     using namespace makeshift::metadata;
-    return type<COOValue, type_flag::compound>(
+    return type<COOValue>(
+        mk::constant<type_flag::compound>{ },
         member<&COOValue::index>("index"),
         member<&COOValue::value>("value")
     );

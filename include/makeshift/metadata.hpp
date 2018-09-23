@@ -25,6 +25,13 @@ struct type_metadata_base { };
 struct value_metadata_base { };
 struct member_metadata_base { };
 
+template <typename T, typename... AttributesT> struct type_flags_from_attributes_0;
+template <typename T> struct type_flags_from_attributes_0<T> : std::integral_constant<type_flags, makeshift::detail::default_type_flags<T>> { };
+template <typename T, typename Attr0T, typename... AttributesT> struct type_flags_from_attributes_0<T, Attr0T, AttributesT...> : type_flags_from_attributes_0<T, AttributesT...> { };
+template <typename T, type_flags Flags, typename... AttributesT> struct type_flags_from_attributes_0<T, std::integral_constant<type_flags, Flags>, AttributesT...> : std::integral_constant<type_flags, Flags | type_flags_from_attributes_0<T, AttributesT...>::value> { };
+template <typename T, typename... AttributesT> using type_flags_from_attributes = typename type_flags_from_attributes_0<T, AttributesT...>::type;
+template <typename T, typename... AttributesT> constexpr type_flags type_flags_from_attributes_v = type_flags_from_attributes_0<T, AttributesT...>::value;
+
 
 } // namespace detail
 
@@ -77,16 +84,10 @@ template <typename T, type_flags Flags, typename AttributesT>
     // Use `type<T>(...)` to declare metadata for a type.
     //
 template <typename T, typename... AttrT>
-    constexpr type_metadata<T, constant<makeshift::detail::default_type_flags<T>>, std::tuple<literal_decay_t<AttrT>...>> type(AttrT&&... attributes)
-{
-    return { std::tuple<literal_decay_t<AttrT>...>(std::forward<AttrT>(attributes)...) };
-}
-
-    //ᅟ
-    // Use `type<T, Category>(...)` to declare metadata for a type with a given type category.
-    //
-template <typename T, type_flags Flags, typename... AttrT>
-    constexpr type_metadata<T, constant<Flags>, std::tuple<literal_decay_t<AttrT>...>> type(AttrT&&... attributes)
+    constexpr type_metadata<T,
+        makeshift::detail::type_flags_from_attributes<T, literal_decay_t<AttrT>...>,
+        std::tuple<literal_decay_t<AttrT>...>>
+    type(AttrT&&... attributes)
 {
     return { std::tuple<literal_decay_t<AttrT>...>(std::forward<AttrT>(attributes)...) };
 }
@@ -109,7 +110,8 @@ template <typename ValT, ValT Val, typename AttributesT>
     // Use `value<V>(...)` to declare metadata for a known value of a type.
     //
 template <auto Val, typename... AttrT, typename = decltype(Val)>
-    constexpr value_metadata<constant<Val>, std::tuple<literal_decay_t<AttrT>...>> value(AttrT&&... attributes)
+    constexpr value_metadata<constant<Val>, std::tuple<literal_decay_t<AttrT>...>>
+    value(AttrT&&... attributes)
 {
     return { std::tuple<literal_decay_t<AttrT>...>(std::forward<AttrT>(attributes)...) };
 }
@@ -132,7 +134,8 @@ template <typename AccessorsC, typename AttributesT>
     // Use `member<Accessors...>(...)` to declare metadata for members of a type.
     //
 template <auto... Accessors, typename... AttrT, typename = type_sequence<decltype(Accessors)...>>
-    constexpr member_metadata<type_sequence<constant<Accessors>...>, std::tuple<literal_decay_t<AttrT>...>> member(AttrT&&... attributes)
+    constexpr member_metadata<type_sequence<constant<Accessors>...>, std::tuple<literal_decay_t<AttrT>...>>
+    member(AttrT&&... attributes)
 {
     return { std::tuple<literal_decay_t<AttrT>...>(std::forward<AttrT>(attributes)...) };
 }
