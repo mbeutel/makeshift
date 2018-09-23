@@ -18,6 +18,7 @@ add_library(makeshift
     "serializer_bool.cpp"
     "serializer_string.cpp"
     "serializer_stream.cpp"
+    "streamable-string.cpp"
     "string_compare.cpp"
     "constrained.cpp")
 

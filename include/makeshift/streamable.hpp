@@ -120,4 +120,9 @@ template <typename T, typename SerializerT>
 } // namespace makeshift
 
 
+#ifdef INCLUDED_MAKESHIFT_STRING_HPP_
+ #include <makeshift/detail/streamable-string.hpp>
+#endif // INCLUDED_MAKESHIFT_STRING_HPP_
+
+
 #endif // INCLUDED_MAKESHIFT_STREAMABLE_HPP_
