@@ -21,12 +21,12 @@ inline namespace types
     // Given a runtime value, returns a variant of the type-encoded possible values as defined by metadata.
     //ᅟ
     //ᅟ    enum Color { red, green, blue };
-    //ᅟ    constexpr inline auto reflect(tag<Color>, reflection_metadata_tag) noexcept { ... }
+    //ᅟ    constexpr inline auto reflect(tag<Color>, reflection_tag) noexcept { ... }
     //ᅟ
     //ᅟ    Color runtimeColor = ...;
     //ᅟ    auto color = expand(runtimeColor); // returns std::variant<constant<red>, constant<green>, constant<blue>>
     //
-template <typename T, typename MetadataTagT = reflection_metadata_tag>
+template <typename T, typename MetadataTagT = reflection_tag>
     constexpr auto
     expand(T&& value, tag<MetadataTagT> = { })
 {
@@ -40,12 +40,12 @@ template <typename T, typename MetadataTagT = reflection_metadata_tag>
     // The variant holds `unknown_value<>` if the runtime value does not appear in the tuple of possible values.
     //ᅟ
     //ᅟ    enum Color { red, green, blue };
-    //ᅟ    constexpr inline auto reflect(tag<Color>, reflection_metadata_tag) noexcept { ... }
+    //ᅟ    constexpr inline auto reflect(tag<Color>, reflection_tag) noexcept { ... }
     //ᅟ
     //ᅟ    Color runtimeColor = ...;
     //ᅟ    auto color = try_expand(runtimeColor); // returns std::variant<unknown_value<Color>, constant<red>, constant<green>, constant<blue>>
     //
-template <typename T, typename MetadataTagT = reflection_metadata_tag>
+template <typename T, typename MetadataTagT = reflection_tag>
     constexpr auto
     try_expand(T&& value, tag<MetadataTagT> = { })
 {

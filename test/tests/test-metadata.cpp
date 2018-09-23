@@ -24,7 +24,7 @@ enum class MyEnum
     foo,
     bar
 };
-static constexpr auto reflect(mk::tag<MyEnum>, mk::any_tag_of<mk::reflection_metadata_tag, mk::serialization_metadata_tag>)
+static constexpr auto reflect(mk::tag<MyEnum>, mk::any_tag_of<mk::reflection_tag, mk::serialization_tag>)
 {
     using namespace makeshift::metadata;
     return type<MyEnum>(
@@ -52,7 +52,7 @@ struct Vegetables : mk::define_flags<Vegetables>
     static constexpr flags something_weird = chili | flag(128);
 };
 using Ratatouille = Vegetables::flags;
-static constexpr auto reflect(mk::tag<Vegetables>, mk::any_tag_of<mk::reflection_metadata_tag, mk::serialization_metadata_tag>) // note: we reflect on Vegetables which is our own type, not on Ratatouille which is just an alias!
+static constexpr auto reflect(mk::tag<Vegetables>, mk::any_tag_of<mk::reflection_tag, mk::serialization_tag>) // note: we reflect on Vegetables which is our own type, not on Ratatouille which is just an alias!
 {
     using namespace makeshift::metadata;
     return type<Vegetables>(
@@ -80,7 +80,7 @@ struct COOIndex
     int i;
     int j;
 };
-static constexpr auto reflect(mk::tag<COOIndex>, mk::any_tag_of<mk::reflection_metadata_tag, mk::serialization_metadata_tag>)
+static constexpr auto reflect(mk::tag<COOIndex>, mk::any_tag_of<mk::reflection_tag, mk::serialization_tag>)
 {
     using namespace makeshift::metadata;
     return type<COOIndex, type_flag::value | type_flag::compound>(
@@ -94,7 +94,7 @@ struct COOValue
     COOIndex index;
     double value;
 };
-static constexpr auto reflect(mk::tag<COOValue>, mk::any_tag_of<mk::reflection_metadata_tag, mk::serialization_metadata_tag>)
+static constexpr auto reflect(mk::tag<COOValue>, mk::any_tag_of<mk::reflection_tag, mk::serialization_tag>)
 {
     using namespace makeshift::metadata;
     return type<COOValue, type_flag::compound>(

@@ -54,13 +54,13 @@ inline namespace metadata
     // For enum types with metadata, returns a tuple of type-encoded possible values.
     //ᅟ
     //ᅟ    enum Color { red, green, blue };
-    //ᅟ    constexpr inline auto reflect(tag<Color>, reflection_metadata_tag) noexcept
+    //ᅟ    constexpr inline auto reflect(tag<Color>, reflection_tag) noexcept
     //ᅟ    {
     //ᅟ        return type<Color>(value<red>(), value<green>(), value<blue>());
     //ᅟ    }
     //ᅟ    auto colorValues = values_from_metadata<Color>(); // returns type_tuple<constant<red>, constant<green>, constant<blue>>
     //
-template <typename T, typename MetadataTagT = reflection_metadata_tag>
+template <typename T, typename MetadataTagT = reflection_tag>
     constexpr auto values_from_metadata(tag<T> = { }, MetadataTagT = { })
 {
     static_assert(have_metadata_v<T, MetadataTagT>, "no metadata available for given type and tag");
@@ -95,7 +95,7 @@ template <typename T>
     //ᅟ
     // For bool, constrained integer types, and for enum types with metadata, returns a tuple of type-encoded possible values.
     //ᅟ
-template <typename T, typename MetadataTagT = reflection_metadata_tag>
+template <typename T, typename MetadataTagT = reflection_tag>
     constexpr auto values_from_type_or_metadata(tag<T> = { }, MetadataTagT = { })
 {
     if constexpr (std::is_same<T, bool>::value || is_constrained_integer_v<T>)
@@ -108,7 +108,7 @@ template <typename T, typename MetadataTagT = reflection_metadata_tag>
     //ᅟ
     // Returns a tuple of member metadata objects describing a struct type.
     //
-template <typename T, typename MetadataTagT = reflection_metadata_tag>
+template <typename T, typename MetadataTagT = reflection_tag>
     constexpr auto members_from_metadata(tag<T> = { }, MetadataTagT = { })
 {
     static_assert(have_metadata_v<T, MetadataTagT>, "no metadata available for given type and tag");

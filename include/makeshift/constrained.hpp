@@ -173,9 +173,9 @@ template <typename T, T Last>
 template <typename T>
     constexpr constrained_integer_metadata get_constrained_integer_metadata(tag<T> = { }) noexcept
 {
-    if constexpr (have_metadata_v<T, serialization_metadata_tag>)
+    if constexpr (have_metadata_v<T, serialization_tag>)
     {
-        auto theMetadata = metadata_of<T, serialization_metadata_tag>;
+        auto theMetadata = metadata_of<T, serialization_tag>;
         return { get_or_default<std::string_view>(theMetadata.attributes), get_or_default<caption_metadata>(theMetadata.attributes).value };
     }
     else

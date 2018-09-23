@@ -895,13 +895,13 @@ inline namespace metadata
     //ᅟ
     // Default tag type for `reflect()` methods which define type metadata for correctness and compile-time member and value enumeration.
     //
-struct reflection_metadata_tag { };
+struct reflection_tag { };
 
 
     //ᅟ
     // Default tag type for `reflect()` methods which define type metadata for serialization.
     //
-struct serialization_metadata_tag { };
+struct serialization_tag { };
 
 
 } // inline namespace metadata

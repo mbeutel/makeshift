@@ -34,7 +34,7 @@ inline namespace metadata
     //ᅟ
     // Use this class with `chain()` to inject a metadata tag into a metadata-based comparer.
     //
-template <typename MetadataTagT = reflection_metadata_tag, typename BaseT = void>
+template <typename MetadataTagT = reflection_tag, typename BaseT = void>
     struct metadata_tag_for_comparer : define_comparer<metadata_tag_for_comparer, BaseT, void, MetadataTagT>
 {
     using base = define_comparer<makeshift::metadata_tag_for_comparer, BaseT, void, MetadataTagT>;
@@ -42,18 +42,18 @@ template <typename MetadataTagT = reflection_metadata_tag, typename BaseT = void
 
     using metadata_tag = MetadataTagT;
 };
-template <typename MetadataTagT = reflection_metadata_tag> constexpr metadata_tag_for_comparer<MetadataTagT> metadata_tag_for_comparer_v { };
+template <typename MetadataTagT = reflection_tag> constexpr metadata_tag_for_comparer<MetadataTagT> metadata_tag_for_comparer_v { };
 
 
     //ᅟ
     // Retrieves the metadata tag to be used for metadata-based comparers.
-    // Defaults to `reflection_metadata_tag` if the user did not override the tag by chaining with a `metadata_tag_of_comparer<>`.
+    // Defaults to `reflection_tag` if the user did not override the tag by chaining with a `metadata_tag_of_comparer<>`.
     //
-template <typename ComparerT> struct metadata_tag_of_comparer : std::conditional_t<can_apply_v<makeshift::detail::metadata_tag_rt, ComparerT>, makeshift::detail::metadata_tag_r<ComparerT>, tag<reflection_metadata_tag>> { };
+template <typename ComparerT> struct metadata_tag_of_comparer : std::conditional_t<can_apply_v<makeshift::detail::metadata_tag_rt, ComparerT>, makeshift::detail::metadata_tag_r<ComparerT>, tag<reflection_tag>> { };
 
     //ᅟ
     // Retrieves the metadata tag to be used for metadata-based comparers.
-    // Defaults to `reflection_metadata_tag` if the user did not override the tag by chaining with a `metadata_tag_of_comparer<>`.
+    // Defaults to `reflection_tag` if the user did not override the tag by chaining with a `metadata_tag_of_comparer<>`.
     //
 template <typename ComparerT> using metadata_tag_of_comparer_t = typename metadata_tag_of_comparer<ComparerT>::type;
 

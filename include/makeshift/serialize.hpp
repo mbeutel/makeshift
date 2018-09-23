@@ -111,13 +111,13 @@ struct any_compound_serialization_options
     //ᅟ    };
     //
 template <template <typename...> class SerializerT, typename BaseT, typename SerializerArgsT = void, typename... Ts>
-    using define_serializer = define_chainable<SerializerT, BaseT, SerializerArgsT, makeshift::detail::serializer_base, Ts...>;
+    using define_serializer = define_chainable<SerializerT, BaseT, SerializerArgsT, serializer_base, Ts...>;
 
 
     //ᅟ
     // Use this class with `chain()` to inject a metadata tag into a metadata-based serializer.
     //
-template <typename MetadataTagT = serialization_metadata_tag, typename BaseT = void>
+template <typename MetadataTagT = serialization_tag, typename BaseT = void>
     struct metadata_tag_for_serializer : define_serializer<metadata_tag_for_serializer, BaseT, void, MetadataTagT>
 {
     using base = define_serializer<makeshift::metadata_tag_for_serializer, BaseT, void, MetadataTagT>;
@@ -125,18 +125,18 @@ template <typename MetadataTagT = serialization_metadata_tag, typename BaseT = v
 
     using metadata_tag = MetadataTagT;
 };
-template <typename MetadataTagT = serialization_metadata_tag> constexpr metadata_tag_for_serializer<MetadataTagT> metadata_tag_for_serializer_v { };
+template <typename MetadataTagT = serialization_tag> constexpr metadata_tag_for_serializer<MetadataTagT> metadata_tag_for_serializer_v { };
 
 
     //ᅟ
     // Retrieves the metadata tag to be used for metadata-based serializers.
-    // Defaults to `serialization_metadata_tag` if the user did not override the tag by chaining with a `metadata_tag_for_serializer<>`.
+    // Defaults to `serialization_tag` if the user did not override the tag by chaining with a `metadata_tag_for_serializer<>`.
     //
-template <typename SerializerT> struct metadata_tag_of_serializer : std::conditional_t<can_apply_v<makeshift::detail::metadata_tag_rt, SerializerT>, makeshift::detail::metadata_tag_r<SerializerT>, tag<serialization_metadata_tag>> { };
+template <typename SerializerT> struct metadata_tag_of_serializer : std::conditional_t<can_apply_v<makeshift::detail::metadata_tag_rt, SerializerT>, makeshift::detail::metadata_tag_r<SerializerT>, tag<serialization_tag>> { };
 
     //ᅟ
     // Retrieves the metadata tag to be used for metadata-based serializers.
-    // Defaults to `serialization_metadata_tag` if the user did not override the tag by chaining with a `metadata_tag_for_serializer<>`.
+    // Defaults to `serialization_tag` if the user did not override the tag by chaining with a `metadata_tag_for_serializer<>`.
     //
 template <typename SerializerT> using metadata_tag_of_serializer_t = typename metadata_tag_of_serializer<SerializerT>::type;
 

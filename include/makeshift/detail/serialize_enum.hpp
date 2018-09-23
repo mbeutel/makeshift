@@ -184,7 +184,7 @@ template <typename TypeMetadataT>
     else
         static_assert(sizeof(T) == ~0, "unsupported type");
 }
-template <typename T, typename MetadataTagT = serialization_metadata_tag>
+template <typename T, typename MetadataTagT = serialization_tag>
     /*constexpr*/ auto serialization_data = make_serialization_data(metadata_of<T, MetadataTagT>);
 
 
