@@ -178,6 +178,78 @@ stream_serializer(stream_serializer_options&&) -> stream_serializer<>;
 
 } // inline namespace serialize
 
+
+namespace detail
+{
+
+template <typename T>
+    struct streamable_ref_base<T, void>
+{
+    streamable_ref_base(const streamable_ref_base&) = delete;
+    streamable_ref_base& operator =(const streamable_ref_base&) = delete;
+
+private:
+    T& value_;
+    
+public:
+    constexpr streamable_ref_base(T& _value) noexcept : value_(_value) { }
+
+    constexpr T& value(void) const noexcept { return value_; }
+    static constexpr stream_serializer<> serializer(void) noexcept { return { }; }
+
+    friend std::ostream& operator <<(std::ostream& stream, const streamable_ref_base& self)
+    {
+        stream_serializer<> theSerializer{ };
+        to_stream_impl(self.value(), stream, theSerializer, theSerializer);
+        return stream;
+    }
+};
+
+} // namespace detail
+
+
+inline namespace serialize
+{
+
+
+template <typename T>
+    struct streamable_ref<T, void> : makeshift::detail::streamable_ref_base<T, void>
+{
+    using base = makeshift::detail::streamable_ref_base<T, void>;
+    using base::base;
+
+    friend std::istream& operator >>(std::istream& stream, const streamable_ref& self)
+    {
+        stream_serializer<> theSerializer{ };
+        from_stream_impl(self.value(), stream, theSerializer, theSerializer);
+        return stream;
+    }
+};
+template <typename T>
+    struct streamable_ref<const T, void> : makeshift::detail::streamable_ref_base<const T, void>
+{
+    using base = makeshift::detail::streamable_ref_base<const T, void>;
+    using base::base;
+};
+
+
+    //ᅟ
+    // Wraps the given reference as a streamable object using `stream_serializer`.
+    //ᅟ
+    //ᅟ    std::cout << streamable(vec.size()) << '\n';
+    //ᅟ    int i;
+    //ᅟ    std::cin >> streamable(i);
+    //
+template <typename T>
+    constexpr streamable_ref<makeshift::detail::as_lvalue_t<T>, void>
+    streamable(T&& value) noexcept
+{
+    return { value };
+}
+
+
+} // inline namespace serialize
+
 } // namespace makeshift
 
 

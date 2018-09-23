@@ -8,9 +8,51 @@
 
 #include <makeshift/type_traits.hpp> // for tag<>
 
+#include <makeshift/detail/cfg.hpp> // for MAKESHIFT_DLLFUNC
+
 
 namespace makeshift
 {
+
+namespace detail
+{
+
+
+template <typename T> struct as_lvalue{ using type = const T; };
+template <typename T> struct as_lvalue<T&> { using type = T; };
+template <typename T> struct as_lvalue<const T&> { using type = const T; };
+template <typename T> struct as_lvalue<T&&> { using type = const T; };
+template <typename T> using as_lvalue_t = typename as_lvalue<T>::type;
+
+
+template <typename T, typename SerializerT>
+    struct streamable_ref_base
+{
+    streamable_ref_base(const streamable_ref_base&) = delete;
+    streamable_ref_base& operator =(const streamable_ref_base&) = delete;
+
+private:
+    T& value_;
+    SerializerT& serializer_;
+
+public:
+    constexpr streamable_ref_base(T& _value, SerializerT& _serializer) noexcept : value_(_value), serializer_(_serializer) { }
+
+    constexpr T& value(void) const noexcept { return value_; }
+    constexpr SerializerT& serializer(void) const noexcept { return serializer_; }
+
+    friend std::ostream& operator <<(std::ostream& stream, const streamable_ref_base& self)
+    {
+        to_stream_impl(self.value(), stream, self.serializer(), self.serializer());
+        return stream;
+    }
+};
+template <typename T>
+    struct streamable_ref_base<T, void>;
+
+
+} // namespace detail
+
 
 inline namespace serialize
 {
@@ -23,148 +65,54 @@ inline namespace serialize
     // chain it with the existing serializer using `chain()`.
 
 
-    // defined in serializers/stream.hpp
-
-template <typename BaseT>
-    struct stream_serializer;
-
-
     //ᅟ
     // Wraps the given lvalue or rvalue as a streamable object using the serializer provided.
     //ᅟ
-    //ᅟ    std::cout << streamable(vec.size(), stream_serializer()) << '\n';
+    //ᅟ    std::cout << streamable(vec.size(), stream_serializer{ }) << '\n';
     //ᅟ    int i;
-    //ᅟ    std::cin >> streamable(i, stream_serializer());
+    //ᅟ    std::cin >> streamable(i, stream_serializer{ });
     //
-template <typename T, typename SerializerT = stream_serializer<void>>
-    struct streamable
+template <typename T, typename SerializerT = void>
+    struct streamable_ref : makeshift::detail::streamable_ref_base<T, SerializerT>
 {
-private:
-    T value_;
-    SerializerT serializer_;
+    using base = makeshift::detail::streamable_ref_base<T, SerializerT>;
+    using base::base;
 
-public:
-    template <typename = std::enable_if_t<std::is_default_constructible<T>::value && std::is_default_constructible<SerializerT>::value>>
-        constexpr streamable(void)
-            : value_{ }, serializer_{ }
+    friend std::istream& operator >>(std::istream& stream, const streamable_ref& self)
     {
-    }
-    template <typename = std::enable_if_t<std::is_copy_constructible<T>::value && std::is_default_constructible<SerializerT>::value>>
-        constexpr streamable(const T& _value)
-            : value_(_value), serializer_{ }
-    {
-    }
-    template <typename = std::enable_if_t<std::is_move_constructible<T>::value && std::is_default_constructible<SerializerT>::value>>
-        constexpr streamable(T&& _value)
-            : value_(std::move(_value)), serializer_{ }
-    {
-    }
-    template <typename = std::enable_if_t<std::is_copy_constructible<T>::value>>
-        constexpr streamable(const T& _value, SerializerT _serializer)
-            : value_(_value), serializer_(std::forward<SerializerT>(_serializer))
-    {
-    }
-    template <typename = std::enable_if_t<std::is_move_constructible<T>::value>>
-        constexpr streamable(T&& _value, SerializerT _serializer)
-            : value_(std::move(_value)), serializer_(std::forward<SerializerT>(_serializer))
-    {
-    }
-
-    friend std::ostream& operator <<(std::ostream& stream, const streamable& self)
-    {
-        to_stream_impl(self.value_, stream, self.serializer_, self.serializer_);
-        return stream;
-    }
-    friend std::istream& operator >>(std::istream& stream, const streamable& self)
-    {
-        from_stream_impl(self.value_, stream, self.serializer_, self.serializer_);
-        return stream;
-    }
-
-    constexpr const T& value(void) const & noexcept { return value_; }
-    constexpr T value(void) && noexcept { return std::move(value_); }
-};
-template <typename T, typename SerializerT>
-    struct streamable<T&&, SerializerT>
-{
-private:
-    T value_;
-    SerializerT serializer_;
-
-public:
-    template <typename = std::enable_if_t<std::is_default_constructible<SerializerT>::value>>
-        constexpr streamable(T&& _value)
-            : value_(std::move(_value)), serializer_{ }
-    {
-    }
-    constexpr streamable(T&& _value, SerializerT _serializer)
-        : value_(std::move(_value)), serializer_(std::forward<SerializerT>(_serializer))
-    {
-    }
-
-    friend std::ostream& operator <<(std::ostream& stream, const streamable& self)
-    {
-        to_stream_impl(self.value_, stream, self.serializer_, self.serializer_);
+        from_stream_impl(self.value(), stream, self.serializer(), self.serializer());
         return stream;
     }
 };
 template <typename T, typename SerializerT>
-    struct streamable<const T&, SerializerT>
+    struct streamable_ref<const T, SerializerT> : makeshift::detail::streamable_ref_base<const T, SerializerT>
 {
-private:
-    const T& value_;
-    SerializerT serializer_;
-
-public:
-    template <typename = std::enable_if_t<std::is_default_constructible<SerializerT>::value>>
-        constexpr streamable(const T& _value)
-            : value_(_value), serializer_{ }
-    {
-    }
-    constexpr streamable(const T& _value, SerializerT _serializer)
-        : value_(_value), serializer_(std::forward<SerializerT>(_serializer))
-    {
-    }
-
-    friend std::ostream& operator <<(std::ostream& stream, const streamable& self)
-    {
-        to_stream_impl(self.value_, stream, self.serializer_, self.serializer_);
-        return stream;
-    }
-};
-template <typename T, typename SerializerT>
-    struct streamable<T&, SerializerT>
-{
-private:
-    T& value_;
-    SerializerT serializer_;
-
-public:
-    template <typename = std::enable_if_t<std::is_default_constructible<SerializerT>::value>>
-        constexpr streamable(T& _value)
-            : value_(_value), serializer_{ }
-    {
-    }
-    constexpr streamable(T& _value, SerializerT _serializer)
-        : value_(_value), serializer_(std::forward<SerializerT>(_serializer))
-    {
-    }
-
-    friend std::ostream& operator <<(std::ostream& stream, const streamable& self)
-    {
-        to_stream_impl(self.value_, stream, self.serializer_, self.serializer_);
-        return stream;
-    }
-    friend std::istream& operator >>(std::istream& stream, const streamable& self)
-    {
-        from_stream_impl(self.value_, stream, self.serializer_, self.serializer_);
-        return stream;
-    }
+    using base = makeshift::detail::streamable_ref_base<const T, SerializerT>;
+    using base::base;
 };
 template <typename T>
-    streamable(T&& value) -> streamable<T&&>;
+    struct streamable_ref<T, void>;
+template <typename T>
+    struct streamable_ref<const T, void>;
+template <typename T>
+    streamable_ref(T&&) -> streamable_ref<makeshift::detail::as_lvalue_t<T>, void>;
 template <typename T, typename SerializerT>
-    streamable(T&& value, SerializerT&& serializer) -> streamable<T&&, SerializerT>;
+    streamable_ref(T&&, SerializerT&&) -> streamable_ref<makeshift::detail::as_lvalue_t<T>, makeshift::detail::as_lvalue_t<SerializerT>>;
+
+
+    //ᅟ
+    // Wraps the given reference as a streamable object using the serializer provided.
+    //ᅟ
+    //ᅟ    std::cout << streamable(vec.size(), stream_serializer{ }) << '\n';
+    //ᅟ    int i;
+    //ᅟ    std::cin >> streamable(i, stream_serializer{ });
+    //
+template <typename T, typename SerializerT>
+    constexpr streamable_ref<makeshift::detail::as_lvalue_t<T>, makeshift::detail::as_lvalue_t<SerializerT>>
+    streamable(T&& value, SerializerT&& serializer) noexcept
+{
+    return { value, serializer };
+}
 
 
 } // inline namespace serialize
