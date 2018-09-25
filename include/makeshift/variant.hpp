@@ -225,6 +225,54 @@ public:
     }
 };
 
+template <typename R, typename... Vs> struct flat_variant_0_;
+template <template <typename...> class V, typename... Rs> struct flat_variant_0_<V<Rs...>> { using type = V<Rs...>; };
+template <template <typename...> class V, typename... Rs, typename... Ts, typename... Vs> struct flat_variant_0_<V<Rs...>, V<Ts...>, Vs...> : flat_variant_0_<V<Rs..., Ts...>, Vs...> { };
+template <typename V> struct flat_variant;
+template <template <typename...> class V, typename... Vs> struct flat_variant<V<Vs...>> : flat_variant_0_<V<>, Vs...> { };
+template <typename V> using flat_variant_t = typename flat_variant<V>::type;
+
+template <typename R, std::size_t Base, std::size_t J, typename ElemVariantT>
+    constexpr R variant_cat_1(constant<Base>, constant<J>, ElemVariantT&& elemVariant)
+{
+    if constexpr (J == std::variant_size<std::decay_t<ElemVariantT>>::value)
+        std::terminate(); // cannot happen, we just need to silence the compiler about not being able to formally return a value
+    else
+    {
+        if (elemVariant.index() == J)
+            return R{ std::in_place_index_t<Base + J>{ }, std::get<J>(std::forward<ElemVariantT>(elemVariant)) };
+        else
+            return variant_cat_1<R>(constant<Base>{ }, constant<J + 1>{ }, std::forward<ElemVariantT>(elemVariant));
+    }
+}
+template <typename R, std::size_t Base, std::size_t I, typename VariantT>
+    constexpr R variant_cat_0(constant<Base>, constant<I>, VariantT&& variant)
+{
+    if constexpr (I == std::variant_size<std::decay_t<VariantT>>::value)
+        std::terminate(); // cannot happen, we just need to silence the compiler about not being able to formally return a value
+    else
+    {
+        if (variant.index() == I)
+            return variant_cat_1<R>(constant<Base + I>{ }, constant<0>{ }, std::get<I>(std::forward<VariantT>(variant)));
+        else
+        {
+            constexpr std::size_t elemVariantSize = std::variant_size<std::variant_alternative<I, std::decay_t<VariantT>>>::value;
+            return variant_cat_0<R>(constant<Base + elemVariantSize>{ }, constant<I + 1>{ }, std::forward<VariantT>(variant));
+        }
+    }
+}
+
+struct variant_cat_t : variant_stream_base<variant_cat_t>
+{
+    template <typename VariantT,
+              typename = std::enable_if_t<is_variant_like_v<std::decay_t<VariantT>>>>
+        constexpr auto operator ()(VariantT&& variant) const
+    {
+        using ResultVariant = flat_variant_t<std::decay_t<VariantT>>;
+        return variant_cat_0<ResultVariant>(constant<0>{ }, constant<0>{ }, std::forward<VariantT>(variant));
+    }
+};
+
 
 template <typename R, typename T, typename EqualToT, typename TupleT>
     [[noreturn]] R expand_impl(std::true_type /* fail */, std::index_sequence<>, T&&, EqualToT&&, TupleT&&)
@@ -416,6 +464,35 @@ template <typename T, typename VariantT,
     variant_to_scalar(VariantT&& variant)
 {
     return variant_to_scalar<T>()(std::forward<VariantT>(variant));
+}
+
+
+    //ᅟ
+    // Concatenates the variants in a variant of variants.
+    //ᅟ
+    //ᅟ    auto number = std::variant<std::variant<int, unsigned>, std::variant<float, double>>{ 3 }; // TODO this is probably ambiguous
+    //ᅟ    auto flat_variant = number
+    //ᅟ        | variant_cat(); // returns std::variant<int, unsigned, float, double>{ 3 };
+    //
+constexpr inline makeshift::detail::variant_cat_t
+variant_cat(void)
+{
+    return { };
+}
+
+
+    //ᅟ
+    // Concatenates the variants in a variant of variants.
+    //ᅟ
+    //ᅟ    auto number = std::variant<std::variant<int, unsigned>, std::variant<float, double>>{ 3 }; // TODO this is probably ambiguous
+    //ᅟ    auto flat_variant = variant_cat(number); // returns std::variant<int, unsigned, float, double>{ 3 };
+    //
+template <typename VariantT,
+          typename = std::enable_if_t<is_variant_like_v<std::decay_t<VariantT>>>>
+    constexpr auto
+    variant_cat(VariantT&& variant)
+{
+    return variant_cat()(std::forward<VariantT>(variant));
 }
 
 
