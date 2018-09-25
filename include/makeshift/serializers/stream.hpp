@@ -29,6 +29,9 @@ namespace detail
 MAKESHIFT_DLLFUNC [[noreturn]] void raise_ostream_error(std::ostream& stream);
 MAKESHIFT_DLLFUNC [[noreturn]] void raise_istream_error(std::istream& stream);
 
+MAKESHIFT_DLLFUNC void enum_to_stream(std::ostream& stream, std::string_view name, const enum_serialization_options& options);
+MAKESHIFT_DLLFUNC void enum_from_stream(std::istream& stream, std::string& name, const enum_serialization_options& options);
+
 template <typename MetadataTagT, typename T> using have_ostream_operator_r = decltype(std::declval<std::ostream&>() << std::declval<const T&>());
 template <typename MetadataTagT, typename T> using have_ostream_operator = std::disjunction<is_enum_with_metadata<MetadataTagT, T>, can_apply<have_ostream_operator_r, MetadataTagT, T>>;
 template <typename MetadataTagT, typename T> constexpr bool have_ostream_operator_v = have_ostream_operator<MetadataTagT, T>::value;
@@ -41,30 +44,26 @@ template <typename MetadataTagT, typename T> constexpr bool have_istream_operato
 template <typename EnumT, std::size_t N, typename SerializerT>
     void enum_to_stream(EnumT value, std::ostream& stream, const enum_serialization_data<N>& sdata, const enum_serialization_options& options, SerializerT&&)
 {
-    if (!(stream << to_string(value, sdata, options)))
-        makeshift::detail::raise_ostream_error(stream);
+    enum_to_stream(stream, to_string(value, sdata, options), options);
 }
 template <typename EnumT, std::size_t N, typename SerializerT>
     void enum_from_stream(EnumT& value, std::istream& stream, const enum_serialization_data<N>& sdata, const enum_serialization_options& options, SerializerT&&)
 {
     std::string str;
-    if (!(stream >> str))
-        makeshift::detail::raise_istream_error(stream);
+    enum_from_stream(stream, str, options);
     value = from_string(tag_v<EnumT>, str, sdata, options);
 }
 
 template <typename EnumT, std::size_t N, typename SerializerT>
     void enum_to_stream(EnumT value, std::ostream& stream, const flags_enum_serialization_data<N>& sdata, const enum_serialization_options& options, SerializerT&&)
 {
-    if (!(stream << to_string(value, sdata, options)))
-        makeshift::detail::raise_ostream_error(stream);
+    enum_to_stream(stream, to_string(value, sdata, options), options);
 }
 template <typename EnumT, std::size_t N, typename SerializerT>
     void enum_from_stream(EnumT& value, std::istream& stream, const flags_enum_serialization_data<N>& sdata, const enum_serialization_options& options, SerializerT&&)
 {
     std::string str;
-    if (!(stream >> str))
-        makeshift::detail::raise_istream_error(stream);
+    enum_from_stream(stream, str, options);
     value = from_string(tag_v<EnumT>, str, sdata, options);
 }
 

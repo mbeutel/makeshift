@@ -25,6 +25,7 @@ namespace detail
 
 MAKESHIFT_DLLFUNC void raw_string_to_stream(std::ostream& stream, std::string_view string);
 MAKESHIFT_DLLFUNC void name_to_stream(std::ostream& stream, std::string_view name);
+MAKESHIFT_DLLFUNC void name_to_stream(std::ostream& stream, std::string_view name, std::string_view nameIndicator);
 
 template <typename T, typename SerializerT>
     void compound_to_stream(std::ostream& stream, const T& value, SerializerT&& serializer, const any_compound_serialization_options& compoundOptions)
@@ -47,7 +48,7 @@ template <typename T, typename SerializerT>
         auto theName = get_or_default<std::string_view>(member.attributes);
         if (options.with_member_names)
         {
-            name_to_stream(stream, theName);
+            name_to_stream(stream, theName, options.name_indicator);
             raw_string_to_stream(stream, options.name_value_separator);
         }
         stream << streamable(accessor(value), serializer);

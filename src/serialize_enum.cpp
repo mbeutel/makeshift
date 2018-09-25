@@ -3,7 +3,7 @@
 #include <sstream>
 #include <string>
 #include <tuple>
-#include <cctype>    // for isspace()
+#include <cctype>    // for isspace(), isalpha(), isdigit()
 #include <optional>
 #include <exception> // for terminate()
 
@@ -59,6 +59,66 @@ std::string flags_enum_hint(const flags_enum_serialization_data_ref& sdata, cons
     flags_enum_hint(sstr, sdata, options);
     return sstr.str();
 }
+
+    // defined in serializer_stream.cpp
+bool tryPeekChar(std::istream& stream, char& ch);
+[[noreturn]] void raise_ostream_error(std::ostream& stream);
+[[noreturn]] void raise_istream_error(std::istream& stream);
+void string_to_stream(std::ostream& stream, std::string_view string);
+void string_from_stream(std::istream& stream, std::string& string);
+
+    // duplicated from serializer_stream.cpp
+static bool isIdentifierStartChar(char ch)
+{
+    return std::isalpha(ch) || ch == '_' || ch == '.';
+}
+static bool isIdentifierChar(char ch)
+{
+    return isIdentifierStartChar(ch) || std::isdigit(ch) || ch == '-';
+}
+
+static bool isFlagsEnumChar(char ch, const enum_serialization_options& options)
+{
+    return isIdentifierChar(ch) || (!std::isspace(ch) && options.flags_separator.find(ch) != std::string_view::npos);
+}
+
+void enum_to_stream(std::ostream& stream, std::string_view name, const enum_serialization_options& options)
+{
+    if (name.size() == 0
+     || !isIdentifierStartChar(name.front())
+     || !std::all_of(name.begin(), name.end(), [&](char ch) { return isFlagsEnumChar(ch, options); }))
+    {
+            // need quoting
+        string_to_stream(stream, name);
+    }
+    else
+        stream << name;
+    if (!stream)
+        raise_ostream_error(stream);
+}
+void enum_from_stream(std::istream& stream, std::string& name, const enum_serialization_options& options)
+{
+    stream >> std::ws;
+    char ch;
+    if (tryPeekChar(stream, ch))
+    {
+        if (ch == '"')
+            string_from_stream(stream, name);
+        else if (isIdentifierStartChar(ch))
+        {
+            name = ch;
+            stream.get();
+            while (tryPeekChar(stream, ch) && isFlagsEnumChar(ch, options))
+            {
+                name += ch;
+                stream.get();
+            }
+        }
+    }
+    if (!stream)
+        raise_istream_error(stream);
+}
+
 
 [[noreturn]] static void raise_invalid_value_error(void)
 {

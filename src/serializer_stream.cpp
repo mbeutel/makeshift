@@ -72,23 +72,7 @@ void raw_string_to_stream(std::ostream& stream, std::string_view string)
     stream << string;
 }
 
-void name_to_stream(std::ostream& stream, std::string_view name)
-{
-    if (name.size() == 0
-     || !isIdentifierStartChar(name.front())
-     || !std::all_of(name.begin(), name.end(), isIdentifierChar))
-    {
-            // need quoting
-        stream << std::quoted(name);
-    }
-    else
-        stream << name;
-}
-
-
-char trim_delim_char(std::string_view s); // defined in serialize_enum.cpp
-
-static bool tryPeekChar(std::istream& stream, char& ch)
+bool tryPeekChar(std::istream& stream, char& ch)
 {
     int result = stream.peek();
     if (result == std::istream::traits_type::eof())
@@ -96,6 +80,52 @@ static bool tryPeekChar(std::istream& stream, char& ch)
     ch = char(result);
     return true;
 }
+
+void name_to_stream(std::ostream& stream, std::string_view name, std::string_view nameIndicator)
+{
+    if (name.size() == 0
+     || !isIdentifierStartChar(name.front())
+     || !std::all_of(name.begin(), name.end(), isIdentifierChar))
+    {
+            // need quoting
+        string_to_stream(stream, name);
+    }
+    else
+    {
+        stream << nameIndicator << name;
+    }
+    if (!stream)
+        raise_ostream_error(stream);
+}
+void name_to_stream(std::ostream& stream, std::string_view name)
+{
+    name_to_stream(stream, name, { });
+}
+void name_from_stream(std::istream& stream, std::string& name)
+{
+    stream >> std::ws;
+    char ch;
+    if (tryPeekChar(stream, ch))
+    {
+        if (ch == '"')
+            string_from_stream(stream, name);
+        else if (isIdentifierStartChar(ch))
+        {
+            name = ch;
+            stream.get();
+            while (tryPeekChar(stream, ch) && isIdentifierChar(ch))
+            {
+                name += ch;
+                stream.get();
+            }
+        }
+    }
+    if (!stream)
+        raise_istream_error(stream);
+}
+
+
+char trim_delim_char(std::string_view s); // defined in serialize_enum.cpp
 
 template <typename T, typename MapT>
     static std::string listOfAlternatives(std::initializer_list<T> args, MapT&& stringMap)
@@ -166,6 +196,7 @@ static void compound_from_stream_impl(std::istream& stream, stream_compound_memb
     char leftDelim = trim_delim_char(options.opening_delimiter);
     char rightDelim = trim_delim_char(options.closing_delimiter);
     char nameValueSep = trim_delim_char(options.name_value_separator);
+    char nameIndicator = trim_delim_char(options.name_indicator);
     char elementDelim = trim_delim_char(options.element_delimiter);
 
     auto peekDelim = [&stream, &startPos, &offset](std::initializer_list<char> expectedChars)
@@ -226,30 +257,18 @@ static void compound_from_stream_impl(std::istream& stream, stream_compound_memb
                 member_by_pos(sstr);
             }
         }
-        else if (isIdentifierStartChar(ch)) // either an identifier or a positional identifier-like value
+        else if (ch == nameIndicator) // member name identifier
         {
-                // get identifier
+            stream.get(); // eat member name indicator
+            
             std::string identifier;
-            do
-            {
-                identifier += ch;
-                stream.get();
-            } while (tryPeekChar(stream, ch) && isIdentifierChar(ch));
+            name_from_stream(stream, identifier);
+            
+            ch = peekDelim({ nameValueSep });
+            stream.get(); // eat name--value delimiter
 
-            ch = peekDelim({ nameValueSep, elementDelim, rightDelim });
-            if (ch == nameValueSep) // named argument
-            {
-                stream.get(); // eat name--value delimiter
-                member_by_name(stream, identifier);
-                ch = peekDelim({ elementDelim, rightDelim });
-            }
-            else // element delimiter or closing delimiter => string value
-            {
-                    // this is awkward: we have to put the value back in a stream and deserialize it using the serializer and the proper type
-                std::istringstream sstr;
-                sstr.str(identifier);
-                member_by_pos(sstr);
-            }
+            member_by_name(stream, identifier);
+            ch = peekDelim({ elementDelim, rightDelim });
         }
         else // must be a positional value
         {

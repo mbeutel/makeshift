@@ -66,7 +66,12 @@ struct compound_serialization_options
         //ᅟ
         // Determines the name--value separator.
         //
-    std::string_view name_value_separator = ": ";
+    std::string_view name_value_separator = "=";
+
+        //ᅟ
+        // Determines the member name indicator.
+        //
+    std::string_view name_indicator = ".";
 
         //ᅟ
         // Determines the element delimiter.
@@ -91,8 +96,8 @@ struct compound_serialization_options
     //
 struct any_compound_serialization_options
 {
-    compound_serialization_options compound = { "{ ", " }", ": ", ", ", true, string_comparison::ordinal_ignore_case };
-    compound_serialization_options compound_value = { "(", ")", ": ", ", ", false, string_comparison::ordinal_ignore_case };
+    compound_serialization_options compound = { "{ ", " }", "=", ".", ", ", true, string_comparison::ordinal_ignore_case };
+    compound_serialization_options compound_value = { "(", ")", "=", ".", ", ", false, string_comparison::ordinal_ignore_case };
 
     constexpr any_compound_serialization_options(void) = default;
 };

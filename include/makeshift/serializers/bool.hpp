@@ -64,6 +64,10 @@ namespace detail
 
 MAKESHIFT_DLLFUNC void bool_from_stream(const bool_serializer_options& options, bool& value, const std::string& str);
 
+    // defined in serializer_stream.cpp
+MAKESHIFT_DLLFUNC void name_to_stream(std::ostream& stream, std::string_view name);
+MAKESHIFT_DLLFUNC void name_from_stream(std::istream& stream, std::string& name);
+
 
 } // namespace detail
 
@@ -86,14 +90,14 @@ template <typename BaseT = void>
         friend std::enable_if_t<std::is_same<T, bool>::value> // need to use SFINAE here to enforce exact match and suppress value conversions
         to_stream_impl(const T& value, std::ostream& stream, const bool_serializer& boolSerializer, SerializerT&& serializer)
     {
-        stream << streamable(std::string(value ? data(boolSerializer).true_string : data(boolSerializer).false_string), serializer);
+        makeshift::detail::name_to_stream(stream, value ? data(boolSerializer).true_string : data(boolSerializer).false_string);
     }
     template <typename T, typename SerializerT>
         friend std::enable_if_t<std::is_same<T, bool>::value> // need to use SFINAE here to enforce exact match and suppress value conversions
         from_stream_impl(T& value, std::istream& stream, const bool_serializer& boolSerializer, SerializerT&& serializer)
     {
         std::string str;
-        stream >> streamable(str, serializer);
+        makeshift::detail::name_from_stream(stream, str);
         makeshift::detail::bool_from_stream(data(boolSerializer), value, str);
     }
     template <typename T, typename SerializerT>

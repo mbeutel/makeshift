@@ -208,7 +208,7 @@ TEST_CASE("serialize", "[serialize]")
 
         {
             std::stringstream sstrExpected, sstrActual;
-            sstrExpected << "{ index: (2, 1), \"the value\": " << v2.value << " }";
+            sstrExpected << "{ .index=(2, 1), \"the value\"=" << v2.value << " }";
             sstrActual << mk::streamable(v2);
             CHECK(sstrActual.str() == sstrExpected.str());
             COOValue v2r { };
@@ -218,7 +218,7 @@ TEST_CASE("serialize", "[serialize]")
 
         {
             std::stringstream sstr;
-            sstr.str("{ \"the value\": 42.0, index: (2, 1) }");
+            sstr.str("{ \"the value\"=42.0, .index=(2, 1) }");
             COOValue v2r{ };
             sstr >> mk::streamable(v2r);
             CHECK(mk::equal_to{ }(v2, v2r));
@@ -226,7 +226,7 @@ TEST_CASE("serialize", "[serialize]")
 
         {
             std::stringstream sstr;
-            sstr.str("{ (2, 1), \"the value\": 42.0 }");
+            sstr.str("{ (2, 1), \"the value\"=42.0 }");
             COOValue v2r{ };
             sstr >> mk::streamable(v2r);
             CHECK(mk::equal_to{ }(v2, v2r));
@@ -234,14 +234,14 @@ TEST_CASE("serialize", "[serialize]")
 
         {
             std::stringstream sstr;
-            sstr.str("{ index: (2, 1), 42.0 }");
+            sstr.str("{ .index=(2, 1), 42.0 }");
             COOValue v2r{ };
             CHECK_THROWS_AS(sstr >> mk::streamable(v2r), mk::parse_error);
         }
 
         {
             std::stringstream sstr;
-            sstr.str("{ index: (2, 1) }");
+            sstr.str("{ .index=(2, 1) }");
             COOValue v{ { 2, 1 }, 42.0 };
             COOValue vr{ { }, 42.0 };
             sstr >> mk::streamable(vr);
