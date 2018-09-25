@@ -1222,6 +1222,21 @@ tuple_cat(void)
 }
 
 
+    //ᅟ
+    // Concatenates the tuples in a tuple of tuples.
+    //ᅟ
+    //ᅟ    auto tuple = std::make_tuple(std::make_tuple(1), std::make_tuple(2));
+    //ᅟ    auto flat_tuple = tuple_cat(tuple); // returns (1, 2)
+    //
+template <typename TupleT,
+          typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
+    constexpr auto
+    tuple_cat(TupleT&& tuple)
+{
+    return tuple_cat()(std::forward<TupleT>(tuple));
+}
+
+
 } // inline namespace types
 
 } // namespace makeshift
