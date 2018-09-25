@@ -88,13 +88,13 @@ template <typename BaseT = void>
 
     template <typename T, typename SerializerT>
         friend std::enable_if_t<std::is_same<T, bool>::value> // need to use SFINAE here to enforce exact match and suppress value conversions
-        to_stream_impl(const T& value, std::ostream& stream, const bool_serializer& boolSerializer, SerializerT&& serializer)
+        to_stream_impl(const T& value, std::ostream& stream, const bool_serializer& boolSerializer, SerializerT&&)
     {
         makeshift::detail::name_to_stream(stream, value ? data(boolSerializer).true_string : data(boolSerializer).false_string);
     }
     template <typename T, typename SerializerT>
         friend std::enable_if_t<std::is_same<T, bool>::value> // need to use SFINAE here to enforce exact match and suppress value conversions
-        from_stream_impl(T& value, std::istream& stream, const bool_serializer& boolSerializer, SerializerT&& serializer)
+        from_stream_impl(T& value, std::istream& stream, const bool_serializer& boolSerializer, SerializerT&&)
     {
         std::string str;
         makeshift::detail::name_from_stream(stream, str);
