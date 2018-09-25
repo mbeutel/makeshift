@@ -100,7 +100,7 @@ template <typename BaseT = void>
         friend std::enable_if_t<std::is_same<T, bool>::value, std::string> // need to use SFINAE here to enforce exact match and suppress value conversions
         get_hint_impl(tag<T>, const bool_serializer& boolSerializer, SerializerT&& serializer)
     {
-        return data(boolSerializer).false_string + data(serializer, tag_v<hint_options>).option_separator + data(boolSerializer).true_string;
+        return std::string(data(boolSerializer).false_string) + std::string(data(serializer, tag_v<hint_options>).enum_options.option_separator) + std::string(data(boolSerializer).true_string);
     }
 };
 bool_serializer(void) -> bool_serializer<>;

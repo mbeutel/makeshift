@@ -24,6 +24,13 @@ std::vector<bool_serializer_options::bool_string> bool_serializer_options::defau
     };
 }
 
+
+} // inline namespace serialize
+
+
+namespace detail
+{
+
 [[noreturn]] static void raise_bool_error(const std::string& str, const bool_serializer_options& options)
 {
     std::string msg = "invalid boolean value; expected one of: ";
@@ -79,7 +86,6 @@ void bool_from_stream(const bool_serializer_options& options, bool& value, const
     }
 }
 
-
-} // inline namespace serialize
+} // namespace detail
 
 } // namespace makeshift
