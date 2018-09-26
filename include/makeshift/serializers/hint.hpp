@@ -22,7 +22,7 @@ namespace detail
 
     // defined in serializers_hint-reflect.hpp
 template <typename T, typename SerializerT>
-    std::string get_compound_hint(SerializerT&& serializer, const any_compound_hint_options& compoundOptions);
+    std::string get_compound_hint(SerializerT& serializer, const any_compound_hint_options& compoundOptions);
 
 
 } // namespace detail
@@ -55,7 +55,7 @@ template <typename BaseT = void>
     using base::base;
     
     template <typename T, typename SerializerT>
-        friend std::string get_hint_impl(tag<T>, const hint_serializer& hintSerializer, SerializerT&& serializer)
+        friend std::string get_hint_impl(tag<T>, const hint_serializer& hintSerializer, SerializerT& serializer)
     {
         (void) serializer;
         (void) hintSerializer;
@@ -76,11 +76,29 @@ hint_serializer(void) -> hint_serializer<>;
 hint_serializer(const hint_options&) -> hint_serializer<>;
 hint_serializer(hint_options&&) -> hint_serializer<>;
 
+} // inline namespace serialize
+
+
+
+namespace detail
+{
+
+
+static constexpr hint_serializer<> default_hint_serializer{ };
+
+
+} // namespace detail
+
+
+
+inline namespace serialize
+{
+
 
 template <typename T>
     std::string get_hint(tag<T> = { })
 {
-    return get_hint(hint_serializer<>{ }, tag_v<T>);
+    return get_hint(makeshift::detail::default_hint_serializer, tag_v<T>);
 }
 
 

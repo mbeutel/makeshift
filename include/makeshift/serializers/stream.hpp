@@ -42,12 +42,12 @@ template <typename MetadataTagT, typename T> constexpr bool have_istream_operato
 
 
 template <typename EnumT, std::size_t N, typename SerializerT>
-    void enum_to_stream(EnumT value, std::ostream& stream, const enum_serialization_data<N>& sdata, const enum_serialization_options& options, SerializerT&&)
+    void enum_to_stream(EnumT value, std::ostream& stream, const enum_serialization_data<N>& sdata, const enum_serialization_options& options, SerializerT&)
 {
     enum_to_stream(stream, to_string(value, sdata, options), options);
 }
 template <typename EnumT, std::size_t N, typename SerializerT>
-    void enum_from_stream(EnumT& value, std::istream& stream, const enum_serialization_data<N>& sdata, const enum_serialization_options& options, SerializerT&&)
+    void enum_from_stream(EnumT& value, std::istream& stream, const enum_serialization_data<N>& sdata, const enum_serialization_options& options, SerializerT&)
 {
     std::string str;
     enum_from_stream(stream, str, options);
@@ -55,12 +55,12 @@ template <typename EnumT, std::size_t N, typename SerializerT>
 }
 
 template <typename EnumT, std::size_t N, typename SerializerT>
-    void enum_to_stream(EnumT value, std::ostream& stream, const flags_enum_serialization_data<N>& sdata, const enum_serialization_options& options, SerializerT&&)
+    void enum_to_stream(EnumT value, std::ostream& stream, const flags_enum_serialization_data<N>& sdata, const enum_serialization_options& options, SerializerT&)
 {
     enum_to_stream(stream, to_string(value, sdata, options), options);
 }
 template <typename EnumT, std::size_t N, typename SerializerT>
-    void enum_from_stream(EnumT& value, std::istream& stream, const flags_enum_serialization_data<N>& sdata, const enum_serialization_options& options, SerializerT&&)
+    void enum_from_stream(EnumT& value, std::istream& stream, const flags_enum_serialization_data<N>& sdata, const enum_serialization_options& options, SerializerT&)
 {
     std::string str;
     enum_from_stream(stream, str, options);
@@ -74,19 +74,19 @@ MAKESHIFT_DLLFUNC void string_from_stream(std::istream& stream, std::string& str
 
     // defined in serializers_stream-reflect.hpp
 template <typename T, typename SerializerT>
-    void compound_to_stream(std::ostream& stream, const T& value, SerializerT&& serializer, const any_compound_serialization_options& compoundOptions);
+    void compound_to_stream(std::ostream& stream, const T& value, SerializerT& serializer, const any_compound_serialization_options& compoundOptions);
 template <typename T, typename SerializerT>
-    void compound_from_stream(std::istream& stream, T& value, SerializerT&& serializer, const any_compound_serialization_options& compoundOptions);
+    void compound_from_stream(std::istream& stream, T& value, SerializerT& serializer, const any_compound_serialization_options& compoundOptions);
 
 
 template <typename ConstrainedIntT, typename SerializerT>
-    void constrained_integer_to_stream(ConstrainedIntT value, std::ostream& stream, SerializerT&& serializer)
+    void constrained_integer_to_stream(ConstrainedIntT value, std::ostream& stream, SerializerT& serializer)
 {
     stream << streamable(value.value(), serializer);
 }
 
 template <typename ConstrainedIntT, typename SerializerT>
-    void constrained_integer_from_stream(ConstrainedIntT& value, std::istream& stream, SerializerT&& serializer)
+    void constrained_integer_from_stream(ConstrainedIntT& value, std::istream& stream, SerializerT& serializer)
 {
     using Int = typename ConstrainedIntT::value_type;
     Int result;
@@ -132,7 +132,7 @@ template <typename BaseT = void>
     using base::base;
     
     template <typename T, typename SerializerT>
-        friend void to_stream_impl(const T& value, std::ostream& stream, const stream_serializer& streamSerializer, SerializerT&& serializer)
+        friend void to_stream_impl(const T& value, std::ostream& stream, const stream_serializer& streamSerializer, SerializerT& serializer)
     {
         using MetadataTag = metadata_tag_of_serializer_t<std::decay_t<SerializerT>>;
 
@@ -153,7 +153,7 @@ template <typename BaseT = void>
         }
     }
     template <typename T, typename SerializerT>
-        friend void from_stream_impl(T& value, std::istream& stream, const stream_serializer& streamSerializer, SerializerT&& serializer)
+        friend void from_stream_impl(T& value, std::istream& stream, const stream_serializer& streamSerializer, SerializerT& serializer)
     {
         using MetadataTag = metadata_tag_of_serializer_t<std::decay_t<SerializerT>>;
 
@@ -185,6 +185,8 @@ stream_serializer(stream_serializer_options&&) -> stream_serializer<>;
 namespace detail
 {
 
+static constexpr stream_serializer<> default_stream_serializer{ };
+
 template <typename T>
     struct streamable_ref_base<T, void>
 {
@@ -202,8 +204,7 @@ public:
 
     friend std::ostream& operator <<(std::ostream& stream, const streamable_ref_base& self)
     {
-        stream_serializer<> theSerializer{ };
-        to_stream_impl(self.value(), stream, theSerializer, theSerializer);
+        to_stream_impl(self.value(), stream, default_stream_serializer, default_stream_serializer);
         return stream;
     }
 };
@@ -223,8 +224,7 @@ template <typename T>
 
     friend std::istream& operator >>(std::istream& stream, const streamable_ref& self)
     {
-        stream_serializer<> theSerializer{ };
-        from_stream_impl(self.value(), stream, theSerializer, theSerializer);
+        from_stream_impl(self.value(), stream, makeshift::detail::default_stream_serializer, makeshift::detail::default_stream_serializer);
         return stream;
     }
 };
@@ -237,7 +237,7 @@ template <typename T>
 
 
     //ᅟ
-    // Wraps the given reference as a streamable object using `stream_serializer`.
+    // Wraps the given reference as a streamable object using a default-initialized `stream_serializer<>`.
     //ᅟ
     //ᅟ    std::cout << streamable(vec.size()) << '\n';
     //ᅟ    int i;

@@ -25,7 +25,7 @@ MAKESHIFT_DLLFUNC void raw_string_to_stream(std::ostream& stream, std::string_vi
 MAKESHIFT_DLLFUNC void name_to_stream(std::ostream& stream, std::string_view name);
 
 template <typename T, typename SerializerT>
-    std::string get_compound_hint(SerializerT&&, const any_compound_hint_options& compoundOptions)
+    std::string get_compound_hint(SerializerT&, const any_compound_hint_options& compoundOptions)
 {
     using MetadataTag = metadata_tag_of_serializer_t<std::decay_t<SerializerT>>;
     constexpr auto members = get_members<T, MetadataTag>();

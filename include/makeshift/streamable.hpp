@@ -97,19 +97,19 @@ template <typename T>
 template <typename T>
     streamable_ref(T&&) -> streamable_ref<makeshift::detail::as_lvalue_t<T>, void>;
 template <typename T, typename SerializerT>
-    streamable_ref(T&&, SerializerT&&) -> streamable_ref<makeshift::detail::as_lvalue_t<T>, makeshift::detail::as_lvalue_t<SerializerT>>;
+    streamable_ref(T&&, SerializerT&) -> streamable_ref<makeshift::detail::as_lvalue_t<T>, makeshift::detail::as_lvalue_t<SerializerT>>;
 
 
     //ᅟ
     // Wraps the given reference as a streamable object using the serializer provided.
     //ᅟ
-    //ᅟ    std::cout << streamable(vec.size(), stream_serializer{ }) << '\n';
+    //ᅟ    std::cout << streamable(vec.size(), mySerializer) << '\n';
     //ᅟ    int i;
-    //ᅟ    std::cin >> streamable(i, stream_serializer{ });
+    //ᅟ    std::cin >> streamable(i, mySerializer);
     //
 template <typename T, typename SerializerT>
     constexpr streamable_ref<makeshift::detail::as_lvalue_t<T>, makeshift::detail::as_lvalue_t<SerializerT>>
-    streamable(T&& value, SerializerT&& serializer) noexcept
+    streamable(T&& value, SerializerT& serializer) noexcept
 {
     return { value, serializer };
 }

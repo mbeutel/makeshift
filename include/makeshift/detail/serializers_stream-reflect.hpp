@@ -28,7 +28,7 @@ MAKESHIFT_DLLFUNC void name_to_stream(std::ostream& stream, std::string_view nam
 MAKESHIFT_DLLFUNC void name_to_stream(std::ostream& stream, std::string_view name, std::string_view nameIndicator);
 
 template <typename T, typename SerializerT>
-    void compound_to_stream(std::ostream& stream, const T& value, SerializerT&& serializer, const any_compound_serialization_options& compoundOptions)
+    void compound_to_stream(std::ostream& stream, const T& value, SerializerT& serializer, const any_compound_serialization_options& compoundOptions)
 {
     using MetadataTag = metadata_tag_of_serializer_t<std::decay_t<SerializerT>>;
     constexpr auto members = get_members<T, MetadataTag>();
@@ -74,7 +74,7 @@ private:
     string_comparison memberNameComparison_;
 
 public:
-    stream_compound_member_deserializer(T& _value, SerializerT&& _serializer, string_comparison _memberNameComparison)
+    stream_compound_member_deserializer(T& _value, SerializerT& _serializer, string_comparison _memberNameComparison)
         : value_(_value), serializer_(std::forward<SerializerT>(_serializer)), memberNameComparison_(_memberNameComparison)
     {
     }
@@ -117,12 +117,12 @@ public:
     }
 };
 template <typename T, typename SerializerT>
-    stream_compound_member_deserializer(T&, SerializerT&&, string_comparison) -> stream_compound_member_deserializer<T, SerializerT>;
+    stream_compound_member_deserializer(T&, SerializerT&, string_comparison) -> stream_compound_member_deserializer<T, SerializerT>;
 
 MAKESHIFT_DLLFUNC void compound_from_stream(std::istream& stream, stream_compound_member_deserializer_base& memberDeserializer, const compound_serialization_options& options);
 
 template <typename T, typename SerializerT>
-    void compound_from_stream(std::istream& stream, T& value, SerializerT&& serializer, const any_compound_serialization_options& compoundOptions)
+    void compound_from_stream(std::istream& stream, T& value, SerializerT& serializer, const any_compound_serialization_options& compoundOptions)
 {
     using MetadataTag = metadata_tag_of_serializer_t<std::decay_t<SerializerT>>;
 

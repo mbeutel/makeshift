@@ -62,13 +62,13 @@ template <typename MetadataTagT, typename T> constexpr bool have_string_conversi
 
 
 template <typename ConstrainedIntT, typename SerializerT>
-    std::string constrained_integer_to_string(ConstrainedIntT value, SerializerT&& serializer)
+    std::string constrained_integer_to_string(ConstrainedIntT value, SerializerT& serializer)
 {
     return to_string(value.value(), serializer);
 }
 
 template <typename ConstrainedIntT, typename SerializerT>
-    ConstrainedIntT constrained_integer_from_string(std::string_view string, SerializerT&& serializer)
+    ConstrainedIntT constrained_integer_from_string(std::string_view string, SerializerT& serializer)
 {
     using Int = typename ConstrainedIntT::value_type;
     Int result = from_string(string, serializer);
@@ -115,7 +115,7 @@ template <typename BaseT = void>
     template <typename T, typename SerializerT/*,
               typename = std::enable_if_t<makeshift::detail::have_string_conversion_v<metadata_tag_of_serializer_t<std::decay_t<SerializerT>>, std::decay_t<T>>>*/>
         friend std::enable_if_t<makeshift::detail::have_string_conversion_v<metadata_tag_of_serializer_t<std::decay_t<SerializerT>>, std::decay_t<T>>, std::string>
-        to_string_impl(const T& value, const string_serializer& stringSerializer, SerializerT&& serializer)
+        to_string_impl(const T& value, const string_serializer& stringSerializer, SerializerT& serializer)
     {
         (void) stringSerializer;
         (void) serializer;
@@ -130,7 +130,7 @@ template <typename BaseT = void>
     template <typename T, typename SerializerT/*,
               typename = std::enable_if_t<makeshift::detail::have_string_conversion_v<metadata_tag_of_serializer_t<std::decay_t<SerializerT>>, T>>*/>
         friend std::enable_if_t<makeshift::detail::have_string_conversion_v<metadata_tag_of_serializer_t<std::decay_t<SerializerT>>, T>, T>
-        from_string_impl(tag<T>, std::string_view string, const string_serializer& stringSerializer, SerializerT&& serializer)
+        from_string_impl(tag<T>, std::string_view string, const string_serializer& stringSerializer, SerializerT& serializer)
     {
         (void) stringSerializer;
         (void) serializer;
@@ -147,27 +147,44 @@ string_serializer(const string_serializer_options&) -> string_serializer<>;
 string_serializer(string_serializer_options&&) -> string_serializer<>;
 
 
+} // inline namespace serialize
+
+
+namespace detail
+{
+
+
+static constexpr string_serializer<> default_string_serializer{ };
+
+
+} // namespace detail
+
+
+inline namespace serialize
+{
+
+
     //ᅟ
-    // Serializes the given value as string using `string_serializer`.
+    // Serializes the given value as string using a default-initialized `string_serializer<>`.
     //ᅟ
     //ᅟ    std::string s = to_string(42); // returns "42"s
     //
 template <typename T>
     std::string to_string(const T& value)
 {
-    return to_string(value, string_serializer<>{ });
+    return to_string(value, makeshift::detail::default_string_serializer);
 }
 
 
     //ᅟ
-    // Deserializes the given value from a string using `string_serializer`.
+    // Deserializes the given value from a string using a default-initialized `string_serializer<>`.
     //ᅟ
     //ᅟ    int i = from_string<int>("42"); // returns 42
     //
 template <typename T>
     T from_string(std::string_view string, tag<T> = { })
 {
-    return from_string<T>(string, string_serializer<>{ });
+    return from_string<T>(string, makeshift::detail::default_string_serializer);
 }
 
 
