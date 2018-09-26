@@ -312,6 +312,9 @@ private:
     }
 
 public:
+    template <value_type C> using constant = std::integral_constant<value_type, C>;
+    template <value_type C> static constexpr constant<C> c{ };
+
         //ᅟ
         // Constructs a constrained integer type from an integer literal.
         //
