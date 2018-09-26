@@ -59,7 +59,7 @@ class stream_compound_member_deserializer_base
 {
 public:
     virtual bool by_index(std::istream& stream, std::size_t index) = 0;
-    virtual bool by_name(std::istream& stream, std::string_view name) = 0;
+    virtual bool by_name(std::istream& stream, std::string_view name, std::size_t& index) = 0;
     virtual ~stream_compound_member_deserializer_base(void) { } // not strictly necessary but let us risk no analyzer warnings about this
 };
 template <typename T, typename SerializerT>
@@ -97,9 +97,10 @@ public:
             return false;
         });
     }
-    bool by_name(std::istream& stream, std::string_view name) override
+    bool by_name(std::istream& stream, std::string_view name, std::size_t& index) override
     {
         auto comparer = string_comparer(string_comparer_options{ memberNameComparison_ });
+        std::size_t i = 0;
         return tuple_any(members_, [&](auto&& member)
         {
             auto memberName = get_or_default<std::string_view>(member.attributes);
@@ -110,8 +111,10 @@ public:
                 Member memberValue{ accessor(value_) }; // initialize with original value as the type may not be default-constructible
                 stream >> streamable(memberValue, serializer_);
                 accessor(value_, std::move(memberValue));
+                index = i;
                 return true;
             }
+            ++i;
             return false;
         });
     }

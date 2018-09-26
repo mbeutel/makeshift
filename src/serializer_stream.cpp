@@ -157,15 +157,17 @@ static void compound_from_stream_impl(std::istream& stream, stream_compound_memb
     std::size_t offset = 0;
 
     std::size_t argPos = 0;
-    bool hadNamedArgs = false;
-    auto member_by_name = [&hadNamedArgs, &memberDeserializer, &offset](std::istream& istream, std::string_view name)
+    bool hadNamedArgsOutOfOrder = false;
+    auto member_by_name = [&hadNamedArgsOutOfOrder, &memberDeserializer, &argPos, &offset](std::istream& istream, std::string_view name)
     {
-        hadNamedArgs = true;
+        std::size_t index = std::size_t(-1);
         bool found = true;
         try
         {
             istream >> std::ws;
-            found = memberDeserializer.by_name(istream, name);
+            found = memberDeserializer.by_name(istream, name, index);
+            if (found && index != argPos)
+                hadNamedArgsOutOfOrder = true;
         }
         catch (const std::runtime_error&)
         {
@@ -173,11 +175,12 @@ static void compound_from_stream_impl(std::istream& stream, stream_compound_memb
         }
         if (!found)
             throw parse_error("parsing compound: member '" + std::string(name) + "' not found", offset);
+        ++argPos;
     };
-    auto member_by_pos = [&hadNamedArgs, &memberDeserializer, &argPos, &offset](std::istream& istream)
+    auto member_by_pos = [&hadNamedArgsOutOfOrder, &memberDeserializer, &argPos, &offset](std::istream& istream)
     {
-        if (hadNamedArgs)
-            throw parse_error("parsing compound: positional members cannot appear after named members", offset);
+        if (hadNamedArgsOutOfOrder)
+            throw parse_error("parsing compound: positional members cannot appear after out-of-order named members", offset);
         bool found = true;
         try
         {
