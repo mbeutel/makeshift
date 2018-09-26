@@ -45,11 +45,13 @@ template <typename T> constexpr bool is_variant_like_v = is_variant_like<T>::val
 
 
 template <typename T>
-    struct unknown_value
+    struct unknown_value : std::monostate
 {
     using value_type = T;
 
     T value;
+
+    constexpr unknown_value(T _value) : value(_value) { }
 };
 template <typename T>
     unknown_value(T&&) -> unknown_value<std::decay_t<T>>;
@@ -555,7 +557,7 @@ template <typename F, typename... VariantsT,
     // Given a runtime value and a tuple of type-encoded possible values, returns a variant of the type-encoded possible values.
     //ᅟ
     //ᅟ    int runtimeBits = ...;
-    //ᅟ    auto bits = expand(runtimeBits, std::make_tuple(c<16>, c<32>, c<64>), std::equal_to<int>{ }); // returns std::variant<constant<16>, constant<32>, constant<64>>
+    //ᅟ    auto bits = expand(runtimeBits, std::tuple{ c<16>, c<32>, c<64> }, std::equal_to<int>{ }); // returns std::variant<constant<16>, constant<32>, constant<64>>
     //
 template <typename T, typename TupleT, typename EqualToT,
           typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
@@ -572,7 +574,7 @@ template <typename T, typename TupleT, typename EqualToT,
     // Given a runtime value and a tuple of type-encoded possible values, returns a variant of the type-encoded possible values.
     //ᅟ
     //ᅟ    int runtimeBits = ...;
-    //ᅟ    auto bits = expand(runtimeBits, std::make_tuple(c<16>, c<32>, c<64>)); // returns std::variant<constant<16>, constant<32>, constant<64>>
+    //ᅟ    auto bits = expand(runtimeBits, std::tuple{ c<16>, c<32>, c<64> }); // returns std::variant<constant<16>, constant<32>, constant<64>>
     //
 template <typename T, typename TupleT,
           typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
@@ -590,7 +592,7 @@ template <typename T, typename TupleT,
     // The variant holds `unknown_value<>` if the runtime value does not appear in the tuple of possible values.
     //ᅟ
     //ᅟ    int runtimeBits = ...;
-    //ᅟ    auto bits = try_expand(runtimeBits, std::make_tuple(c<16>, c<32>, c<64>), std::equal_to<int>{ }); // returns std::variant<unknown_value<int>, constant<16>, constant<32>, constant<64>>
+    //ᅟ    auto bits = try_expand(runtimeBits, std::tuple{ c<16>, c<32>, c<64> }, std::equal_to<int>{ }); // returns std::variant<unknown_value<int>, constant<16>, constant<32>, constant<64>>
     //
 template <typename T, typename TupleT, typename EqualToT,
           typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
@@ -608,7 +610,7 @@ template <typename T, typename TupleT, typename EqualToT,
     // The variant holds `unknown_value<>` if the runtime value does not appear in the tuple of possible values.
     //ᅟ
     //ᅟ    int runtimeBits = ...;
-    //ᅟ    auto bits = try_expand(runtimeBits, std::make_tuple(c<16>, c<32>, c<64>)); // returns std::variant<unknown_value<int>, constant<16>, constant<32>, constant<64>>
+    //ᅟ    auto bits = try_expand(runtimeBits, std::tuple{ c<16>, c<32>, c<64> }); // returns std::variant<unknown_value<int>, constant<16>, constant<32>, constant<64>>
     //
 template <typename T, typename TupleT,
           typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>

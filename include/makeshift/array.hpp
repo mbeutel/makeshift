@@ -124,7 +124,7 @@ template <std::size_t N, typename T>
     //ᅟ
     // Returns a functor that maps a tuple of arrays to an array of element type `T` that contains the concatenated values of the arrays in the tuple.
     //ᅟ
-    //ᅟ    auto tuple = std::make_tuple(std::array{ 1, 2 }, std::array{ 3, 4, 5 });
+    //ᅟ    auto tuple = std::tuple{ std::array{ 1, 2 }, std::array{ 3, 4, 5 } };
     //ᅟ    auto array = tuple
     //ᅟ        | array_cat<int>(); // returns {{ 1, 2, 3, 4, 5 }}
     //
@@ -139,7 +139,7 @@ template <typename T>
     //ᅟ
     // Given a tuple of arrays, returns an array of element type `T` that contains the concatenated values of the arrays in the tuple.
     //ᅟ
-    //ᅟ    auto tuple = std::make_tuple(std::array{ 1, 2 }, std::array{ 3, 4, 5 });
+    //ᅟ    auto tuple = std::tuple{ std::array{ 1, 2 }, std::array{ 3, 4, 5 } };
     //ᅟ    auto array = array_cat<int>(tuple); // returns {{ 1, 2, 3, 4, 5 }}
     //
 template <typename T, typename TupleT,

@@ -43,13 +43,6 @@ template <typename T, typename C, T C::* Pointer>
     member_object_pointer_accessor(std::integral_constant<T C::*, Pointer>) -> member_object_pointer_accessor<std::integral_constant<T C::*, Pointer>>;
 
 
-} // namespace detail
-
-
-inline namespace metadata
-{
-
-
     //ᅟ
     // For enum types with metadata, returns a tuple of type-encoded possible values.
     //ᅟ
@@ -91,17 +84,23 @@ template <typename T>
         return makeshift::detail::sequence_to_tuple(T::verifier::get_valid_values(typename T::constraint{ }));
 }
 
+} // namespace detail
+
+
+inline namespace metadata
+{
+
 
     //ᅟ
     // For bool, constrained integer types, and for enum types with metadata, returns a tuple of type-encoded possible values.
     //ᅟ
 template <typename T, typename MetadataTagT = reflection_tag>
-    constexpr auto values_from_type_or_metadata(tag<T> = { }, MetadataTagT = { })
+    constexpr auto values_of(tag<T> = { }, MetadataTagT = { })
 {
     if constexpr (std::is_same<T, bool>::value || is_constrained_integer_v<T>)
-        return values_from_type<T>();
+        return makeshift::detail::values_from_type<T>();
     else
-        return values_from_metadata<T, MetadataTagT>();
+        return makeshift::detail::values_from_metadata<T, MetadataTagT>();
 }
 
 
@@ -109,7 +108,7 @@ template <typename T, typename MetadataTagT = reflection_tag>
     // Returns a tuple of member metadata objects describing a struct type.
     //
 template <typename T, typename MetadataTagT = reflection_tag>
-    constexpr auto members_from_metadata(tag<T> = { }, MetadataTagT = { })
+    constexpr auto members_of(tag<T> = { }, MetadataTagT = { })
 {
     static_assert(have_metadata_v<T, MetadataTagT>, "no metadata available for given type and tag");
     

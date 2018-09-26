@@ -57,7 +57,7 @@ inline namespace types
     //ᅟ
     // Returns a functor which retrieves the tuple element with the given keyword name.
     //ᅟ
-    //ᅟ    auto tuple = std::make_tuple(name<"width"_k> = 42);
+    //ᅟ    auto tuple = std::tuple{ name<"width"_k> = 42 };
     //ᅟ    int width = tuple
     //ᅟ        | get_by_name(name<"width"_k>); // returns 42
     //
@@ -71,7 +71,7 @@ template <makeshift::detail::keyword_crc Name>
     //ᅟ
     // Retrieves a tuple element by keyword name.
     //ᅟ
-    //ᅟ    auto tuple = std::make_tuple(name<"width"_k> = 42);
+    //ᅟ    auto tuple = std::tuple{ name<"width"_k> = 42 };
     //ᅟ    int width = get_by_name(tuple, name<"width"_k>); // returns 42
     //
 template <makeshift::detail::keyword_crc Name, typename TupleT,

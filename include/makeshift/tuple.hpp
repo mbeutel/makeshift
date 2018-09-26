@@ -4,7 +4,7 @@
 
 
 #include <array>
-#include <tuple>       // for make_tuple(), tuple_cat()
+#include <tuple>       // for tuple<>, tuple_cat()
 #include <cstddef>     // for size_t
 #include <utility>     // for move(), forward<>(), tuple_element<>, tuple_size<>, get<>
 #include <type_traits> // for decay<>, integral_constant<>, index_sequence<>, is_nothrow_default_constructible<>
@@ -114,7 +114,7 @@ template <typename T, typename... Ts>
     // The argument is of type `integral_constant<std::size_t, I>` and implicitly converts to `std::size_t`.
     //ᅟ
     //ᅟ    auto print_tuple = tuple_foreach([](auto element, std::size_t idx) { std::cout << idx << ": " << element << '\n'; });
-    //ᅟ    auto tuple = std::make_tuple(42, 1.41421);
+    //ᅟ    auto tuple = std::tuple{ 42, 1.41421 };
     //ᅟ    print_tuple(tuple, tuple_index); // prints "0: 42\n1: 1.41421"
     //
 struct tuple_index_t { };
@@ -124,7 +124,7 @@ struct tuple_index_t { };
     // The argument is of type `integral_constant<std::size_t, I>` and implicitly converts to `std::size_t`.
     //ᅟ
     //ᅟ    auto print_tuple = tuple_foreach([](auto element, std::size_t idx) { std::cout << idx << ": " << element << '\n'; });
-    //ᅟ    auto tuple = std::make_tuple(42, 1.41421);
+    //ᅟ    auto tuple = std::tuple{ 42, 1.41421 };
     //ᅟ    print_tuple(tuple, tuple_index); // prints "0: 42\n1: 1.41421"
     //
 static constexpr tuple_index_t tuple_index { };
@@ -228,7 +228,7 @@ private:
     template <std::size_t... Is, typename... Ts>
         constexpr auto invoke_tuple(std::true_type /*isMap*/, std::index_sequence<Is...>, Ts&&... args) const
     {
-        return std::make_tuple(invoke_tuple_element<Is>(std::forward<Ts>(args)...)...);
+        return std::tuple{ invoke_tuple_element<Is>(std::forward<Ts>(args)...)... };
     }
     template <std::size_t... Is, typename... Ts>
         constexpr void invoke_tuple(std::false_type /*isMap*/, std::index_sequence<Is...>, Ts&&... args) const
@@ -301,7 +301,7 @@ template <typename TupleT, std::size_t... Is>
 {
     (void) tuple;
     using std::get; // make std::get<>(std::pair<>&&) visible to enable ADL for template methods named get<>()
-    return std::make_tuple(get<Is>(std::forward<TupleT>(tuple))...);
+    return std::tuple{ get<Is>(std::forward<TupleT>(tuple))... };
 }
 
 template <typename PredT>
@@ -639,7 +639,7 @@ inline namespace types
     // Takes a scalar procedure (i.e. a function with non-tuple arguments and with void return type) and returns a procedure which can be called
     // with tuples in some or all arguments.
     //ᅟ
-    //ᅟ    auto numbers = std::make_tuple(1, 2.3f);
+    //ᅟ    auto numbers = std::tuple{ 1, 2.3f };
     //ᅟ    numbers | tuple_foreach([](auto elem) { std::cout << elem << '\n'; }); // prints "1\n2.3\n"
     //
 template <typename F>
@@ -655,7 +655,7 @@ template <typename F>
     // element in the tuple.
     //ᅟ
     //ᅟ    tuple_foreach(
-    //ᅟ        std::make_tuple(1, 2.3f),
+    //ᅟ        std::tuple{ 1, 2.3f },
     //ᅟ        [](auto elem) { std::cout << elem << '\n'; }); }
     //ᅟ    ); // prints "1\n2.3\n"
     //
@@ -671,7 +671,7 @@ template <typename TupleT, typename F,
     //ᅟ
     // Returns a functor that maps a tuple to a new tuple which contains only the values for which the given type predicate is true.
     //ᅟ
-    //ᅟ    auto numbers = std::make_tuple(1, 2, 3u);
+    //ᅟ    auto numbers = std::tuple{ 1, 2, 3u };
     //ᅟ    auto signedNumbers = numbers
     //ᅟ        | tuple_filter(trait_v<std::is_signed>); // returns (1, 2)
     //
@@ -686,7 +686,7 @@ template <typename PredT>
     //ᅟ
     // Maps a tuple to a new tuple which contains only the values for which the given type predicate is true.
     //ᅟ
-    //ᅟ    auto numbers = std::make_tuple(1, 2, 3u);
+    //ᅟ    auto numbers = std::tuple{ 1, 2, 3u };
     //ᅟ    auto signedNumbers = tuple_filter(numbers, trait_v<std::is_signed>); // returns (1, 2)
     //
 template <typename PredT, typename TupleT,
@@ -702,7 +702,7 @@ template <typename PredT, typename TupleT,
     // Takes a scalar function (i.e. a function with non-tuple arguments and non-tuple return type) and returns a function which can be called 
     // with tuples in some or all arguments, and whose result will be a tuple of the results of the function applied to the tuple elements.
     //ᅟ
-    //ᅟ    auto numbers = std::make_tuple(2, 3.0f);
+    //ᅟ    auto numbers = std::tuple{ 2, 3.0f };
     //ᅟ    auto squaredNumbers = numbers
     //ᅟ        | tuple_map([](auto x) { return x*x; }); // returns (4, 9.0f)
     //
@@ -718,7 +718,7 @@ template <typename F>
     // Takes a tuple and a scalar function (i.e. a function with non-tuple arguments and non-tuple return type) and returns a tuple of the results
     // of the function applied to the tuple elements.
     //ᅟ
-    //ᅟ    auto numbers = std::make_tuple(2, 3.0f);
+    //ᅟ    auto numbers = std::tuple{ 2, 3.0f };
     //ᅟ    auto squaredNumbers = tuple_map(numbers, [](auto x) { return x*x; }); // returns (4, 9.0f)
     //
 template <typename TupleT, typename F,
@@ -734,7 +734,7 @@ template <typename TupleT, typename F,
     // Returns a functor that maps a tuple to an array of element type `T` that is initialized with result of the functor applied to the elements
     // in the tuple.
     //ᅟ
-    //ᅟ    auto tuple = std::make_tuple(1, 2u, 3.0);
+    //ᅟ    auto tuple = std::tuple{ 1, 2u, 3.0 };
     //ᅟ    auto array = tuple
     //ᅟ        | tuple_map_to<int>([](auto v) { return int(v*v); }); // returns {{ 1, 4, 9 }}
     //
@@ -749,7 +749,7 @@ template <typename T, typename F>
     //ᅟ
     // Returns a `std::array<>` of element type `T` that is initialized with the result of the functor applied to the elements in the tuple.
     //ᅟ
-    //ᅟ    auto tuple = std::make_tuple(1, 2u, 3.0);
+    //ᅟ    auto tuple = std::tuple{ 1, 2u, 3.0 };
     //ᅟ    auto array = tuple_map_to<int>(tuple, [](auto v) { return int(v*v); }); // returns {{ 1, 2, 3 }}
     //
 template <typename T, typename TupleT, typename F,
@@ -764,7 +764,7 @@ template <typename T, typename TupleT, typename F,
     //ᅟ
     // Returns a functor that maps a tuple to an array of element type `T` that is initialized with the elements in the tuple.
     //ᅟ
-    //ᅟ    auto tuple = std::make_tuple(1, 2, 3);
+    //ᅟ    auto tuple = std::tuple{ 1, 2, 3 };
     //ᅟ    auto array = tuple
     //ᅟ        | tuple_to_array<int>(); // returns {{ 1, 2, 3 }}
     //
@@ -779,7 +779,7 @@ template <typename T>
     //ᅟ
     // Returns a `std::array<>` of element type `T` that is initialized with the elements in the tuple.
     //ᅟ
-    //ᅟ    auto tuple = std::make_tuple(1, 2, 3);
+    //ᅟ    auto tuple = std::tuple{ 1, 2, 3 };
     //ᅟ    auto array = tuple_to_array<int>(tuple); // returns {{ 1, 2, 3 }}
     //
 template <typename T, typename TupleT,
@@ -796,7 +796,7 @@ template <typename T, typename TupleT,
     // an initial value and a tuple to a scalar using the accumulator function by performing a left fold.
     //ᅟ
     //ᅟ    auto sumTuple = tuple_fold(std::plus<int>{ });
-    //ᅟ    auto numbers = std::make_tuple(2, 3u);
+    //ᅟ    auto numbers = std::tuple{ 2, 3u };
     //ᅟ    int sum = sumTuple(0, numbers); // returns 5
     //
 template <typename F>
@@ -812,7 +812,7 @@ template <typename F>
     // an initial value and a tuple to a scalar using the accumulator function by performing a left fold.
     //ᅟ
     //ᅟ    auto sumTuple = tuple_fold_left(std::plus<int>{ });
-    //ᅟ    auto numbers = std::make_tuple(2, 3u);
+    //ᅟ    auto numbers = std::tuple{ 2, 3u };
     //ᅟ    int sum = sumTuple(0, numbers); // returns 5
     //
 template <typename F>
@@ -828,7 +828,7 @@ template <typename F>
     // an initial value and a tuple to a scalar using the accumulator function by performing a right fold.
     //ᅟ
     //ᅟ    auto sumTuple = tuple_fold_right(std::plus<int>{ });
-    //ᅟ    auto numbers = std::make_tuple(2, 3u);
+    //ᅟ    auto numbers = std::tuple{ 2, 3u };
     //ᅟ    int sum = sumTuple(0, numbers); // returns 5
     //
 template <typename F>
@@ -843,7 +843,7 @@ template <typename F>
     // Takes an initial value and a binary accumulator function (i.e. a function with non-tuple arguments and non-tuple type) and returns a function
     // which reduces a tuple to a scalar using the accumulator function by performing a left fold.
     //ᅟ
-    //ᅟ    auto numbers = std::make_tuple(2, 3u);
+    //ᅟ    auto numbers = std::tuple{ 2, 3u };
     //ᅟ    int sum = numbers
     //ᅟ        | tuple_fold(0, std::plus<int>{ }); // returns 5
     //
@@ -859,7 +859,7 @@ template <typename ValT, typename F>
     // Takes an initial value and a binary accumulator function (i.e. a function with non-tuple arguments and non-tuple type) and returns a function
     // which reduces a tuple to a scalar using the accumulator function by performing a left fold.
     //ᅟ
-    //ᅟ    auto numbers = std::make_tuple(2, 3u);
+    //ᅟ    auto numbers = std::tuple{ 2, 3u };
     //ᅟ    int sum = numbers
     //ᅟ        | tuple_fold_left(0, std::plus<int>{ }); // returns 5
     //
@@ -875,7 +875,7 @@ template <typename ValT, typename F>
     // Takes an initial value and a binary accumulator function (i.e. a function with non-tuple arguments and non-tuple type) and returns a function
     // which reduces a tuple to a scalar using the accumulator function by performing a right fold.
     //ᅟ
-    //ᅟ    auto numbers = std::make_tuple(2, 3u);
+    //ᅟ    auto numbers = std::tuple{ 2, 3u };
     //ᅟ    int sum = numbers
     //ᅟ        | tuple_fold_right(0, std::plus<int>{ }); // returns 5
     //
@@ -891,7 +891,7 @@ template <typename ValT, typename F>
     // Takes a tuple, an initial value and a binary accumulator function (i.e. a function with non-tuple arguments and non-tuple type) and returns the
     // left fold of the tuple.
     //ᅟ
-    //ᅟ    auto numbers = std::make_tuple(2, 3u);
+    //ᅟ    auto numbers = std::tuple{ 2, 3u };
     //ᅟ    int sum = tuple_fold(numbers, 0, std::plus<int>{ }); // returns 5
     //
 template <typename TupleT, typename T, typename F,
@@ -907,7 +907,7 @@ template <typename TupleT, typename T, typename F,
     // Takes a tuple, an initial value and a binary accumulator function (i.e. a function with non-tuple arguments and non-tuple type) and returns the
     // left fold of the tuple.
     //ᅟ
-    //ᅟ    auto numbers = std::make_tuple(2, 3u);
+    //ᅟ    auto numbers = std::tuple{ 2, 3u };
     //ᅟ    int sum = tuple_fold_left(numbers, 0, std::plus<int>{ }); // returns 5
     //
 template <typename TupleT, typename T, typename F,
@@ -923,7 +923,7 @@ template <typename TupleT, typename T, typename F,
     // Takes a tuple, an initial value and a binary accumulator function (i.e. a function with non-tuple arguments and non-tuple type) and returns the
     // right fold of the tuple.
     //ᅟ
-    //ᅟ    auto numbers = std::make_tuple(2, 3u);
+    //ᅟ    auto numbers = std::tuple{ 2, 3u };
     //ᅟ    int sum = tuple_fold_right(numbers, 0, std::plus<int>{ }); // returns 5
     //
 template <typename TupleT, typename T, typename F,
@@ -938,7 +938,7 @@ template <typename TupleT, typename T, typename F,
     //ᅟ
     // Takes a unary predicate function and returns a function which evaluates the short-circuited conjunction of the predicate applied to all tuple elements.
     //ᅟ
-    //ᅟ    auto numbers = std::make_tuple(2, 3u);
+    //ᅟ    auto numbers = std::tuple{ 2, 3u };
     //ᅟ    auto allNumbersGreaterThanZero = numbers
     //ᅟ        | tuple_all([](auto v) { return v > 0; }); // returns true
     //
@@ -952,7 +952,7 @@ template <typename F>
     //ᅟ
     // Takes a unary predicate function and evaluates the short-circuited conjunction of the predicate applied to all tuple elements.
     //ᅟ
-    //ᅟ    auto numbers = std::make_tuple(2, 3u);
+    //ᅟ    auto numbers = std::tuple{ 2, 3u };
     //ᅟ    auto allNumbersGreaterThanZero = tuple_all(numbers,
     //ᅟ        [](auto v) { return v > 0; })); // returns true
     //
@@ -968,7 +968,7 @@ template <typename TupleT, typename F,
     //ᅟ
     // Takes a unary predicate function and returns a function which evaluates the short-circuited disjunction of the predicate applied to all tuple elements.
     //ᅟ
-    //ᅟ    auto numbers = std::make_tuple(2, 3u);
+    //ᅟ    auto numbers = std::tuple{ 2, 3u };
     //ᅟ    auto anyNumberGreaterThanZero = numbers
     //ᅟ        | tuple_any([](auto v) { return v > 0; }); // returns true
     //
@@ -982,7 +982,7 @@ template <typename F>
     //ᅟ
     // Takes a unary predicate function and evaluates the short-circuited disjunction of the predicate applied to all tuple elements.
     //ᅟ
-    //ᅟ    auto numbers = std::make_tuple(2, 3u);
+    //ᅟ    auto numbers = std::tuple{ 2, 3u };
     //ᅟ    auto anyNumberGreaterThanZero = tuple_any(numbers,
     //ᅟ        [](auto v) { return v > 0; })); // returns true
     //
@@ -999,7 +999,7 @@ template <typename TupleT, typename F,
     // Returns a functor which retrieves the tuple element of the given type, or which returns the provided default value if the tuple does not contain
     // an element of the given type. The type of the default value does not need to match the desired element type.
     //ᅟ
-    //ᅟ    auto tuple = std::make_tuple(42);
+    //ᅟ    auto tuple = std::tuple{ 42 };
     //ᅟ    auto str = tuple
     //ᅟ        | get_or_default<std::string>("bar"sv); // returns "bar"sv
     //
@@ -1016,7 +1016,7 @@ template <typename T, typename DefaultT,
     // Returns a functor which retrieves the tuple element of the given type, or which returns a default-constructed element if the tuple does not
     // contain an element of the given type.
     //ᅟ
-    //ᅟ    auto tuple = std::make_tuple(42);
+    //ᅟ    auto tuple = std::tuple{ 42 };
     //ᅟ    auto str = tuple
     //ᅟ        | get_or_default<std::string>(); // returns ""s
     //
@@ -1032,7 +1032,7 @@ template <typename T>
     // Returns the tuple element of the given type, or the provided default value if the tuple does not contain an element of the given type.
     // The type of the default value does not need to match the desired element type.
     //ᅟ
-    //ᅟ    auto tuple = std::make_tuple(42);
+    //ᅟ    auto tuple = std::tuple{ 42 };
     //ᅟ    auto str = get_or_default<std::string>(tuple, "bar"sv); // returns "bar"sv
     //
 template <typename T, typename TupleT, typename DefaultT,
@@ -1048,7 +1048,7 @@ template <typename T, typename TupleT, typename DefaultT,
     // Returns the tuple element of the given type, or the provided default value if the tuple does not contain an element of the given type.
     // The type of the default value does not need to match the desired element type.
     //ᅟ
-    //ᅟ    auto tuple = std::make_tuple(42);
+    //ᅟ    auto tuple = std::tuple{ 42 };
     //ᅟ    auto str = get_or_default<std::string>(tuple); // returns ""s
     //
 template <typename T, typename TupleT,
@@ -1063,7 +1063,7 @@ template <typename T, typename TupleT,
     //ᅟ
     // Returns a functor which retrieves the tuple element of the given type, or `none` if the tuple does not contain an element of the given type.
     //ᅟ
-    //ᅟ    auto tuple = std::make_tuple(42);
+    //ᅟ    auto tuple = std::tuple{ 42 };
     //ᅟ    auto str = tuple
     //ᅟ        | get_or_none<std::string>(); // returns none
     //
@@ -1078,7 +1078,7 @@ template <typename T>
     //ᅟ
     // Returns the tuple element of the given type, or `none` if the tuple does not contain an element of the given type.
     //ᅟ
-    //ᅟ    auto tuple = std::make_tuple(42);
+    //ᅟ    auto tuple = std::tuple{ 42 };
     //ᅟ    auto str = get_or_none<std::string>(tuple); // returns none
     //
 template <typename T, typename TupleT,
@@ -1093,7 +1093,7 @@ template <typename T, typename TupleT,
     //ᅟ
     // Returns a functor which retrieves the tuple element of the given type.
     //ᅟ
-    //ᅟ    auto tuple = std::make_tuple(42);
+    //ᅟ    auto tuple = std::tuple{ 42 };
     //ᅟ    auto elem = tuple
     //ᅟ        | get<int>(); // returns 42
     //
@@ -1108,7 +1108,7 @@ template <typename T>
     //ᅟ
     // Returns a functor which retrieves the tuple element with the given index. Negative indices count from the end.
     //ᅟ
-    //ᅟ    auto tuple = std::make_tuple(42);
+    //ᅟ    auto tuple = std::tuple{ 42 };
     //ᅟ    auto elem = tuple
     //ᅟ        | get<0>(); // returns 42
     //
@@ -1123,7 +1123,7 @@ template <int I>
     //ᅟ
     // Returns a functor which retrieves the single element in a tuple, or which returns the provided default value if the tuple is empty.
     //ᅟ
-    //ᅟ    auto tuple = std::make_tuple(12, 42);
+    //ᅟ    auto tuple = std::tuple{ 12, 42 };
     //ᅟ    auto elem = tuple
     //ᅟ        | single_or_default(0); // returns 0
     //
@@ -1138,7 +1138,7 @@ template <typename DefaultT>
     //ᅟ
     // Returns the single element in a tuple, or the provided default value if the tuple is empty.
     //ᅟ
-    //ᅟ    auto tuple = std::make_tuple(12, 42);
+    //ᅟ    auto tuple = std::tuple{ 12, 42 };
     //ᅟ    auto elem = single_or_default(tuple, 0); // returns 0
     //
 template <typename TupleT, typename DefaultT,
@@ -1153,7 +1153,7 @@ template <typename TupleT, typename DefaultT,
     //ᅟ
     // Returns a functor which retrieves the single element in a tuple, or which returns `none` if the tuple is empty.
     //ᅟ
-    //ᅟ    auto tuple = std::make_tuple(12, 42);
+    //ᅟ    auto tuple = std::tuple{ 12, 42 };
     //ᅟ    auto elem = tuple
     //ᅟ        | single_or_none(); // returns none
     //
@@ -1167,7 +1167,7 @@ single_or_none(void)
     //ᅟ
     // Returns the single element in a tuple, or `none` if the tuple is empty.
     //ᅟ
-    //ᅟ    auto tuple = std::make_tuple(12, 42);
+    //ᅟ    auto tuple = std::tuple{ 12, 42 };
     //ᅟ    auto elem = single_or_none(tuple); // returns 0
     //
 template <typename TupleT,
@@ -1182,7 +1182,7 @@ template <typename TupleT,
     //ᅟ
     // Returns a functor which retrieves the single element in a tuple.
     //ᅟ
-    //ᅟ    auto tuple = std::make_tuple(42);
+    //ᅟ    auto tuple = std::tuple{ 42 };
     //ᅟ    auto elem = tuple
     //ᅟ        | single(); // returns 42
     //
@@ -1196,7 +1196,7 @@ single(void)
     //ᅟ
     // Returns the single element in a tuple.
     //ᅟ
-    //ᅟ    auto tuple = std::make_tuple(42);
+    //ᅟ    auto tuple = std::tuple{ 42 };
     //ᅟ    auto elem = single(tuple); // returns 42
     //
 template <typename TupleT,
@@ -1211,7 +1211,7 @@ template <typename TupleT,
     //ᅟ
     // Concatenates the tuples in a tuple of tuples.
     //ᅟ
-    //ᅟ    auto tuple = std::make_tuple(std::make_tuple(1), std::make_tuple(2));
+    //ᅟ    auto tuple = std::tuple{ std::tuple{ 1 }, std::tuple{ 2 } };
     //ᅟ    auto flat_tuple = tuple
     //ᅟ        | tuple_cat(); // returns (1, 2)
     //
@@ -1225,7 +1225,7 @@ tuple_cat(void)
     //ᅟ
     // Concatenates the tuples in a tuple of tuples.
     //ᅟ
-    //ᅟ    auto tuple = std::make_tuple(std::make_tuple(1), std::make_tuple(2));
+    //ᅟ    auto tuple = std::tuple{ std::tuple{ 1 }, std::tuple{ 2 } };
     //ᅟ    auto flat_tuple = tuple_cat(tuple); // returns (1, 2)
     //
 template <typename TupleT,

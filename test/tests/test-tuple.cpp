@@ -15,7 +15,7 @@ namespace mk = makeshift;
 
 TEST_CASE("tuple", "[flags]")
 {
-    auto numbers = std::make_tuple(2, 3u);
+    auto numbers = std::tuple{ 2, 3u };
     SECTION("reduce")
     {
         auto sumTuple = mk::tuple_fold(std::plus<int>{ });
@@ -31,7 +31,7 @@ TEST_CASE("tuple", "[flags]")
     SECTION("map")
     {
         auto square = mk::tuple_map([](auto x) { return x*x; });
-        CHECK(square(numbers) == std::make_tuple(4, 9u));
+        CHECK(square(numbers) == std::tuple{ 4, 9u });
     }
     SECTION("index")
     {
@@ -40,11 +40,11 @@ TEST_CASE("tuple", "[flags]")
         {
             result = lhs + rhs + int(index*offset);
         });
-        auto result_tuple = std::make_tuple(0, 0, 0);
-        auto lhs_tuple = std::make_tuple(10, 20, 30);
+        auto result_tuple = std::tuple{ 0, 0, 0 };
+        auto lhs_tuple = std::tuple{ 10, 20, 30 };
         auto rhs_scalar = 1;
         myFunc(result_tuple, lhs_tuple, rhs_scalar, mk::tuple_index);
-        CHECK(result_tuple == std::make_tuple(11, 121, 231));
+        CHECK(result_tuple == std::tuple{ 11, 121, 231 });
     }
     SECTION("overloads")
     {
@@ -54,7 +54,7 @@ TEST_CASE("tuple", "[flags]")
                 [](float) { return "float"s; }
             )
         );
-        auto someTuple = std::make_tuple(42, 13.37f, 0);
+        auto someTuple = std::tuple{ 42, 13.37f, 0 };
         auto joinStrings = mk::tuple_fold(
             [](const std::string& lhs, const std::string& rhs)
             {
@@ -67,14 +67,14 @@ TEST_CASE("tuple", "[flags]")
     }
     SECTION("function-variants")
     {
-        auto moreNumbers = std::make_tuple(0, 1u, 2);
+        auto moreNumbers = std::tuple{ 0, 1u, 2 };
         mk::tuple_foreach(moreNumbers, [](auto& val)
         {
             ++val;
         });
-        CHECK(moreNumbers == std::make_tuple(1, 2u, 3));
+        CHECK(moreNumbers == std::tuple{ 1, 2u, 3 });
         auto squares = mk::tuple_map(moreNumbers, [](auto x) { return x*x; });
-        CHECK(squares == std::make_tuple(1, 4u, 9));
+        CHECK(squares == std::tuple{ 1, 4u, 9 });
         auto sumOfSquares = mk::tuple_fold(squares, 0, std::plus<>());
         CHECK(sumOfSquares == 14);
     }

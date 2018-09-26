@@ -186,7 +186,7 @@ std::string flags_enum_to_string(std::uint64_t enumValue, const flags_enum_seria
     std::string result;
     bool first = true;
     std::uint64_t matchedEnumValue = enumValue;
-    for (auto [combined, permitOverlap] : { std::make_tuple(true, false), std::make_tuple(false, false), std::make_tuple(true, true) })
+    for (auto [combined, permitOverlap] : { std::tuple{ true, false }, std::tuple{ false, false }, std::tuple{ true, true } })
     {
         for (auto& value : sdata.values)
             if (isPowerOf2(value.value) != combined)

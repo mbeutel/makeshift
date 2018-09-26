@@ -6,7 +6,7 @@
 #include <utility>     // for move(), forward<>()
 #include <type_traits> // for decay<>
 
-#include <makeshift/reflect.hpp> // for values_from_type_or_metadata<>()
+#include <makeshift/reflect.hpp> // for values_of<>()
 #include <makeshift/variant.hpp> // for expand()
 
 
@@ -30,7 +30,7 @@ template <typename T, typename MetadataTagT = reflection_tag>
     constexpr auto
     expand(T&& value, tag<MetadataTagT> = { })
 {
-    /*constexpr*/ auto tuple = values_from_type_or_metadata(tag_v<std::decay_t<T>>, MetadataTagT{ }); // TODO: currently not constexpr due to VC++ ICE
+    /*constexpr*/ auto tuple = values_of(tag_v<std::decay_t<T>>, MetadataTagT{ }); // TODO: currently not constexpr due to VC++ ICE
     return expand(std::forward<T>(value), std::move(tuple));
 }
 
@@ -49,7 +49,7 @@ template <typename T, typename MetadataTagT = reflection_tag>
     constexpr auto
     try_expand(T&& value, tag<MetadataTagT> = { })
 {
-    /*constexpr*/ auto tuple = values_from_type_or_metadata(tag_v<std::decay_t<T>>, MetadataTagT{ }); // TODO: currently not constexpr due to VC++ ICE
+    /*constexpr*/ auto tuple = values_of(tag_v<std::decay_t<T>>, MetadataTagT{ }); // TODO: currently not constexpr due to VC++ ICE
     return try_expand(std::forward<T>(value), std::move(tuple));
 }
 
