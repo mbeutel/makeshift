@@ -8,7 +8,7 @@ cmake_minimum_required(VERSION 3.10)
 
 # dependencies
 find_package(Catch2 2.3 REQUIRED)
-find_package(CMakeshift 2.0 REQUIRED)
+find_package(CMakeshift 2.1 REQUIRED)
 
 # test target
 add_executable(test-makeshift
@@ -20,8 +20,8 @@ add_executable(test-makeshift
     "tests/test-metadata.cpp")
 
 # compiler settings
-include(CMakeshift/SetTargetCompilerSettings)
-cmakeshift_set_target_compiler_settings(test-makeshift PRIVATE default pedantic)
+include(CMakeshift/TargetCompileSettings)
+cmakeshift_target_compile_settings(test-makeshift PRIVATE default pedantic)
 
 # test properties
 target_compile_definitions(test-makeshift

@@ -7,7 +7,7 @@
 cmake_minimum_required(VERSION 3.10)
 
 # dependencies
-find_package(CMakeshift 2.0 REQUIRED)
+find_package(CMakeshift 2.1 REQUIRED)
 find_package(MS-GSL REQUIRED)
 
 # library target
@@ -38,12 +38,12 @@ if(NOT BUILD_SHARED_LIBS)
 endif()
 
 # compiler settings
-include(CMakeshift/SetTargetCompilerSettings)
-cmakeshift_set_target_compiler_settings(makeshift PRIVATE default pedantic)
+include(CMakeshift/TargetCompileSettings)
+cmakeshift_target_compile_settings(makeshift PRIVATE default pedantic)
 
 # library version
-include(CMakeshift/SetLibraryVersion)
-cmakeshift_set_library_version(makeshift ${PROJECT_VERSION} ${makeshift_APIVERSION})
+include(CMakeshift/TargetLibraryVersion)
+cmakeshift_target_library_version(makeshift ${PROJECT_VERSION} ${makeshift_APIVERSION})
 
 # library dependencies
 target_link_libraries(makeshift
