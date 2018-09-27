@@ -97,7 +97,7 @@ struct compound_serialization_options
 struct any_compound_serialization_options
 {
     compound_serialization_options compound = { "{ ", " }", "=", ".", ", ", true, string_comparison::ordinal_ignore_case };
-    compound_serialization_options compound_value = { "(", ")", "=", ".", ", ", false, string_comparison::ordinal_ignore_case };
+    compound_serialization_options compound_value = { "{ ", " }", "=", ".", ", ", false, string_comparison::ordinal_ignore_case };
 
     constexpr any_compound_serialization_options(void) = default;
 };
