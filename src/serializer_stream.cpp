@@ -8,6 +8,9 @@
 
 #include <gsl/gsl_assert> // for Expects()
 
+#include <makeshift/string.hpp>
+#include <makeshift/quantity.hpp>
+
 #include <makeshift/serializers/stream.hpp>
 
 #include <makeshift/detail/serializers_stream-reflect.hpp>
@@ -122,6 +125,34 @@ void name_from_stream(std::istream& stream, std::string& name)
     }
     if (!stream)
         raise_istream_error(stream);
+}
+
+void unit_to_stream(std::ostream& stream, quantity_unit unit)
+{
+    stream << unit_to_string(unit);
+}
+void unit_from_stream(std::istream& stream, quantity_unit& unit)
+{
+    std::string str;
+    stream >> std::ws;
+    char ch;
+    if (tryPeekChar(stream, ch))
+    {
+        if (makeshift::detail::to_min_char(ch) >= 0)
+        {
+            str = ch;
+            stream.get();
+            while (tryPeekChar(stream, ch) && makeshift::detail::to_min_char(ch) >= 0)
+            {
+                str += ch;
+                stream.get();
+            }
+        }
+    }
+    if (!stream)
+        raise_istream_error(stream);
+
+    unit = unit_from_string(str);
 }
 
 

@@ -17,6 +17,7 @@ add_library(makeshift
     "serialize.cpp"
     "serialize_enum.cpp"
     "serializer_bool.cpp"
+    "serializer_quantity.cpp"
     "serializer_string.cpp"
     "serializer_stream.cpp"
     "streamable-string.cpp"
