@@ -28,7 +28,7 @@ template <typename T, typename SerializerT>
     std::string get_compound_hint(SerializerT&, const any_compound_hint_options& compoundOptions)
 {
     using MetadataTag = metadata_tag_of_serializer_t<std::decay_t<SerializerT>>;
-    constexpr auto members = get_members<T, MetadataTag>();
+    constexpr auto members = members_of<T, MetadataTag>();
     constexpr bool isCompoundValue = has_flag(type_flag::value, type_flags_of_v<T, MetadataTag>);
     const auto& options = isCompoundValue ? compoundOptions.compound_value : compoundOptions.compound;
 

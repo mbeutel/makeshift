@@ -134,27 +134,6 @@ template <typename MemberMetadataT>
 
 } // inline namespace metadata
 
-
-namespace detail
-{
-
-
-template <typename T, typename MetadataTagT>
-    constexpr auto get_members(void) noexcept
-{
-    return metadata_of<T, MetadataTagT>.attributes
-        | tuple_filter(template_trait_v<is_instantiation_of, member_metadata>);
-}
-template <typename T, typename MetadataTagT>
-    constexpr auto get_member_accessors(void) noexcept
-{
-    return get_members<T, MetadataTagT>()
-        | tuple_map([](auto v) { return member_accessor(v); });
-}
-
-
-} // namespace detail
-
 } // namespace makeshift
 
 

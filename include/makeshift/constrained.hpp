@@ -332,11 +332,16 @@ public:
     explicit constexpr define_constrained_integer(value_type _value)
         : value_(_value)
     {
+        static_assert(std::is_final<DerivedT>::value, "constrained integers must be declared final");
         if (!is_valid_(_value))
             raise_error_(_value);
     }
 
-    explicit constexpr define_constrained_integer(unchecked_constructor_tag, value_type _value) : value_(_value) { }
+    explicit constexpr define_constrained_integer(unchecked_constructor_tag, value_type _value) noexcept
+        : value_(_value)
+    {
+        static_assert(std::is_final<DerivedT>::value, "constrained integers must be declared final");
+    }
 
         //ᅟ
         // Determines whether the given value is an admissible value.

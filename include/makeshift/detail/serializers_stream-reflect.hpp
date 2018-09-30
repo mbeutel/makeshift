@@ -31,7 +31,7 @@ template <typename T, typename SerializerT>
     void compound_to_stream(std::ostream& stream, const T& value, SerializerT& serializer, const any_compound_serialization_options& compoundOptions)
 {
     using MetadataTag = metadata_tag_of_serializer_t<std::decay_t<SerializerT>>;
-    constexpr auto members = get_members<T, MetadataTag>();
+    constexpr auto members = members_of<T, MetadataTag>();
     constexpr bool isCompoundValue = has_flag(type_flag::value, type_flags_of_v<T, MetadataTag>);
     const auto& options = isCompoundValue ? compoundOptions.compound_value : compoundOptions.compound;
 
@@ -66,7 +66,7 @@ template <typename T, typename SerializerT>
     class stream_compound_member_deserializer final : public stream_compound_member_deserializer_base
 {
     using MetadataTag = metadata_tag_of_serializer_t<std::decay_t<SerializerT>>;
-    static constexpr auto members_ = get_members<T, MetadataTag>();
+    static constexpr auto members_ = members_of<T, MetadataTag>();
 
 private:
     T& value_;

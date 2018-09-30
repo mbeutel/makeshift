@@ -18,6 +18,14 @@ namespace detail
 {
 
 
+template <typename T, typename MetadataTagT>
+    constexpr auto get_member_accessors(void) noexcept
+{
+    return members_of<T, MetadataTagT>()
+        | tuple_map([](auto v) { return member_accessor(v); });
+}
+
+
 template <typename ComparerT, typename AccessorsT, typename T>
     constexpr bool lexicographical_compare_members(ComparerT&&, const AccessorsT&, const T&, const T&, std::index_sequence<>) noexcept
 {
