@@ -61,4 +61,9 @@ template <typename T, typename SerializerT,
 #endif // INCLUDED_MAKESHIFT_STREAMABLE_HPP_
 
 
+#ifdef INCLUDED_MAKESHIFT_QUANTITY_HPP_
+ #include <makeshift/detail/quantity-string.hpp>
+#endif // INCLUDED_MAKESHIFT_QUANTITY_HPP_
+
+
 #endif // INCLUDED_MAKESHIFT_STRING_HPP_

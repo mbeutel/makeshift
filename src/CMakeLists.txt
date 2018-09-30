@@ -13,6 +13,7 @@ find_package(MS-GSL REQUIRED)
 # library target
 add_library(makeshift
     "version.cpp"
+    "quantity.cpp"
     "serialize.cpp"
     "serialize_enum.cpp"
     "serializer_bool.cpp"
