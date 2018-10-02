@@ -31,12 +31,15 @@ private:
         virtual void to_stream(std::ostream& stream) const = 0;
         virtual ~concept_(void) { }
     };
-    struct equivalent_layout_type { int& r1; int& r2; };
+    struct equivalent_layout_type { void* vmt; int& r1; int& r2; };
     template <typename T, typename SerializerT>
-        struct model_ : concept_
+        struct model_ final : concept_
     {
+    private:
         T& value_;
         SerializerT& serializer_;
+    public:
+        model_(T& _value, SerializerT& _serializer) noexcept : value_(_value), serializer_(_serializer) { }
         void to_stream(std::ostream& stream) const override { stream << streamable(value_, serializer_); }
     };
 
@@ -72,12 +75,15 @@ private:
         virtual void from_stream(std::istream& stream) const = 0;
         virtual ~concept_(void) { }
     };
-    struct equivalent_layout_type { int& r1; int& r2; };
+    struct equivalent_layout_type { void* vmt; int& r1; int& r2; };
     template <typename T, typename SerializerT>
-        struct model_ : concept_
+        struct model_ final : concept_
     {
+    private:
         T& value_;
         SerializerT& serializer_;
+    public:
+        model_(T& _value, SerializerT& _serializer) noexcept : value_(_value), serializer_(_serializer) { }
         void from_stream(std::istream& stream) const override { stream >> streamable(value_, serializer_); }
     };
 
