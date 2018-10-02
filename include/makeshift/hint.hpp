@@ -69,7 +69,7 @@ struct compound_hint_options
 struct any_compound_hint_options
 {
     compound_hint_options compound = { "{", "}", ",", "val" };
-    compound_hint_options compound_value = { "{", "}", ",", "val" };
+    compound_hint_options compound_value = { "(", ")", ",", "val" };
 
     constexpr any_compound_hint_options(void) = default;
 };
