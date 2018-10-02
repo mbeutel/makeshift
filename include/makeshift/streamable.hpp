@@ -51,6 +51,12 @@ template <typename T>
     struct streamable_ref_base<T, void>;
 
 
+template <typename T, typename SerializerT> using is_ostreamable_r = decltype(to_stream_impl(std::declval<const T&>(), std::declval<std::ostream&>(), std::declval<SerializerT&>(), std::declval<SerializerT&>()));
+template <typename T, typename SerializerT> using is_istreamable_r = decltype(from_stream_impl(std::declval<T&>(), std::declval<std::istream&>(), std::declval<SerializerT&>(), std::declval<SerializerT&>()));
+template <typename T> using have_ostream_operator_r = decltype(std::declval<std::ostream&>() << std::declval<const T&>());
+template <typename T> using have_istream_operator_r = decltype(std::declval<std::istream&>() >> std::declval<T&>());
+
+
 } // namespace detail
 
 
@@ -113,6 +119,30 @@ template <typename T, typename SerializerT>
 {
     return { value, serializer };
 }
+
+
+    //ᅟ
+    // Determines whether the given type can be written to a `std::ostream` with the given serializer type.
+    //
+template <typename T, typename SerializerT = void> struct is_ostreamable : can_apply<makeshift::detail::is_ostreamable_r, T, SerializerT> { };
+template <typename T> struct is_ostreamable<T, void> : can_apply<makeshift::detail::have_ostream_operator_r, T> { };
+
+    //ᅟ
+    // Determines whether the given type can be written to a `std::ostream` with the given serializer type.
+    //
+template <typename T, typename SerializerT = void> constexpr bool is_ostreamable_v = is_ostreamable<T, SerializerT>::value;
+
+    //ᅟ
+    // Determines whether the given type can be read from a `std::istream` with the given serializer type.
+    //
+template <typename T, typename SerializerT = void> struct is_istreamable : can_apply<makeshift::detail::is_istreamable_r, T, SerializerT>{ };
+template <typename T> struct is_istreamable<T, void> : can_apply<makeshift::detail::have_istream_operator_r, T>{ };
+
+    //ᅟ
+    // Determines whether the given type can be read from a `std::istream` with the given serializer type.
+    //
+template <typename T, typename SerializerT = void> constexpr bool is_istreamable_v = is_istreamable<T, SerializerT>::value;
+
 
 
 } // inline namespace serialize
