@@ -1,4 +1,6 @@
 
+#include <chrono>
+
 #include <makeshift/streamable.hpp>
 #include <makeshift/utility.hpp>
 #include <makeshift/string.hpp>
@@ -23,6 +25,15 @@ TEST_CASE("quantity", "[flags]")
         mk::stream_serializer<>{ }
     );
 
+    SECTION("time")
+    {
+        std::chrono::milliseconds t1 = 512ms;
+        CHECK(to_string(streamable(t1, serializer)) == "512 ms");
+        std::chrono::milliseconds t2{ };
+        from_string(streamable(t2, serializer), "512000us");
+        CHECK(t2 == t1);
+    }
+    
     SECTION("quantity_unit")
     {
         CHECK(mk::unit_to_string("GB/s"_unit) == "GB/s");
