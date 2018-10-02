@@ -103,6 +103,17 @@ template <typename T, typename MetadataTagT, typename = void> constexpr type_fla
 template <typename T, typename MetadataTagT> using type_flags_of = constant<type_flags_of_v<T, MetadataTagT>>;
 
 
+    //ᅟ
+    // Determines whether the given type, according to the given metadata tag, is a compound type.
+    //
+template <typename T, typename MetadataTagT> struct is_compound : std::integral_constant<bool, (type_flags_of_v<T, MetadataTagT> & type_flag::compound) != type_flags::none>{ };
+
+    //ᅟ
+    // Determines whether the given type, according to the given metadata tag, is a compound type.
+    //
+template <typename T, typename MetadataTagT> constexpr bool is_compound_v = is_compound<T, MetadataTagT>::value;
+
+
 } // inline namespace metadata
 
 } // namespace makeshift
