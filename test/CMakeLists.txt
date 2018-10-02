@@ -14,6 +14,7 @@ find_package(CMakeshift 2.1 REQUIRED)
 add_executable(test-makeshift
     "main.cpp"
     "tests/test-arithmetic.cpp"
+    "tests/test-quantity.cpp"
     "tests/test-tuple.cpp"
     "tests/test-variant.cpp"
     "tests/test-utility.cpp"

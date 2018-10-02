@@ -58,10 +58,10 @@ template <typename BaseT = void>
     {
         stream << streamable(value.count(), serializer)
                << data(quantitySerializer).unit_separator;
-        makeshift::detail::time_unit_to_stream(PeriodT::type::num, PeriodT::type::den);
+        makeshift::detail::time_unit_to_stream(stream, PeriodT::type::num, PeriodT::type::den);
     }
     template <typename T, quantity_unit Unit, typename ConverterT, typename SerializerT>
-        friend void to_stream_impl(const quantity<T, Unit, ConverterT>& value, std::ostream& stream, const quantity_serializer& quantitySerializer, SerializerT& serializer)
+        friend void to_stream_impl(const quantity<T, Unit, ConverterT>& value, std::ostream& stream, const quantity_serializer&, SerializerT& serializer)
     {
         stream << streamable(dynamic_quantity{ value }, serializer);
     }
@@ -73,7 +73,7 @@ template <typename BaseT = void>
         makeshift::detail::unit_to_stream(stream, value.unit);
     }
     template <typename RepT, typename PeriodT, typename SerializerT>
-        friend void from_stream_impl(std::chrono::duration<RepT, PeriodT>& value, std::istream& stream, const quantity_serializer& quantitySerializer, SerializerT& serializer)
+        friend void from_stream_impl(std::chrono::duration<RepT, PeriodT>& value, std::istream& stream, const quantity_serializer&, SerializerT& serializer)
     {
         RepT lvalue;
         stream >> streamable(lvalue, serializer);
@@ -83,19 +83,19 @@ template <typename BaseT = void>
         value = std::chrono::duration<RepT, PeriodT>{ RepT((lvalue * num) / den) };
     }
     template <typename T, quantity_unit Unit, typename ConverterT, typename SerializerT>
-        friend void from_stream_impl(quantity<T, Unit, ConverterT>& value, std::istream& stream, const quantity_serializer& quantitySerializer, SerializerT& serializer)
+        friend void from_stream_impl(quantity<T, Unit, ConverterT>& value, std::istream& stream, const quantity_serializer&, SerializerT& serializer)
     {
         dynamic_quantity<T, ConverterT> lvalue;
         stream >> streamable(lvalue, serializer);
         value = lvalue;
     }
     template <typename T, typename ConverterT, typename SerializerT>
-        friend void from_stream_impl(dynamic_quantity<T, ConverterT>& value, std::istream& stream, const quantity_serializer& quantitySerializer, SerializerT& serializer)
+        friend void from_stream_impl(dynamic_quantity<T, ConverterT>& value, std::istream& stream, const quantity_serializer&, SerializerT& serializer)
     {
         T lvalue;
         quantity_unit unit;
-        stream >> streamable(value.value, serializer);
-        makeshift::detail::unit_from_stream(stream, value.unit);
+        stream >> streamable(lvalue, serializer);
+        makeshift::detail::unit_from_stream(stream, unit);
         value = { lvalue, unit };
     }
 };

@@ -131,9 +131,9 @@ void unit_to_stream(std::ostream& stream, quantity_unit unit)
 {
     stream << unit_to_string(unit);
 }
-void unit_from_stream(std::istream& stream, quantity_unit& unit)
+
+void unit_str_from_stream(std::istream& stream, std::string& str)
 {
-    std::string str;
     stream >> std::ws;
     char ch;
     if (tryPeekChar(stream, ch))
@@ -151,7 +151,12 @@ void unit_from_stream(std::istream& stream, quantity_unit& unit)
     }
     if (!stream)
         raise_istream_error(stream);
+}
 
+void unit_from_stream(std::istream& stream, quantity_unit& unit)
+{
+    std::string str;
+    unit_str_from_stream(stream, str);
     unit = unit_from_string(str);
 }
 
