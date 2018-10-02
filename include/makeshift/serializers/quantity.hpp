@@ -68,9 +68,9 @@ template <typename BaseT = void>
     template <typename T, typename ConverterT, typename SerializerT>
         friend void to_stream_impl(const dynamic_quantity<T, ConverterT>& value, std::ostream& stream, const quantity_serializer& quantitySerializer, SerializerT& serializer)
     {
-        stream << streamable(value.value, serializer)
+        stream << streamable(value.value(), serializer)
                << data(quantitySerializer).unit_separator;
-        makeshift::detail::unit_to_stream(stream, value.unit);
+        makeshift::detail::unit_to_stream(stream, value.unit());
     }
     template <typename RepT, typename PeriodT, typename SerializerT>
         friend void from_stream_impl(std::chrono::duration<RepT, PeriodT>& value, std::istream& stream, const quantity_serializer&, SerializerT& serializer)
@@ -96,7 +96,7 @@ template <typename BaseT = void>
         quantity_unit unit;
         stream >> streamable(lvalue, serializer);
         makeshift::detail::unit_from_stream(stream, unit);
-        value = { lvalue, unit };
+        value = dynamic_quantity<T, ConverterT>{ lvalue, unit };
     }
 };
 quantity_serializer(void) -> quantity_serializer<>;

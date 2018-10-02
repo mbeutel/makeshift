@@ -46,10 +46,10 @@ TEST_CASE("quantity", "[flags]")
         CHECK(to_string(streamable(v1, serializer)) == "1 GB/s");
         mk::quantity<int, "GB/s"_unit> v2{ };
         from_string(streamable(v2, serializer), "1 GB/s");
-        CHECK(v2.value == v1.value);
+        CHECK(v2.value() == v1.value());
         mk::dynamic_quantity<int> v3{ };
         from_string(streamable(v3, serializer), "1 GB/s");
-        CHECK(v3.value == v1.value);
-        CHECK(v3.unit == v1.unit);
+        CHECK(v3.value() == v1.value());
+        CHECK(v3.unit() == v1.unit());
     }
 }
