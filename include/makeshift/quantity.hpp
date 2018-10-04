@@ -8,7 +8,7 @@
 
 #include <gsl/gsl_assert> // for Expects()
 
-#include <makeshift/detail/cfg.hpp> // for MAKESHIFT_DLLFUNC
+#include <makeshift/detail/export.hpp> // for MAKESHIFT_DLLFUNC
 
 
 namespace makeshift

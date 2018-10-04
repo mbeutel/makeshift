@@ -6,7 +6,7 @@
 #include <string_view>
 #include <cstddef>     // for size_t
 
-#include <makeshift/detail/cfg.hpp>                 // for MAKESHIFT_DLLFUNC
+#include <makeshift/detail/export.hpp>              // for MAKESHIFT_DLLFUNC
 #include <makeshift/detail/functional_comparer.hpp> // for define_comparer<>
 
 

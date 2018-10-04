@@ -19,7 +19,7 @@
 #include <makeshift/tuple.hpp>
 #include <makeshift/array.hpp>       // for array_cat<>, array_size<>
 
-#include <makeshift/detail/cfg.hpp>  // for MAKESHIFT_DLLFUNC
+#include <makeshift/detail/export.hpp> // for MAKESHIFT_DLLFUNC
 
 
 namespace makeshift

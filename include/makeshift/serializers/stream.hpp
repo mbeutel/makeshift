@@ -15,7 +15,7 @@
 #include <makeshift/serialize.hpp>   // for define_serializer<>, metadata_tag_of_serializer<>
 #include <makeshift/streamable.hpp>
 
-#include <makeshift/detail/cfg.hpp>            // for MAKESHIFT_DLLFUNC
+#include <makeshift/detail/export.hpp>         // for MAKESHIFT_DLLFUNC
 #include <makeshift/detail/serialize_enum.hpp>
 
 

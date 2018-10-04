@@ -9,12 +9,12 @@
 #include <iosfwd>      // for istream, ostream
 #include <utility>     // for move()
 
-#include <makeshift/detail/cfg.hpp>  // for MAKESHIFT_DLLFUNC
-
 #include <makeshift/serialize.hpp>   // for define_serializer<>
 #include <makeshift/streamable.hpp>  // for streamable()
 
 #include <makeshift/serializers/hint.hpp> // for hint_options
+
+#include <makeshift/detail/export.hpp>  // for MAKESHIFT_DLLFUNC
 
 
 namespace makeshift

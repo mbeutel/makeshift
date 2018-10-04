@@ -11,7 +11,7 @@
 #include <makeshift/reflect.hpp>   // for member_accessor()
 #include <makeshift/tuple.hpp>     // for tuple_foreach()
 
-#include <makeshift/detail/cfg.hpp>            // for MAKESHIFT_DLLFUNC
+#include <makeshift/detail/export.hpp>         // for MAKESHIFT_DLLFUNC
 #include <makeshift/detail/metadata.hpp>       // for type_flags_of<>
 #include <makeshift/detail/string_compare.hpp>
 

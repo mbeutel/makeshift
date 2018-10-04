@@ -10,7 +10,7 @@
 #include <makeshift/string.hpp>
 #include <makeshift/streamable.hpp>
 
-#include <makeshift/detail/cfg.hpp> // for MAKESHIFT_DLLFUNC
+#include <makeshift/detail/export.hpp> // for MAKESHIFT_DLLFUNC
 
 
 namespace makeshift

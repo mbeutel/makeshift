@@ -12,7 +12,7 @@
 
 #include <makeshift/type_traits.hpp> // for tag<>, type_sequence<>, type_sequence_cat<>
 
-#include <makeshift/detail/cfg.hpp>               // for MAKESHIFT_DLLFUNC
+#include <makeshift/detail/export.hpp>            // for MAKESHIFT_DLLFUNC
 #include <makeshift/detail/string_compare.hpp>    // for string_comparison
 #include <makeshift/detail/utility_chainable.hpp>
 

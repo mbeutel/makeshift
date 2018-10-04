@@ -28,16 +28,19 @@ add_library(makeshift
 configure_file("${PROJECT_SOURCE_DIR}/cmake/detail_version.hpp.in"
     "${PROJECT_BINARY_DIR}/include/makeshift/detail/version.hpp" @ONLY)
 
+# library export header
+include(GenerateExportHeader)
+generate_export_header(makeshift
+    EXPORT_MACRO_NAME MAKESHIFT_DLLFUNC
+    EXPORT_FILE_NAME "${PROJECT_BINARY_DIR}/include/makeshift/detail/export.hpp"
+    INCLUDE_GUARD_NAME "INCLUDED_MAKESHIFT_DETAIL_EXPORT_HPP_")
+
 # library properties
 target_include_directories(makeshift
     PUBLIC
         "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
         "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>")
 target_compile_features(makeshift PUBLIC cxx_std_17)
-target_compile_definitions(makeshift PRIVATE MAKESHIFT_BUILD)
-if(NOT BUILD_SHARED_LIBS)
-    target_compile_definitions(makeshift PUBLIC MAKESHIFT_STATIC_LIBRARIES)
-endif()
 
 # compiler settings
 include(CMakeshift/TargetCompileSettings)

@@ -16,7 +16,7 @@
 #include <makeshift/tuple.hpp>       // for get_or_default<>(), get_or_none<>()
 #include <makeshift/type_traits.hpp> // for sequence<>, tag<>
 
-#include <makeshift/detail/cfg.hpp>                 // for MAKESHIFT_DLLFUNC
+#include <makeshift/detail/export.hpp>              // for MAKESHIFT_DLLFUNC
 #include <makeshift/detail/workaround.hpp>          // for cor()
 #include <makeshift/detail/functional_comparer.hpp> // for default_hash<>
 
