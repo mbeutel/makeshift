@@ -19,7 +19,7 @@
 #include <makeshift/tuple.hpp>
 #include <makeshift/array.hpp>       // for array_cat<>, array_size<>
 
-#include <makeshift/detail/cfg.hpp>  // for MAKESHIFT_DLLFUNC
+#include <makeshift/detail/export.hpp> // for MAKESHIFT_PUBLIC
 
 
 namespace makeshift
@@ -62,14 +62,14 @@ struct flags_enum_serialization_data_ref
     std::string_view typeDesc;
 };
 
-MAKESHIFT_DLLFUNC std::string enum_hint(const enum_serialization_data_ref& sdata, const enum_hint_options& options);
-MAKESHIFT_DLLFUNC std::string flags_enum_hint(const flags_enum_serialization_data_ref& sdata, const enum_hint_options& options);
+MAKESHIFT_PUBLIC std::string enum_hint(const enum_serialization_data_ref& sdata, const enum_hint_options& options);
+MAKESHIFT_PUBLIC std::string flags_enum_hint(const flags_enum_serialization_data_ref& sdata, const enum_hint_options& options);
 
-MAKESHIFT_DLLFUNC std::string_view enum_to_string(std::uint64_t enumValue, const enum_serialization_data_ref& sdata, const enum_serialization_options& options);
-MAKESHIFT_DLLFUNC void enum_from_string(std::string_view string, std::uint64_t& enumValue, const enum_serialization_data_ref& sdata, const enum_serialization_options& options);
+MAKESHIFT_PUBLIC std::string_view enum_to_string(std::uint64_t enumValue, const enum_serialization_data_ref& sdata, const enum_serialization_options& options);
+MAKESHIFT_PUBLIC void enum_from_string(std::string_view string, std::uint64_t& enumValue, const enum_serialization_data_ref& sdata, const enum_serialization_options& options);
 
-MAKESHIFT_DLLFUNC std::string flags_enum_to_string(std::uint64_t enumValue, const flags_enum_serialization_data_ref& sdata, const enum_serialization_options& options);
-MAKESHIFT_DLLFUNC void flags_enum_from_string(std::string_view string, std::uint64_t& enumValue, const flags_enum_serialization_data_ref& sdata, const enum_serialization_options& options);
+MAKESHIFT_PUBLIC std::string flags_enum_to_string(std::uint64_t enumValue, const flags_enum_serialization_data_ref& sdata, const enum_serialization_options& options);
+MAKESHIFT_PUBLIC void flags_enum_from_string(std::string_view string, std::uint64_t& enumValue, const flags_enum_serialization_data_ref& sdata, const enum_serialization_options& options);
 
 
 template <typename ValueMetadataT>

@@ -13,6 +13,8 @@
 #include <makeshift/metadata.hpp>         // for have_metadata<>, metadata_of<>, caption_metadata
 #include <makeshift/tuple.hpp>            // for tuple_foreach()
 
+#include <makeshift/detail/export.hpp> // for MAKESHIFT_PUBLIC
+
 
 namespace makeshift
 {
@@ -21,8 +23,8 @@ namespace detail
 {
 
     // defined in serializer_stream.cpp
-MAKESHIFT_DLLFUNC void raw_string_to_stream(std::ostream& stream, std::string_view string);
-MAKESHIFT_DLLFUNC void name_to_stream(std::ostream& stream, std::string_view name);
+MAKESHIFT_PUBLIC void raw_string_to_stream(std::ostream& stream, std::string_view string);
+MAKESHIFT_PUBLIC void name_to_stream(std::ostream& stream, std::string_view name);
 
 template <typename T, typename SerializerT>
     std::string get_compound_hint(SerializerT&, const any_compound_hint_options& compoundOptions)

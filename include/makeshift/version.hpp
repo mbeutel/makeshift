@@ -3,7 +3,7 @@
 #define INCLUDED_MAKESHIFT_VERSION_HPP_
 
 
-#include <makeshift/detail/cfg.hpp>     // for MAKESHIFT_DLLFUNC
+#include <makeshift/detail/export.hpp>  // for MAKESHIFT_PUBLIC
 #include <makeshift/detail/version.hpp>
 
 
@@ -52,6 +52,9 @@
  #define MAKESHIFT_VECTORCALL
 #endif // _MSC_VER
 
+#if defined(_MSC_VER) && defined(__INTELLISENSE__)
+ #define MAKESHIFT_INTELLISENSE_PARSER
+#endif // defined(_MSC_VER) && defined(__INTELLISENSE__)
 
 
 namespace makeshift
@@ -61,7 +64,7 @@ namespace detail
 {
 
 
-MAKESHIFT_DLLFUNC void get_version(int& major, int& minor, int& patch, int& api);
+MAKESHIFT_PUBLIC void get_version(int& major, int& minor, int& patch, int& api);
 
 
 } // namespace detail

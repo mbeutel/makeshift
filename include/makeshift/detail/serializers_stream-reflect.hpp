@@ -11,7 +11,7 @@
 #include <makeshift/reflect.hpp>   // for member_accessor()
 #include <makeshift/tuple.hpp>     // for tuple_foreach()
 
-#include <makeshift/detail/cfg.hpp>            // for MAKESHIFT_DLLFUNC
+#include <makeshift/detail/export.hpp>         // for MAKESHIFT_PUBLIC
 #include <makeshift/detail/metadata.hpp>       // for type_flags_of<>
 #include <makeshift/detail/string_compare.hpp>
 
@@ -23,9 +23,9 @@ namespace detail
 {
 
 
-MAKESHIFT_DLLFUNC void raw_string_to_stream(std::ostream& stream, std::string_view string);
-MAKESHIFT_DLLFUNC void name_to_stream(std::ostream& stream, std::string_view name);
-MAKESHIFT_DLLFUNC void name_to_stream(std::ostream& stream, std::string_view name, std::string_view nameIndicator);
+MAKESHIFT_PUBLIC void raw_string_to_stream(std::ostream& stream, std::string_view string);
+MAKESHIFT_PUBLIC void name_to_stream(std::ostream& stream, std::string_view name);
+MAKESHIFT_PUBLIC void name_to_stream(std::ostream& stream, std::string_view name, std::string_view nameIndicator);
 
 template <typename T, typename SerializerT>
     void compound_to_stream(std::ostream& stream, const T& value, SerializerT& serializer, const any_compound_serialization_options& compoundOptions)
@@ -122,7 +122,7 @@ public:
 template <typename T, typename SerializerT>
     stream_compound_member_deserializer(T&, SerializerT&, string_comparison) -> stream_compound_member_deserializer<T, SerializerT>;
 
-MAKESHIFT_DLLFUNC void compound_from_stream(std::istream& stream, stream_compound_member_deserializer_base& memberDeserializer, const compound_serialization_options& options);
+MAKESHIFT_PUBLIC void compound_from_stream(std::istream& stream, stream_compound_member_deserializer_base& memberDeserializer, const compound_serialization_options& options);
 
 template <typename T, typename SerializerT>
     void compound_from_stream(std::istream& stream, T& value, SerializerT& serializer, const any_compound_serialization_options& compoundOptions)

@@ -15,13 +15,13 @@ namespace detail
 {
 
 
-MAKESHIFT_DLLFUNC std::string streamable_to_string(ostreamable_arg arg)
+std::string streamable_to_string(ostreamable_arg arg)
 {
     std::ostringstream sstr;
     sstr << arg;
     return sstr.str();
 }
-MAKESHIFT_DLLFUNC void streamable_from_string(istreamable_arg arg, std::string_view string)
+void streamable_from_string(istreamable_arg arg, std::string_view string)
 {
     std::istringstream sstr;
     sstr.str(std::string(string));

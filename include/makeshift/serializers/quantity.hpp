@@ -7,12 +7,12 @@
 #include <string_view>
 #include <chrono>      // for duration<>
 
-#include <makeshift/detail/cfg.hpp>  // for MAKESHIFT_DLLFUNC
-
 #include <makeshift/serialize.hpp>   // for define_serializer<>
 #include <makeshift/streamable.hpp>  // for streamable()
 
 #include <makeshift/quantity.hpp> // for quantity<>, dynamic_quantity<>
+
+#include <makeshift/detail/export.hpp> // for MAKESHIFT_PUBLIC
 
 
 namespace makeshift
@@ -23,13 +23,13 @@ namespace detail
 
 
     // defined in serializer_stream.cpp
-MAKESHIFT_DLLFUNC void unit_to_stream(std::ostream& stream, quantity_unit unit);
-MAKESHIFT_DLLFUNC void unit_from_stream(std::istream& stream, quantity_unit& unit);
+MAKESHIFT_PUBLIC void unit_to_stream(std::ostream& stream, quantity_unit unit);
+MAKESHIFT_PUBLIC void unit_from_stream(std::istream& stream, quantity_unit& unit);
 
     // defined in serializer_quantity.cpp
-MAKESHIFT_DLLFUNC void time_unit_to_stream(std::ostream& stream, std::intmax_t num, std::intmax_t den);
-MAKESHIFT_DLLFUNC void time_unit_from_stream(std::istream& stream, std::intmax_t& num, std::intmax_t& den);
-MAKESHIFT_DLLFUNC void time_unit_combine(std::intmax_t& num, std::intmax_t& den, std::intmax_t dstNum, std::intmax_t dstDen);
+MAKESHIFT_PUBLIC void time_unit_to_stream(std::ostream& stream, std::intmax_t num, std::intmax_t den);
+MAKESHIFT_PUBLIC void time_unit_from_stream(std::istream& stream, std::intmax_t& num, std::intmax_t& den);
+MAKESHIFT_PUBLIC void time_unit_combine(std::intmax_t& num, std::intmax_t& den, std::intmax_t dstNum, std::intmax_t dstDen);
 
 
 } // namespace detail

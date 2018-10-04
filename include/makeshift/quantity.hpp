@@ -8,7 +8,7 @@
 
 #include <gsl/gsl_assert> // for Expects()
 
-#include <makeshift/detail/cfg.hpp> // for MAKESHIFT_DLLFUNC
+#include <makeshift/detail/export.hpp> // for MAKESHIFT_PUBLIC
 
 
 namespace makeshift
@@ -69,7 +69,7 @@ constexpr inline void quantity_unit_to_string(std::uint64_t unitValue, char (&st
     string[min_char_max] = '\0';
 }
 
-MAKESHIFT_DLLFUNC [[noreturn]] void raise_quantity_conversion_error(std::uint64_t from, std::uint64_t to);
+[[noreturn]] MAKESHIFT_PUBLIC void raise_quantity_conversion_error(std::uint64_t from, std::uint64_t to);
 
 
 } // namespace detail

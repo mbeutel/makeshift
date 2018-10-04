@@ -15,7 +15,7 @@
 #include <makeshift/serialize.hpp>   // for define_serializer<>, metadata_tag_of_serializer<>
 #include <makeshift/streamable.hpp>
 
-#include <makeshift/detail/cfg.hpp>            // for MAKESHIFT_DLLFUNC
+#include <makeshift/detail/export.hpp>         // for MAKESHIFT_PUBLIC
 #include <makeshift/detail/serialize_enum.hpp>
 
 
@@ -26,12 +26,13 @@ namespace detail
 {
 
 
-MAKESHIFT_DLLFUNC [[noreturn]] void raise_ostream_error(std::ostream& stream);
-MAKESHIFT_DLLFUNC [[noreturn]] void raise_istream_error(std::istream& stream);
+[[noreturn]] MAKESHIFT_PUBLIC void raise_ostream_error(std::ostream& stream);
+[[noreturn]] MAKESHIFT_PUBLIC void raise_istream_error(std::istream& stream);
 
 
-MAKESHIFT_DLLFUNC void enum_to_stream(std::ostream& stream, std::string_view name, const enum_serialization_options& options);
-MAKESHIFT_DLLFUNC void enum_from_stream(std::istream& stream, std::string& name, const enum_serialization_options& options);
+MAKESHIFT_PUBLIC void enum_to_stream(std::ostream& stream, std::string_view name, const enum_serialization_options& options);
+MAKESHIFT_PUBLIC void enum_from_stream(std::istream& stream, std::string& name, const enum_serialization_options& options);
+
 
 template <typename EnumT, std::size_t N, typename SerializerT>
     void enum_to_stream(EnumT value, std::ostream& stream, const enum_serialization_data<N>& sdata, const enum_serialization_options& options, SerializerT&)
@@ -60,8 +61,8 @@ template <typename EnumT, std::size_t N, typename SerializerT>
 }
 
 
-MAKESHIFT_DLLFUNC void string_to_stream(std::ostream& stream, std::string_view string);
-MAKESHIFT_DLLFUNC void string_from_stream(std::istream& stream, std::string& string);
+MAKESHIFT_PUBLIC void string_to_stream(std::ostream& stream, std::string_view string);
+MAKESHIFT_PUBLIC void string_from_stream(std::istream& stream, std::string& string);
 
 
     // defined in serializers_stream-reflect.hpp

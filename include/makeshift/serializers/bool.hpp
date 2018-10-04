@@ -9,12 +9,12 @@
 #include <iosfwd>      // for istream, ostream
 #include <utility>     // for move()
 
-#include <makeshift/detail/cfg.hpp>  // for MAKESHIFT_DLLFUNC
-
 #include <makeshift/serialize.hpp>   // for define_serializer<>
 #include <makeshift/streamable.hpp>  // for streamable()
 
 #include <makeshift/serializers/hint.hpp> // for hint_options
+
+#include <makeshift/detail/export.hpp>  // for MAKESHIFT_PUBLIC
 
 
 namespace makeshift
@@ -35,7 +35,7 @@ struct bool_serializer_options
         bool value;
     };
 
-    MAKESHIFT_DLLFUNC static std::vector<bool_string> default_strings(void);
+    MAKESHIFT_PUBLIC static std::vector<bool_string> default_strings(void);
 
     std::vector<bool_string> strings = default_strings();
     std::string_view true_string = "true";
@@ -62,11 +62,11 @@ namespace detail
 {
 
 
-MAKESHIFT_DLLFUNC void bool_from_stream(const bool_serializer_options& options, bool& value, const std::string& str);
+MAKESHIFT_PUBLIC void bool_from_stream(const bool_serializer_options& options, bool& value, const std::string& str);
 
     // defined in serializer_stream.cpp
-MAKESHIFT_DLLFUNC void name_to_stream(std::ostream& stream, std::string_view name);
-MAKESHIFT_DLLFUNC void name_from_stream(std::istream& stream, std::string& name);
+MAKESHIFT_PUBLIC void name_to_stream(std::ostream& stream, std::string_view name);
+MAKESHIFT_PUBLIC void name_from_stream(std::istream& stream, std::string& name);
 
 
 } // namespace detail

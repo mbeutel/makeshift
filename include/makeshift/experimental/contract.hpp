@@ -3,7 +3,7 @@
 #define MAKESHIFT_CONTRACT_HPP_
 
 
-#include <makeshift/detail/cfg.hpp> // for MAKESHIFT_INTELLISENSE_PARSER
+#include <makeshift/version.hpp> // for MAKESHIFT_INTELLISENSE_PARSER
 
 
 #include <makeshift/type_traits.hpp> // for ?
