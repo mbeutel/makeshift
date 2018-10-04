@@ -8,7 +8,7 @@
 
 #include <makeshift/type_traits.hpp> // for tag<>
 
-#include <makeshift/detail/export.hpp> // for MAKESHIFT_DLLFUNC
+#include <makeshift/detail/export.hpp> // for MAKESHIFT_PUBLIC
 
 
 namespace makeshift

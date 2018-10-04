@@ -10,7 +10,7 @@
 #include <makeshift/string.hpp>
 #include <makeshift/streamable.hpp>
 
-#include <makeshift/detail/export.hpp> // for MAKESHIFT_DLLFUNC
+#include <makeshift/detail/export.hpp> // for MAKESHIFT_PUBLIC
 
 
 namespace makeshift
@@ -110,8 +110,8 @@ public:
     }
 };
 
-MAKESHIFT_DLLFUNC std::string streamable_to_string(ostreamable_arg arg);
-MAKESHIFT_DLLFUNC void streamable_from_string(istreamable_arg arg, std::string_view string);
+MAKESHIFT_PUBLIC std::string streamable_to_string(ostreamable_arg arg);
+MAKESHIFT_PUBLIC void streamable_from_string(istreamable_arg arg, std::string_view string);
 
 
 } // namespace detail

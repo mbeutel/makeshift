@@ -1,6 +1,6 @@
 ﻿
-#ifndef INCLUDED_MAKESHIFT_SERIALIZE_EHPP_
-#define INCLUDED_MAKESHIFT_SERIALIZE_EHPP_
+#ifndef INCLUDED_MAKESHIFT_SERIALIZE_HPP_
+#define INCLUDED_MAKESHIFT_SERIALIZE_HPP_
 
 
 #include <tuple>
@@ -12,7 +12,7 @@
 
 #include <makeshift/type_traits.hpp> // for tag<>, type_sequence<>, type_sequence_cat<>
 
-#include <makeshift/detail/export.hpp>            // for MAKESHIFT_DLLFUNC
+#include <makeshift/detail/export.hpp>            // for MAKESHIFT_PUBLIC
 #include <makeshift/detail/string_compare.hpp>    // for string_comparison
 #include <makeshift/detail/utility_chainable.hpp>
 
@@ -157,10 +157,10 @@ private:
     std::size_t column_;
 
 public:
-    MAKESHIFT_DLLFUNC parse_error(std::string_view _error);
-    MAKESHIFT_DLLFUNC parse_error(std::string_view _error, std::size_t _column);
-    MAKESHIFT_DLLFUNC parse_error(std::string_view _error, std::string_view _context);
-    MAKESHIFT_DLLFUNC parse_error(std::string_view _error, std::string_view _context, std::size_t _column);
+    MAKESHIFT_PUBLIC parse_error(std::string_view _error);
+    MAKESHIFT_PUBLIC parse_error(std::string_view _error, std::size_t _column);
+    MAKESHIFT_PUBLIC parse_error(std::string_view _error, std::string_view _context);
+    MAKESHIFT_PUBLIC parse_error(std::string_view _error, std::string_view _context, std::size_t _column);
 
     const std::string& error(void) const noexcept { return error_; }
     const std::string& context(void) const noexcept { return context_; }
@@ -173,4 +173,4 @@ public:
 } // namespace makeshift
 
 
-#endif // INCLUDED_MAKESHIFT_SERIALIZE_EHPP_
+#endif // INCLUDED_MAKESHIFT_SERIALIZE_HPP_

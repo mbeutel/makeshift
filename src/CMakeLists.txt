@@ -31,7 +31,7 @@ configure_file("${PROJECT_SOURCE_DIR}/cmake/detail_version.hpp.in"
 # library export header
 include(GenerateExportHeader)
 generate_export_header(makeshift
-    EXPORT_MACRO_NAME MAKESHIFT_DLLFUNC
+    EXPORT_MACRO_NAME MAKESHIFT_PUBLIC
     EXPORT_FILE_NAME "${PROJECT_BINARY_DIR}/include/makeshift/detail/export.hpp"
     INCLUDE_GUARD_NAME "INCLUDED_MAKESHIFT_DETAIL_EXPORT_HPP_")
 

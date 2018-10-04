@@ -16,7 +16,7 @@
 #include <makeshift/tuple.hpp>       // for get_or_default<>(), get_or_none<>()
 #include <makeshift/type_traits.hpp> // for sequence<>, tag<>
 
-#include <makeshift/detail/export.hpp>              // for MAKESHIFT_DLLFUNC
+#include <makeshift/detail/export.hpp>              // for MAKESHIFT_PUBLIC
 #include <makeshift/detail/workaround.hpp>          // for cor()
 #include <makeshift/detail/functional_comparer.hpp> // for default_hash<>
 
@@ -55,11 +55,11 @@ struct constrained_integer_metadata
     std::string_view caption;
 };
 
-MAKESHIFT_DLLFUNC std::string constrained_integer_hint(ConstraintType constraintType, const std::int64_t values[], std::size_t numValues, const enum_hint_options& options);
-MAKESHIFT_DLLFUNC std::string constrained_integer_hint(ConstraintType constraintType, const std::uint64_t values[], std::size_t numValues, const enum_hint_options& options);
+MAKESHIFT_PUBLIC std::string constrained_integer_hint(ConstraintType constraintType, const std::int64_t values[], std::size_t numValues, const enum_hint_options& options);
+MAKESHIFT_PUBLIC std::string constrained_integer_hint(ConstraintType constraintType, const std::uint64_t values[], std::size_t numValues, const enum_hint_options& options);
 
-[[noreturn]] MAKESHIFT_DLLFUNC void raise_constrained_integer_error(std::int64_t value, ConstraintType constraintType, const std::int64_t values[], std::size_t numValues, const constrained_integer_metadata& metadata);
-[[noreturn]] MAKESHIFT_DLLFUNC void raise_constrained_integer_error(std::uint64_t value, ConstraintType constraintType, const std::uint64_t values[], std::size_t numValues, const constrained_integer_metadata& metadata);
+[[noreturn]] MAKESHIFT_PUBLIC void raise_constrained_integer_error(std::int64_t value, ConstraintType constraintType, const std::int64_t values[], std::size_t numValues, const constrained_integer_metadata& metadata);
+[[noreturn]] MAKESHIFT_PUBLIC void raise_constrained_integer_error(std::uint64_t value, ConstraintType constraintType, const std::uint64_t values[], std::size_t numValues, const constrained_integer_metadata& metadata);
 
 
 template <typename T, T... Vs>

@@ -3,7 +3,7 @@
 #define INCLUDED_MAKESHIFT_VERSION_HPP_
 
 
-#include <makeshift/detail/export.hpp>  // for MAKESHIFT_DLLFUNC
+#include <makeshift/detail/export.hpp>  // for MAKESHIFT_PUBLIC
 #include <makeshift/detail/version.hpp>
 
 
@@ -64,7 +64,7 @@ namespace detail
 {
 
 
-MAKESHIFT_DLLFUNC void get_version(int& major, int& minor, int& patch, int& api);
+MAKESHIFT_PUBLIC void get_version(int& major, int& minor, int& patch, int& api);
 
 
 } // namespace detail

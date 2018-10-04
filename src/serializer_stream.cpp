@@ -12,6 +12,7 @@
 #include <makeshift/quantity.hpp>
 
 #include <makeshift/serializers/stream.hpp>
+#include <makeshift/serializers/quantity.hpp>
 
 #include <makeshift/detail/serializers_stream-reflect.hpp>
 

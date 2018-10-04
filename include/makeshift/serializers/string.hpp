@@ -13,7 +13,7 @@
 #include <makeshift/metadata.hpp>
 #include <makeshift/serialize.hpp>   // for define_serializer<>, metadata_tag_of_serializer<>
 
-#include <makeshift/detail/export.hpp>         // for MAKESHIFT_DLLFUNC
+#include <makeshift/detail/export.hpp>         // for MAKESHIFT_PUBLIC
 #include <makeshift/detail/serialize_enum.hpp>
 
 
@@ -37,7 +37,7 @@ inline std::string scalar_to_string(long double val) { return std::to_string(val
 
 inline std::string scalar_from_string(tag<std::string>, const std::string& s) { return s; }
 inline int scalar_from_string(tag<int>, const std::string& string) { return std::stoi(string); }
-MAKESHIFT_DLLFUNC unsigned scalar_from_string(tag<unsigned>, const std::string& string);
+MAKESHIFT_PUBLIC unsigned scalar_from_string(tag<unsigned>, const std::string& string);
 inline long scalar_from_string(tag<long>, const std::string& string) { return std::stol(string); }
 inline unsigned long scalar_from_string(tag<unsigned long>, const std::string& string) { return std::stoul(string); }
 inline long long scalar_from_string(tag<long long>, const std::string& string) { return std::stoll(string); }

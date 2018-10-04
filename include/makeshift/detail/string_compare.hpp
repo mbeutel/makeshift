@@ -6,7 +6,7 @@
 #include <string_view>
 #include <cstddef>     // for size_t
 
-#include <makeshift/detail/export.hpp>              // for MAKESHIFT_DLLFUNC
+#include <makeshift/detail/export.hpp>              // for MAKESHIFT_PUBLIC
 #include <makeshift/detail/functional_comparer.hpp> // for define_comparer<>
 
 
@@ -50,9 +50,9 @@ namespace detail
 {
 
 
-MAKESHIFT_DLLFUNC bool string_equal_to(const string_comparer_options& options, std::string_view lhs, std::string_view rhs) noexcept;
-MAKESHIFT_DLLFUNC bool string_less(const string_comparer_options& options, std::string_view lhs, std::string_view rhs) noexcept;
-MAKESHIFT_DLLFUNC std::size_t string_hash(const string_comparer_options& options, std::string_view obj) noexcept;
+MAKESHIFT_PUBLIC bool string_equal_to(const string_comparer_options& options, std::string_view lhs, std::string_view rhs) noexcept;
+MAKESHIFT_PUBLIC bool string_less(const string_comparer_options& options, std::string_view lhs, std::string_view rhs) noexcept;
+MAKESHIFT_PUBLIC std::size_t string_hash(const string_comparer_options& options, std::string_view obj) noexcept;
 
 
 } // namespace detail

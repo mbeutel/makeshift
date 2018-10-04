@@ -9,10 +9,11 @@
 
 #include <gsl/gsl_assert> // for Expects()
 
-#include <makeshift/detail/serialize_enum.hpp>
+#include <makeshift/hint.hpp>               // for enum_hint_options
+#include <makeshift/serialize.hpp>          // for enum_serialization_options
+#include <makeshift/serializers/stream.hpp> // for enum_to_stream(), enum_from_stream()
 
-#include <makeshift/hint.hpp>      // for enum_hint_options
-#include <makeshift/serialize.hpp> // for enum_serialization_options
+#include <makeshift/detail/serialize_enum.hpp>
 
 
 namespace makeshift
