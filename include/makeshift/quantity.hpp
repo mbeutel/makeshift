@@ -8,6 +8,8 @@
 
 #include <gsl/gsl_assert> // for Expects()
 
+#include <makeshift/type_traits.hpp> // for is_instantiation_of<>
+
 #include <makeshift/detail/export.hpp> // for MAKESHIFT_PUBLIC
 
 
@@ -105,19 +107,43 @@ template <typename T, quantity_unit Unit, typename ConverterT = default_unit_con
 private:
     T value_;
 
+    template <quantity_unit SrcUnit, typename SrcConverterT, typename SrcT>
+        static constexpr SrcT do_convert_from(SrcT arg)
+    {
+        if constexpr (SrcConverterT::is_convertible(SrcUnit, Unit))
+            return SrcConverterT::convert(arg, SrcUnit, Unit);
+        else
+            return ConverterT::convert(arg, SrcUnit, Unit);
+    }
+    template <typename SrcConverterT, typename SrcT>
+        static constexpr SrcT do_convert_from(SrcT arg, quantity_unit srcUnit)
+    {
+        if (SrcConverterT::is_convertible(srcUnit, Unit))
+            return SrcConverterT::convert(arg, srcUnit, Unit);
+        else if (ConverterT::is_convertible(srcUnit, Unit))
+            return ConverterT::convert(arg, srcUnit, Unit);
+        else
+            makeshift::detail::raise_quantity_conversion_error(std::uint64_t(srcUnit), std::uint64_t(Unit));
+    }
+
 public:
     constexpr quantity(void) noexcept(std::is_nothrow_default_constructible<T>::value) : value_{ } { }
     explicit constexpr quantity(T _value) noexcept(std::is_nothrow_copy_constructible<T>::value) : value_(_value) { }
+    template <typename SrcT, quantity_unit SrcUnit, typename SrcConverterT,
+              typename = std::enable_if_t<std::is_convertible<SrcT, T>::value && (SrcConverterT::is_convertible(SrcUnit, Unit) || ConverterT::is_convertible(SrcUnit, Unit))>>
+        constexpr quantity(quantity<SrcT, SrcUnit, SrcConverterT> arg)
+        : value_(do_convert_from<SrcUnit, SrcConverterT>(arg.value()))
+    {
+    }
+    template <typename SrcT, typename SrcConverterT,
+              typename = std::enable_if_t<std::is_convertible<SrcT, T>::value>>
+        explicit constexpr quantity(dynamic_quantity<SrcT, SrcConverterT> arg)
+            : value_(do_convert_from<SrcConverterT>(arg.value(), arg.unit()))
+    {
+    }
 
     constexpr T value(void) const noexcept(std::is_nothrow_copy_constructible<T>::value) { return value_; }
     constexpr static quantity_unit unit(void) noexcept { return Unit; }
-
-    template <typename DstT, quantity_unit DstUnit,
-              typename = std::enable_if_t<std::is_convertible<T, DstT>::value && ConverterT::is_convertible(Unit, DstUnit)>>
-        constexpr operator quantity<DstT, DstUnit, ConverterT>(void) const noexcept(std::is_nothrow_copy_constructible<T>::value)
-    {
-        return { ConverterT::convert(value_, Unit, DstUnit) };
-    }
 };
 
 
@@ -131,35 +157,39 @@ private:
 public:
     constexpr dynamic_quantity(void) noexcept(std::is_nothrow_default_constructible<T>::value) : value_{ }, unit_{ } { }
     explicit constexpr dynamic_quantity(T _value, quantity_unit _unit) noexcept(std::is_nothrow_copy_constructible<T>::value) : value_(_value), unit_(_unit) { }
-    template <typename SrcT, quantity_unit SrcUnit,
+    template <typename SrcT, typename SrcConverterT,
               typename = std::enable_if_t<std::is_convertible<SrcT, T>::value>>
-        explicit constexpr dynamic_quantity(quantity<SrcT, SrcUnit, ConverterT> q) noexcept(std::is_nothrow_copy_constructible<T>::value)
+        explicit constexpr dynamic_quantity(dynamic_quantity<SrcT, SrcConverterT> q)
+            : value_(q.value()), unit_(q.unit())
+    {
+    }
+    template <typename SrcT, quantity_unit SrcUnit, typename SrcConverterT,
+              typename = std::enable_if_t<std::is_convertible<SrcT, T>::value>>
+        explicit constexpr dynamic_quantity(quantity<SrcT, SrcUnit, SrcConverterT> q)
             : value_(q.value()), unit_(SrcUnit)
     {
     }
 
     constexpr T value(void) const noexcept(std::is_nothrow_copy_constructible<T>::value) { return value_; }
     constexpr quantity_unit unit(void) const noexcept { return unit_; }
-
-    template <typename DstT, quantity_unit DstUnit,
-              typename = std::enable_if_t<std::is_convertible<T, DstT>::value>>
-        constexpr operator quantity<DstT, DstUnit, ConverterT>(void) const
-    {
-        if (!ConverterT::is_convertible(unit_, DstUnit))
-            makeshift::detail::raise_quantity_conversion_error(std::uint64_t(unit_), std::uint64_t(DstUnit));
-        return quantity<DstT, DstUnit, ConverterT>{ ConverterT::convert(value_, unit_, DstUnit) };
-    }
-    template <typename DstT, typename DstConverterT,
-              typename = std::enable_if_t<std::is_convertible<T, DstT>::value>>
-        operator dynamic_quantity<DstT, ConverterT>(void) const noexcept(std::is_nothrow_copy_constructible<T>::value)
-    {
-        return dynamic_quantity<DstT, ConverterT>{ value_, unit_ };
-    }
 };
 template <typename T, quantity_unit Unit, typename ConverterT = default_unit_converter>
     dynamic_quantity(quantity<T, Unit, ConverterT>) -> dynamic_quantity<T, ConverterT>;
 template <typename T>
     dynamic_quantity(T&&, quantity_unit) -> dynamic_quantity<std::decay_t<T>, default_unit_converter>;
+
+
+template <quantity_unit Unit, typename T,
+          typename = std::enable_if_t<!is_instantiation_of_v<std::decay_t<T>, dynamic_quantity>>>
+    constexpr quantity<std::decay_t<T>, Unit> with_unit(T&& value) noexcept(std::is_nothrow_copy_constructible<std::decay_t<T>>::value)
+{
+    return quantity<std::decay_t<T>, Unit>{ std::forward<T>(value) };
+}
+template <quantity_unit Unit, typename T, typename ConverterT>
+    constexpr quantity<std::decay_t<T>, Unit, ConverterT> with_unit(dynamic_quantity<T, ConverterT> value)
+{
+    return quantity<std::decay_t<T>, Unit>{ std::move(value) };
+}
 
 
 } // inline namespace types

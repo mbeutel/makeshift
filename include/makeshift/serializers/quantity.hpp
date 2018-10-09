@@ -87,7 +87,7 @@ template <typename BaseT = void>
     {
         dynamic_quantity<T, ConverterT> lvalue;
         stream >> streamable(lvalue, serializer);
-        value = lvalue;
+        value = with_unit<Unit>(lvalue);
     }
     template <typename T, typename ConverterT, typename SerializerT>
         friend void from_stream_impl(dynamic_quantity<T, ConverterT>& value, std::istream& stream, const quantity_serializer&, SerializerT& serializer)
