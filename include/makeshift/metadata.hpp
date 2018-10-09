@@ -176,6 +176,17 @@ struct caption_metadata { std::string_view value; };
 static inline constexpr caption_metadata caption(std::string_view value) { return { value }; }
 
 
+    //ᅟ
+    // Encodes a human-readable description of an entity in metadata.
+    //
+struct description_metadata { std::string_view value; };
+
+    //ᅟ
+    // Use `description("the description")` to encode a human-readable description of an entity in metadata.
+    //
+static inline constexpr description_metadata description(std::string_view value) { return { value }; }
+
+
 } // inline namespace metadata
 
 
