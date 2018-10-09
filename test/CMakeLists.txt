@@ -4,7 +4,7 @@
 # makeshift unit tests
 
 
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.11)
 
 # dependencies
 find_package(Catch2 2.3 REQUIRED)

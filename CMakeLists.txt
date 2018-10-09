@@ -6,7 +6,7 @@
 ## 1. Prologue and public interface
 ## ================================
 
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.11)
 
 # Disable in-source builds to avoid cluttering the source directory.
 # If you attempted to build in the source directory and run into this error, you first need to clean up
