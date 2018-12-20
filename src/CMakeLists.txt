@@ -7,7 +7,7 @@
 cmake_minimum_required(VERSION 3.11)
 
 # dependencies
-find_package(CMakeshift 2.1 REQUIRED)
+find_package(CMakeshift 3.0 REQUIRED)
 find_package(MS-GSL REQUIRED)
 
 # library target
@@ -44,7 +44,11 @@ target_compile_features(makeshift PUBLIC cxx_std_17)
 
 # compiler settings
 include(CMakeshift/TargetCompileSettings)
-cmakeshift_target_compile_settings(makeshift PRIVATE default pedantic)
+cmakeshift_target_compile_settings(makeshift
+    PRIVATE
+        default
+        pedantic
+        $<$<CONFIG:Debug>:runtime-checks>)
 
 # library version
 include(CMakeshift/TargetLibraryVersion)

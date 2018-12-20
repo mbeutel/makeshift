@@ -8,7 +8,7 @@ cmake_minimum_required(VERSION 3.11)
 
 # dependencies
 find_package(Catch2 2.3 REQUIRED)
-find_package(CMakeshift 2.1 REQUIRED)
+find_package(CMakeshift 3.0 REQUIRED)
 
 # test target
 add_executable(test-makeshift
@@ -22,7 +22,11 @@ add_executable(test-makeshift
 
 # compiler settings
 include(CMakeshift/TargetCompileSettings)
-cmakeshift_target_compile_settings(test-makeshift PRIVATE default pedantic)
+cmakeshift_target_compile_settings(test-makeshift
+    PRIVATE
+        default
+        pedantic
+        $<$<CONFIG:Debug>:runtime-checks>)
 
 # test properties
 target_compile_definitions(test-makeshift

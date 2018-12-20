@@ -16,7 +16,7 @@ set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 
 # Define the project.
 project(makeshift
-    VERSION 2.0.0
+    VERSION 3.0.0
     LANGUAGES CXX)
 set(makeshift_APIVERSION 2)
 
@@ -40,7 +40,7 @@ endif()
 ## 3. Installation
 ## ===============
 
-find_package(CMakeshift 2.0 REQUIRED)
+find_package(CMakeshift 3.0 REQUIRED)
 include(CMakeshift/InstallSimpleLibraryPackage)
 cmakeshift_install_simple_library_package(
     EXPORT ${PROJECT_NAME}Export
