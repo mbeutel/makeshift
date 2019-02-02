@@ -4,10 +4,10 @@
 # makeshift library target
 
 
-cmake_minimum_required(VERSION 3.11)
+cmake_minimum_required(VERSION 3.12)
 
 # dependencies
-find_package(CMakeshift 3.0 REQUIRED)
+find_package(CMakeshift 3.3 REQUIRED)
 find_package(MS-GSL REQUIRED)
 
 # library target
@@ -59,9 +59,6 @@ target_link_libraries(makeshift
     PUBLIC
         MS-GSL::MS-GSL)
 
-# define alias so we can use the qualified name everywhere
-add_library(${PROJECT_NAME}::makeshift ALIAS makeshift)
-
 # installation: public header files, generated header files, target
 install(
     DIRECTORY "${PROJECT_SOURCE_DIR}/include/"
@@ -71,7 +68,8 @@ install(
     DESTINATION "include")
 install(
     TARGETS makeshift
-    EXPORT ${PROJECT_NAME}Export
+    EXPORT makeshiftExport
     ARCHIVE DESTINATION "lib"
+    RUNTIME DESTINATION "bin"
     LIBRARY DESTINATION "lib"
     INCLUDES DESTINATION "include")

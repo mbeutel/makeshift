@@ -4,7 +4,7 @@ set(@PROJECT_NAME@_ORIGINAL_CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}")
 
 # Find all dependencies.
 include(CMakeFindDependencyMacro)
-find_dependency(CMakeshift 2.0 QUIET REQUIRED)
+find_dependency(CMakeshift 3.3 QUIET REQUIRED)
 find_dependency(MS-GSL QUIET REQUIRED)
 
 # Restore original module path.

@@ -4,11 +4,11 @@
 # makeshift unit tests
 
 
-cmake_minimum_required(VERSION 3.11)
+cmake_minimum_required(VERSION 3.12)
 
 # dependencies
-find_package(Catch2 2.3 REQUIRED)
-find_package(CMakeshift 3.0 REQUIRED)
+find_package(Catch2 2.4 REQUIRED)
+find_package(CMakeshift 3.3 REQUIRED)
 
 # test target
 add_executable(test-makeshift
@@ -33,7 +33,6 @@ target_compile_definitions(test-makeshift
     PRIVATE
         CATCH_CONFIG_CONSOLE_WIDTH=120
         CATCH_CLARA_CONFIG_CONSOLE_WIDTH=120)
-set_target_properties(test-makeshift PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
 
 # test dependencies
 target_link_libraries(test-makeshift
@@ -43,7 +42,5 @@ target_link_libraries(test-makeshift
 
 # register tests
 include(ParseAndAddCatchTests)
-set(PARSE_CATCH_TESTS_NO_HIDDEN_TESTS CACHE BOOL ON)
 set(PARSE_CATCH_TESTS_ADD_TO_CONFIGURE_DEPENDS CACHE BOOL ON)
-set(PARSE_CATCH_TESTS_ADD_TARGET_IN_TEST_NAME CACHE BOOL OFF)
 ParseAndAddCatchTests(test-makeshift)
