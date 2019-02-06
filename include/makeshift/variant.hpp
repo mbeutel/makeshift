@@ -12,9 +12,6 @@
 #include <makeshift/type_traits.hpp> // for can_apply<>
 #include <makeshift/tuple.hpp>       // for is_tuple_like<>
 
-    // we don't define type_variant<> because it is currently useless (std::visit() only works with std::variant<>)
-//#include <makeshift/detail/variant_type-variant.hpp>
-
 
 namespace makeshift
 {

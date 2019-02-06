@@ -63,19 +63,4 @@
 #endif // defined(_MSC_VER) && defined(__INTELLISENSE__)
 
 
-namespace makeshift
-{
-
-namespace detail
-{
-
-
-MAKESHIFT_PUBLIC void get_version(int& major, int& minor, int& patch, int& api);
-
-
-} // namespace detail
-
-} // namespace makeshift
-
-
 #endif // INCLUDED_MAKESHIFT_VERSION_HPP_

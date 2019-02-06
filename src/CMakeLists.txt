@@ -12,7 +12,6 @@ find_package(MS-GSL REQUIRED)
 
 # library target
 add_library(makeshift
-    "version.cpp"
     "quantity.cpp"
     "serialize.cpp"
     "serialize_enum.cpp"
@@ -40,7 +39,9 @@ target_include_directories(makeshift
     PUBLIC
         "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
         "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>")
-target_compile_features(makeshift PUBLIC cxx_std_17)
+target_compile_features(makeshift
+    PUBLIC
+        cxx_std_17)
 
 # compiler settings
 include(CMakeshift/TargetCompileSettings)
