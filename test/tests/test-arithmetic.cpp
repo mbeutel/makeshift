@@ -7,9 +7,10 @@
 
 #include <makeshift/arithmetic.hpp>
 
+#include <gsl/gsl_util> // for narrow_cast<>()
+
+
 namespace mk = makeshift;
-using makeshift::checked;
-using makeshift::checked_cast;
 
 
 const volatile uint8_t u8 = std::numeric_limits<uint8_t>::max() - 1;
@@ -37,61 +38,61 @@ TEST_CASE("checked", "testing checked arithmetic")
     SECTION("fail")
     {
             // negation
-        CHECK_THROWS_AS(lu8 = unchecked(-checked(u8)), mk::arithmetic_overflow_error);
-        CHECK_THROWS_AS(li8 = unchecked(-checked(i8nm)), mk::arithmetic_overflow_error);
+        CHECK_THROWS_AS(lu8 = mk::checked_negate_or_throw(u8), mk::arithmetic_overflow_error);
+        CHECK_THROWS_AS(li8 = mk::checked_negate_or_throw(i8nm), mk::arithmetic_overflow_error);
 
             // addition
-        CHECK_THROWS_AS(lu8 = unchecked(checked(u8) + u8), mk::arithmetic_overflow_error);
-        CHECK_THROWS_AS(li8 = unchecked(checked(i8p) + i8p), mk::arithmetic_overflow_error);
-        CHECK_THROWS_AS(li8 = unchecked(checked(i8n) + i8n), mk::arithmetic_overflow_error);
-        CHECK_THROWS_AS(lu64 = unchecked(checked(u64) + u64), mk::arithmetic_overflow_error);
-        CHECK_THROWS_AS(li64 = unchecked(checked(i64p) + i64p), mk::arithmetic_overflow_error);
-        CHECK_THROWS_AS(li64 = unchecked(checked(i64n) + i64n), mk::arithmetic_overflow_error);
+        CHECK_THROWS_AS(lu8 = mk::checked_add_or_throw(u8, u8), mk::arithmetic_overflow_error);
+        CHECK_THROWS_AS(li8 = mk::checked_add_or_throw(i8p, i8p), mk::arithmetic_overflow_error);
+        CHECK_THROWS_AS(li8 = mk::checked_add_or_throw(i8n, i8n), mk::arithmetic_overflow_error);
+        CHECK_THROWS_AS(lu64 = mk::checked_add_or_throw(u64, u64), mk::arithmetic_overflow_error);
+        CHECK_THROWS_AS(li64 = mk::checked_add_or_throw(i64p, i64p), mk::arithmetic_overflow_error);
+        CHECK_THROWS_AS(li64 = mk::checked_add_or_throw(i64n, i64n), mk::arithmetic_overflow_error);
 
             // subtraction
-        CHECK_THROWS_AS(lu8 = unchecked(checked(zu8) - u8), mk::arithmetic_overflow_error);
-        CHECK_THROWS_AS(li8 = unchecked(checked(i8p) - i8n), mk::arithmetic_overflow_error);
-        CHECK_THROWS_AS(li8 = unchecked(checked(i8n) - i8p), mk::arithmetic_overflow_error);
-        CHECK_THROWS_AS(lu64 = unchecked(checked(zu64) - u64), mk::arithmetic_overflow_error);
-        CHECK_THROWS_AS(li64 = unchecked(checked(i64p) - i64n), mk::arithmetic_overflow_error);
-        CHECK_THROWS_AS(li64 = unchecked(checked(i64n) - i64p), mk::arithmetic_overflow_error);
+        CHECK_THROWS_AS(lu8 = mk::checked_subtract_or_throw(zu8, u8), mk::arithmetic_overflow_error);
+        CHECK_THROWS_AS(li8 = mk::checked_subtract_or_throw(i8p, i8n), mk::arithmetic_overflow_error);
+        CHECK_THROWS_AS(li8 = mk::checked_subtract_or_throw(i8n, i8p), mk::arithmetic_overflow_error);
+        CHECK_THROWS_AS(lu64 = mk::checked_subtract_or_throw(zu64, u64), mk::arithmetic_overflow_error);
+        CHECK_THROWS_AS(li64 = mk::checked_subtract_or_throw(i64p, i64n), mk::arithmetic_overflow_error);
+        CHECK_THROWS_AS(li64 = mk::checked_subtract_or_throw(i64n, i64p), mk::arithmetic_overflow_error);
 
             // multiplication
-        CHECK_THROWS_AS(lu8 = unchecked(checked(u8) * u8), mk::arithmetic_overflow_error);
-        CHECK_THROWS_AS(li8 = unchecked(checked(i8p) * i8p), mk::arithmetic_overflow_error);
-        CHECK_THROWS_AS(li8 = unchecked(checked(i8p) * i8n), mk::arithmetic_overflow_error);
-        CHECK_THROWS_AS(li8 = unchecked(checked(i8n) * i8n), mk::arithmetic_overflow_error);
-        CHECK_THROWS_AS(lu64 = unchecked(checked(u64) * u64), mk::arithmetic_overflow_error);
-        CHECK_THROWS_AS(li64 = unchecked(checked(i64p) * i64p), mk::arithmetic_overflow_error);
-        CHECK_THROWS_AS(li64 = unchecked(checked(i64p) * i64n), mk::arithmetic_overflow_error);
-        CHECK_THROWS_AS(li64 = unchecked(checked(i64n) * i64n), mk::arithmetic_overflow_error);
+        CHECK_THROWS_AS(lu8 = mk::checked_multiply_or_throw(u8, u8), mk::arithmetic_overflow_error);
+        CHECK_THROWS_AS(li8 = mk::checked_multiply_or_throw(i8p, i8p), mk::arithmetic_overflow_error);
+        CHECK_THROWS_AS(li8 = mk::checked_multiply_or_throw(i8p, i8n), mk::arithmetic_overflow_error);
+        CHECK_THROWS_AS(li8 = mk::checked_multiply_or_throw(i8n, i8n), mk::arithmetic_overflow_error);
+        CHECK_THROWS_AS(lu64 = mk::checked_multiply_or_throw(u64, u64), mk::arithmetic_overflow_error);
+        CHECK_THROWS_AS(li64 = mk::checked_multiply_or_throw(i64p, i64p), mk::arithmetic_overflow_error);
+        CHECK_THROWS_AS(li64 = mk::checked_multiply_or_throw(i64p, i64n), mk::arithmetic_overflow_error);
+        CHECK_THROWS_AS(li64 = mk::checked_multiply_or_throw(i64n, i64n), mk::arithmetic_overflow_error);
 
             // division
-        CHECK_THROWS_AS(lu8 = unchecked(checked(u8) / zu8), mk::arithmetic_div_by_zero_error);
-        CHECK_THROWS_AS(li8 = unchecked(checked(i8p) / zi8), mk::arithmetic_div_by_zero_error);
-        CHECK_THROWS_AS(li8 = unchecked(checked(i8nm) / -1), mk::arithmetic_overflow_error);
+        CHECK_THROWS_AS(lu8 = mk::checked_divide_or_throw(u8, zu8), mk::arithmetic_div_by_zero_error);
+        CHECK_THROWS_AS(li8 = mk::checked_divide_or_throw(i8p, zi8), mk::arithmetic_div_by_zero_error);
+        CHECK_THROWS_AS(li8 = mk::checked_divide_or_throw(i8nm, int8_t(-1)), mk::arithmetic_overflow_error);
 
             // modulo
-        CHECK_THROWS_AS(lu8 = unchecked(checked(u8) % zu8), mk::arithmetic_div_by_zero_error);
-        CHECK_THROWS_AS(li8 = unchecked(checked(i8p) % zi8), mk::arithmetic_div_by_zero_error);
-        CHECK_THROWS_AS(li8 = unchecked(checked(i8nm) % -1), mk::arithmetic_overflow_error);
+        CHECK_THROWS_AS(lu8 = mk::checked_modulo_or_throw(u8, zu8), mk::arithmetic_div_by_zero_error);
+        CHECK_THROWS_AS(li8 = mk::checked_modulo_or_throw(i8p, zi8), mk::arithmetic_div_by_zero_error);
+        CHECK_THROWS_AS(li8 = mk::checked_modulo_or_throw(i8nm, int8_t(-1)), mk::arithmetic_overflow_error);
 
             // left shift
-        CHECK_THROWS_AS(lu8 = unchecked(checked(u8) << 10), mk::arithmetic_domain_error);
-        CHECK_THROWS_AS(li8 = unchecked(checked(zi8) << 10), mk::arithmetic_domain_error);
-        CHECK_THROWS_AS(li8 = unchecked(checked(zi8) << -1), mk::arithmetic_domain_error);
-        CHECK_THROWS_AS(li8 = unchecked(checked(i8n) << 0), mk::arithmetic_domain_error);
-        CHECK_THROWS_AS(li8 = unchecked(checked(i8p) << 2), mk::arithmetic_overflow_error);
+        CHECK_THROWS_AS(lu8 = mk::checked_shift_left_or_throw(u8, uint8_t(10)), mk::arithmetic_domain_error);
+        CHECK_THROWS_AS(li8 = mk::checked_shift_left_or_throw(zi8, int8_t(10)), mk::arithmetic_domain_error);
+        CHECK_THROWS_AS(li8 = mk::checked_shift_left_or_throw(zi8, int8_t(-1)), mk::arithmetic_domain_error);
+        CHECK_THROWS_AS(li8 = mk::checked_shift_left_or_throw(i8n, int8_t(0)), mk::arithmetic_domain_error);
+        CHECK_THROWS_AS(li8 = mk::checked_shift_left_or_throw(i8p, int8_t(2)), mk::arithmetic_overflow_error);
 
             // right shift
-        CHECK_THROWS_AS(lu8 = unchecked(checked(u8) >> 10), mk::arithmetic_domain_error);
-        CHECK_THROWS_AS(li8 = unchecked(checked(zi8) >> 10), mk::arithmetic_domain_error);
-        CHECK_THROWS_AS(li8 = unchecked(checked(zi8) >> -1), mk::arithmetic_domain_error);
-        CHECK_THROWS_AS(li8 = unchecked(checked(i8n) >> 0), mk::arithmetic_domain_error);
+        CHECK_THROWS_AS(lu8 = mk::checked_shift_right_or_throw(u8, uint8_t(10)), mk::arithmetic_domain_error);
+        CHECK_THROWS_AS(li8 = mk::checked_shift_right_or_throw(zi8, int8_t(10)), mk::arithmetic_domain_error);
+        CHECK_THROWS_AS(li8 = mk::checked_shift_right_or_throw(zi8, int8_t(-1)), mk::arithmetic_domain_error);
+        CHECK_THROWS_AS(li8 = mk::checked_shift_right_or_throw(i8n, int8_t(0)), mk::arithmetic_domain_error);
     }
 }
 
-TEST_CASE("checked_cast", "testing checked_cast<>()")
+TEST_CASE("gsl::narrow", "testing gsl::narrow<>()")
 {
     SECTION("pass")
     {
@@ -101,25 +102,25 @@ TEST_CASE("checked_cast", "testing checked_cast<>()")
         volatile int16_t li16;
 
             // uint <-> uint
-        CHECK_NOTHROW((lu16 = checked_cast<uint16_t,  uint8_t>( u8))); REQUIRE(lu16 == u8);
-        CHECK_NOTHROW(( lu8 = checked_cast< uint8_t,  uint8_t>( u8))); REQUIRE( lu8 == u8);
-        CHECK_NOTHROW(( lu8 = checked_cast< uint8_t, uint16_t>( u8))); REQUIRE( lu8 == u8);
+        CHECK_NOTHROW((lu16 = gsl::narrow<uint16_t>( uint8_t( u8)))); REQUIRE(lu16 == u8);
+        CHECK_NOTHROW(( lu8 = gsl::narrow< uint8_t>( uint8_t( u8)))); REQUIRE( lu8 == u8);
+        CHECK_NOTHROW(( lu8 = gsl::narrow< uint8_t>(uint16_t( u8)))); REQUIRE( lu8 == u8);
 
             // int <-> int
-        CHECK_NOTHROW((li16 = checked_cast< int16_t,   int8_t>(i8n))); REQUIRE(li16 == i8n);
-        CHECK_NOTHROW((li16 = checked_cast< int16_t,   int8_t>(i8p))); REQUIRE(li16 == i8p);
-        CHECK_NOTHROW(( li8 = checked_cast<  int8_t,   int8_t>(i8n))); REQUIRE( li8 == i8n);
-        CHECK_NOTHROW(( li8 = checked_cast<  int8_t,   int8_t>(i8p))); REQUIRE( li8 == i8p);
-        CHECK_NOTHROW(( li8 = checked_cast<  int8_t,  int16_t>(i8n))); REQUIRE( li8 == i8n);
-        CHECK_NOTHROW(( li8 = checked_cast<  int8_t,  int16_t>(i8p))); REQUIRE( li8 == i8p);
+        CHECK_NOTHROW((li16 = gsl::narrow< int16_t>(  int8_t(i8n)))); REQUIRE(li16 == i8n);
+        CHECK_NOTHROW((li16 = gsl::narrow< int16_t>(  int8_t(i8p)))); REQUIRE(li16 == i8p);
+        CHECK_NOTHROW(( li8 = gsl::narrow<  int8_t>(  int8_t(i8n)))); REQUIRE( li8 == i8n);
+        CHECK_NOTHROW(( li8 = gsl::narrow<  int8_t>(  int8_t(i8p)))); REQUIRE( li8 == i8p);
+        CHECK_NOTHROW(( li8 = gsl::narrow<  int8_t>( int16_t(i8n)))); REQUIRE( li8 == i8n);
+        CHECK_NOTHROW(( li8 = gsl::narrow<  int8_t>( int16_t(i8p)))); REQUIRE( li8 == i8p);
 
             // uint <-> int
-        CHECK_NOTHROW((lu16 = checked_cast<uint16_t,   int8_t>(i8p))); REQUIRE(lu16 == i8p);
-        CHECK_NOTHROW((li16 = checked_cast< int16_t,  uint8_t>(i8p))); REQUIRE(li16 == i8p);
-        CHECK_NOTHROW(( lu8 = checked_cast< uint8_t,   int8_t>(i8p))); REQUIRE( lu8 == i8p);
-        CHECK_NOTHROW(( li8 = checked_cast<  int8_t,  uint8_t>(i8p))); REQUIRE( li8 == i8p);
-        CHECK_NOTHROW(( lu8 = checked_cast< uint8_t,  int16_t>(i8p))); REQUIRE( lu8 == i8p);
-        CHECK_NOTHROW(( li8 = checked_cast<  int8_t, uint16_t>(i8p))); REQUIRE( li8 == i8p);
+        CHECK_NOTHROW((lu16 = gsl::narrow<uint16_t>(  int8_t(i8p)))); REQUIRE(lu16 == i8p);
+        CHECK_NOTHROW((li16 = gsl::narrow< int16_t>( uint8_t(i8p)))); REQUIRE(li16 == i8p);
+        CHECK_NOTHROW(( lu8 = gsl::narrow< uint8_t>(  int8_t(i8p)))); REQUIRE( lu8 == i8p);
+        CHECK_NOTHROW(( li8 = gsl::narrow<  int8_t>( uint8_t(i8p)))); REQUIRE( li8 == i8p);
+        CHECK_NOTHROW(( lu8 = gsl::narrow< uint8_t>( int16_t(i8p)))); REQUIRE( lu8 == i8p);
+        CHECK_NOTHROW(( li8 = gsl::narrow<  int8_t>(uint16_t(i8p)))); REQUIRE( li8 == i8p);
     }
 
     SECTION("fail")
@@ -129,20 +130,20 @@ TEST_CASE("checked_cast", "testing checked_cast<>()")
         volatile int8_t li8;
 
             // uint <-> uint
-        CHECK_THROWS_AS(( lu8 = checked_cast< uint8_t, uint16_t>(u16)), mk::arithmetic_overflow_error);
+        CHECK_THROWS(( lu8 = gsl::narrow< uint8_t>(uint16_t(u16))));
 
             // int <-> int
-        CHECK_THROWS_AS(( li8 = checked_cast<  int8_t,  int16_t>(i16n)), mk::arithmetic_overflow_error);
-        CHECK_THROWS_AS(( li8 = checked_cast<  int8_t,  int16_t>(i16p)), mk::arithmetic_overflow_error);
+        CHECK_THROWS(( li8 = gsl::narrow<  int8_t>( int16_t(i16n))));
+        CHECK_THROWS(( li8 = gsl::narrow<  int8_t>( int16_t(i16p))));
 
             // uint <-> int
-        CHECK_THROWS_AS((lu16 = checked_cast<uint16_t,   int8_t>( i8n)), mk::arithmetic_overflow_error);
-        CHECK_THROWS_AS(( lu8 = checked_cast< uint8_t,   int8_t>( i8n)), mk::arithmetic_overflow_error);
-        CHECK_THROWS_AS(( li8 = checked_cast<  int8_t,  uint8_t>( u8 )), mk::arithmetic_overflow_error);
-        CHECK_THROWS_AS(( lu8 = checked_cast< uint8_t,  int16_t>( i8n)), mk::arithmetic_overflow_error);
-        CHECK_THROWS_AS(( lu8 = checked_cast< uint8_t,  int16_t>(i16n)), mk::arithmetic_overflow_error);
-        CHECK_THROWS_AS(( lu8 = checked_cast< uint8_t,  int16_t>(i16p)), mk::arithmetic_overflow_error);
-        CHECK_THROWS_AS(( li8 = checked_cast<  int8_t, uint16_t>( u8 )), mk::arithmetic_overflow_error);
-        CHECK_THROWS_AS(( li8 = checked_cast<  int8_t, uint16_t>(u16 )), mk::arithmetic_overflow_error);
+        CHECK_THROWS((lu16 = gsl::narrow<uint16_t>(  int8_t( i8n))));
+        CHECK_THROWS(( lu8 = gsl::narrow< uint8_t>(  int8_t( i8n))));
+        CHECK_THROWS(( li8 = gsl::narrow<  int8_t>( uint8_t( u8 ))));
+        CHECK_THROWS(( lu8 = gsl::narrow< uint8_t>( int16_t( i8n))));
+        CHECK_THROWS(( lu8 = gsl::narrow< uint8_t>( int16_t(i16n))));
+        CHECK_THROWS(( lu8 = gsl::narrow< uint8_t>( int16_t(i16p))));
+        CHECK_THROWS(( li8 = gsl::narrow<  int8_t>(uint16_t( u8 ))));
+        CHECK_THROWS(( li8 = gsl::narrow<  int8_t>(uint16_t(u16 ))));
     }
 }
