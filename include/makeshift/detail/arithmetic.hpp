@@ -26,6 +26,9 @@ template <> struct wider_type<std::uint32_t> { using type = std::uint64_t; };
 enum int_signedness { is_signed, is_unsigned };
 enum int_width { has_wider_type, has_no_wider_type };
 
+template <typename EH, typename V>
+    struct checked_operations;
+
 template <typename EH, typename V, int_signedness>
     struct checked_3_;
 template <typename EH, typename V>
@@ -65,22 +68,20 @@ template <typename EH, typename V>
 
     static constexpr V powi(V base, V exp)
     {
-        // TODO: use better implementation from asc-stencilgen
-
-            // conventionally, powi(0,0) == 1
-        if (base == 0)
+            // conventionally, `powi(0,0)` is 1
+        if (exp == 0)
             return exp != 0 ? 0 : 1;
 
-            // base != 0, hence no division by 0
-        V maxVal = std::numeric_limits<V>::max() / base;
+            // we assume `b > 0` henceforth
+        V bound = std::numeric_limits<T>::max() / base;
 
-        V result = 1;
-        while (exp-- > 0)
+        V result = T(1);
+        while (exp > 0)
         {
-                // ensure we won't overflow before doing the computation
-            EH::checkOverflow(result <= maxVal);
-
+                // ensure the multiplication cannot overflow
+            EH::checkOverflow(result <= bound);
             result *= base;
+            --exp;
         }
         return result;
     }
@@ -129,35 +130,50 @@ template <typename EH, typename V>
         return lhs >> rhs;
     }
 
-    static constexpr V powi(V base, V exp)
+    static constexpr V _powi_non_negative_base(V base, V exp)
     {
-        // TODO: use better implementation from asc-stencilgen
-
-            // negative powers are not integral
-        EH::checkDomain(exp >= 0);
-
-            // conventionally, powi(0,0) == 1
-        if (base == 0)
+            // conventionally, `powi(0,0)` is 1
+        if (exp == 0)
             return exp != 0 ? 0 : 1;
 
-            // base != 0, hence no division by 0
-        V maxVal = base  >  0 ? std::numeric_limits<V>::max() / base
-                 : base  < -1 ? std::numeric_limits<V>::min() / base
-                 : std::numeric_limits<V>::max();
-        V minVal = base  >  0 ? std::numeric_limits<V>::min() / base
-                 : base  < -1 ? std::numeric_limits<V>::max() / base
-                 : std::numeric_limits<V>::min();
+            // we assume `b > 0` henceforth
+        V bound = std::numeric_limits<T>::max() / base;
 
-        V result = 1;
-        while (exp-- > 0)
+        V result = T(1);
+        while (exp > 0)
         {
-                // ensure we won't overflow before doing the computation
-            EH::checkDomain(result >= minVal && result <= maxVal);
-
+                // ensure the multiplication cannot overflow
+            EH::checkOverflow(result <= bound);
             result *= base;
+            --exp;
         }
         return result;
     }
+    static constexpr V powi(V base, V exp)
+    {
+            // negative powers are not integral
+        EH::checkDomain(exp >= 0);
+
+        if (base >= 0)
+            return _powi_non_negative_base(base, exp);
+
+            // `b` is negative; factor out sign
+        V sign = 1 - 2 * (exp % 2);
+
+            // perform `powi()` for unsigned positive number
+        using U = std::make_unsigned_t<V>;
+        U absPow = checked_operations<EH, U>::powi(U(b), U(e));
+
+            // handle special case where result is `numeric_limits<T>::min()`
+        if (sign == -1 && absPow == U(std::numeric_limits<V>::max()) + 1)
+            return std::numeric_limits<T>::min(); // assuming two's complement
+
+            // convert back to signed, prefix with sign
+        EH::checkOverflow(absPow <= std::numeric_limits<V>::max());
+        return sign * V(absPow);
+    }
+
+
 };
 template <typename EH, typename V, int_width, int_signedness>
     struct checked_2_;
