@@ -3,14 +3,7 @@
 #define INCLUDED_MAKESHIFT_ARITHMETIC_HPP_
 
 
-#include <tuple>
-#include <stdexcept> // for runtime_error
-
-#include <gsl/gsl_assert> // for Expects()
-
-#include <makeshift/version.hpp> // for MAKESHIFT_FORCEINLINE
-
-#include <makeshift/detail/arithmetic.hpp> // for checked_operations<>
+#include <array>
 
 
 namespace makeshift
@@ -45,30 +38,29 @@ public:
 };
 
 
+template <typename V, std::size_t NumFactors>
+    struct factorization
+{
+    V remainder;
+    std::array<V, NumFactors> exponents;
+};
+
+
 } // inline namespace arithmetic
 
+} // namespace makeshift
+
+
+#include <makeshift/detail/arithmetic.hpp> // for checked_operations<>
+
+
+namespace makeshift
+{
 
 namespace detail
 {
 
 
-struct throw_error_handler
-{
-    static constexpr bool isNoexcept = false;
-    static constexpr MAKESHIFT_FORCEINLINE void checkDivByZero(bool cond) { if (!cond) throw arithmetic_div_by_zero_error("division by zero"); }
-    static constexpr MAKESHIFT_FORCEINLINE void checkDomain(bool cond) { if (!cond) throw arithmetic_domain_error("invalid shift operand"); }
-    static constexpr MAKESHIFT_FORCEINLINE void checkOverflow(bool cond) { if (!cond) throw arithmetic_overflow_error("integer overflow"); }
-    static constexpr MAKESHIFT_FORCEINLINE void checkUnderflow(bool cond) { if (!cond) throw arithmetic_overflow_error("integer underflow"); }
-    static constexpr MAKESHIFT_FORCEINLINE void checkRange(bool cond) { if (!cond) throw arithmetic_overflow_error("integer out of range"); }
-};
-struct assert_error_handler
-{
-    static constexpr MAKESHIFT_FORCEINLINE void checkDivByZero(bool cond) { Expects(cond); }
-    static constexpr MAKESHIFT_FORCEINLINE void checkDomain(bool cond) { Expects(cond); }
-    static constexpr MAKESHIFT_FORCEINLINE void checkOverflow(bool cond) { Expects(cond); }
-    static constexpr MAKESHIFT_FORCEINLINE void checkUnderflow(bool cond) { Expects(cond); }
-    static constexpr MAKESHIFT_FORCEINLINE void checkRange(bool cond) { Expects(cond); }
-};
 
 
 } // namespace detail
@@ -145,45 +137,45 @@ template <>
 
 
     //ᅟ
-    // Computes a ÷ b. Uses `Expects()` to raise error upon overflow or division by 0.
+    // Computes n ÷ d for d ≠ 0. Uses `Expects()` to raise error upon overflow or division by 0.
     //
 template <typename V = void>
     struct divides_checked
 {
-    constexpr V operator ()(V a, V b) const
+    constexpr V operator ()(V n, V d) const
     {
-        makeshift::detail::checked_operations<makeshift::detail::assert_error_handler, V>::divide(a, b);
+        makeshift::detail::checked_operations<makeshift::detail::assert_error_handler, V>::divide(n, d);
     }
 };
 template <>
     struct divides_checked<void>
 {
     template <typename V>
-        constexpr V operator ()(V a, V b) const
+        constexpr V operator ()(V n, V d) const
     {
-        makeshift::detail::checked_operations<makeshift::detail::assert_error_handler, V>::divide(a, b);
+        makeshift::detail::checked_operations<makeshift::detail::assert_error_handler, V>::divide(n, d);
     }
 };
 
 
     //ᅟ
-    // Computes a mod b. Uses `Expects()` to raise error upon overflow or division by 0.
+    // Computes n mod d for d ≠ 0. Uses `Expects()` to raise error upon overflow or division by 0.
     //
 template <typename V = void>
     struct modulus_checked
 {
-    constexpr V operator ()(V a, V b) const
+    constexpr V operator ()(V n, V d) const
     {
-        makeshift::detail::checked_operations<makeshift::detail::assert_error_handler, V>::modulo(a, b);
+        makeshift::detail::checked_operations<makeshift::detail::assert_error_handler, V>::modulo(n, d);
     }
 };
 template <>
     struct modulus_checked<void>
 {
     template <typename V>
-        constexpr V operator ()(V a, V b) const
+        constexpr V operator ()(V n, V d) const
     {
-        makeshift::detail::checked_operations<makeshift::detail::assert_error_handler, V>::modulo(a, b);
+        makeshift::detail::checked_operations<makeshift::detail::assert_error_handler, V>::modulo(n, d);
     }
 };
 
@@ -225,7 +217,7 @@ template <typename V>
 }
 
     //ᅟ
-    // Computes a ÷ b. Uses `Expects()` to raise error upon overflow or division by 0.
+    // Computes n ÷ d for d ≠ 0. Uses `Expects()` to raise error upon overflow or division by 0.
     //
 template <typename V>
     constexpr V divide(V n, V d)
@@ -234,7 +226,7 @@ template <typename V>
 }
 
     //ᅟ
-    // Computes a mod b. Uses `Expects()` to raise error upon overflow or division by 0.
+    // Computes n mod d for d ≠ 0. Uses `Expects()` to raise error upon overflow or division by 0.
     //
 template <typename V>
     constexpr V modulo(V n, V d)
@@ -243,7 +235,7 @@ template <typename V>
 }
 
     //ᅟ
-    // Computes x ∙ 2ⁿ for x,n ∊ ℕ (i.e. left-shifts x by n bits). Uses `Expects()` to raise error upon overflow, or if the number of bits is invalid.
+    // Computes x ∙ 2ⁿ for x,n ∊ ℕ₀ (i.e. left-shifts x by n bits). Uses `Expects()` to raise error upon overflow, or if the number of bits is invalid.
     //
 template <typename V>
     constexpr V shift_left(V x, V n)
@@ -252,7 +244,7 @@ template <typename V>
 }
 
     //ᅟ
-    // Computes ⌊x ÷ 2ⁿ⌋ for x,n ∊ ℕ (i.e. right-shifts x by n bits). Uses `Expects()` to raise error if the number of bits is invalid.
+    // Computes ⌊x ÷ 2ⁿ⌋ for x,n ∊ ℕ₀ (i.e. right-shifts x by n bits). Uses `Expects()` to raise error if the number of bits is invalid.
     //
 template <typename V>
     constexpr V shift_right(V x, V n)
@@ -261,7 +253,7 @@ template <typename V>
 }
 
     //ᅟ
-    // Computes bᵉ for e ∊ ℕ. Uses `Expects()` to raise error if arguments are invalid or if overflow occurs.
+    // Computes bᵉ for e ∊ ℕ₀. Uses `Expects()` to raise error if arguments are invalid or if overflow occurs.
     //
 template <typename V, typename N>
     constexpr V powi(V b, N e)
@@ -269,6 +261,80 @@ template <typename V, typename N>
     makeshift::detail::checked_operations<makeshift::detail::assert_error_handler, V>::powi(b, e);
 }
 
+    //ᅟ
+    // Computes ⌊n ÷ d⌋ for n ∊ ℕ₀, d ∊ ℕ, d ≠ 0. Uses `Expects()` to raise error if arguments are invalid.
+    //
+template <typename V>
+    constexpr V ratio_floor(V n, V d)
+{
+    makeshift::detail::checked_operations<makeshift::detail::assert_error_handler, V>::powi(b, e);
+}
+
+    //ᅟ
+    // Computes ⌈n ÷ d⌉ for n ∊ ℕ₀, d ∊ ℕ, d ≠ 0. Uses `Expects()` to raise error if arguments are invalid.
+    //
+template <typename V>
+    constexpr V ratio_ceil(V n, V d)
+{
+    makeshift::detail::checked_operations<makeshift::detail::assert_error_handler, V>::powi(b, e);
+}
+
+    //ᅟ
+    // Computes ⌊log x ÷ log b⌋ for x,b ∊ ℕ, x > 0, b > 1. Uses `Expects()` to raise error if arguments are invalid.
+    //
+template <typename V>
+    constexpr V log_floor(V x, V b)
+{
+    makeshift::detail::checked_operations<makeshift::detail::assert_error_handler, V>::factorize_floor(x, b);
+}
+
+    //ᅟ
+    // Computes ⌈log x ÷ log b⌉ for x,b ∊ ℕ, x > 0, b > 1. Uses `Expects()` to raise error if arguments are invalid.
+    //
+template <typename V>
+    constexpr V log_ceil(V x, V b)
+{
+    makeshift::detail::checked_operations<makeshift::detail::assert_error_handler, V>::factorize_floor(x, b);
+}
+
+    //ᅟ
+    // Given x,b ∊ ℕ, x > 0, b > 1, computes (r,{ e }) such that x = bᵉ + r with r ≥ 0 minimal. Uses `Expects()` to raise error if arguments are invalid.
+    //
+template <typename V>
+    constexpr factorization<V, 1> factorize_floor(V x, V b)
+{
+    makeshift::detail::checked_operations<makeshift::detail::assert_error_handler, V>::factorize_floor(x, b);
+}
+
+    //ᅟ
+    // Given x,b ∊ ℕ, x > 0, b > 1, computes (r,{ e }) such that x = bᵉ - r with r ≥ 0 minimal. Uses `Expects()` to raise error if arguments are invalid.
+    //
+template <typename V>
+    constexpr factorization<V, 1> factorize_ceil(V x, V b)
+{
+    makeshift::detail::checked_operations<makeshift::detail::assert_error_handler, V>::factorize_ceil(x, b);
+}
+
+    //ᅟ
+    // Given x,a,b ∊ ℕ, x > 0, a,b > 1, a ≠ b, computes (r,{ i,j }) such that x = aⁱ ∙ bʲ - r with r ≥ 0 minimal. Uses `Expects()` to raise error if arguments are invalid.
+    //
+template <typename V>
+    constexpr factorization<V, 2> factorize_floor(V x, V a, V b)
+{
+    makeshift::detail::checked_operations<makeshift::detail::assert_error_handler, V>::factorize_floor(x, a, b);
+}
+
+    //ᅟ
+    // Given x,a,b ∊ ℕ, x > 0, a,b > 1, a ≠ b, computes (r,{ i,j }) such that x = aⁱ ∙ bʲ - r with r ≥ 0 minimal. Uses `Expects()` to raise error if arguments are invalid.
+    //
+template <typename V>
+    constexpr factorization<V, 2> factorize_ceil(V x, V a, V b)
+{
+    makeshift::detail::checked_operations<makeshift::detail::assert_error_handler, V>::factorize_ceil(x, a, b);
+}
+
+
+    // TODO: all `*_or_throw()` functions should only throw upon overflow, not on domain error.
 
     //ᅟ
     // Computes -x. Throws exception upon underflow.
@@ -307,7 +373,7 @@ template <typename V>
 }
 
     //ᅟ
-    // Computes a ÷ b. Throws exception upon overflow or division by 0.
+    // Computes n ÷ d for d ≠ 0. Throws exception upon overflow or division by 0.
     //
 template <typename V>
     constexpr V divide_or_throw(V n, V d)
@@ -316,7 +382,7 @@ template <typename V>
 }
 
     //ᅟ
-    // Computes a mod b. Throws exception upon overflow or division by 0.
+    // Computes n mod d for d ≠ 0. Throws exception upon overflow or division by 0.
     //
 template <typename V>
     constexpr V modulo_or_throw(V n, V d)
@@ -325,7 +391,7 @@ template <typename V>
 }
 
     //ᅟ
-    // Computes x ∙ 2ⁿ for x,n ∊ ℕ (i.e. left-shifts x by n bits). Throws exception upon overflow, or if the number of bits is invalid.
+    // Computes x ∙ 2ⁿ for x,n ∊ ℕ₀ (i.e. left-shifts x by n bits). Throws exception upon overflow, or if the number of bits is invalid.
     //
 template <typename V>
     constexpr V shift_left_or_throw(V x, V n)
@@ -334,7 +400,7 @@ template <typename V>
 }
 
     //ᅟ
-    // Computes ⌊x ÷ 2ⁿ⌋ for x,n ∊ ℕ (i.e. right-shifts x by n bits). Throws exception if the number of bits is invalid.
+    // Computes ⌊x ÷ 2ⁿ⌋ for x,n ∊ ℕ₀ (i.e. right-shifts x by n bits). Throws exception if the number of bits is invalid.
     //
 template <typename V>
     constexpr V shift_right_or_throw(V x, V n)
@@ -343,7 +409,7 @@ template <typename V>
 }
 
     //ᅟ
-    // Computes bᵉ for e ∊ ℕ. Throws exception if arguments are invalid or if overflow occurs.
+    // Computes bᵉ for e ∊ ℕ₀. Throws exception if arguments are invalid or if overflow occurs.
     //
 template <typename V, typename N>
     constexpr V powi_or_throw(V b, N e)
