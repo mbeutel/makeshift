@@ -79,6 +79,116 @@ inline namespace arithmetic
 
 
     //ᅟ
+    // Computes a + b. Uses `Expects()` to raise error upon overflow.
+    //
+template <typename V = void>
+    struct plus_checked
+{
+    constexpr V operator ()(V a, V b) const
+    {
+        makeshift::detail::checked_operations<makeshift::detail::assert_error_handler, V>::add(a, b);
+    }
+};
+template <>
+    struct plus_checked<void>
+{
+    template <typename V>
+        constexpr V operator ()(V a, V b) const
+    {
+        makeshift::detail::checked_operations<makeshift::detail::assert_error_handler, V>::add(a, b);
+    }
+};
+
+
+    //ᅟ
+    // Computes a - b. Uses `Expects()` to raise error upon overflow.
+    //
+template <typename V = void>
+    struct minus_checked
+{
+    constexpr V operator ()(V a, V b) const
+    {
+        makeshift::detail::checked_operations<makeshift::detail::assert_error_handler, V>::subtract(a, b);
+    }
+};
+template <>
+    struct minus_checked<void>
+{
+    template <typename V>
+        constexpr V operator ()(V a, V b) const
+    {
+        makeshift::detail::checked_operations<makeshift::detail::assert_error_handler, V>::subtract(a, b);
+    }
+};
+
+
+    //ᅟ
+    // Computes a ∙ b. Uses `Expects()` to raise error upon overflow.
+    //
+template <typename V = void>
+    struct multiplies_checked
+{
+    constexpr V operator ()(V a, V b) const
+    {
+        makeshift::detail::checked_operations<makeshift::detail::assert_error_handler, V>::multiply(a, b);
+    }
+};
+template <>
+    struct multiplies_checked<void>
+{
+    template <typename V>
+        constexpr V operator ()(V a, V b) const
+    {
+        makeshift::detail::checked_operations<makeshift::detail::assert_error_handler, V>::multiply(a, b);
+    }
+};
+
+
+    //ᅟ
+    // Computes a ÷ b. Uses `Expects()` to raise error upon overflow or division by 0.
+    //
+template <typename V = void>
+    struct divides_checked
+{
+    constexpr V operator ()(V a, V b) const
+    {
+        makeshift::detail::checked_operations<makeshift::detail::assert_error_handler, V>::divide(a, b);
+    }
+};
+template <>
+    struct divides_checked<void>
+{
+    template <typename V>
+        constexpr V operator ()(V a, V b) const
+    {
+        makeshift::detail::checked_operations<makeshift::detail::assert_error_handler, V>::divide(a, b);
+    }
+};
+
+
+    //ᅟ
+    // Computes a mod b. Uses `Expects()` to raise error upon overflow or division by 0.
+    //
+template <typename V = void>
+    struct modulus_checked
+{
+    constexpr V operator ()(V a, V b) const
+    {
+        makeshift::detail::checked_operations<makeshift::detail::assert_error_handler, V>::modulo(a, b);
+    }
+};
+template <>
+    struct modulus_checked<void>
+{
+    template <typename V>
+        constexpr V operator ()(V a, V b) const
+    {
+        makeshift::detail::checked_operations<makeshift::detail::assert_error_handler, V>::modulo(a, b);
+    }
+};
+
+
+    //ᅟ
     // Computes -x. Uses `Expects()` to raise error upon underflow.
     //
 template <typename V>
