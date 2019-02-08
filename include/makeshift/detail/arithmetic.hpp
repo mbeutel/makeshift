@@ -66,8 +66,14 @@ template <typename EH, typename V>
         return lhs >> rhs;
     }
 
-    static constexpr V powi(V base, V exp)
+    template <typename N>
+        static constexpr V powi(V base, N exp)
     {
+        static_assert(std::is_integral<N>::value, "exponent must be an integral type");
+
+            // negative powers are not integral
+        EH::checkDomain(exp >= 0);
+
             // conventionally, `powi(0,0)` is 1
         if (exp == 0)
             return exp != 0 ? 0 : 1;
@@ -130,39 +136,22 @@ template <typename EH, typename V>
         return lhs >> rhs;
     }
 
-    static constexpr V _powi_non_negative_base(V base, V exp)
+    template <typename N>
+        static constexpr V powi(V base, N exp)
     {
-            // conventionally, `powi(0,0)` is 1
-        if (exp == 0)
-            return exp != 0 ? 0 : 1;
+        static_assert(std::is_integral<N>::value, "exponent must be an integral type");
 
-            // we assume `b > 0` henceforth
-        V bound = std::numeric_limits<T>::max() / base;
-
-        V result = T(1);
-        while (exp > 0)
-        {
-                // ensure the multiplication cannot overflow
-            EH::checkOverflow(result <= bound);
-            result *= base;
-            --exp;
-        }
-        return result;
-    }
-    static constexpr V powi(V base, V exp)
-    {
             // negative powers are not integral
         EH::checkDomain(exp >= 0);
 
-        if (base >= 0)
-            return _powi_non_negative_base(base, exp);
-
-            // `b` is negative; factor out sign
-        V sign = 1 - 2 * (exp % 2);
+            // factor out sign if `b` is negative
+        V sign = base >= 0
+            ? 1
+            : 1 - 2 * (exp % 2);
 
             // perform `powi()` for unsigned positive number
         using U = std::make_unsigned_t<V>;
-        U absPow = checked_operations<EH, U>::powi(U(b), U(e));
+        U absPow = checked_operations<EH, U>::powi(U(base), exp);
 
             // handle special case where result is `numeric_limits<T>::min()`
         if (sign == -1 && absPow == U(std::numeric_limits<V>::max()) + 1)
