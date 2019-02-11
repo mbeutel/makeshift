@@ -56,5 +56,10 @@
  #define MAKESHIFT_INTELLISENSE_PARSER
 #endif // defined(_MSC_VER) && defined(__INTELLISENSE__)
 
+#define MAKESHIFT_NODISCARD [[nodiscard]]
+#define MAKESHIFT_MAYBE_UNUSED [[maybe_unused]]
+
+#define MAKESHIFT_CONSTEXPR_CXX20
+
 
 #endif // INCLUDED_MAKESHIFT_VERSION_HPP_
