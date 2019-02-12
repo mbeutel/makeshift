@@ -128,7 +128,7 @@ template <typename EH, typename V>
              : 0;
     }
 
-        // Given x,b ∊ ℕ, x > 0, b > 1, computes (r,{ e }) such that x = bᵉ + r with r ≥ 0 minimal.
+        // Given x,b ∊ ℕ, x > 0, b > 1, returns (r,{ {b,e} }) such that x = bᵉ + r with r ≥ 0 minimal.
     static constexpr factorization<V, 1> factorize_floor(V x, V b)
     {
         Expects(x > 0 && b > 1);
@@ -158,33 +158,33 @@ template <typename EH, typename V>
         {
                 // Compare with m before computing bᵉ⁺¹ to avoid overflow.
             if (x0 > m)
-                return { x - x0, { e } };
+                return { x - x0, { factor{ b, e } } };
 
             V x1 = x0 * b; // = bᵉ⁺¹
             if (x1 > x)
-                return { x - x0, { e } };
+                return { x - x0, { factor{ b, e } } };
 
             x0 = x1;
             ++e;
         }
     }
 
-        // Given x,b ∊ ℕ, x > 0, b > 1, computes (r,{ e }) such that x = bᵉ - r with r ≥ 0 minimal.
+        // Given x,b ∊ ℕ, x > 0, b > 1, returns (r,{ {b,e} }) such that x = bᵉ - r with r ≥ 0 minimal.
     static constexpr factorization<V, 1> factorize_ceil(V x, V b)
     {
-        auto [rFloor, eFloor] = factorize_floor(x, b);
+        auto [rFloor, fFloor] = factorize_floor(x, b);
         if (rFloor == 0)
-            return { 0, eFloor };
+            return { 0, fFloor };
         auto xFloor = x - rFloor;
         auto rCeil = checked_operations<EH, V>::multiply(xFloor, b - 1) - rFloor; // x = bᵉ + r =: bᵉ⁺¹ - r' ⇒ r' = bᵉ(b - 1) - r
-        return { rCeil, { eFloor[0] + 1 } }; // eFloor cannot overflow
+        return { rCeil, { factor{ b, fFloor[0].exponent + 1 } } }; // e cannot overflow
     }
 
         // Computes ⌊log x ÷ log b⌋ for x,b ∊ ℕ, x > 0, b > 1.
     static constexpr V log_floor(V x, V b)
     {
         auto result = factorize_floor(x, b);
-        return result.exponents[0];
+        return result.factors[0].exponent;
     }
 
         // Computes ⌈log x ÷ log b⌉ for x,b ∊ ℕ, x > 0, b > 1.
@@ -214,25 +214,25 @@ template <typename EH, typename V>
         return e;
     }
 
-        // Given x,a,b ∊ ℕ, x > 0, a,b > 1, a ≠ b, computes (r,{ i,j }) such that x = aⁱ ∙ bʲ - r with r ≥ 0 minimal.
+        // Given x,a,b ∊ ℕ, x > 0, a,b > 1, a ≠ b, returns (r,{ {a,i}, {b,j} }) such that x = aⁱ ∙ bʲ - r with r ≥ 0 minimal.
     static constexpr factorization<V, 2> factorize_ceil(V x, V a, V b)
     {
         Expects(x > 0 && a > 1 && b > 1 && a != b);
 
             // algorithm discussed in http://stackoverflow.com/a/39050139 and slightly altered to avoid unnecessary overflows
 
-        auto aFctFloor = factorize_ceil(x, a);
-        V i = aFctFloor.exponents[0],
+        auto [r, f] = factorize_ceil(x, a);
+        V i = f[0].exponent,
           j = 0;
         V ci = i,
           cj = j;
-        V y = checked_operations<EH, V>::add(x, aFctFloor.remainder); // = aⁱ
-        V c = y; // c ≥ x at all times
+        V y = checked_operations<EH, V>::add(x, r); // = aⁱ
+        V cy = y; // cy ≥ x at all times
 
         for (;;)
         {
             if (i == 0)
-                return { c - x, { ci, cj } };
+                return { cy - x, { factor{ a, ci }, factor{ b, cj } } };
 
                 // take factor a
             y /= a;
@@ -245,34 +245,34 @@ template <typename EH, typename V>
                 ++j;
             }
 
-            if (y < c)
+            if (y < cy)
             {
-                c = y;
+                cy = y;
                 ci = i;
                 cj = j;
             }
         }
     }
 
-        // Given x,a,b ∊ ℕ, x > 0, a,b > 1, a ≠ b, computes (r,{ i,j }) such that x = aⁱ ∙ bʲ + r with r ≥ 0 minimal.
+        // Given x,a,b ∊ ℕ, x > 0, a,b > 1, a ≠ b, returns (r,{ {a,i}, {b,j} }) such that x = aⁱ ∙ bʲ + r with r ≥ 0 minimal.
     static constexpr factorization<V, 2> factorize_floor(V x, V a, V b)
     {
         Expects(x > 0 && a > 1 && b > 1 && a != b);
 
             // adaption of algorithm in factorize_ceil() for different optimisation criterion
 
-        auto aFctFloor = factorize_floor(x, a);
-        V i = aFctFloor.exponents[0],
+        auto [r, f] = factorize_floor(x, a);
+        V i = f[0].exponent,
           j = 0;
         V ci = i,
           cj = j;
-        V y = x - aFctFloor.remainder; // = aⁱ
-        V c = y; // c ≤ x at all times
+        V y = x - r; // = aⁱ
+        V cy = y; // cy ≤ x at all times
 
         for (;;)
         {
             if (i == 0)
-                return { x - c, { ci, cj } };
+                return { x - cy, { factor{ a, ci }, factor{ b, cj } } };
 
                 // take factor a
             y /= a;
@@ -286,9 +286,9 @@ template <typename EH, typename V>
                 ++j;
             }
 
-            if (y > c)
+            if (y > cy)
             {
-                c = y;
+                cy = y;
                 ci = i;
                 cj = j;
             }
@@ -382,21 +382,21 @@ template <typename EH, typename V>
              : 0;
     }
 
-        // Given x,b ∊ ℕ, x > 0, b > 1, computes (r,{ e }) such that x = bᵉ + r with r ≥ 0 minimal.
+        // Given x,b ∊ ℕ, x > 0, b > 1, returns (r,{ {b,e} }) such that x = bᵉ + r with r ≥ 0 minimal.
     static constexpr factorization<V, 1> factorize_floor(V x, V b)
     {
         Expects(x > 0 && b > 1);
-        auto [r, e] = checked_operations<EH, U>::factorize_floor(U(x), U(b));
-        return { V(r), { V(e[0]) } };
+        auto [r, f] = checked_operations<EH, U>::factorize_floor(U(x), U(b));
+        return { V(r), { factor{ b, V(f[0].exponent) } } };
     }
 
-        // Given x,b ∊ ℕ, x > 0, b > 1, computes (r,{ e }) such that x = bᵉ - r with r ≥ 0 minimal.
+        // Given x,b ∊ ℕ, x > 0, b > 1, returns (r,{ {b,e} }) such that x = bᵉ - r with r ≥ 0 minimal.
     static constexpr factorization<V, 1> factorize_ceil(V x, V b)
     {
         Expects(x > 0 && b > 1);
-        auto [r, e] = checked_operations<EH, U>::factorize_ceil(U(x), U(b));
+        auto [r, f] = checked_operations<EH, U>::factorize_ceil(U(x), U(b));
         EH::checkOverflow(r <= U(std::numeric_limits<V>::max()));
-        return { V(r), { V(e[0]) } };
+        return { V(r), { factor{ b, V(f[0].exponent) } } };
     }
 
         // Computes ⌊log x ÷ log b⌋ for x,b ∊ ℕ, x > 0, b > 1.
@@ -413,21 +413,21 @@ template <typename EH, typename V>
         return V(checked_operations<EH, U>::log_ceil(U(x), U(b)));
     }
 
-        // Given x,a,b ∊ ℕ, x > 0, a,b > 1, a ≠ b, computes (r,{ i,j }) such that x = aⁱ ∙ bʲ - r with r ≥ 0 minimal.
+        // Given x,a,b ∊ ℕ, x > 0, a,b > 1, a ≠ b, returns (r,{ {a,i}, {b,j} }) such that x = aⁱ ∙ bʲ - r with r ≥ 0 minimal.
     static constexpr factorization<V, 2> factorize_ceil(V x, V a, V b)
     {
         Expects(x > 0 && a > 1 && b > 1 && a != b);
-        auto [r, e] = checked_operations<EH, U>::factorize_ceil(U(x), U(a), U(b));
+        auto [r, f] = checked_operations<EH, U>::factorize_ceil(U(x), U(a), U(b));
         EH::checkOverflow(r <= U(std::numeric_limits<V>::max()));
-        return { V(r), { V(e[0]), V(e[1]) } };
+        return { V(r), { factor{ a, V(f[0].exponent) }, factor{ b, V(f[1].exponent) } } };
     }
 
-        // Given x,a,b ∊ ℕ, x > 0, a,b > 1, a ≠ b, computes (r,{ i,j }) such that x = aⁱ ∙ bʲ + r with r ≥ 0 minimal.
+        // Given x,a,b ∊ ℕ, x > 0, a,b > 1, a ≠ b, returns (r,{ {a,i}, {b,j} }) such that x = aⁱ ∙ bʲ + r with r ≥ 0 minimal.
     static constexpr factorization<V, 2> factorize_floor(V x, V a, V b)
     {
         Expects(x > 0 && a > 1 && b > 1 && a != b);
-        auto [r, e] = checked_operations<EH, U>::factorize_floor(U(x), U(a), U(b));
-        return { V(r), { V(e[0]), V(e[1]) } };
+        auto [r, f] = checked_operations<EH, U>::factorize_floor(U(x), U(a), U(b));
+        return { V(r), { factor{ a, V(f[0].exponent) }, factor{ b, V(f[1].exponent) } } };
     }
 };
 template <typename EH, typename V, int_width, int_signedness>

@@ -4,9 +4,13 @@
 
 
 #include <array>
-#include <stdexcept> // for runtime_error
+#include <stdexcept>   // for runtime_error
+#include <type_traits> // for enable_if<>
 
+#include <makeshift/utility.hpp> // for dim_t
 #include <makeshift/version.hpp> // for MAKESHIFT_NODISCARD, MAKESHIFT_CONSTEXPR_CXX20
+
+#include <gsl/span> // for span<>, dynamic_extent
 
 
 namespace makeshift
@@ -26,20 +30,53 @@ public:
 };
 
 
-template <typename V, std::size_t NumFactors>
+template <typename V>
+    struct factor
+{
+    V base;
+    V exponent;
+
+    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR_CXX20 friend bool operator ==(const factor& lhs, const factor& rhs) noexcept
+    {
+        return lhs.base == rhs.base
+            && lhs.exponent == rhs.exponent;
+    }
+    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR_CXX20 friend bool operator !=(const factor& lhs, const factor& rhs) noexcept
+    {
+        return !(lhs == rhs);
+    }
+};
+template <typename V>
+    factor(V, V) -> factor<V>;
+
+template <typename V, dim_t NumFactors = gsl::dynamic_extent>
     struct factorization
 {
     V remainder;
-    std::array<V, NumFactors> exponents;
+    std::array<factor<V>, NumFactors> factors;
 
-    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR_CXX20 friend bool operator ==(const factorization& lhs, const factorization& rhs) noexcept // TODO: constexpr in C++20
+    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR_CXX20 friend bool operator ==(const factorization& lhs, const factorization& rhs) noexcept
     {
         return lhs.remainder == rhs.remainder
-            && lhs.exponents == rhs.exponents;
+            && lhs.factors == rhs.factors;
     }
-    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR_CXX20 friend bool operator !=(const factorization& lhs, const factorization& rhs) noexcept // TODO: constexpr in C++20
+    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR_CXX20 friend bool operator !=(const factorization& lhs, const factorization& rhs) noexcept
     {
         return !(lhs == rhs);
+    }
+};
+
+template <typename V, dim_t NumFactors = gsl::dynamic_extent>
+    struct factorization_view
+{
+    V remainder;
+    gsl::span<const factor<V>, NumFactors> factors;
+
+    template <dim_t OtherNumFactors,
+              typename = std::enable_if_t<NumFactors == OtherNumFactors || NumFactors == gsl::dynamic_extent || OtherNumFactors == gsl::dynamic_extent>>
+        factorization_view(const factorization<V, OtherNumFactors>& fct)
+            : remainder(fct.remainder), factors(fct.factors)
+    {
     }
 };
 
@@ -186,7 +223,7 @@ template <typename V>
 }
 
     //ᅟ
-    // Given x,b ∊ ℕ, x > 0, b > 1, computes (r,{ e }) such that x = bᵉ + r with r ≥ 0 minimal. Enforces preconditions with `Expects()`.
+    // Given x,b ∊ ℕ, x > 0, b > 1, returns (r,{ {b,e} }) such that x = bᵉ + r with r ≥ 0 minimal. Enforces preconditions with `Expects()`.
     //
 template <typename V>
     constexpr factorization<V, 1> factorize_floor(V x, V b)
@@ -195,7 +232,7 @@ template <typename V>
 }
 
     //ᅟ
-    // Given x,b ∊ ℕ, x > 0, b > 1, computes (r,{ e }) such that x = bᵉ - r with r ≥ 0 minimal. Enforces preconditions with `Expects()`. Uses `Expects()` to raise error upon overflow.
+    // Given x,b ∊ ℕ, x > 0, b > 1, returns (r,{ {b,e} }) such that x = bᵉ - r with r ≥ 0 minimal. Enforces preconditions with `Expects()`. Uses `Expects()` to raise error upon overflow.
     //
 template <typename V>
     constexpr factorization<V, 1> factorize_ceil(V x, V b)
@@ -204,7 +241,7 @@ template <typename V>
 }
 
     //ᅟ
-    // Given x,a,b ∊ ℕ, x > 0, a,b > 1, a ≠ b, computes (r,{ i,j }) such that x = aⁱ ∙ bʲ - r with r ≥ 0 minimal. Enforces preconditions with `Expects()`.
+    // Given x,a,b ∊ ℕ, x > 0, a,b > 1, a ≠ b, returns (r,{ {a,i}, {b,j} }) such that x = aⁱ ∙ bʲ - r with r ≥ 0 minimal. Enforces preconditions with `Expects()`.
     //
 template <typename V>
     constexpr factorization<V, 2> factorize_floor(V x, V a, V b)
@@ -213,7 +250,7 @@ template <typename V>
 }
 
     //ᅟ
-    // Given x,a,b ∊ ℕ, x > 0, a,b > 1, a ≠ b, computes (r,{ i,j }) such that x = aⁱ ∙ bʲ - r with r ≥ 0 minimal. Enforces preconditions with `Expects()`. Uses `Expects()` to raise error upon overflow.
+    // Given x,a,b ∊ ℕ, x > 0, a,b > 1, a ≠ b, returns (r,{ {a,i}, {b,j} }) such that x = aⁱ ∙ bʲ - r with r ≥ 0 minimal. Enforces preconditions with `Expects()`. Uses `Expects()` to raise error upon overflow.
     //
 template <typename V>
     constexpr factorization<V, 2> factorize_ceil(V x, V a, V b)
@@ -295,7 +332,7 @@ template <typename V, typename N>
 }
 
     //ᅟ
-    // Given x,b ∊ ℕ, x > 0, b > 1, computes (r,{ e }) such that x = bᵉ - r with r ≥ 0 minimal. Enforces preconditions with `Expects()`. Throws exception upon overflow.
+    // Given x,b ∊ ℕ, x > 0, b > 1, returns (r,{ {b,e} }) such that x = bᵉ - r with r ≥ 0 minimal. Enforces preconditions with `Expects()`. Throws exception upon overflow.
     //
 template <typename V>
     constexpr factorization<V, 1> factorize_ceil_or_throw(V x, V b)
@@ -304,7 +341,7 @@ template <typename V>
 }
 
     //ᅟ
-    // Given x,a,b ∊ ℕ, x > 0, a,b > 1, a ≠ b, computes (r,{ i,j }) such that x = aⁱ ∙ bʲ - r with r ≥ 0 minimal. Enforces preconditions with `Expects()`. Throws exception upon overflow.
+    // Given x,a,b ∊ ℕ, x > 0, a,b > 1, a ≠ b, computes returns (r,{ {a,i}, {b,j} }) such that x = aⁱ ∙ bʲ - r with r ≥ 0 minimal. Enforces preconditions with `Expects()`. Throws exception upon overflow.
     //
 template <typename V>
     constexpr factorization<V, 2> factorize_ceil_or_throw(V x, V a, V b)

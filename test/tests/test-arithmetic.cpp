@@ -57,20 +57,20 @@ namespace Catch
 template <typename T, std::size_t N>
     struct StringMaker<mk::factorization<T, N>>
 {
-    static std::string convert(const mk::factorization<T, N>& value)
+    static std::string convert(const mk::factorization<T, N>& fct)
     {
         std::ostringstream sstr;
-        sstr << "{ rem=" << value.remainder << ", exp={ ";
         bool first = true;
-        for (auto&& e : value.exponents)
+        for (auto&& factor : fct.factors)
         {
             if (first)
                 first = false;
             else
-                sstr << ", ";
-            sstr << e;
+                sstr << " + ";
+            sstr << factor.base << '^' << factor.exponent;
         }
-        sstr << " } }";
+        if (fct.remainder != 0)
+            sstr << " + " << fct.remainder;
         return sstr.str();
     }
 };
@@ -79,7 +79,7 @@ template <typename T, std::size_t N>
 } // namespace Catch
 
 
-TEST_CASE("algebraic")
+TEST_CASE("factorize")
 {
     SECTION("log")
     {
@@ -96,23 +96,23 @@ TEST_CASE("algebraic")
 
     SECTION("factorize")
     {
-        CHECK(mk::factorize_ceil(1, 2, 3) == mk::factorization<int, 2>{ 0, { 0, 0 } });
-        CHECK(mk::factorize_ceil(2, 2, 3) == mk::factorization<int, 2>{ 0, { 1, 0 } });
-        CHECK(mk::factorize_ceil(3, 2, 3) == mk::factorization<int, 2>{ 0, { 0, 1 } });
-        CHECK(mk::factorize_ceil(4, 2, 3) == mk::factorization<int, 2>{ 0, { 2, 0 } });
-        CHECK(mk::factorize_ceil(5, 2, 3) == mk::factorization<int, 2>{ 1, { 1, 1 } });
-        CHECK(mk::factorize_ceil(6, 2, 3) == mk::factorization<int, 2>{ 0, { 1, 1 } });
-        CHECK(mk::factorize_ceil(7, 2, 3) == mk::factorization<int, 2>{ 1, { 3, 0 } });
-        CHECK(mk::factorize_ceil(8, 2, 3) == mk::factorization<int, 2>{ 0, { 3, 0 } });
+        CHECK(mk::factorize_ceil(1, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor{ 2, 0 }, mk::factor{ 3, 0 } } });
+        CHECK(mk::factorize_ceil(2, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor{ 2, 1 }, mk::factor{ 3, 0 } } });
+        CHECK(mk::factorize_ceil(3, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor{ 2, 0 }, mk::factor{ 3, 1 } } });
+        CHECK(mk::factorize_ceil(4, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor{ 2, 2 }, mk::factor{ 3, 0 } } });
+        CHECK(mk::factorize_ceil(5, 2, 3) == mk::factorization<int, 2>{ 1, { mk::factor{ 2, 1 }, mk::factor{ 3, 1 } } });
+        CHECK(mk::factorize_ceil(6, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor{ 2, 1 }, mk::factor{ 3, 1 } } });
+        CHECK(mk::factorize_ceil(7, 2, 3) == mk::factorization<int, 2>{ 1, { mk::factor{ 2, 3 }, mk::factor{ 3, 0 } } });
+        CHECK(mk::factorize_ceil(8, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor{ 2, 3 }, mk::factor{ 3, 0 } } });
 
-        CHECK(mk::factorize_floor(1, 2, 3) == mk::factorization<int, 2>{ 0, { 0, 0 } });
-        CHECK(mk::factorize_floor(2, 2, 3) == mk::factorization<int, 2>{ 0, { 1, 0 } });
-        CHECK(mk::factorize_floor(3, 2, 3) == mk::factorization<int, 2>{ 0, { 0, 1 } });
-        CHECK(mk::factorize_floor(4, 2, 3) == mk::factorization<int, 2>{ 0, { 2, 0 } });
-        CHECK(mk::factorize_floor(5, 2, 3) == mk::factorization<int, 2>{ 1, { 2, 0 } });
-        CHECK(mk::factorize_floor(6, 2, 3) == mk::factorization<int, 2>{ 0, { 1, 1 } });
-        CHECK(mk::factorize_floor(7, 2, 3) == mk::factorization<int, 2>{ 1, { 1, 1 } });
-        CHECK(mk::factorize_floor(8, 2, 3) == mk::factorization<int, 2>{ 0, { 3, 0 } });
+        CHECK(mk::factorize_floor(1, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor{ 2, 0 }, mk::factor{ 3, 0 } } });
+        CHECK(mk::factorize_floor(2, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor{ 2, 1 }, mk::factor{ 3, 0 } } });
+        CHECK(mk::factorize_floor(3, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor{ 2, 0 }, mk::factor{ 3, 1 } } });
+        CHECK(mk::factorize_floor(4, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor{ 2, 2 }, mk::factor{ 3, 0 } } });
+        CHECK(mk::factorize_floor(5, 2, 3) == mk::factorization<int, 2>{ 1, { mk::factor{ 2, 2 }, mk::factor{ 3, 0 } } });
+        CHECK(mk::factorize_floor(6, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor{ 2, 1 }, mk::factor{ 3, 1 } } });
+        CHECK(mk::factorize_floor(7, 2, 3) == mk::factorization<int, 2>{ 1, { mk::factor{ 2, 1 }, mk::factor{ 3, 1 } } });
+        CHECK(mk::factorize_floor(8, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor{ 2, 3 }, mk::factor{ 3, 0 } } });
     }
 }
 
