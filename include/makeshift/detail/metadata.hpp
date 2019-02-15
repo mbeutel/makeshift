@@ -48,7 +48,7 @@ struct type_flag : define_flags<type_flag>
         //ᅟ
         // Indicates that the associated type is a compound type, i.e. it has the semantics of a named tuple with regard to identity and comparability.
         // This type flag does not necessarily require aggregate-ness as defined in the C++ standard (`std::is_aggregate<>`), which imposes
-        // unnecessary limitations (e.g. it makes sense for an aggregate to have a user-defined constructor).
+        // unnecessary limitations (e.g. it may be reasonable for a compound type to have a user-defined constructor).
         //
     static constexpr flag compound { 2 };
 
