@@ -4,7 +4,7 @@
 
 
 #include <array>
-#include <type_traits> // for integral_constant<>, enable_if<>, decay<>, is_same<>, is_enum<>, is_class<>, is_member_object_pointer<>
+#include <type_traits> // for integral_constant<>, enable_if<>, decay<>, is_same<>, is_enum<>, is_class<>, is_member_object_pointer<>, conjunction<>
 #include <tuple>
 #include <utility>     // for move(), forward<>()
 #include <string_view>
@@ -104,18 +104,64 @@ namespace detail
 {
 
 
-template <typename TupleT, typename FuncT, std::size_t... Is>
-    constexpr auto tuple_transform2_impl(TupleT&& tuple, FuncT&& func, std::index_sequence<Is...>)
+template <std::size_t... Ns> struct equal_sizes_;
+template <> struct equal_sizes_<> : std::integral_constant<std::size_t, std::size_t(-1)> { };
+template <std::size_t N> struct equal_sizes_<N> : std::integral_constant<std::size_t, N> { };
+template <std::size_t N0, std::size_t N1, std::size_t... Ns> struct equal_sizes_<N0, N1, Ns...> : equal_sizes_<(N0 == std::size_t(-1) || N0 != N1) ? std::size_t(-1) : N0, Ns...> { };
+
+template <typename TupleT> struct is_array_ : std::false_type { };
+template <typename T, std::size_t N>> struct is_array_<std::array<T, N>> : std::true_type { };
+
+template <std::size_t I, typename Ts, typename FuncT>
+    constexpr auto tuple_transform2_impl2(FuncT&& func, Ts&&... tuples)
 {
-    return std::make_tuple(func(std::get<Is>(std::forward<TupleT>(tuple)))...);
+    using std::get; // make std::get<>(std::pair<>&&) visible to enable ADL for template methods named get<>()
+    return func(get<I>(std::forward<Ts>(tuples))...));
 }
-template <typename TupleT, typename FuncT,
-          typename = is_tuple_like_v<std::decay_t<TupleT>>>
-    constexpr auto tuple_transform2(TupleT&& tuple, FuncT&& func)
+template <typename Ts, typename FuncT, std::size_t... Is>
+    constexpr auto tuple_transform2_impl1(std::false_type /*allArrays*/, std::index_sequence<Is...>, FuncT&& func, Ts&&... tuples)
 {
-    return makeshift::detail::tuple_transform2_impl(std::forward<TupleT>(tuple), std::forward<FuncT>(func), std::make_index_sequence<std::tuple_size<std::decay_t<TupleT>>::value>{ });
+    return std::make_tuple(tuple_transform2_impl2<Is>(std::forward<Ts>(tuples)...)...);
+}
+template <typename Ts, typename FuncT, std::size_t... Is>
+    constexpr auto tuple_transform2_impl1(std::true_type /*allArrays*/, std::index_sequence<Is...>, FuncT&& func, Ts&&... arrays)
+{
+	using R = decltype(func)
+    return std::make_tuple(tuple_transform2_impl2<Is>(std::forward<Ts>(tuples)...)...);
+}
+template <typename Ts, typename FuncT,
+          typename = std::enable_if_t<std::conjunction<is_tuple_like_v<std::decay_t<Ts>>...>::value>>
+    constexpr auto tuple_transform2(FuncT&& func, Ts&&... tuples)
+{
+	static_assert(sizeof...(Ts) > 0, "at least one tuple argument required");
+	static constexpr tupleSize = equal_sizes_<std::tuple_size<std::decay_t<Ts>>::value...>::value;
+	static_assert(tupleSize != std::size_t(-1), "tuples must have identical size");
+	
+    return makeshift::detail::tuple_transform2_impl(
+		std::forward<FuncT>(func), std::make_index_sequence<tupleSize>{ },
+		std::forward<Ts>(tuples)...);
 }
 
+template <typename Ts, typename FuncT, std::size_t... Is>
+    constexpr void tuple_foreach2_impl1(FuncT&& func, std::index_sequence<Is...>, Ts&&... tuples)
+{
+    int _[] = { (tuple_foreach2_impl2<Is>(std::forward<Ts>(tuples)...), void, 0)... };
+    (void) _;
+}
+template <typename Ts, typename FuncT,
+          typename = std::enable_if_t<std::conjunction<is_tuple_like_v<std::decay_t<Ts>>...>::value>>
+    constexpr void tuple_foreach2(FuncT&& func, Ts&&... tuples)
+{
+	static_assert(sizeof...(Ts) > 0, "at least one tuple argument required");
+	static constexpr tupleSize = equal_sizes_<std::tuple_size<std::decay_t<Ts>>::value...>::value;
+	static_assert(tupleSize != std::size_t(-1), "tuples must have identical size");
+	
+    return makeshift::detail::tuple_transform2_impl(
+		std::forward<FuncT>(func), std::make_index_sequence<tupleSize>{ },
+		std::forward<Ts>(tuples)...);
+}
+
+	// TODO: instead use foreach_index(), transform_index()
 template <typename T, typename ArrayT, typename FuncT, std::size_t... Is>
     constexpr auto array_transform2_impl(ArrayT&& array, FuncT&& func, std::index_sequence<Is...>)
         -> std::array<decltype(func(std::declval<T>())), sizeof...(Is)>
@@ -132,7 +178,6 @@ template <typename T, std::size_t N, typename FuncT>
 {
     return makeshift::detail::array_transform2_impl<T>(array, std::forward<FuncT>(func), std::make_index_sequence<N>{ });
 }
-
 
 template <typename ArrayT> struct array_size2_;
 template <typename T, std::size_t N> struct array_size2_<std::array<T, N>> : std::integral_constant<std::size_t, N> { };
@@ -296,19 +341,21 @@ namespace detail
 {
 
 
-template <typename ArrayRetrieverT, std::size_t... Is>
+template <typename ArrayFuncT, std::size_t... Is>
     constexpr auto array_to_sequence_impl(std::index_sequence<Is...>)
 {
-    constexpr auto array = ArrayRetrieverT::invoke();
+    constexpr auto array = ArrayFuncT{ }();
     using Array = decltype(array);
     using T = typename Array::value_type;
     return sequence<T, array[Is]...>{ };
 }
-template <typename ArrayRetrieverT>
-    constexpr auto array_to_sequence(tag<ArrayRetrieverT> = { })
+template <typename ArrayFuncT,
+		  typename = std::enable_if_t<std::is_default_constructible<ArrayFuncT>::value>>
+    constexpr auto array_to_sequence(ArrayFuncT)
 {
-    using Array = decltype(ArrayRetrieverT::invoke());
-    return array_to_sequence_impl<ArrayRetrieverT>(std::make_index_sequence<array_size2_v<Array>>{ });
+	using ArrayFunc = std::decay_t<ArrayFuncT>;
+    using Array = decltype(ArrayFunc{ }());
+    return array_to_sequence_impl<ArrayFunc>(std::make_index_sequence<array_size2_v<Array>>{ });
 }
 
 template <typename T>
@@ -319,7 +366,7 @@ template <typename T>
 
     struct array_retriever
     {
-        static constexpr auto invoke(void) noexcept
+        constexpr auto operator ()(void) const noexcept
         {
             auto values = metadata2_of<T>.values; // array of named<T>
             return array_transform2(values, [](auto namedValue) { return namedValue.value; });
@@ -328,11 +375,11 @@ template <typename T>
 
     static constexpr auto to_array(void) noexcept
     {
-        return array_retriever::invoke();
+        return array_retriever{ }();
     }
     static constexpr auto to_sequence(void) noexcept
     {
-        return array_to_sequence<array_retriever>();
+        return array_to_sequence(array_retriever{ });
     }
 };
 template <>
@@ -342,7 +389,7 @@ template <>
     {
         return { false, true };
     }
-    static constexpr sequence<bool, false, true> to_squence(void) noexcept
+    static constexpr sequence<bool, false, true> to_sequence(void) noexcept
     {
         return { };
     }
@@ -362,6 +409,8 @@ inline namespace metadata
 {
 
 
+template <typename T> using enum_value_sequence = decltype(makeshift::detail::values_of_impl<T>::to_sequence());
+
     //ᅟ
     // For bool and for enum types with metadata, returns a `sequence<>` of possible values.
     //ᅟ
@@ -378,7 +427,7 @@ template <typename T>
     // For bool and for enum types with metadata, returns an array of possible values.
     //ᅟ
 template <typename T>
-    constexpr auto value_range(tag<T> = { })
+    constexpr auto value_range(tag<T> = { }) // TODO: or make sequence<> iterable?
 {
     static_assert(have_metadata2_v<T>, "no metadata was defined for the given type");
     
