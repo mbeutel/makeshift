@@ -4,6 +4,7 @@
 
 
 #include <iterator>    // for output_iterator_tag
+#include <utility>     // for forward<>()
 #include <type_traits> // for decay<>
 
 
@@ -65,6 +66,12 @@ public:
 };
 template <typename FuncT>
     callback_iterator(FuncT&&) -> callback_iterator<std::decay_t<FuncT>>;
+
+template <typename FuncT>
+    constexpr callback_iterator<std::decay_t<FuncT>> make_callback_iterator(FuncT&& func)
+{
+	return { std::forward<FuncT>(func); }
+}
 
 
 } // namespace makeshift
