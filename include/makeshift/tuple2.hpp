@@ -21,7 +21,7 @@ namespace detail
 {
 
 
-template <typename T> using is_tuple_like_r = std::integral_constant<std::size_t, std::tuple_size<T>::value>;
+template <typename T> using is_tuple_like2_r = std::integral_constant<std::size_t, std::tuple_size<T>::value>;
 
 
 } // namespace detail
@@ -34,12 +34,12 @@ inline namespace types
     //ᅟ
     // Determines whether a type has a tuple-like interface (i.e. whether `std::tuple_size<T>::value` is well-formed).
     //
-template <typename T> struct is_tuple_like : can_apply<makeshift::detail::is_tuple_like_r, T> { };
+template <typename T> struct is_tuple_like2 : can_apply<makeshift::detail::is_tuple_like2_r, T> { };
 
     //ᅟ
     // Determines whether a type has a tuple-like interface (i.e. whether `std::tuple_size<T>::value` is well-formed).
     //
-template <typename T> constexpr bool is_tuple_like_v = is_tuple_like<T>::value;
+template <typename T> constexpr bool is_tuple_like2_v = is_tuple_like2<T>::value;
 
 
     //ᅟ
@@ -92,29 +92,31 @@ template <std::size_t I, typename... Ts>
 template <typename T, typename... Ts>
     constexpr tag<T> get(const type_sequence2<Ts...>& ts) noexcept
 {
-	constexpr index = try_index_of_type_v<T, Ts...>;
+	constexpr std::size_t index = try_index_of_type_v<T, Ts...>;
     static_assert(index != std::size_t(-1), "type T does not appear in type sequence");
     return { };
 }
 
 
     //ᅟ
-    // Pass `tuple_index` to `tuple_foreach()` or `tuple_map()` to have the tuple element index passed as a functor argument.
+    // Pass `tuple_index` to `tuple_foreach()` or `tuple_transform()` to have the tuple element index passed as a functor argument.
     // The argument is of type `integral_constant<std::size_t, I>` and implicitly converts to `std::size_t`.
     //ᅟ
-    //ᅟ    auto print_tuple = tuple_foreach([](auto element, std::size_t idx) { std::cout << idx << ": " << element << '\n'; });
-    //ᅟ    auto tuple = std::tuple{ 42, 1.41421 };
-    //ᅟ    print_tuple(tuple, tuple_index); // prints "0: 42\n1: 1.41421"
+    //ᅟ    tuple_foreach(
+    //ᅟ        [](auto element, std::size_t idx) { std::cout << idx << ": " << element << '\n'; },
+    //ᅟ        std::make_tuple(42, 1.41421), tuple_index
+    //ᅟ    ); // prints "0: 42\n1: 1.41421"
     //
 struct tuple_index_t { };
 
     //ᅟ
-    // Pass `tuple_index` to `tuple_foreach()` or `tuple_map()` to have the tuple element index passed as a functor argument.
+    // Pass `tuple_index` to `tuple_foreach()` or `tuple_transform()` to have the tuple element index passed as a functor argument.
     // The argument is of type `integral_constant<std::size_t, I>` and implicitly converts to `std::size_t`.
     //ᅟ
-    //ᅟ    auto print_tuple = tuple_foreach([](auto element, std::size_t idx) { std::cout << idx << ": " << element << '\n'; });
-    //ᅟ    auto tuple = std::tuple{ 42, 1.41421 };
-    //ᅟ    print_tuple(tuple, tuple_index); // prints "0: 42\n1: 1.41421"
+    //ᅟ    tuple_foreach(
+    //ᅟ        [](auto element, std::size_t idx) { std::cout << idx << ": " << element << '\n'; },
+    //ᅟ        std::make_tuple(42, 1.41421), tuple_index
+    //ᅟ    ); // prints "0: 42\n1: 1.41421"
     //
 constexpr tuple_index_t tuple_index{ };
 
@@ -126,43 +128,30 @@ namespace detail
 {
 
 
-template <typename T> struct is_tuple_arg : disjunction<std::is_same<std::decay_t<T>, tuple_index_t>, can_apply<is_tuple_like_r, std::decay_t<T>>> { };
+template <typename T> struct is_tuple_arg : std::disjunction<std::is_same<std::decay_t<T>, tuple_index_t>, can_apply<is_tuple_like2_r, std::decay_t<T>>> { };
 template <typename T> constexpr bool is_tuple_arg_v = is_tuple_arg<T>::value;
 
-constexpr unsigned tfSizeMismatch = 0b00000001;
-constexpr unsigned tfArray        = 0b00000011;
-constexpr unsigned tfTypeSeq      = 0b00000101;
-constexpr unsigned tfEmpty        = 0b00001110;
+template <typename... Ts> struct are_tuple_args : std::conjunction<is_tuple_arg<Ts>...> { };
+template <typename... Ts> constexpr bool are_tuple_args_v = are_tuple_args<Ts...>::value;
 
-template <typename T> struct tuple_flag_ : std::integral_constant<unsigned, 0> { };
-template <typename T, std::size_t N> struct tuple_flag_<std::array<T, N>> : std::integral_constant<unsigned, tfArray> { };
-template <typename... Ts> struct tuple_flag_<type_sequence2<Ts...>> : std::integral_constant<unsigned, tfTypeSeq> { };
+template <typename T> struct is_std_array_ : std::false_type { };
+template <typename T, std::size_t N> struct is_std_array_<std::array<T, N>> : std::true_type { };
 
-template <typename T> struct arg_val_;
-template <typename T> struct arg_val_<tuple_index_t> { using type = tuple_index_t; }; // TODO: are these really needed?
-template <typename T> struct arg_val_<tuple_index_t&&> { using type = tuple_index_t; };
-template <typename T> struct arg_val_<tuple_index_t&> { using type = tuple_index_t; };
-template <typename T> struct arg_val_<const tuple_index_t&> { using type = tuple_index_t; };
-template <typename T, std::size_t N> struct arg_val_<std::array<T, N>> { using type = T; };
-template <typename T, std::size_t N> struct arg_val_<std::array<T, N>&&> { using type = T; };
-template <typename T, std::size_t N> struct arg_val_<std::array<T, N>&> { using type = T&; };
-template <typename T, std::size_t N> struct arg_val_<const std::array<T, N>&> { using type = const T&; };
+template <typename T> struct maybe_tuple_size_ : std::tuple_size<T> { };
+template <> struct maybe_tuple_size_<tuple_index_t> : std::integral_constant<std::size_t, std::size_t(-1)> { };
 
-template <unsigned Flags, std::size_t N, typename... Ts> struct tuple_params_0_;
-template <unsigned Flags, std::size_t N>
-    struct tuple_params_0_<Flags, N>
-{
-    static constexpr bool no_args = Flags == tfEmpty;
-    static constexpr bool homogeneous = (Flags | tfArray) != 0;
-    std::size_t size = (Flags | tfSizeMismatch) != 0 ? std::size_t(-1) : N;
-};
-template <unsigned Flags, std::size_t N, tuple_index_t, typename... Ts> struct tuple_params_0_ : tuple_params_0_<Flags, N, Ts...> { };
-template <unsigned Flags, std::size_t N, typename T0, typename... Ts> struct tuple_params_0_
-    : tuple_params_0_<(Flags & tuple_flag_<T0>::value) | ((N != std::size_t(-1) && N != std::tuple_size<T0>::value) ? tfSizeMismatch : 0), std::tuple_size<T0>::value, Ts...>
+template <bool Mismatch, std::size_t N, typename... Ts> struct equal_sizes_0_;
+template <std::size_t N, typename... Ts> struct equal_sizes_0_<true, N, Ts...> : std::false_type { static constexpr std::size_t size = -1; };
+template <std::size_t N> struct equal_sizes_0_<false, N> : std::true_type { static constexpr std::size_t size = N; };
+template <std::size_t N, typename T0, typename... Ts>
+    struct equal_sizes_0_<false, N, T0, Ts...>
+        : equal_sizes_0_<
+              N != std::size_t(-1) && maybe_tuple_size_<T0>::value != std::size_t(-1) && N != maybe_tuple_size_<T0>::value,
+              N != std::size_t(-1) ? N : maybe_tuple_size_<T0>::value,
+              Ts...>
 {
 };
-template <std::size_t N, typename... Ts> struct tuple_params_ : tuple_params_0_<tfEmpty, N, Ts...> { };
-
+template <typename... Ts> struct equal_sizes_ : equal_sizes_0_<false, std::size_t(-1), Ts...> { };
 
 template <std::size_t I, typename T>
     constexpr std::integral_constant<std::size_t, I> get_element(tuple_index_t) noexcept
@@ -176,50 +165,95 @@ template <std::size_t I, typename T> // TODO: need SFINAE here to exclude tuple_
     return get<I>(std::forward<T>(arg));
 }
 
-template <std::size_t I, typename Ts, typename F>
-    constexpr decltype(auto) tuple_transform_impl2(F&& func, Ts&&... tuples)
+template <typename F, std::size_t I, typename... Ts> struct homogeneous_result_1_ { using type = decltype(std::declval<F>()(get_element<I>(std::declval<Ts>())...)); };
+
+template <typename... Ts> struct equal_types_;
+template <> struct equal_types_<> : std::true_type { };
+template <typename T0> struct equal_types_<T0> : std::true_type { using value_type = T0; };
+template <typename T0, typename T1, typename... Ts> struct equal_types_<T0, T1, Ts...> : std::conditional_t<std::is_same<T0, T1>::value, equal_types_<T1, Ts...>, std::false_type> { };
+
+template <typename F, typename Is, typename... Ts>
+    struct homogeneous_result_0_;
+template <typename F, std::size_t... Is, typename... Ts>
+    struct homogeneous_result_0_<F, std::index_sequence<Is...>, Ts...>
 {
-    return func(get_element<I>(std::forward<Ts>(tuples))...);
+    using Eq = equal_types_<typename homogeneous_result_1_<F, Is, Ts...>::type...>;
+    static_assert(Eq::value, "result types of functor must be identical for all sets of tuple elements");
+    using type = typename Eq::value_type; // exists only if types are identical
+};
+
+template <typename R, typename T> struct transfer_ref_ { using type = T; };
+template <typename R, typename T> struct transfer_ref_<R&, T> { using type = T&; };
+template <typename R, typename T> struct transfer_ref_<const R&, T> { using type = const T&; };
+template <typename R, typename T> struct transfer_ref_<R&&, T> { using type = T; };
+
+template <std::size_t N, bool HomogeneousArgs, typename F, typename... Ts>
+    struct homogeneous_result_;
+template <std::size_t N, typename F, typename... Ts>
+    struct homogeneous_result_<N, true, F, Ts...>
+{
+        // all arguments are array types, so we can just extract their value types
+    using type = decltype(std::declval<F>()(std::declval<typename transfer_ref_<Ts, typename std::decay_t<Ts>::value_type>::type>()...));
+};
+template <std::size_t N, typename F, typename... Ts>
+    struct homogeneous_result_<N, false, F, Ts...> : homogeneous_result_0_<F, std::make_index_sequence<N>, Ts...>
+{
+    // some arguments are non-homogeneous, so we need to compute return types for all combinations and verify that they match exactly
+};
+
+constexpr unsigned rtkVoid        = 0;
+constexpr unsigned rtkTag         = 1;
+constexpr unsigned rtkAny         = 2;
+constexpr unsigned rtkHomogeneous = 3;
+
+template <std::size_t I, typename... Ts, typename F>
+    constexpr decltype(auto)
+    tuple_transform_impl2(F&& func, Ts&&... args)
+{
+    return func(get_element<I>(std::forward<Ts>(args))...);
 }
 
-// implementations: void, tag, (void & homogeneous,) tag & homogeneous, any, any & homogeneous
-
-unsigned rtkVoid        = 0;
-unsigned rtkTag         = 1;
-unsigned rtkAny         = 2;
-unsigned rtkHomogeneous = 3;
-
-template <typename Ts, typename F, std::size_t... Is>
-    constexpr void tuple_transform_impl1(std::integral_constant<unsigned, trfVoid>, std::index_sequence<Is...>, F&& func, Ts&&... args)
+template <typename... Ts, typename F, std::size_t... Is>
+    constexpr void
+    tuple_transform_impl1(std::integral_constant<unsigned, rtkVoid>, std::index_sequence<Is...>, F&& func, Ts&&... args)
 {
-    int _[] = { (tuple_transform_impl2<Is>(std::forward<F>(func), std::forward<Ts>(args)...), void, 0)... };
-    (void) _;
+    using Swallow = int[];
+    (void) Swallow{ 1,
+        (tuple_transform_impl2<Is>(std::forward<F>(func), std::forward<Ts>(args)...), void(), int{ })...
+    };
 }
-template <typename Ts, typename F, std::size_t... Is>
-    constexpr auto tuple_transform_impl1(std::integral_constant<unsigned, trfTag>, std::index_sequence<Is...>, F&& func, Ts&&... args)
+template <typename... Ts, typename F, std::size_t... Is>
+    constexpr auto
+    tuple_transform_impl1(std::integral_constant<unsigned, rtkTag>, std::index_sequence<Is...>, F&& func, Ts&&... args)
+        -> decltype(make_type_sequence2(tuple_transform_impl2<Is>(std::forward<F>(func), std::forward<Ts>(args)...)...))
 {
-    return make_type_sequence2(tuple_transform_impl2<Is>(std::forward<F>(func), std::forward<Ts>(args)...)...);
+    return { };
 }
-template <typename Ts, typename F, std::size_t... Is>
-    constexpr auto tuple_transform_impl1(std::integral_constant<unsigned, trfAny>, std::index_sequence<Is...>, F&& func, Ts&&... args)
+template <typename... Ts, typename F, std::size_t... Is>
+    constexpr auto
+    tuple_transform_impl1(std::integral_constant<unsigned, rtkAny>, std::index_sequence<Is...>, F&& func, Ts&&... args)
 {
     return std::make_tuple(tuple_transform_impl2<Is>(std::forward<F>(func), std::forward<Ts>(args)...)...);
 }
-template <typename Ts, typename F, std::size_t... Is>
-    constexpr auto tuple_transform_impl1(std::integral_constant<unsigned, trfHomogeneous>, std::index_sequence<Is...>, F&& func, Ts&&... args)
-        ->std::array<std::decay_t<decltype(func(std::declval<typename arg_val_<Ts>::type>()...))>, sizeof...(Is)>
+template <typename... Ts, typename F, std::size_t... Is>
+    constexpr typename homogeneous_result_<sizeof...(Is), cand(is_std_array_<std::decay_t<Ts>>::value...), F, Ts...>::type
+    tuple_transform_impl1(std::integral_constant<unsigned, rtkHomogeneous>, std::index_sequence<Is...>, F&& func, Ts&&... args)
 {
     return { tuple_transform_impl2<Is>(std::forward<F>(func), std::forward<Ts>(args)...)... };
 }
 
-template <std::size_t N, unsigned ReturnTypeKind, typename... Ts>
+template <std::size_t N, unsigned ReturnTypeKind, typename F, typename... Ts>
     constexpr auto tuple_transform_impl0(F&& func, Ts&&... args)
 {
-    using Params = tuple_params_<N, std::decay_t<Ts>...>;
-    static_assert(N != std::size_t(-1) || !Params::no_args, "no tuple argument and no size given");
-    static_assert(Params::size != std::size_t(-1), "sizes of tuple arguments do not match");
+    using Eq = equal_sizes_<std::decay_t<Ts>...>;
+    static_assert(Eq::value, "sizes of tuple arguments do not match");
+    static_assert(N != std::size_t(-1) || Eq::size != std::size_t(-1) || N == Eq::size, "given size argument does not match sizes of tuple arguments");
+    static_assert(N != std::size_t(-1) || Eq::size != std::size_t(-1), "no tuple argument and no size given");
+    static constexpr std::size_t size = N != std::size_t(-1)
+        ? N
+        : Eq::size;
     
-    return tuple_transform_impl1(std::integral_constant<unsigned, ReturnTypeKind>{ }, std::make_index_sequence<Params::size>{ },
+    return tuple_transform_impl1(std::integral_constant<unsigned, ReturnTypeKind>{ }, std::make_index_sequence<size>{ },
         std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
@@ -231,16 +265,15 @@ inline namespace types
 
 
     //ᅟ
-    // Takes a scalar procedure (i.e. a function with non-tuple arguments and with void return type) and calls the procedure for every
-    // element in the given tuples.
+    // Takes a scalar procedure (i.e. a function of non-tuple arguments which returns nothing) and calls the procedure for every element in the given tuples.
     //ᅟ
     //ᅟ    tuple_foreach<3>(
     //ᅟ        [](std::size_t i) { std::cout << i << '\n'; },
     //ᅟ        tuple_index
-    //ᅟ    ); // prints "1\n2.3\n"
+    //ᅟ    ); // prints "0\n1\n2\n"
     //
-template <std::size_t N, typename F, typename Ts,
-          typename = std::enable_if_t<std::conjunction<makeshift::detail::is_tuple_arg<Ts>...>>>
+template <std::size_t N, typename F, typename... Ts,
+          typename = std::enable_if_t<makeshift::detail::are_tuple_args_v<Ts...>>>
     constexpr void
     tuple_foreach2(F&& func, Ts&&... args)
 {
@@ -249,53 +282,16 @@ template <std::size_t N, typename F, typename Ts,
 
 
     //ᅟ
-    // Takes a scalar procedure (i.e. a function with non-tuple arguments and with void return type) and returns a tuple of the results
-    // of the function applied to the tuple elements.
-    //ᅟ
-    //ᅟ    auto indices = tuple_transform<3>(
-    //ᅟ        [](std::size_t i) { return i; },
-    //ᅟ        tuple_index
-    //ᅟ    ); // returns (0, 1, 2)
-    //
-template <std::size_t N, typename F, typename Ts,
-          typename = std::enable_if_t<std::conjunction<makeshift::detail::is_tuple_arg<Ts>...>>>
-    constexpr void
-    tuple_transform2(F&& func, Ts&&... args)
-{
-    makeshift::detail::tuple_transform_impl0<N, makeshift::detail::rtkAny>(std::forward<F>(func), std::forward<Ts>(args)...);
-}
-
-
-    //ᅟ
-    // Takes a scalar procedure (i.e. a function with non-tuple arguments and with void return type) and returns a tuple of the results
-    // of the function applied to the tuple elements.
-    //ᅟ
-    //ᅟ    auto indices = tuple_transform<3>(
-    //ᅟ        [](std::size_t i) { return i; },
-    //ᅟ        tuple_index
-    //ᅟ    ); // returns (0, 1, 2)
-    //
-template <typename F, typename Ts,
-          typename = std::enable_if_t<std::conjunction<makeshift::detail::is_tuple_arg<Ts>...>>>
-    constexpr void
-    tuple_transform2(F&& func, Ts&&... args)
-{
-    makeshift::detail::tuple_transform_impl0<std::size_t(-1), makeshift::detail::rtkAny>(std::forward<F>(func), std::forward<Ts>(args)...);
-}
-
-
-    //ᅟ
-    // Takes a scalar procedure (i.e. a function with non-tuple arguments and with void return type) and calls the procedure for every
-    // element in the given tuples.
+    // Takes a scalar procedure (i.e. a function of non-tuple arguments which returns nothing) and calls the procedure for every element in the given tuples.
     //ᅟ
     //ᅟ    tuple_foreach(
     //ᅟ        [](auto name, auto elem) { std::cout << name << ": " << elem << '\n'; },
-    //ᅟ        std::tuple{ "a", "b" },
-    //ᅟ        std::tuple{ 1, 2.3f }
-    //ᅟ    ); // prints "1\n2.3\n"
+    //ᅟ        std::make_tuple("a", "b"),
+    //ᅟ        std::make_tuple(1, 2.3f)
+    //ᅟ    ); // prints "a: 1\nb: 2.3\n"
     //
-template <typename F, typename Ts,
-          typename = std::enable_if_t<std::conjunction<makeshift::detail::is_tuple_arg<Ts>...>>>
+template <typename F, typename... Ts,
+          typename = std::enable_if_t<makeshift::detail::are_tuple_args_v<Ts...>>>
     constexpr void
     tuple_foreach2(F&& func, Ts&&... args)
 {
@@ -304,613 +300,104 @@ template <typename F, typename Ts,
 
 
     //ᅟ
-    // Takes a scalar procedure (i.e. a function with non-tuple arguments and with void return type) and returns an array of the results
-    // of the function applied to the tuple elements.
+    // Takes a scalar function (i.e. a function of non-tuple arguments) and returns a tuple of the results of the function applied to the tuple elements.
     //ᅟ
     //ᅟ    auto indices = tuple_transform<3>(
     //ᅟ        [](std::size_t i) { return i; },
     //ᅟ        tuple_index
-    //ᅟ    ); // returns (0, 1, 2)
+    //ᅟ    ); // returns std::tuple{ 0, 1, 2 }
     //
-template <std::size_t N, typename F, typename Ts,
-          typename = std::enable_if_t<std::conjunction<makeshift::detail::is_tuple_arg<Ts>...>>>
-    constexpr void
+template <std::size_t N, typename F, typename... Ts,
+          typename = std::enable_if_t<makeshift::detail::are_tuple_args_v<Ts...>>>
+    constexpr auto
+    tuple_transform2(F&& func, Ts&&... args)
+{
+    return makeshift::detail::tuple_transform_impl0<N, makeshift::detail::rtkAny>(std::forward<F>(func), std::forward<Ts>(args)...);
+}
+
+
+    //ᅟ
+    // Takes a scalar function (i.e. a function of non-tuple arguments) and returns a tuple of the results of the function applied to the tuple elements.
+    //ᅟ
+    //ᅟ    auto squares = tuple_transform(
+    //ᅟ        [](auto x) { return x*x; },
+    //ᅟ        std::make_tuple(2, 3.0f)
+    //ᅟ    ); // returns std::tuple{ 4, 9.0f }
+    //
+template <typename F, typename... Ts,
+          typename = std::enable_if_t<makeshift::detail::are_tuple_args_v<Ts...>>>
+    constexpr auto
+    tuple_transform2(F&& func, Ts&&... args)
+{
+    return makeshift::detail::tuple_transform_impl0<std::size_t(-1), makeshift::detail::rtkAny>(std::forward<F>(func), std::forward<Ts>(args)...);
+}
+
+
+    //ᅟ
+    // Takes a scalar function (i.e. a function of non-tuple arguments) and returns an array of the results of the function applied to the tuple elements.
+    //ᅟ
+    //ᅟ    auto indices = array_transform<3>(
+    //ᅟ        [](std::size_t i) { return i; },
+    //ᅟ        tuple_index
+    //ᅟ    ); // returns std::array{ 0, 1, 2 }
+    //
+template <std::size_t N, typename F, typename... Ts,
+          typename = std::enable_if_t<makeshift::detail::are_tuple_args_v<Ts...>>>
+    constexpr auto
     array_transform2(F&& func, Ts&&... args)
 {
-    makeshift::detail::tuple_transform_impl0<N, makeshift::detail::rtkHomogeneous>(std::forward<F>(func), std::forward<Ts>(args)...);
+    return makeshift::detail::tuple_transform_impl0<N, makeshift::detail::rtkHomogeneous>(std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
 
     //ᅟ
-    // Takes a scalar procedure (i.e. a function with non-tuple arguments and with void return type) and returns an array of the results
-    // of the function applied to the tuple elements.
+    // Takes a scalar function (i.e. a function of non-tuple arguments) and returns an array of the results of the function applied to the tuple elements.
     //ᅟ
-    //ᅟ    auto indices = tuple_transform<3>(
-    //ᅟ        [](std::size_t i) { return i; },
-    //ᅟ        tuple_index
-    //ᅟ    ); // returns (0, 1, 2)
+    //ᅟ    auto intSquares = array_transform(
+    //ᅟ        [](auto x) { return int(x*x); },
+    //ᅟ        std::make_tuple(2, 3.0f)
+    //ᅟ    ); // returns std::array{ 4, 9 }
     //
-template <typename F, typename Ts,
-          typename = std::enable_if_t<std::conjunction<makeshift::detail::is_tuple_arg<Ts>...>>>
-    constexpr void
+template <typename F, typename... Ts,
+          typename = std::enable_if_t<makeshift::detail::are_tuple_args_v<Ts...>>>
+    constexpr auto
     array_transform2(F&& func, Ts&&... args)
 {
-    makeshift::detail::tuple_transform_impl0<std::size_t(-1), makeshift::detail::rtkHomogeneous>(std::forward<F>(func), std::forward<Ts>(args)...);
+    return makeshift::detail::tuple_transform_impl0<std::size_t(-1), makeshift::detail::rtkHomogeneous>(std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
 
     //ᅟ
-    // Takes a scalar procedure (i.e. a function with non-tuple arguments and with void return type) and returns a tuple of the results
-    // of the function applied to the tuple elements.
+    // Takes a scalar function (i.e. a function of non-tuple arguments) and returns a sequence of the result types of the function applied to the tuple elements.
     //ᅟ
-    //ᅟ    auto indices = tuple_transform<3>(
-    //ᅟ        [](std::size_t i) { return i; },
+    //ᅟ    auto indices = type_sequence_transform<3>(
+    //ᅟ        [](auto i) { return i; },
     //ᅟ        tuple_index
-    //ᅟ    ); // returns (0, 1, 2)
+    //ᅟ    ); // returns type_sequence<integral_constant<std::size_t, 0>, integral_constant<std::size_t, 1>, integral_constant<std::size_t, 2>>
     //
-template <std::size_t N, typename F, typename Ts,
-          typename = std::enable_if_t<std::conjunction<makeshift::detail::is_tuple_arg<Ts>...>>>
-    constexpr void
+template <std::size_t N, typename F, typename... Ts,
+          typename = std::enable_if_t<makeshift::detail::are_tuple_args_v<Ts...>>>
+    constexpr auto
     type_sequence_transform2(F&& func, Ts&&... args)
 {
-    makeshift::detail::tuple_transform_impl0<N, makeshift::detail::rtkTag>(std::forward<F>(func), std::forward<Ts>(args)...);
+    return makeshift::detail::tuple_transform_impl0<N, makeshift::detail::rtkTag>(std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
 
     //ᅟ
-    // Takes a scalar procedure (i.e. a function with non-tuple arguments and with void return type) and returns a tuple of the results
-    // of the function applied to the tuple elements.
+    // Takes a scalar function (i.e. a function of non-tuple arguments) and returns a sequence of the result types of the function applied to the tuple elements.
     //ᅟ
-    //ᅟ    auto indices = tuple_transform<3>(
-    //ᅟ        [](std::size_t i) { return i; },
-    //ᅟ        tuple_index
-    //ᅟ    ); // returns (0, 1, 2)
+    //ᅟ    auto squares = type_sequence_transform(
+    //ᅟ        [](auto x) { return x*x; },
+    //ᅟ        std::make_tuple(2, 3.0f)
+    //ᅟ    ); // returns type_sequence<int, float>
     //
-template <typename F, typename Ts,
-          typename = std::enable_if_t<std::conjunction<makeshift::detail::is_tuple_arg<Ts>...>>>
-    constexpr void
+template <typename F, typename... Ts,
+          typename = std::enable_if_t<makeshift::detail::are_tuple_args_v<Ts...>>>
+    constexpr auto
     type_sequence_transform2(F&& func, Ts&&... args)
 {
-    makeshift::detail::tuple_transform_impl0<std::size_t(-1), makeshift::detail::rtkTag>(std::forward<F>(func), std::forward<Ts>(args)...);
-}
-
-
-    //ᅟ
-    // Takes a scalar function (i.e. a function with non-tuple arguments and non-tuple return type) and returns a function which can be called 
-    // with tuples in some or all arguments, and whose result will be a tuple of the results of the function applied to the tuple elements.
-    //ᅟ
-    //ᅟ    auto numbers = std::tuple{ 2, 3.0f };
-    //ᅟ    auto squaredNumbers = numbers
-    //ᅟ        | tuple_map([](auto x) { return x*x; }); // returns (4, 9.0f)
-    //
-template <typename F>
-    constexpr makeshift::detail::tuple_foreach_t<true, std::decay_t<F>>
-    tuple_map(F&& func)
-{
-    return { std::forward<F>(func) };
-}
-
-
-    //ᅟ
-    // Takes a tuple and a scalar function (i.e. a function with non-tuple arguments and non-tuple return type) and returns a tuple of the results
-    // of the function applied to the tuple elements.
-    //ᅟ
-    //ᅟ    auto numbers = std::tuple{ 2, 3.0f };
-    //ᅟ    auto squaredNumbers = tuple_map(numbers, [](auto x) { return x*x; }); // returns (4, 9.0f)
-    //
-template <typename TupleT, typename F,
-          typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
-    constexpr auto
-    tuple_map(TupleT&& tuple, F&& func)
-{
-    return tuple_map(std::forward<F>(func))(std::forward<TupleT>(tuple));
-}
-
-
-    //ᅟ
-    // Returns a functor that maps a tuple to an array of element type `T` that is initialized with result of the functor applied to the elements
-    // in the tuple.
-    //ᅟ
-    //ᅟ    auto tuple = std::tuple{ 1, 2u, 3.0 };
-    //ᅟ    auto array = tuple
-    //ᅟ        | tuple_map_to<int>([](auto v) { return int(v*v); }); // returns {{ 1, 4, 9 }}
-    //
-template <typename T, typename F>
-    constexpr makeshift::detail::tuple_map_to_t<std::remove_cv_t<T>, std::decay_t<F>>
-    tuple_map_to(F&& func)
-{
-    return { std::forward<F>(func) };
-}
-
-
-    //ᅟ
-    // Returns a `std::array<>` of element type `T` that is initialized with the result of the functor applied to the elements in the tuple.
-    //ᅟ
-    //ᅟ    auto tuple = std::tuple{ 1, 2u, 3.0 };
-    //ᅟ    auto array = tuple_map_to<int>(tuple, [](auto v) { return int(v*v); }); // returns {{ 1, 2, 3 }}
-    //
-template <typename T, typename TupleT, typename F,
-          typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
-    constexpr std::array<std::remove_cv_t<T>, std::tuple_size<std::decay_t<TupleT>>::value>
-    tuple_map_to(TupleT&& tuple, F&& func)
-{
-    return tuple_map_to<T>()(std::forward<TupleT>(tuple), std::forward<F>(func));
-}
-
-
-    //ᅟ
-    // Returns a functor that maps a tuple to an array of element type `T` that is initialized with the elements in the tuple.
-    //ᅟ
-    //ᅟ    auto tuple = std::tuple{ 1, 2, 3 };
-    //ᅟ    auto array = tuple
-    //ᅟ        | tuple_to_array<int>(); // returns {{ 1, 2, 3 }}
-    //
-template <typename T>
-    constexpr makeshift::detail::tuple_map_to_t<std::remove_cv_t<T>, makeshift::detail::implicit_conversion_transform<T>>
-    tuple_to_array(void)
-{
-    return { { } };
-}
-
-
-    //ᅟ
-    // Returns a `std::array<>` of element type `T` that is initialized with the elements in the tuple.
-    //ᅟ
-    //ᅟ    auto tuple = std::tuple{ 1, 2, 3 };
-    //ᅟ    auto array = tuple_to_array<int>(tuple); // returns {{ 1, 2, 3 }}
-    //
-template <typename T, typename TupleT,
-          typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
-    constexpr std::array<std::remove_cv_t<T>, std::tuple_size<std::decay_t<TupleT>>::value>
-    tuple_to_array(TupleT&& tuple)
-{
-    return tuple_to_array<T>()(std::forward<TupleT>(tuple));
-}
-
-
-    //ᅟ
-    // Takes a binary accumulator function (i.e. a function with non-tuple arguments and non-tuple return type) and returns a function which reduces
-    // an initial value and a tuple to a scalar using the accumulator function by performing a left fold.
-    //ᅟ
-    //ᅟ    auto sumTuple = tuple_fold(std::plus<int>{ });
-    //ᅟ    auto numbers = std::tuple{ 2, 3u };
-    //ᅟ    int sum = sumTuple(0, numbers); // returns 5
-    //
-template <typename F>
-    constexpr makeshift::detail::tuple_fold_t<true, std::decay_t<F>>
-    tuple_fold(F&& func)
-{
-    return { std::forward<F>(func) };
-}
-
-
-    //ᅟ
-    // Takes a binary accumulator function (i.e. a function with non-tuple arguments and non-tuple return type) and returns a function which reduces
-    // an initial value and a tuple to a scalar using the accumulator function by performing a left fold.
-    //ᅟ
-    //ᅟ    auto sumTuple = tuple_fold_left(std::plus<int>{ });
-    //ᅟ    auto numbers = std::tuple{ 2, 3u };
-    //ᅟ    int sum = sumTuple(0, numbers); // returns 5
-    //
-template <typename F>
-    constexpr makeshift::detail::tuple_fold_t<true, std::decay_t<F>>
-    tuple_fold_left(F&& func)
-{
-    return { std::forward<F>(func) };
-}
-
-
-    //ᅟ
-    // Takes a binary accumulator function (i.e. a function with non-tuple arguments and non-tuple return type) and returns a function which reduces
-    // an initial value and a tuple to a scalar using the accumulator function by performing a right fold.
-    //ᅟ
-    //ᅟ    auto sumTuple = tuple_fold_right(std::plus<int>{ });
-    //ᅟ    auto numbers = std::tuple{ 2, 3u };
-    //ᅟ    int sum = sumTuple(0, numbers); // returns 5
-    //
-template <typename F>
-    constexpr makeshift::detail::tuple_fold_t<false, std::decay_t<F>>
-    tuple_fold_right(F&& func)
-{
-    return { std::forward<F>(func) };
-}
-
-
-    //ᅟ
-    // Takes an initial value and a binary accumulator function (i.e. a function with non-tuple arguments and non-tuple type) and returns a function
-    // which reduces a tuple to a scalar using the accumulator function by performing a left fold.
-    //ᅟ
-    //ᅟ    auto numbers = std::tuple{ 2, 3u };
-    //ᅟ    int sum = numbers
-    //ᅟ        | tuple_fold(0, std::plus<int>{ }); // returns 5
-    //
-template <typename ValT, typename F>
-    constexpr makeshift::detail::tuple_bound_fold_t<true, std::decay_t<ValT>, std::decay_t<F>>
-    tuple_fold(ValT&& initialValue, F&& func)
-{
-    return { std::forward<ValT>(initialValue), std::forward<F>(func) };
-}
-
-
-    //ᅟ
-    // Takes an initial value and a binary accumulator function (i.e. a function with non-tuple arguments and non-tuple type) and returns a function
-    // which reduces a tuple to a scalar using the accumulator function by performing a left fold.
-    //ᅟ
-    //ᅟ    auto numbers = std::tuple{ 2, 3u };
-    //ᅟ    int sum = numbers
-    //ᅟ        | tuple_fold_left(0, std::plus<int>{ }); // returns 5
-    //
-template <typename ValT, typename F>
-    constexpr makeshift::detail::tuple_bound_fold_t<true, std::decay_t<ValT>, std::decay_t<F>>
-    tuple_fold_left(ValT&& initialValue, F&& func)
-{
-    return { std::forward<ValT>(initialValue), std::forward<F>(func) };
-}
-
-
-    //ᅟ
-    // Takes an initial value and a binary accumulator function (i.e. a function with non-tuple arguments and non-tuple type) and returns a function
-    // which reduces a tuple to a scalar using the accumulator function by performing a right fold.
-    //ᅟ
-    //ᅟ    auto numbers = std::tuple{ 2, 3u };
-    //ᅟ    int sum = numbers
-    //ᅟ        | tuple_fold_right(0, std::plus<int>{ }); // returns 5
-    //
-template <typename ValT, typename F>
-    constexpr makeshift::detail::tuple_bound_fold_t<false, std::decay_t<ValT>, std::decay_t<F>>
-    tuple_fold_right(ValT&& initialValue, F&& func)
-{
-    return { std::forward<ValT>(initialValue), std::forward<F>(func) };
-}
-
-
-    //ᅟ
-    // Takes a tuple, an initial value and a binary accumulator function (i.e. a function with non-tuple arguments and non-tuple type) and returns the
-    // left fold of the tuple.
-    //ᅟ
-    //ᅟ    auto numbers = std::tuple{ 2, 3u };
-    //ᅟ    int sum = tuple_fold(numbers, 0, std::plus<int>{ }); // returns 5
-    //
-template <typename TupleT, typename T, typename F,
-          typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
-    constexpr auto
-    tuple_fold(TupleT&& tuple, T&& initialValue, F&& func)
-{
-    return tuple_fold_left(std::forward<F>(func))(std::forward<T>(initialValue), std::forward<TupleT>(tuple));
-}
-
-
-    //ᅟ
-    // Takes a tuple, an initial value and a binary accumulator function (i.e. a function with non-tuple arguments and non-tuple type) and returns the
-    // left fold of the tuple.
-    //ᅟ
-    //ᅟ    auto numbers = std::tuple{ 2, 3u };
-    //ᅟ    int sum = tuple_fold_left(numbers, 0, std::plus<int>{ }); // returns 5
-    //
-template <typename TupleT, typename T, typename F,
-          typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
-    constexpr auto
-    tuple_fold_left(TupleT&& tuple, T&& initialValue, F&& func)
-{
-    return tuple_fold_left(std::forward<F>(func))(std::forward<T>(initialValue), std::forward<TupleT>(tuple));
-}
-
-
-    //ᅟ
-    // Takes a tuple, an initial value and a binary accumulator function (i.e. a function with non-tuple arguments and non-tuple type) and returns the
-    // right fold of the tuple.
-    //ᅟ
-    //ᅟ    auto numbers = std::tuple{ 2, 3u };
-    //ᅟ    int sum = tuple_fold_right(numbers, 0, std::plus<int>{ }); // returns 5
-    //
-template <typename TupleT, typename T, typename F,
-          typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
-    constexpr auto
-    tuple_fold_right(TupleT&& tuple, T&& initialValue, F&& func)
-{
-    return tuple_fold_right(std::forward<F>(func))(std::forward<T>(initialValue), std::forward<TupleT>(tuple));
-}
-
-
-    //ᅟ
-    // Takes a unary predicate function and returns a function which evaluates the short-circuited conjunction of the predicate applied to all tuple elements.
-    //ᅟ
-    //ᅟ    auto numbers = std::tuple{ 2, 3u };
-    //ᅟ    auto allNumbersGreaterThanZero = numbers
-    //ᅟ        | tuple_all([](auto v) { return v > 0; }); // returns true
-    //
-template <typename F>
-    constexpr makeshift::detail::tuple_all_any_t<true, std::decay_t<F>>
-    tuple_all(F&& func)
-{
-    return { std::forward<F>(func) };
-}
-
-    //ᅟ
-    // Takes a unary predicate function and evaluates the short-circuited conjunction of the predicate applied to all tuple elements.
-    //ᅟ
-    //ᅟ    auto numbers = std::tuple{ 2, 3u };
-    //ᅟ    auto allNumbersGreaterThanZero = tuple_all(numbers,
-    //ᅟ        [](auto v) { return v > 0; })); // returns true
-    //
-template <typename TupleT, typename F,
-          typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
-    constexpr bool
-    tuple_all(TupleT&& tuple, F&& func)
-{
-    return tuple_all(std::forward<F>(func))(std::forward<TupleT>(tuple));
-}
-
-
-    //ᅟ
-    // Takes a unary predicate function and returns a function which evaluates the short-circuited disjunction of the predicate applied to all tuple elements.
-    //ᅟ
-    //ᅟ    auto numbers = std::tuple{ 2, 3u };
-    //ᅟ    auto anyNumberGreaterThanZero = numbers
-    //ᅟ        | tuple_any([](auto v) { return v > 0; }); // returns true
-    //
-template <typename F>
-    constexpr makeshift::detail::tuple_all_any_t<false, std::decay_t<F>>
-    tuple_any(F&& func)
-{
-    return { std::forward<F>(func) };
-}
-
-    //ᅟ
-    // Takes a unary predicate function and evaluates the short-circuited disjunction of the predicate applied to all tuple elements.
-    //ᅟ
-    //ᅟ    auto numbers = std::tuple{ 2, 3u };
-    //ᅟ    auto anyNumberGreaterThanZero = tuple_any(numbers,
-    //ᅟ        [](auto v) { return v > 0; })); // returns true
-    //
-template <typename TupleT, typename F,
-          typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
-    constexpr bool
-    tuple_any(TupleT&& tuple, F&& func)
-{
-    return tuple_any(std::forward<F>(func))(std::forward<TupleT>(tuple));
-}
-
-
-    //ᅟ
-    // Returns a functor which retrieves the tuple element of the given type, or which returns the provided default value if the tuple does not contain
-    // an element of the given type. The type of the default value does not need to match the desired element type.
-    //ᅟ
-    //ᅟ    auto tuple = std::tuple{ 42 };
-    //ᅟ    auto str = tuple
-    //ᅟ        | get_or_default<std::string>("bar"sv); // returns "bar"sv
-    //
-template <typename T, typename DefaultT,
-          typename = std::enable_if_t<!is_tuple_like_v<std::decay_t<DefaultT>>>> // TODO: this is not optimal because we might have nested tuples...
-    constexpr makeshift::detail::get_or_default_t<T, std::decay_t<DefaultT>>
-    get_or_default(DefaultT&& defaultValue)
-{
-    return { std::forward<DefaultT>(defaultValue) };
-}
-
-
-    //ᅟ
-    // Returns a functor which retrieves the tuple element of the given type, or which returns a default-constructed element if the tuple does not
-    // contain an element of the given type.
-    //ᅟ
-    //ᅟ    auto tuple = std::tuple{ 42 };
-    //ᅟ    auto str = tuple
-    //ᅟ        | get_or_default<std::string>(); // returns ""s
-    //
-template <typename T>
-    constexpr makeshift::detail::get_or_default_t<T, std::decay_t<T>>
-    get_or_default(void)
-{
-    return {{ }};
-}
-
-
-    //ᅟ
-    // Returns the tuple element of the given type, or the provided default value if the tuple does not contain an element of the given type.
-    // The type of the default value does not need to match the desired element type.
-    //ᅟ
-    //ᅟ    auto tuple = std::tuple{ 42 };
-    //ᅟ    auto str = get_or_default<std::string>(tuple, "bar"sv); // returns "bar"sv
-    //
-template <typename T, typename TupleT, typename DefaultT,
-          typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
-    constexpr auto
-    get_or_default(TupleT&& tuple, DefaultT&& defaultValue)
-{
-    return get_or_default<T>(std::forward<DefaultT>(defaultValue))(std::forward<TupleT>(tuple));
-}
-
-
-    //ᅟ
-    // Returns the tuple element of the given type, or the provided default value if the tuple does not contain an element of the given type.
-    // The type of the default value does not need to match the desired element type.
-    //ᅟ
-    //ᅟ    auto tuple = std::tuple{ 42 };
-    //ᅟ    auto str = get_or_default<std::string>(tuple); // returns ""s
-    //
-template <typename T, typename TupleT,
-          typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
-    constexpr T
-    get_or_default(TupleT&& tuple)
-{
-    return get_or_default<T>()(std::forward<TupleT>(tuple));
-}
-
-
-    //ᅟ
-    // Returns a functor which retrieves the tuple element of the given type, or `none` if the tuple does not contain an element of the given type.
-    //ᅟ
-    //ᅟ    auto tuple = std::tuple{ 42 };
-    //ᅟ    auto str = tuple
-    //ᅟ        | get_or_none<std::string>(); // returns none
-    //
-template <typename T>
-    constexpr makeshift::detail::get_or_default_t<T, none>
-    get_or_none(void)
-{
-    return {{ }};
-}
-
-
-    //ᅟ
-    // Returns the tuple element of the given type, or `none` if the tuple does not contain an element of the given type.
-    //ᅟ
-    //ᅟ    auto tuple = std::tuple{ 42 };
-    //ᅟ    auto str = get_or_none<std::string>(tuple); // returns none
-    //
-template <typename T, typename TupleT,
-          typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
-    constexpr auto
-    get_or_none(TupleT&& tuple)
-{
-    return get_or_none<T>()(std::forward<TupleT>(tuple));
-}
-
-
-    //ᅟ
-    // Returns a functor which retrieves the tuple element of the given type.
-    //ᅟ
-    //ᅟ    auto tuple = std::tuple{ 42 };
-    //ᅟ    auto elem = tuple
-    //ᅟ        | get<int>(); // returns 42
-    //
-template <typename T>
-    constexpr makeshift::detail::get_t<T>
-    get(void)
-{
-    return { };
-}
-
-
-    //ᅟ
-    // Returns a functor which retrieves the tuple element with the given index. Negative indices count from the end.
-    //ᅟ
-    //ᅟ    auto tuple = std::tuple{ 42 };
-    //ᅟ    auto elem = tuple
-    //ᅟ        | get<0>(); // returns 42
-    //
-template <int I>
-    constexpr makeshift::detail::get_by_index_t<I>
-    get(void)
-{
-    return { };
-}
-
-
-    //ᅟ
-    // Returns a functor which retrieves the single element in a tuple, or which returns the provided default value if the tuple is empty.
-    //ᅟ
-    //ᅟ    auto tuple = std::tuple{ 12, 42 };
-    //ᅟ    auto elem = tuple
-    //ᅟ        | single_or_default(0); // returns 0
-    //
-template <typename DefaultT>
-    constexpr makeshift::detail::single_or_default_t<std::decay_t<DefaultT>>
-    single_or_default(DefaultT&& defaultValue)
-{
-    return { std::forward<DefaultT>(defaultValue) };
-}
-
-
-    //ᅟ
-    // Returns the single element in a tuple, or the provided default value if the tuple is empty.
-    //ᅟ
-    //ᅟ    auto tuple = std::tuple{ 12, 42 };
-    //ᅟ    auto elem = single_or_default(tuple, 0); // returns 0
-    //
-template <typename TupleT, typename DefaultT,
-          typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
-    constexpr auto
-    single_or_default(TupleT&& tuple, DefaultT&& defaultValue)
-{
-    return single_or_default(std::forward<DefaultT>(defaultValue))(std::forward<TupleT>(tuple));
-}
-
-
-    //ᅟ
-    // Returns a functor which retrieves the single element in a tuple, or which returns `none` if the tuple is empty.
-    //ᅟ
-    //ᅟ    auto tuple = std::tuple{ 12, 42 };
-    //ᅟ    auto elem = tuple
-    //ᅟ        | single_or_none(); // returns none
-    //
-constexpr inline makeshift::detail::single_or_default_t<none>
-single_or_none(void)
-{
-    return {{ }};
-}
-
-
-    //ᅟ
-    // Returns the single element in a tuple, or `none` if the tuple is empty.
-    //ᅟ
-    //ᅟ    auto tuple = std::tuple{ 12, 42 };
-    //ᅟ    auto elem = single_or_none(tuple); // returns 0
-    //
-template <typename TupleT,
-          typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
-    constexpr auto
-    single_or_none(TupleT&& tuple)
-{
-    return single_or_none()(std::forward<TupleT>(tuple));
-}
-
-
-    //ᅟ
-    // Returns a functor which retrieves the single element in a tuple.
-    //ᅟ
-    //ᅟ    auto tuple = std::tuple{ 42 };
-    //ᅟ    auto elem = tuple
-    //ᅟ        | single(); // returns 42
-    //
-constexpr inline makeshift::detail::single_t
-single(void)
-{
-    return { };
-}
-
-
-    //ᅟ
-    // Returns the single element in a tuple.
-    //ᅟ
-    //ᅟ    auto tuple = std::tuple{ 42 };
-    //ᅟ    auto elem = single(tuple); // returns 42
-    //
-template <typename TupleT,
-          typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
-    constexpr auto
-    single(TupleT&& tuple)
-{
-    return single()(std::forward<TupleT>(tuple));
-}
-
-
-    //ᅟ
-    // Concatenates the tuples in a tuple of tuples.
-    //ᅟ
-    //ᅟ    auto tuple = std::tuple{ std::tuple{ 1 }, std::tuple{ 2 } };
-    //ᅟ    auto flat_tuple = tuple
-    //ᅟ        | tuple_cat(); // returns (1, 2)
-    //
-constexpr inline makeshift::detail::tuple_cat_t
-tuple_cat(void)
-{
-    return { };
-}
-
-
-    //ᅟ
-    // Concatenates the tuples in a tuple of tuples.
-    //ᅟ
-    //ᅟ    auto tuple = std::tuple{ std::tuple{ 1 }, std::tuple{ 2 } };
-    //ᅟ    auto flat_tuple = tuple_cat(tuple); // returns (1, 2)
-    //
-template <typename TupleT,
-          typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
-    constexpr auto
-    tuple_cat(TupleT&& tuple)
-{
-    return tuple_cat()(std::forward<TupleT>(tuple));
+    return makeshift::detail::tuple_transform_impl0<std::size_t(-1), makeshift::detail::rtkTag>(std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
 
@@ -923,17 +410,12 @@ namespace std
 {
 
 
-    // Specialize `tuple_size<>` and `tuple_element<>` for `type_tuple<>`.
-template <typename... Ts> class tuple_size<makeshift::type_tuple<Ts...>> : public std::integral_constant<std::size_t, sizeof...(Ts)> { };
-template <std::size_t I, typename... Ts> class tuple_element<I, makeshift::type_tuple<Ts...>> : public makeshift::detail::nth_type_<I, Ts...> { };
+    // Specialize `tuple_size<>` and `tuple_element<>` for `type_sequence<>`.
+template <typename... Ts> class tuple_size<makeshift::type_sequence2<Ts...>> : public std::integral_constant<std::size_t, sizeof...(Ts)> { };
+template <std::size_t I, typename... Ts> class tuple_element<I, makeshift::type_sequence2<Ts...>> { using type = makeshift::tag<makeshift::nth_type_t<I, Ts...>>; };
 
 
 } // namespace std
-
-
-#ifdef INCLUDED_MAKESHIFT_DETAIL_UTILITY_KEYWORD_HPP_
- #include <makeshift/detail/utility_keyword-tuple.hpp>
-#endif // INCLUDED_MAKESHIFT_DETAIL_UTILITY_KEYWORD_HPP_
 
 
 #endif // INCLUDED_MAKESHIFT_TUPLE2_HPP_
