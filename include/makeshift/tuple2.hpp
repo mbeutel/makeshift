@@ -104,8 +104,8 @@ template <typename T, typename... Ts>
     //ᅟ
     //ᅟ    tuple_foreach(
     //ᅟ        [](auto element, std::size_t idx) { std::cout << idx << ": " << element << '\n'; },
-    //ᅟ        std::make_tuple(42, 1.41421), tuple_index
-    //ᅟ    ); // prints "0: 42\n1: 1.41421"
+    //ᅟ        std::make_tuple(42, 1.41421), tuple_index);
+    //ᅟ    // prints "0: 42\n1: 1.41421"
     //
 struct tuple_index_t { };
 
@@ -115,8 +115,8 @@ struct tuple_index_t { };
     //ᅟ
     //ᅟ    tuple_foreach(
     //ᅟ        [](auto element, std::size_t idx) { std::cout << idx << ": " << element << '\n'; },
-    //ᅟ        std::make_tuple(42, 1.41421), tuple_index
-    //ᅟ    ); // prints "0: 42\n1: 1.41421"
+    //ᅟ        std::make_tuple(42, 1.41421), tuple_index);
+    //ᅟ    // prints "0: 42\n1: 1.41421"
     //
 constexpr tuple_index_t tuple_index{ };
 
@@ -138,48 +138,57 @@ template <typename T> struct is_std_array_ : std::false_type { };
 template <typename T, std::size_t N> struct is_std_array_<std::array<T, N>> : std::true_type { };
 
 template <typename T> struct maybe_tuple_size_ : std::tuple_size<T> { };
-template <> struct maybe_tuple_size_<tuple_index_t> : std::integral_constant<std::size_t, std::size_t(-1)> { };
+template <> struct maybe_tuple_size_<tuple_index_t> : std::integral_constant<std::ptrdiff_t, -1> { };
 
-template <bool Mismatch, std::size_t N, typename... Ts> struct equal_sizes_0_;
-template <std::size_t N, typename... Ts> struct equal_sizes_0_<true, N, Ts...> : std::false_type { static constexpr std::size_t size = -1; };
-template <std::size_t N> struct equal_sizes_0_<false, N> : std::true_type { static constexpr std::size_t size = N; };
-template <std::size_t N, typename T0, typename... Ts>
+template <bool Mismatch, std::ptrdiff_t N, typename... Ts> struct equal_sizes_0_;
+template <std::ptrdiff_t N, typename... Ts> struct equal_sizes_0_<true, N, Ts...> : std::false_type { static constexpr std::ptrdiff_t size = -1; };
+template <std::ptrdiff_t N> struct equal_sizes_0_<false, N> : std::true_type { static constexpr std::ptrdiff_t size = N; };
+template <std::ptrdiff_t N, typename T0, typename... Ts>
     struct equal_sizes_0_<false, N, T0, Ts...>
         : equal_sizes_0_<
-              N != std::size_t(-1) && maybe_tuple_size_<T0>::value != std::size_t(-1) && N != maybe_tuple_size_<T0>::value,
-              N != std::size_t(-1) ? N : maybe_tuple_size_<T0>::value,
+              N != -1 && maybe_tuple_size_<T0>::value != -1 && N != maybe_tuple_size_<T0>::value,
+              N != -1 ? N : maybe_tuple_size_<T0>::value,
               Ts...>
 {
 };
-template <typename... Ts> struct equal_sizes_ : equal_sizes_0_<false, std::size_t(-1), Ts...> { };
+template <typename... Ts> struct equal_sizes_ : equal_sizes_0_<false, -1, Ts...> { };
 
-template <std::size_t I, typename T>
-    constexpr std::integral_constant<std::size_t, I> get_element(tuple_index_t) noexcept
+
+namespace adl
+{
+
+
+template <std::size_t I>
+    constexpr std::integral_constant<std::size_t, I> get(tuple_index_t) noexcept
 {
     return { };
 }
-template <std::size_t I, typename T> // TODO: need SFINAE here to exclude tuple_index_t<>?
+
+
+} // namespace adl
+
+
+template <std::size_t I, typename T>
     constexpr decltype(auto) get_element(T&& arg) noexcept
 {
     using std::get; // make std::get<>() visible to enable ADL for template methods named get<>()
+    using makeshift::detail::adl::get;
     return get<I>(std::forward<T>(arg));
 }
-
-template <typename F, std::size_t I, typename... Ts> struct homogeneous_result_1_ { using type = decltype(std::declval<F>()(get_element<I>(std::declval<Ts>())...)); };
 
 template <typename... Ts> struct equal_types_;
 template <> struct equal_types_<> : std::true_type { };
 template <typename T0> struct equal_types_<T0> : std::true_type { using value_type = T0; };
 template <typename T0, typename T1, typename... Ts> struct equal_types_<T0, T1, Ts...> : std::conditional_t<std::is_same<T0, T1>::value, equal_types_<T1, Ts...>, std::false_type> { };
 
+template <typename F, std::size_t I, typename... Ts> struct result_type_ { using type = decltype(std::declval<F>()(get_element<I>(std::declval<Ts>())...)); };
+
 template <typename F, typename Is, typename... Ts>
-    struct homogeneous_result_0_;
+    struct result_types_;
 template <typename F, std::size_t... Is, typename... Ts>
-    struct homogeneous_result_0_<F, std::index_sequence<Is...>, Ts...>
+    struct result_types_<F, std::index_sequence<Is...>, Ts...>
 {
-    using Eq = equal_types_<typename homogeneous_result_1_<F, Is, Ts...>::type...>;
-    static_assert(Eq::value, "result types of functor must be identical for all sets of tuple elements");
-    using type = typename Eq::value_type; // exists only if types are identical
+    using type = type_sequence2<typename result_type_<F, Is, Ts...>::type...>;
 };
 
 template <typename R, typename T> struct transfer_ref_ { using type = T; };
@@ -187,24 +196,36 @@ template <typename R, typename T> struct transfer_ref_<R&, T> { using type = T&;
 template <typename R, typename T> struct transfer_ref_<const R&, T> { using type = const T&; };
 template <typename R, typename T> struct transfer_ref_<R&&, T> { using type = T; };
 
-template <std::size_t N, bool HomogeneousArgs, typename F, typename... Ts>
+template <typename T> struct wrap_type_ { using type = tag<T>; };
+template <typename T> struct wrap_type_<tag<T>> : wrap_type_<T> { };
+template <typename T> struct unwrap_type_ { using type = T; };
+template <typename T> struct unwrap_type_<tag<T>> : unwrap_type_<T> { };
+
+template <std::ptrdiff_t N, bool HomogeneousArgs, typename F, typename... Ts>
     struct homogeneous_result_;
-template <std::size_t N, typename F, typename... Ts>
+template <std::ptrdiff_t N, typename F, typename... Ts>
     struct homogeneous_result_<N, true, F, Ts...>
 {
         // all arguments are array types, so we can just extract their value types
     using type = decltype(std::declval<F>()(std::declval<typename transfer_ref_<Ts, typename std::decay_t<Ts>::value_type>::type>()...));
 };
-template <std::size_t N, typename F, typename... Ts>
-    struct homogeneous_result_<N, false, F, Ts...> : homogeneous_result_0_<F, std::make_index_sequence<N>, Ts...>
+template <typename F, typename Rs, typename... Ts>
+    struct check_homogeneous_result_;
+template <typename F, typename... Rs, typename... Ts>
+    struct check_homogeneous_result_<F, type_sequence2<Rs...>, Ts...>
 {
-    // some arguments are non-homogeneous, so we need to compute return types for all combinations and verify that they match exactly
+    using Eq = equal_types_<Rs...>;
+    static_assert(Eq::value, "result types of functor must be identical for all sets of tuple elements");
+    using type = typename Eq::value_type; // exists only if types are identical
+};
+template <std::ptrdiff_t N, typename F, typename... Ts>
+    struct homogeneous_result_<N, false, F, Ts...>
+        : check_homogeneous_result_<F, typename result_types_<F, std::make_index_sequence<N>, Ts...>::type, Ts...>
+{
+        // some arguments are non-homogeneous, so we need to compute return types for all combinations and verify that they match exactly
 };
 
-constexpr unsigned rtkVoid        = 0;
-constexpr unsigned rtkTag         = 1;
-constexpr unsigned rtkAny         = 2;
-constexpr unsigned rtkHomogeneous = 3;
+enum class transform_target { nothing, type_sequence, array, tuple };
 
 template <std::size_t I, typename... Ts, typename F>
     constexpr decltype(auto)
@@ -213,47 +234,45 @@ template <std::size_t I, typename... Ts, typename F>
     return func(get_element<I>(std::forward<Ts>(args))...);
 }
 
-template <typename... Ts, typename F, std::size_t... Is>
+template <std::size_t... Is, typename F, typename... Ts>
     constexpr void
-    tuple_transform_impl1(std::integral_constant<unsigned, rtkVoid>, std::index_sequence<Is...>, F&& func, Ts&&... args)
+    tuple_transform_impl1(std::integral_constant<transform_target, transform_target::nothing>, std::index_sequence<Is...>, F&& func, Ts&&... args)
 {
     using Swallow = int[];
     (void) Swallow{ 1,
         (tuple_transform_impl2<Is>(std::forward<F>(func), std::forward<Ts>(args)...), void(), int{ })...
     };
 }
-template <typename... Ts, typename F, std::size_t... Is>
+template <std::size_t... Is, typename F, typename... Ts>
     constexpr auto
-    tuple_transform_impl1(std::integral_constant<unsigned, rtkTag>, std::index_sequence<Is...>, F&& func, Ts&&... args)
-        -> decltype(make_type_sequence2(tuple_transform_impl2<Is>(std::forward<F>(func), std::forward<Ts>(args)...)...))
+    tuple_transform_impl1(std::integral_constant<transform_target, transform_target::type_sequence>, std::index_sequence<Is...>, F&& func, Ts&&... args)
 {
-    return { };
+    return type_sequence2<typename unwrap_type_<decltype(tuple_transform_impl2<Is>(std::forward<F>(func), std::forward<Ts>(args)...))>::type...>{ };
 }
-template <typename... Ts, typename F, std::size_t... Is>
+template <std::size_t... Is, typename F, typename... Ts>
     constexpr auto
-    tuple_transform_impl1(std::integral_constant<unsigned, rtkAny>, std::index_sequence<Is...>, F&& func, Ts&&... args)
+    tuple_transform_impl1(std::integral_constant<transform_target, transform_target::tuple>, std::index_sequence<Is...>, F&& func, Ts&&... args)
 {
     return std::make_tuple(tuple_transform_impl2<Is>(std::forward<F>(func), std::forward<Ts>(args)...)...);
 }
-template <typename... Ts, typename F, std::size_t... Is>
-    constexpr typename homogeneous_result_<sizeof...(Is), cand(is_std_array_<std::decay_t<Ts>>::value...), F, Ts...>::type
-    tuple_transform_impl1(std::integral_constant<unsigned, rtkHomogeneous>, std::index_sequence<Is...>, F&& func, Ts&&... args)
+template <std::size_t... Is, typename F, typename... Ts>
+    constexpr auto
+    tuple_transform_impl1(std::integral_constant<transform_target, transform_target::array>, std::index_sequence<Is...>, F&& func, Ts&&... args)
 {
-    return { tuple_transform_impl2<Is>(std::forward<F>(func), std::forward<Ts>(args)...)... };
+    using R = typename homogeneous_result_<sizeof...(Is), cand(is_std_array_<std::decay_t<Ts>>::value...), F, Ts...>::type;
+    return std::array<R, sizeof...(Is)>{ tuple_transform_impl2<Is>(std::forward<F>(func), std::forward<Ts>(args)...)... };
 }
 
-template <std::size_t N, unsigned ReturnTypeKind, typename F, typename... Ts>
+template <std::ptrdiff_t N, transform_target TransformTarget, typename F, typename... Ts>
     constexpr auto tuple_transform_impl0(F&& func, Ts&&... args)
 {
     using Eq = equal_sizes_<std::decay_t<Ts>...>;
     static_assert(Eq::value, "sizes of tuple arguments do not match");
-    static_assert(N != std::size_t(-1) || Eq::size != std::size_t(-1) || N == Eq::size, "given size argument does not match sizes of tuple arguments");
-    static_assert(N != std::size_t(-1) || Eq::size != std::size_t(-1), "no tuple argument and no size given");
-    static constexpr std::size_t size = N != std::size_t(-1)
-        ? N
-        : Eq::size;
+    static_assert(N != -1 || Eq::size != -1 || N == Eq::size, "given size argument does not match sizes of tuple arguments");
+    static_assert(N != -1 || Eq::size != -1, "no tuple argument and no size given");
+    static constexpr std::size_t size = std::size_t(N != -1 ? N : Eq::size);
     
-    return tuple_transform_impl1(std::integral_constant<unsigned, ReturnTypeKind>{ }, std::make_index_sequence<size>{ },
+    return tuple_transform_impl1(std::integral_constant<transform_target, TransformTarget>{ }, std::make_index_sequence<size>{ },
         std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
@@ -277,7 +296,7 @@ template <std::size_t N, typename F, typename... Ts,
     constexpr void
     tuple_foreach2(F&& func, Ts&&... args)
 {
-    makeshift::detail::tuple_transform_impl0<N, makeshift::detail::rtkVoid>(std::forward<F>(func), std::forward<Ts>(args)...);
+    makeshift::detail::tuple_transform_impl0<N, makeshift::detail::transform_target::nothing>(std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
 
@@ -286,16 +305,15 @@ template <std::size_t N, typename F, typename... Ts,
     //ᅟ
     //ᅟ    tuple_foreach(
     //ᅟ        [](auto name, auto elem) { std::cout << name << ": " << elem << '\n'; },
-    //ᅟ        std::make_tuple("a", "b"),
-    //ᅟ        std::make_tuple(1, 2.3f)
-    //ᅟ    ); // prints "a: 1\nb: 2.3\n"
+    //ᅟ        std::make_tuple("a", "b"), std::make_tuple(1, 2.3f));
+    //ᅟ    // prints "a: 1\nb: 2.3\n"
     //
 template <typename F, typename... Ts,
           typename = std::enable_if_t<makeshift::detail::are_tuple_args_v<Ts...>>>
     constexpr void
     tuple_foreach2(F&& func, Ts&&... args)
 {
-    makeshift::detail::tuple_transform_impl0<std::size_t(-1), makeshift::detail::rtkVoid>(std::forward<F>(func), std::forward<Ts>(args)...);
+    makeshift::detail::tuple_transform_impl0<-1, makeshift::detail::transform_target::nothing>(std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
 
@@ -304,15 +322,15 @@ template <typename F, typename... Ts,
     //ᅟ
     //ᅟ    auto indices = tuple_transform<3>(
     //ᅟ        [](std::size_t i) { return i; },
-    //ᅟ        tuple_index
-    //ᅟ    ); // returns std::tuple{ 0, 1, 2 }
+    //ᅟ        tuple_index);
+    //ᅟ    // returns std::tuple{ 0, 1, 2 }
     //
 template <std::size_t N, typename F, typename... Ts,
           typename = std::enable_if_t<makeshift::detail::are_tuple_args_v<Ts...>>>
     constexpr auto
     tuple_transform2(F&& func, Ts&&... args)
 {
-    return makeshift::detail::tuple_transform_impl0<N, makeshift::detail::rtkAny>(std::forward<F>(func), std::forward<Ts>(args)...);
+    return makeshift::detail::tuple_transform_impl0<N, makeshift::detail::transform_target::tuple>(std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
 
@@ -321,15 +339,15 @@ template <std::size_t N, typename F, typename... Ts,
     //ᅟ
     //ᅟ    auto squares = tuple_transform(
     //ᅟ        [](auto x) { return x*x; },
-    //ᅟ        std::make_tuple(2, 3.0f)
-    //ᅟ    ); // returns std::tuple{ 4, 9.0f }
+    //ᅟ        std::make_tuple(2, 3.0f));
+    //ᅟ    // returns std::tuple{ 4, 9.0f }
     //
 template <typename F, typename... Ts,
           typename = std::enable_if_t<makeshift::detail::are_tuple_args_v<Ts...>>>
     constexpr auto
     tuple_transform2(F&& func, Ts&&... args)
 {
-    return makeshift::detail::tuple_transform_impl0<std::size_t(-1), makeshift::detail::rtkAny>(std::forward<F>(func), std::forward<Ts>(args)...);
+    return makeshift::detail::tuple_transform_impl0<-1, makeshift::detail::transform_target::tuple>(std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
 
@@ -338,15 +356,15 @@ template <typename F, typename... Ts,
     //ᅟ
     //ᅟ    auto indices = array_transform<3>(
     //ᅟ        [](std::size_t i) { return i; },
-    //ᅟ        tuple_index
-    //ᅟ    ); // returns std::array{ 0, 1, 2 }
+    //ᅟ        tuple_index);
+    //ᅟ    // returns std::array{ 0, 1, 2 }
     //
 template <std::size_t N, typename F, typename... Ts,
           typename = std::enable_if_t<makeshift::detail::are_tuple_args_v<Ts...>>>
     constexpr auto
     array_transform2(F&& func, Ts&&... args)
 {
-    return makeshift::detail::tuple_transform_impl0<N, makeshift::detail::rtkHomogeneous>(std::forward<F>(func), std::forward<Ts>(args)...);
+    return makeshift::detail::tuple_transform_impl0<N, makeshift::detail::transform_target::array>(std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
 
@@ -355,15 +373,15 @@ template <std::size_t N, typename F, typename... Ts,
     //ᅟ
     //ᅟ    auto intSquares = array_transform(
     //ᅟ        [](auto x) { return int(x*x); },
-    //ᅟ        std::make_tuple(2, 3.0f)
-    //ᅟ    ); // returns std::array{ 4, 9 }
+    //ᅟ        std::make_tuple(2, 3.0f));
+    //ᅟ    // returns std::array{ 4, 9 }
     //
 template <typename F, typename... Ts,
           typename = std::enable_if_t<makeshift::detail::are_tuple_args_v<Ts...>>>
     constexpr auto
     array_transform2(F&& func, Ts&&... args)
 {
-    return makeshift::detail::tuple_transform_impl0<std::size_t(-1), makeshift::detail::rtkHomogeneous>(std::forward<F>(func), std::forward<Ts>(args)...);
+    return makeshift::detail::tuple_transform_impl0<-1, makeshift::detail::transform_target::array>(std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
 
@@ -372,15 +390,15 @@ template <typename F, typename... Ts,
     //ᅟ
     //ᅟ    auto indices = type_sequence_transform<3>(
     //ᅟ        [](auto i) { return i; },
-    //ᅟ        tuple_index
-    //ᅟ    ); // returns type_sequence<integral_constant<std::size_t, 0>, integral_constant<std::size_t, 1>, integral_constant<std::size_t, 2>>
+    //ᅟ        tuple_index);
+    //ᅟ    // returns type_sequence<integral_constant<std::size_t, 0>, integral_constant<std::size_t, 1>, integral_constant<std::size_t, 2>>
     //
 template <std::size_t N, typename F, typename... Ts,
           typename = std::enable_if_t<makeshift::detail::are_tuple_args_v<Ts...>>>
     constexpr auto
     type_sequence_transform2(F&& func, Ts&&... args)
 {
-    return makeshift::detail::tuple_transform_impl0<N, makeshift::detail::rtkTag>(std::forward<F>(func), std::forward<Ts>(args)...);
+    return makeshift::detail::tuple_transform_impl0<N, makeshift::detail::transform_target::type_sequence>(std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
 
@@ -389,15 +407,15 @@ template <std::size_t N, typename F, typename... Ts,
     //ᅟ
     //ᅟ    auto squares = type_sequence_transform(
     //ᅟ        [](auto x) { return x*x; },
-    //ᅟ        std::make_tuple(2, 3.0f)
-    //ᅟ    ); // returns type_sequence<int, float>
+    //ᅟ        std::make_tuple(2, 3.0f));
+    //ᅟ    // returns type_sequence<int, float>
     //
 template <typename F, typename... Ts,
           typename = std::enable_if_t<makeshift::detail::are_tuple_args_v<Ts...>>>
     constexpr auto
     type_sequence_transform2(F&& func, Ts&&... args)
 {
-    return makeshift::detail::tuple_transform_impl0<std::size_t(-1), makeshift::detail::rtkTag>(std::forward<F>(func), std::forward<Ts>(args)...);
+    return makeshift::detail::tuple_transform_impl0<-1, makeshift::detail::transform_target::type_sequence>(std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
 

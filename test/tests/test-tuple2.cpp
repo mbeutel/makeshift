@@ -1,7 +1,4 @@
 
-#include <string>
-#include <functional> // for plus<>
-
 #include <makeshift/tuple2.hpp>
 
 #include <catch.hpp>
@@ -12,9 +9,9 @@ using namespace std::literals;
 namespace mk = makeshift;
 
 
-TEST_CASE("tuple", "[flags]")
+TEST_CASE("tuple2", "[flags]")
 {
-    auto numbers = std::tuple{ 2, 3u };
+    constexpr auto numbers = std::tuple{ 2, 3u };
     SECTION("foreach")
     {
         int sum = 0;
@@ -40,5 +37,15 @@ TEST_CASE("tuple", "[flags]")
     }
     SECTION("array-transform")
     {
+        auto square = mk::array_transform2([](auto x) { return int(x*x); }, numbers);
+        CHECK(square == std::array{ 4, 9 });
+    }
+    SECTION("type-seq-transform")
+    {
+        constexpr auto moreNumbers = std::tuple{ 4.0, 9 };
+        constexpr auto sum = mk::type_sequence_transform2(
+            [](auto x, auto y) { return x + y; },
+            numbers, moreNumbers);
+        CHECK(std::is_same<decltype(sum), mk::type_sequence2<double, unsigned>>::value);
     }
 }
