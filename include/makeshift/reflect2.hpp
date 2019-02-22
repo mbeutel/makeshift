@@ -4,96 +4,42 @@
 
 
 #include <array>
-#include <type_traits> // for integral_constant<>, enable_if<>, decay<>, is_same<>, is_enum<>, is_class<>, is_member_object_pointer<>, conjunction<>
+#include <cstddef>     // for size_t
+#include <type_traits> // for is_class<>, is_enum<>, is_same<>,integral_constant<>, enable_if<>, is_default_constructible<>, declval<>()
 #include <tuple>
-#include <utility>     // for move(), forward<>()
-#include <string_view>
+#include <utility>     // for move(), integer_sequence<>
 
-#include <makeshift/type_traits.hpp> // for sequence<>, tag<>, is_instantiation_of<>, can_apply<>
-#include <makeshift/tuple.hpp>       // for type_tuple<>
-
-#include <makeshift/detail/utility_flags.hpp>
+#include <makeshift/type_traits.hpp> // for sequence<>, tag<>, can_apply<>
+#include <makeshift/metadata2.hpp>
+#include <makeshift/tuple2.hpp>      // for tuple_transform2(), array_transform2()
 
 
 namespace makeshift
 {
 
-
 inline namespace metadata
 {
-
-
-    //ᅟ
-    // Determines qualities of an enumeration type.
-    //
-struct enum_flag : define_flags<enum_flag>
-{
-        //ᅟ
-        // Indicates that the enumeration type is a flags type.
-        //
-    static constexpr flag flags_enum { 1 };
-};
-using enum_flags = enum_flag::flags;
-
-
-    //ᅟ
-    // Determines qualities of a class type.
-    //
-struct class_flag : define_flags<class_flag>
-{
-        //ᅟ
-        // Indicates that the class type is a value type (either a scalar type or a user-defined wrapper).
-        //
-    static constexpr flag value { 1 };
-
-        //ᅟ
-        // Indicates that the class type is a compound type, i.e. it has the semantics of a named tuple with regard to identity and comparability.
-        // This type flag does not necessarily require aggregate-ness as defined in the C++ standard (`std::is_aggregate<>`), which imposes
-        // unnecessary limitations (e.g. it may be reasonable for a compound type to have a user-defined constructor).
-        //
-    static constexpr flag compound { 2 };
-
-        //ᅟ
-        // Indicates that the class type is a composite type which itself forms a value, e.g. a geometrical point defined as `struct Point { int x, y; };`.
-        //
-    static constexpr flag compound_value = compound | value;
-};
-using class_flags = class_flag::flags;
-
-
-template <typename T>
-    struct named
-{
-    T value;
-    std::string_view name;
-};
-
-template <typename T>
-    constexpr named<T> with_name(T value, std::string_view name) noexcept
-{
-    return { std::move(value), name };
-}
 
 
 template <typename EnumT, enum_flags Flags, typename ValuesT>
     struct enum_metadata;
 template <typename EnumT, enum_flags Flags, std::size_t N>
-    struct enum_metadata<EnumT, Flags, std::array<named<EnumT>, N>>
+    struct enum_metadata<EnumT, Flags, std::array<named2<EnumT>, N>>
 {
     using value_type = EnumT;
     static constexpr enum_flags flags = Flags;
-    std::array<named<EnumT>, N> values;
+    std::array<named2<EnumT>, N> values;
 };
 
 
 template <typename ClassT, class_flags Flags, typename MembersT>
     struct class_metadata;
 template <typename ClassT, class_flags Flags, typename... MembersT>
-    struct class_metadata<ClassT, Flags, std::tuple<named<MembersT>...>>
+    struct class_metadata<ClassT, Flags, std::tuple<named2<MembersT>...>>
 {
     using value_type = ClassT;
     static constexpr class_flags flags = Flags;
-    std::tuple<named<MembersT>...> members;
+    std::tuple<named2<MembersT>...> members;
 };
 
 
@@ -104,142 +50,7 @@ namespace detail
 {
 
 
-template <std::size_t... Ns> struct equal_sizes_;
-template <> struct equal_sizes_<> : std::integral_constant<std::size_t, std::size_t(-1)> { };
-template <std::size_t N> struct equal_sizes_<N> : std::integral_constant<std::size_t, N> { };
-template <std::size_t N0, std::size_t N1, std::size_t... Ns> struct equal_sizes_<N0, N1, Ns...> : equal_sizes_<(N0 == std::size_t(-1) || N0 != N1) ? std::size_t(-1) : N0, Ns...> { };
-
-template <typename TupleT> struct is_array_ : std::false_type { };
-template <typename T, std::size_t N>> struct is_array_<std::array<T, N>> : std::true_type { };
-
-template <std::size_t I, typename Ts, typename FuncT>
-    constexpr auto tuple_transform2_impl2(FuncT&& func, Ts&&... tuples)
-{
-    using std::get; // make std::get<>(std::pair<>&&) visible to enable ADL for template methods named get<>()
-    return func(get<I>(std::forward<Ts>(tuples))...));
-}
-template <typename Ts, typename FuncT, std::size_t... Is>
-    constexpr auto tuple_transform2_impl1(std::false_type /*allArrays*/, std::index_sequence<Is...>, FuncT&& func, Ts&&... tuples)
-{
-    return std::make_tuple(tuple_transform2_impl2<Is>(std::forward<Ts>(tuples)...)...);
-}
-template <typename Ts, typename FuncT, std::size_t... Is>
-    constexpr auto tuple_transform2_impl1(std::true_type /*allArrays*/, std::index_sequence<Is...>, FuncT&& func, Ts&&... arrays)
-{
-	using R = decltype(func)
-    return std::make_tuple(tuple_transform2_impl2<Is>(std::forward<Ts>(tuples)...)...);
-}
-template <typename Ts, typename FuncT,
-          typename = std::enable_if_t<std::conjunction<is_tuple_like_v<std::decay_t<Ts>>...>::value>>
-    constexpr auto tuple_transform2(FuncT&& func, Ts&&... tuples)
-{
-	static_assert(sizeof...(Ts) > 0, "at least one tuple argument required");
-	static constexpr tupleSize = equal_sizes_<std::tuple_size<std::decay_t<Ts>>::value...>::value;
-	static_assert(tupleSize != std::size_t(-1), "tuples must have identical size");
-	
-    return makeshift::detail::tuple_transform2_impl(
-		std::forward<FuncT>(func), std::make_index_sequence<tupleSize>{ },
-		std::forward<Ts>(tuples)...);
-}
-
-template <typename Ts, typename FuncT, std::size_t... Is>
-    constexpr void tuple_foreach2_impl1(FuncT&& func, std::index_sequence<Is...>, Ts&&... tuples)
-{
-    int _[] = { (tuple_foreach2_impl2<Is>(std::forward<Ts>(tuples)...), void, 0)... };
-    (void) _;
-}
-template <typename Ts, typename FuncT,
-          typename = std::enable_if_t<std::conjunction<is_tuple_like_v<std::decay_t<Ts>>...>::value>>
-    constexpr void tuple_foreach2(FuncT&& func, Ts&&... tuples)
-{
-	static_assert(sizeof...(Ts) > 0, "at least one tuple argument required");
-	static constexpr tupleSize = equal_sizes_<std::tuple_size<std::decay_t<Ts>>::value...>::value;
-	static_assert(tupleSize != std::size_t(-1), "tuples must have identical size");
-	
-    return makeshift::detail::tuple_transform2_impl(
-		std::forward<FuncT>(func), std::make_index_sequence<tupleSize>{ },
-		std::forward<Ts>(tuples)...);
-}
-
-	// TODO: instead use foreach_index(), transform_index()
-template <typename T, typename ArrayT, typename FuncT, std::size_t... Is>
-    constexpr auto array_transform2_impl(ArrayT&& array, FuncT&& func, std::index_sequence<Is...>)
-        -> std::array<decltype(func(std::declval<T>())), sizeof...(Is)>
-{
-    return { func(array[Is])... };
-}
-template <typename T, std::size_t N, typename FuncT>
-    constexpr auto array_transform2(std::array<T, N>&& array, FuncT&& func)
-{
-    return makeshift::detail::array_transform2_impl<T>(std::move(array), std::forward<FuncT>(func), std::make_index_sequence<N>{ });
-}
-template <typename T, std::size_t N, typename FuncT>
-    constexpr auto array_transform2(const std::array<T, N>& array, FuncT&& func)
-{
-    return makeshift::detail::array_transform2_impl<T>(array, std::forward<FuncT>(func), std::make_index_sequence<N>{ });
-}
-
-template <typename ArrayT> struct array_size2_;
-template <typename T, std::size_t N> struct array_size2_<std::array<T, N>> : std::integral_constant<std::size_t, N> { };
-template <typename T, std::size_t N> struct array_size2_<T (&)[N]> : std::integral_constant<std::size_t, N> { };
-template <typename T, std::size_t N> struct array_size2_<T (&&)[N]> : std::integral_constant<std::size_t, N> { };
-
-
-    //ᅟ
-    // Determines the size of the given array.
-    //
-template <typename ArrayT> struct array_size2 : makeshift::detail::array_size2_<std::decay_t<ArrayT>> { };
-
-    //ᅟ
-    // Determines the size of the given array.
-    //
-template <typename ArrayT> static constexpr std::size_t array_size2_v = array_size2<ArrayT>::value;
-
-
 template <typename T> using raw_metadata2_of_r = decltype(reflect(tag<T>{ }));
-
-
-template <typename T>
-    struct as_named_value
-{
-    using value_type = T;
-
-    static constexpr named<T> invoke(T value) noexcept
-    {
-        return { std::move(value), { } };
-    }
-};
-template <typename T>
-    struct as_named_value<named<T>>
-{
-    using value_type = T;
-
-    static constexpr named<T> invoke(named<T> value) noexcept
-    {
-        return std::move(value);
-    }
-};
-
-
-template <enum_flags Flags, typename ValuesT>
-    struct raw_enum_metadata
-{
-    static constexpr enum_flags flags = Flags;
-    ValuesT values;
-};
-template <enum_flags Flags>
-    struct raw_enum_metadata<Flags, void>
-{
-    static constexpr enum_flags flags = Flags;
-};
-
-
-template <class_flags Flags, typename MembersT>
-    struct raw_class_metadata
-{
-    static constexpr class_flags flags = Flags;
-    MembersT members;
-};
 
 
 template <typename T, enum_flags Flags, typename ValuesT>
@@ -248,17 +59,39 @@ template <typename T, enum_flags Flags, typename ValuesT>
     return { std::move(md).values };
 }
 template <typename T, enum_flags Flags>
-    constexpr enum_metadata<T, Flags, std::array<named<T>, 0>> qualify_metadata(raw_enum_metadata<Flags, void> md) noexcept
+    constexpr enum_metadata<T, Flags, std::array<named2<T>, 0>> qualify_metadata(raw_enum_metadata<Flags, void> md) noexcept
 {
     return { { } };
 }
 
 
-template <typename T, enum_flags Flags, typename MembersT>
-    constexpr enum_metadata<T, Flags, MembersT> qualify_metadata(raw_class_metadata<Flags, MembersT> md) noexcept
+template <typename T, class_flags Flags, typename MembersT>
+    constexpr class_metadata<T, Flags, MembersT> qualify_metadata(raw_class_metadata<Flags, MembersT> md) noexcept
 {
+    static_assert(std::is_class<T>::value, "cannot use compound() or compound_value() for arguments of non-class type");
     return { std::move(md).values };
 }
+
+
+template <typename T>
+    struct qualified_reflector
+{
+    constexpr auto operator ()(void) const noexcept
+    {
+        return makeshift::detail::qualify_metadata<T>(reflect(tag<T>{ }));
+    }
+};
+template <>
+    struct qualified_reflector<bool>
+{
+    constexpr auto operator ()(void) const noexcept
+    {
+        return enum_metadata<bool, enum_flags::none, std::array<named2<bool>, 2>>{ {
+            with_name(false, "false"),
+            with_name(true, "true")
+        } };
+    }
+};
 
 
 } // namespace detail
@@ -268,65 +101,22 @@ inline namespace metadata
 {
 
 
-template <typename... Ts>
-    constexpr auto flags_enumeration(Ts... args) noexcept
-{
-    static_assert(std::is_enum<T>::value, "cannot use flags_enumeration() for arguments of non-enumeration type");
-    using T = std::common_type_t<typename makeshift::detail::as_named_value<Ts>::value_type...>; // TODO: is this clean?
-    using Values = std::array<named<T>, sizeof...(Ts)>;
-    return makeshift::detail::raw_enum_metadata<enum_flag::flags_enum, Values>{ { makeshift::detail::as_named_value<Ts>::invoke(args)... } };
-}
-constexpr inline auto flags_enumeration(void) noexcept
-{
-    return makeshift::detail::raw_enum_metadata<enum_flag::flags_enum, void>{ };
-}
-
-template <typename... Ts>
-    constexpr auto enumeration(Ts... args) noexcept
-{
-    static_assert(std::is_enum<T>::value, "cannot use enumeration() for arguments of non-enumeration type");
-    using T = std::common_type_t<typename makeshift::detail::as_named_value<Ts>::value_type...>; // TODO: is this clean?
-    using Values = std::array<named<T>, sizeof...(Ts)>;
-    return makeshift::detail::raw_enum_metadata<enum_flags::none, Values>{ { makeshift::detail::as_named_value<Ts>::invoke(args)... } };
-}
-constexpr inline auto enumeration(void) noexcept
-{
-    return makeshift::detail::raw_enum_metadata<enum_flags::none, void>{ };
-}
-
-
-template <typename... Ts>
-    constexpr auto compound(Ts... args) noexcept
-{
-    static_assert(std::is_class<T>::value, "cannot use compound() for arguments of non-class type");
-    using Members = std::tuple<typename makeshift::detail::as_named_value<Ts>::value_type...>;
-    return makeshift::detail::raw_class_metadata<class_flag::compound, Members>{ { makeshift::detail::as_named_value<Ts>::invoke(args)... } };
-}
-
-template <typename... Ts>
-    constexpr auto compound_value(Ts... args) noexcept
-{
-    static_assert(std::is_class<T>::value, "cannot use compound_value() for arguments of non-class type");
-    using Members = std::tuple<typename makeshift::detail::as_named_value<Ts>::value_type...>;
-    return makeshift::detail::raw_class_metadata<class_flag::compound_value, Members>{ { makeshift::detail::as_named_value<Ts>::invoke(args)... } };
-}
-
+    //ᅟ
+    // Use `metadata_of<T>` to look up metadata for a type.
+    //
+template <typename T> static constexpr auto metadata2_of = makeshift::detail::qualified_reflector<T>{ }();
 
     //ᅟ
     // Use `metadata_of<T>` to look up metadata for a type.
     //
-template <typename T> static constexpr auto metadata2_of = makeshift::detail::qualify_metadata<T>(reflect(tag<T>{ }));
-
-    //ᅟ
-    // Use `metadata_of<T>` to look up metadata for a type.
-    //
-template <typename T> using metadata2_of_t = decltype(makeshift::detail::qualify_metadata<T>(reflect(tag<T>{ })));
+template <typename T> using metadata2_of_t = decltype(metadata2_of<T>);
 
 
     //ᅟ
     // Determines whether there is metadata for the given type.
     //
 template <typename T> struct have_metadata2 : can_apply<makeshift::detail::raw_metadata2_of_r, T> { };
+template <> struct have_metadata2<bool> : std::true_type { };
 
     //ᅟ
     // Determines whether there is metadata for the given type.
@@ -353,53 +143,44 @@ template <typename ArrayFuncT,
 		  typename = std::enable_if_t<std::is_default_constructible<ArrayFuncT>::value>>
     constexpr auto array_to_sequence(ArrayFuncT)
 {
-	using ArrayFunc = std::decay_t<ArrayFuncT>;
-    using Array = decltype(ArrayFunc{ }());
-    return array_to_sequence_impl<ArrayFunc>(std::make_index_sequence<array_size2_v<Array>>{ });
+	using Array = decltype(ArrayFuncT{ }());
+    return array_to_sequence_impl<ArrayFuncT>(std::make_index_sequence<std::tuple_size<Array>::value>{ });
 }
-
-template <typename T>
-    struct values_of_impl
-{
-    static_assert(std::is_enum<T>::value, "cannot enumerate values of types other than bool and enumerations");
-    static_assert(have_metadata2_v<T>, "cannot enumerate values of enumerations without metadata")
-
-    struct array_retriever
-    {
-        constexpr auto operator ()(void) const noexcept
-        {
-            auto values = metadata2_of<T>.values; // array of named<T>
-            return array_transform2(values, [](auto namedValue) { return namedValue.value; });
-        }
-    };
-
-    static constexpr auto to_array(void) noexcept
-    {
-        return array_retriever{ }();
-    }
-    static constexpr auto to_sequence(void) noexcept
-    {
-        return array_to_sequence(array_retriever{ });
-    }
-};
-template <>
-    struct values_of_impl<bool>
-{
-    static constexpr std::array<bool, 2> to_array(void) noexcept
-    {
-        return { false, true };
-    }
-    static constexpr sequence<bool, false, true> to_sequence(void) noexcept
-    {
-        return { };
-    }
-};
 
 /*template <typename T, T... Vs>
     constexpr std::array<T, sizeof...(Vs)> sequence_to_array(sequence<T, Vs...>)
 {
     return { Vs... };
 }*/
+
+template <typename T>
+    struct values_impl
+{
+    static_assert(std::is_enum<T>::value, "cannot enumerate values of types other than bool and enumerations");
+    static_assert(have_metadata2_v<T>, "cannot enumerate values of enumerations without metadata");
+
+    struct value_array_func
+    {
+        constexpr auto operator ()(void) const noexcept
+        {
+            return array_transform2(
+                [](auto namedValue) { return namedValue.value; },
+                metadata2_of<T>.values);
+        }
+    };
+    static constexpr auto value_sequence(void) noexcept
+    {
+        return array_to_sequence(value_array_func{ });
+    }
+};
+template <>
+    struct values_impl<bool>
+{
+    static constexpr sequence<bool, false, true> value_sequence(void) noexcept
+    {
+        return { };
+    }
+};
 
 
 } // namespace detail
@@ -409,58 +190,97 @@ inline namespace metadata
 {
 
 
-template <typename T> using enum_value_sequence = decltype(makeshift::detail::values_of_impl<T>::to_sequence());
+    //ᅟ
+    // A `sequence<>` of the enumerators of a given enumeration type, retrieved from metadata.
+    // Equals `sequence<bool, false, true>` if the type argument is `bool`.
+    //ᅟ
+template <typename T> using enum_value_sequence = decltype(makeshift::detail::values_impl<T>::value_sequence());
+
 
     //ᅟ
-    // For bool and for enum types with metadata, returns a `sequence<>` of possible values.
+    // An array of the enumerators of a given enumeration type, retrieved from metadata.
+    // Returns `std::array{ false, true }` if the type argument is `bool`.
     //ᅟ
 template <typename T>
-    constexpr auto value_sequence(tag<T> = { })
+    constexpr auto enum_values(tag<T> = { })
 {
-    static_assert(have_metadata2_v<T>, "no metadata was defined for the given type");
+    static_assert(std::is_enum<T>::value || std::is_same<T, bool>::value, "cannot enumerate values of types other than bool and enumerations");
+    static_assert(have_metadata2_v<T>, "cannot enumerate values of enumerations without metadata");
     
-    return makeshift::detail::values_of_impl<T>::to_sequence();
+    return array_transform2(
+        [](auto namedValue) { return namedValue.value; },
+        metadata2_of<T>.values);
 }
 
 
     //ᅟ
-    // For bool and for enum types with metadata, returns an array of possible values.
+    // An array of the names and values of the enumerators of a given enumeration type, retrieved from metadata.
+    // Returns `std::array{ with_name(false, "false"), with_name(true, "true") }` if the type argument is `bool`.
     //ᅟ
 template <typename T>
-    constexpr auto value_range(tag<T> = { }) // TODO: or make sequence<> iterable?
+    constexpr auto named_enum_values(tag<T> = { })
 {
-    static_assert(have_metadata2_v<T>, "no metadata was defined for the given type");
+    static_assert(std::is_enum<T>::value || std::is_same<T, bool>::value, "cannot enumerate values of types other than bool and enumerations");
+    static_assert(have_metadata2_v<T>, "cannot enumerate values of enumerations without metadata");
     
-    return makeshift::detail::sequence_to_array(makeshift::detail::values_of_impl<T>::to_array());
+    return metadata2_of<T>.values;
 }
 
 
     //ᅟ
-    // Returns a tuple of member metadata objects describing a compound class type.
-    //
+    // A tuple of the accessors of the members in a given compound type, retrieved from metadata.
+    //ᅟ
 template <typename T>
-    constexpr auto members_of(tag<T> = { })
+    constexpr auto compound_members(tag<T> = { })
 {
-    static_assert(have_metadata2_v<T>, "no metadata was defined for the given type");
-
-    metadata_
-    return metadata_of<T, MetadataTagT>.attributes
-        | tuple_filter(template_trait_v<is_instantiation_of, member_metadata>);
+    static_assert(std::is_class<T>::value, "cannot enumerate members of non-class types");
+    static_assert(have_metadata2_v<T>, "cannot enumerate members of classes without metadata");
+    
+    return tuple_transform2(
+        [](auto namedMember) { return namedMember.value; },
+        metadata2_of<T>.members);
 }
 
 
     //ᅟ
-    // Returns an accessor for the given member metadata object.
-    //
-template <typename MemberMetadataT>
-    constexpr auto member_accessor(const MemberMetadataT&)
+    // A tuple of the names and accessors of the members in a given compound type, retrieved from metadata.
+    //ᅟ
+template <typename T>
+    constexpr auto named_compound_members(tag<T> = { })
 {
-    using AccessorsTuple = apply_t<type_tuple, typename MemberMetadataT::accessors>;
-    auto memberObjectPointer = AccessorsTuple{ }
-        | tuple_filter(trait_v<std::is_member_object_pointer>(value_type_transform_v))
-        | single_or_none();
-    if constexpr (!is_none_v<decltype(memberObjectPointer)>)
-        return makeshift::detail::member_object_pointer_accessor{ memberObjectPointer };
+    static_assert(std::is_class<T>::value, "cannot enumerate members of non-class types");
+    static_assert(have_metadata2_v<T>, "cannot enumerate members of classes without metadata");
+    
+    return metadata2_of<T>.members;
+}
+
+
+    //ᅟ
+    // Returns the value of a member of an object given an object reference and a member accessor.
+    //ᅟ
+template <typename C, typename T>
+    constexpr const T& get_member_value(const C& obj, T C::* member) noexcept
+{
+    return obj->*member;
+}
+
+    //ᅟ
+    // Returns the value of a member of an object given an object reference and a member accessor.
+    //ᅟ
+template <typename C, typename T>
+    constexpr const T& get_member_value(const C& obj, T (C::* member)(void) const) noexcept
+{
+    return (obj->*member)();
+}
+
+    //ᅟ
+    // Returns the value of a member of an object given an object reference and a member accessor.
+    //ᅟ
+template <typename C, typename F,
+          typename = decltype(std::declval<F>()(std::declval<const C&>()))>
+    constexpr auto get_member_value(const C& obj, F&& member)
+{
+    return member(obj);
 }
 
 

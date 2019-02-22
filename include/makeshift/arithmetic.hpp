@@ -23,6 +23,7 @@ inline namespace arithmetic
     // The implementations below have borrowed heavily from the suggestions made and examples used in the SEI CERT C Coding Standard:
     // https://wiki.sei.cmu.edu/confluence/display/c/
 
+
 class arithmetic_overflow : public std::runtime_error
 {
 public:

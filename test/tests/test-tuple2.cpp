@@ -4,8 +4,6 @@
 #include <catch.hpp>
 
 
-using namespace std::literals;
-
 namespace mk = makeshift;
 
 

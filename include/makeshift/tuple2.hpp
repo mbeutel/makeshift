@@ -10,6 +10,7 @@
 #include <type_traits> // for decay<>, integral_constant<>, index_sequence<>, is_nothrow_default_constructible<>
 
 #include <makeshift/type_traits.hpp> // for can_apply<>, none
+#include <makeshift/type_traits2.hpp> // for type<>, type_sequence2<>
 
 #include <makeshift/detail/workaround.hpp> // for cand()
 
@@ -41,61 +42,6 @@ template <typename T> struct is_tuple_like2 : can_apply<makeshift::detail::is_tu
     //
 template <typename T> constexpr bool is_tuple_like2_v = is_tuple_like2<T>::value;
 
-
-    //ᅟ
-    // Type sequence (tuple without runtime value representation).
-    //
-template <typename... Ts>
-    struct type_sequence2
-{
-    constexpr type_sequence2(void) noexcept = default;
-    constexpr type_sequence2(const type_sequence2&) noexcept = default;
-    constexpr type_sequence2& operator =(const type_sequence2&) noexcept { return *this; }
-    constexpr type_sequence2(tag<Ts>...) noexcept { }
-    constexpr void swap(type_sequence2&) noexcept { }
-};
-template <>
-    struct type_sequence2<>
-{
-    constexpr type_sequence2(void) noexcept = default;
-    constexpr type_sequence2(const type_sequence2&) noexcept = default;
-    constexpr type_sequence2& operator =(const type_sequence2&) noexcept { return *this; }
-    constexpr void swap(type_sequence2&) noexcept { }
-};
-template <typename... Ts>
-    type_sequence2(tag<Ts>...) -> type_sequence2<Ts...>; // TODO: is this needed?
-
-
-    //ᅟ
-    // Return a type sequence that represents the types of the given values.
-    //
-template <typename... Ts>
-    constexpr type_sequence2<Ts...> make_type_sequence2(tag<Ts>...) noexcept
-{
-    return { };
-}
-
-
-    //ᅟ
-    // Returns the `I`-th element in the type sequence.
-    //
-template <std::size_t I, typename... Ts>
-    constexpr tag<nth_type_t<I, Ts...>> get(const type_sequence2<Ts...>&) noexcept
-{
-    static_assert(I < sizeof...(Ts), "tuple index out of range");
-    return { };
-}
-
-    //ᅟ
-    // Returns the type sequence element of type `T`.
-    //
-template <typename T, typename... Ts>
-    constexpr tag<T> get(const type_sequence2<Ts...>& ts) noexcept
-{
-	constexpr std::size_t index = try_index_of_type_v<T, Ts...>;
-    static_assert(index != std::size_t(-1), "type T does not appear in type sequence");
-    return { };
-}
 
 
     //ᅟ
@@ -196,10 +142,10 @@ template <typename R, typename T> struct transfer_ref_<R&, T> { using type = T&;
 template <typename R, typename T> struct transfer_ref_<const R&, T> { using type = const T&; };
 template <typename R, typename T> struct transfer_ref_<R&&, T> { using type = T; };
 
-template <typename T> struct wrap_type_ { using type = tag<T>; };
-template <typename T> struct wrap_type_<tag<T>> : wrap_type_<T> { };
+template <typename T> struct wrap_type_ { using type = makeshift::type<T>; };
+template <typename T> struct wrap_type_<type<T>> : wrap_type_<T> { };
 template <typename T> struct unwrap_type_ { using type = T; };
-template <typename T> struct unwrap_type_<tag<T>> : unwrap_type_<T> { };
+template <typename T> struct unwrap_type_<type<T>> : unwrap_type_<T> { };
 
 template <std::ptrdiff_t N, bool HomogeneousArgs, typename F, typename... Ts>
     struct homogeneous_result_;
@@ -422,18 +368,6 @@ template <typename F, typename... Ts,
 } // inline namespace types
 
 } // namespace makeshift
-
-
-namespace std
-{
-
-
-    // Specialize `tuple_size<>` and `tuple_element<>` for `type_sequence<>`.
-template <typename... Ts> class tuple_size<makeshift::type_sequence2<Ts...>> : public std::integral_constant<std::size_t, sizeof...(Ts)> { };
-template <std::size_t I, typename... Ts> class tuple_element<I, makeshift::type_sequence2<Ts...>> { using type = makeshift::tag<makeshift::nth_type_t<I, Ts...>>; };
-
-
-} // namespace std
 
 
 #endif // INCLUDED_MAKESHIFT_TUPLE2_HPP_

@@ -12,7 +12,7 @@ namespace makeshift
 namespace detail
 {
 
-namespace flag_enums
+namespace adl
 {
 
 
@@ -31,6 +31,14 @@ template <typename FlagsT, typename UnderlyingTypeT>
         friend constexpr auto reflect(tag<flag>, MetadataTagT) -> decltype(reflect(tag<FlagsT>{ }, MetadataTagT{ }))
     {
         return reflect(tag<FlagsT>{ }, MetadataTagT{ });
+    }
+
+        // We just forward the metadata defined for the derived type.
+        // TODO: ensure that have_metadata<flag> is false if no metadata is defined for FlagsT. Can we do without the template?
+    template <typename U = FlagsT>
+        friend constexpr auto reflect(tag<flag>) -> decltype(reflect(tag<U>{ }))
+    {
+        return reflect(tag<FlagsT>{ });
     }
 };
 
@@ -64,7 +72,7 @@ template <typename EnumT> constexpr bool has_any_of(EnumT haystack, EnumT needle
 template <typename EnumT> constexpr bool has_all_of(EnumT haystack, EnumT needles) noexcept { return (haystack & needles) == needles; }
 
 
-} // namespace flag_enums
+} // namespace adl
 
 } // namespace detail
 
@@ -81,12 +89,11 @@ inline namespace types
     //ᅟ        static constexpr flag tomato { 1 };
     //ᅟ        static constexpr flag onion { 2 };
     //ᅟ        static constexpr flag eggplant { 4 };
-    //ᅟ        static constexpr flag garlic { 8 };
     //ᅟ    };
     //ᅟ    using Vegetables = Vegetable::flags;
     //
 template <typename FlagsT, typename UnderlyingTypeT = unsigned>
-    struct define_flags : makeshift::detail::flag_enums::define_flags_base<FlagsT, UnderlyingTypeT>
+    struct define_flags : makeshift::detail::adl::define_flags_base<FlagsT, UnderlyingTypeT>
 {
 };
 
