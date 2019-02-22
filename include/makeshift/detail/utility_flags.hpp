@@ -4,6 +4,7 @@
 
 
 #include <makeshift/type_traits.hpp> // for flags_base, none, tag<>
+#include <makeshift/type_traits2.hpp> // for type<>
 
 
 namespace makeshift
@@ -34,11 +35,11 @@ template <typename FlagsT, typename UnderlyingTypeT>
     }
 
         // We just forward the metadata defined for the derived type.
-        // TODO: ensure that have_metadata<flag> is false if no metadata is defined for FlagsT. Can we do without the template?
+        // TODO: ensure that have_metadata<flag> is false if no metadata is defined for FlagsT.
     template <typename U = FlagsT>
-        friend constexpr auto reflect(tag<flag>) -> decltype(reflect(tag<U>{ }))
+        friend constexpr auto reflect(type<flag>) -> decltype(reflect(type<U>{ }))
     {
-        return reflect(tag<FlagsT>{ });
+        return reflect(type<FlagsT>{ });
     }
 };
 

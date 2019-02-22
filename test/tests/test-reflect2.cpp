@@ -13,9 +13,9 @@ enum class BoundaryCondition
     periodic,  // axis wraps around
     dirichlet  // constant boundary value (currently read from halo)
 };
-constexpr auto reflect(mk::tag<BoundaryCondition>)
+constexpr auto reflect(mk::type<BoundaryCondition>)
 {
-    return mk::enumeration(
+    return mk::reflect_enum_values(
         mk::with_name(BoundaryCondition::periodic, "periodic"),
         mk::with_name(BoundaryCondition::dirichlet, "dirichlet")
     );
@@ -23,14 +23,14 @@ constexpr auto reflect(mk::tag<BoundaryCondition>)
 
 struct PartitionFlag : mk::define_flags<PartitionFlag>
 {
-    static constexpr flag enclosedBoundary   { 0x010u }; // also set by ThreadParallelogramProcessor<>
-    static constexpr flag nodeCut            { 0x020u }; // indicates that the domain was cut into nodes along this axis
-    static constexpr flag threadCut          { 0x040u }; // indicates that the node partition was cut into threads along this axis
+    static constexpr flag enclosedBoundary { 0x010u };
+    static constexpr flag nodeCut          { 0x020u };
+    static constexpr flag threadCut        { 0x040u };
 };
 using PartitionFlags = PartitionFlag::flags;
-constexpr auto reflect(mk::tag<PartitionFlag>)
+constexpr auto reflect(mk::type<PartitionFlag>)
 {
-    return mk::flags_enumeration(
+    return mk::reflect_enum_values(
         PartitionFlag::enclosedBoundary,
         PartitionFlag::nodeCut,
         PartitionFlag::threadCut
@@ -43,9 +43,9 @@ struct PartitionAxis // : regular_compound<regular_category::equivalence | regul
     mk::index_t last;
     PartitionFlags flags;
 };
-constexpr auto reflect(mk::tag<PartitionAxis>)
+constexpr auto reflect(mk::type<PartitionAxis>)
 {
-    return mk::compound(
+    return mk::reflect_compound_members(
         mk::with_name(&PartitionAxis::first, "first"),
         mk::with_name(&PartitionAxis::last, "last"),
         mk::with_name(&PartitionAxis::flags, "flags")
