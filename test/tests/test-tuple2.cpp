@@ -44,6 +44,26 @@ TEST_CASE("tuple2", "[flags]")
         constexpr auto sum = mk::type_sequence_transform2(
             [](auto x, auto y) { return x + y; },
             numbers, moreNumbers);
-        CHECK(std::is_same<decltype(sum), mk::type_sequence2<double, unsigned>>::value);
+        CHECK(std::is_same<std::remove_const_t<decltype(sum)>, mk::type_sequence2<double, unsigned>>::value);
+    }
+    SECTION("fold")
+    {
+        int sum = mk::tuple_reduce(numbers, 0, std::plus<int>{ });
+        CHECK(sum == 5);
+    }
+    SECTION("all/any/none")
+    {
+        bool allGreaterThan0 = mk::tuple_all_of(numbers, [](auto x) { return x > 0; });
+        CHECK(allGreaterThan0);
+        bool allGreaterThan2 = mk::tuple_all_of(numbers, [](auto x) { return x > 2; });
+        CHECK_FALSE(allGreaterThan2);
+        bool anyGreaterThan2 = mk::tuple_any_of(numbers, [](auto x) { return x > 2; });
+        CHECK(anyGreaterThan2);
+        bool anyGreaterThan4 = mk::tuple_any_of(numbers, [](auto x) { return x > 4; });
+        CHECK_FALSE(anyGreaterThan4);
+        bool noneGreaterThan2 = mk::tuple_none_of(numbers, [](auto x) { return x > 2; });
+        CHECK_FALSE(noneGreaterThan2);
+        bool noneGreaterThan4 = mk::tuple_none_of(numbers, [](auto x) { return x > 4; });
+        CHECK(noneGreaterThan4);
     }
 }

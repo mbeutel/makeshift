@@ -222,6 +222,55 @@ template <std::ptrdiff_t N, transform_target TransformTarget, typename F, typena
         std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
+struct left_fold { };
+struct right_fold { };
+struct all_fold { };
+struct any_fold { };
+
+template <typename FoldT, typename TupleT, typename T, typename F>
+    constexpr auto fold_impl(std::index_sequence<>, FoldT, TupleT&&, T&& initialValue, F&&)
+{
+    return std::forward<T>(initialValue);
+}
+template <std::size_t I0, std::size_t... Is, typename TupleT, typename T, typename F>
+    constexpr auto
+    fold_impl(std::index_sequence<I0, Is...>, left_fold, TupleT&& tuple, T&& initialValue, F&& func)
+{
+    return fold_impl(std::index_sequence<Is...>{ }, left_fold{ }, std::forward<TupleT>(tuple),
+        func(std::forward<T>(initialValue), std::get<I0>(std::forward<TupleT>(tuple))),
+        std::forward<F>(func));
+}
+template <std::size_t I0, std::size_t... Is, typename TupleT, typename T, typename F>
+    constexpr auto
+    fold_impl(std::index_sequence<I0, Is...>, right_fold, TupleT&& tuple, T&& initialValue, F&& func)
+{
+    return fold_impl(std::index_sequence<Is...>{ }, right_fold{ }, std::forward<TupleT>(tuple),
+        func(std::get<std::tuple_size<std::decay_t<TupleT>>::value - 1 - I0>(std::forward<TupleT>(tuple)), std::forward<T>(initialValue)),
+        std::forward<F>(func));
+}
+template <std::size_t I0, std::size_t... Is, typename TupleT, typename F>
+    constexpr auto
+    fold_impl(std::index_sequence<I0, Is...>, all_fold, TupleT&& tuple, bool, F&& func)
+{
+    return func(std::get<I0>(std::forward<TupleT>(tuple)))
+        && fold_impl(std::index_sequence<Is...>{ }, all_fold{ }, std::forward<TupleT>(tuple), true, std::forward<F>(func));
+}
+template <std::size_t I0, std::size_t... Is, typename TupleT, typename F>
+    constexpr auto
+    fold_impl(std::index_sequence<I0, Is...>, any_fold, TupleT&& tuple, bool, F&& func)
+{
+    return func(std::get<I0>(std::forward<TupleT>(tuple)))
+        || fold_impl(std::index_sequence<Is...>{ }, any_fold{ }, std::forward<TupleT>(tuple), false, std::forward<F>(func));
+}
+template <typename FoldT, typename TupleT, typename T, typename F>
+    constexpr auto
+    fold_impl(FoldT, TupleT&& tuple, T&& initialValue, F&& func)
+{
+    return fold_impl(std::make_index_sequence<std::tuple_size<std::decay_t<TupleT>>::value>{ }, FoldT{ },
+        std::forward<TupleT>(tuple), std::forward<T>(initialValue), std::forward<F>(func));
+}
+
+
 } // namespace detail
 
 
@@ -362,6 +411,108 @@ template <typename F, typename... Ts,
     type_sequence_transform2(F&& func, Ts&&... args)
 {
     return makeshift::detail::tuple_transform_impl0<-1, makeshift::detail::transform_target::type_sequence>(std::forward<F>(func), std::forward<Ts>(args)...);
+}
+
+
+    //ᅟ
+    // Takes a tuple, an initial value, and a binary accumulator function and returns the left fold of the tuple.
+    //ᅟ
+    //ᅟ    auto numbers = std::make_tuple(2, 3u);
+    //ᅟ    int sum = tuple_reduce(numbers, 0, std::plus<int>{ }); // returns 5
+    //
+template <typename TupleT, typename T, typename F,
+          typename = std::enable_if_t<is_tuple_like2_v<std::decay_t<TupleT>>>>
+    constexpr auto
+    tuple_reduce(TupleT&& tuple, T&& initialValue, F&& func)
+{
+    return makeshift::detail::fold_impl(makeshift::detail::left_fold{ },
+        std::forward<TupleT>(tuple), std::forward<T>(initialValue), std::forward<F>(func));
+}
+
+
+    //ᅟ
+    // Takes a tuple, an initial value, and a binary accumulator function and returns the left fold of the tuple.
+    //ᅟ
+    //ᅟ    auto numbers = std::make_tuple(2, 3u);
+    //ᅟ    int sum = tuple_reduce_left(numbers, 0, std::plus<int>{ }); // returns 5
+    //
+template <typename TupleT, typename T, typename F,
+          typename = std::enable_if_t<is_tuple_like2_v<std::decay_t<TupleT>>>>
+    constexpr auto
+    tuple_reduce_left(TupleT&& tuple, T&& initialValue, F&& func)
+{
+    return makeshift::detail::fold_impl(makeshift::detail::left_fold{ },
+        std::forward<TupleT>(tuple), std::forward<T>(initialValue), std::forward<F>(func));
+}
+
+
+    //ᅟ
+    // Takes a tuple, an initial value, and a binary accumulator function and returns the right fold of the tuple.
+    //ᅟ
+    //ᅟ    auto numbers = std::make_tuple(2, 3u);
+    //ᅟ    int sum = tuple_reduce_right(numbers, 0, std::plus<int>{ }); // returns 5
+    //
+template <typename TupleT, typename T, typename F,
+          typename = std::enable_if_t<is_tuple_like2_v<std::decay_t<TupleT>>>>
+    constexpr auto
+    tuple_reduce_right(TupleT&& tuple, T&& initialValue, F&& func)
+{
+    return makeshift::detail::fold_impl(makeshift::detail::right_fold{ },
+        std::forward<TupleT>(tuple), std::forward<T>(initialValue), std::forward<F>(func));
+}
+
+
+    //ᅟ
+    // Takes a tuple and a unary predicate function and evaluates the short-circuited conjunction of the predicate applied to all tuple elements.
+    //ᅟ
+    //ᅟ    auto numbers = std::tuple{ 2, 3u };
+    //ᅟ    auto allNumbersGreaterThanZero = tuple_all_of(numbers,
+    //ᅟ        [](auto v) { return v > 0; }));
+    //ᅟ    // returns true
+    //
+template <typename TupleT, typename P,
+          typename = std::enable_if_t<is_tuple_like2_v<std::decay_t<TupleT>>>>
+    constexpr auto
+    tuple_all_of(TupleT&& tuple, P&& pred)
+{
+    return makeshift::detail::fold_impl(makeshift::detail::all_fold{ },
+        std::forward<TupleT>(tuple), true, std::forward<P>(pred));
+}
+
+
+    //ᅟ
+    // Takes a tuple and a unary predicate function and evaluates the short-circuited disjunction of the predicate applied to all tuple elements.
+    //ᅟ
+    //ᅟ    auto numbers = std::tuple{ 2, 3u };
+    //ᅟ    auto anyNumberGreaterThanZero = tuple_any_of(numbers,
+    //ᅟ        [](auto v) { return v > 0; }));
+    //ᅟ    // returns true
+    //
+template <typename TupleT, typename P,
+          typename = std::enable_if_t<is_tuple_like2_v<std::decay_t<TupleT>>>>
+    constexpr auto
+    tuple_any_of(TupleT&& tuple, P&& pred)
+{
+    return makeshift::detail::fold_impl(makeshift::detail::any_fold{ },
+        std::forward<TupleT>(tuple), false, std::forward<P>(pred));
+}
+
+
+    //ᅟ
+    // Takes a tuple and a unary predicate function and evaluates the short-circuited negated disjunction of the predicate applied to all tuple elements.
+    //ᅟ
+    //ᅟ    auto numbers = std::tuple{ 2, 3u };
+    //ᅟ    auto noNumberGreaterThanZero = tuple_none_of(numbers,
+    //ᅟ        [](auto v) { return v > 0; }));
+    //ᅟ    // returns false
+    //
+template <typename TupleT, typename P,
+          typename = std::enable_if_t<is_tuple_like2_v<std::decay_t<TupleT>>>>
+    constexpr auto
+    tuple_none_of(TupleT&& tuple, P&& pred)
+{
+    return !makeshift::detail::fold_impl(makeshift::detail::any_fold{ },
+        std::forward<TupleT>(tuple), false, std::forward<P>(pred));
 }
 
 
