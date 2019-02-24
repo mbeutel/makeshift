@@ -3,7 +3,10 @@
 #define INCLUDED_MAKESHIFT_TYPE_TRAITS2_HPP_
 
 
-#include <makeshift/type_traits.hpp> // for nth_type<>, try_index_of_type<>
+#include <iterator>    // for begin(), end()
+#include <type_traits> // for declval<>()
+
+#include <makeshift/type_traits.hpp> // for nth_type<>, try_index_of_type<>, can_apply<>
 
 
 namespace makeshift
@@ -15,6 +18,20 @@ namespace detail
 
     // needed because `type<>` cannot have a member `type`
 template <typename T> struct type_t { using type = T; };
+
+
+namespace is_iterable_ns
+{
+
+
+using std::begin;
+using std::end;
+
+
+template <typename T> using is_iterable_r = decltype(begin(std::declval<T&>()) != end(std::declval<T&>()));
+
+
+} // is_iterable_ns
 
 
 } // namespace detail
@@ -83,6 +100,17 @@ template <typename T, typename... Ts>
     static_assert(index != std::size_t(-1), "type T does not appear in type sequence");
     return { };
 }
+
+
+    //ᅟ
+    // Determines whether the given type is iterable, i.e. functions `begin()` and `end()` are well-defined for arguments of type `T`.
+    //
+template <typename T> struct is_iterable : can_apply<makeshift::detail::is_iterable_ns::is_iterable_r, T> { };
+
+    //ᅟ
+    // Determines whether the given type is iterable, i.e. functions `begin()` and `end()` are well-defined for arguments of type `T`.
+    //
+template <typename T> constexpr bool is_iterable_v = is_iterable<T>::value;
 
 
 } // inline namespace types
