@@ -10,7 +10,7 @@
 #include <utility>     // for integer_sequence<>
 
 #include <makeshift/type_traits.hpp> // for sequence<>, can_apply<>
-#include <makeshift/type_traits2.hpp> // for type<>
+#include <makeshift/type_traits2.hpp> // for type<>, is_iterable<>
 #include <makeshift/metadata2.hpp>
 #include <makeshift/tuple2.hpp>      // for tuple_transform2(), array_transform2()
 
@@ -23,6 +23,32 @@ namespace detail
 
 
 template <typename T> using raw_metadata2_of_r = decltype(reflect(type<T>{ }));
+
+
+} // namespace detail
+
+
+inline namespace metadata
+{
+
+
+    //ᅟ
+    // Determines whether there is metadata for the given type.
+    //
+template <typename T> struct have_metadata2 : can_apply<makeshift::detail::raw_metadata2_of_r, T> { };
+template <> struct have_metadata2<bool> : std::true_type { };
+
+    //ᅟ
+    // Determines whether there is metadata for the given type.
+    //
+template <typename T> constexpr bool have_metadata2_v = have_metadata2<T>::value;
+
+
+} // inline namespace metadata
+
+
+namespace detail
+{
 
 
 template <typename T, typename ValuesT>
@@ -45,14 +71,26 @@ template <typename T, typename MembersT>
 }
 
 
-template <typename T>
-    struct reflector
+template <typename TupleT, typename Is>
+    struct tuple_reflector;
+template <typename TupleT, std::size_t... Is>
+    struct tuple_reflector<TupleT, std::index_sequence<Is...>>
 {
-    constexpr decltype(auto) operator ()(void) const noexcept
+    constexpr auto operator ()(void) const noexcept
     {
-        return makeshift::detail::get_metadata<T>(reflect(type<T>{ }));
+        return std::make_tuple(
+            with_name(
+                [](const TupleT& t)
+                {
+                    return std::get<Is>(t);
+                },
+                { })...
+        );
     }
 };
+
+template <typename T, typename = void>
+    struct reflector;
 template <>
     struct reflector<bool>
 {
@@ -62,6 +100,21 @@ template <>
             with_name(false, "false"),
             with_name(true, "true")
         };
+    }
+};
+template <typename T>
+    struct reflector<T,
+                     std::enable_if_t<std::conjunction_v<is_tuple_like2<T>, std::negation<is_iterable<T>>>>>
+        : tuple_reflector<T, std::make_index_sequence<std::tuple_size<T>::value>>
+{
+};
+template <typename T>
+    struct reflector<T,
+                     std::enable_if_t<have_metadata2_v<T>>>
+{
+    constexpr decltype(auto) operator ()(void) const noexcept
+    {
+        return makeshift::detail::get_metadata<T>(reflect(type<T>{ }));
     }
 };
 
@@ -74,75 +127,125 @@ inline namespace metadata
 
 
     //ᅟ
-    // Determines whether there is metadata for the given type.
+    // Determines whether the given type is a compound type.
     //
-template <typename T> struct have_metadata2 : can_apply<makeshift::detail::raw_metadata2_of_r, T> { };
-template <> struct have_metadata2<bool> : std::true_type { };
+template <typename T> struct is_compound : std::disjunction<
+    std::conjunction<is_tuple_like2<T>, std::negation<is_iterable<T>>>,
+    std::conjunction<std::is_class<T>, have_metadata2<T>>
+> { };
 
     //ᅟ
-    // Determines whether there is metadata for the given type.
+    // Determines whether the given type is a compound type.
     //
-template <typename T> constexpr bool have_metadata2_v = have_metadata2<T>::value;
+template <typename T> constexpr bool is_compound_v = is_compound<T>::value;
 
 
     //ᅟ
-    // An array of the enumerators of a given enumeration type, retrieved from metadata.
+    // Returns an array of the enumerators of a given enumeration type, retrieved from metadata.
     // Returns `std::array{ false, true }` if the type argument is `bool`.
     //
-template <typename T>
-    constexpr auto enum_values(type<T> = { })
+struct values_t
 {
-    static_assert(std::is_enum<T>::value
-        || std::is_base_of<makeshift::detail::flags_base, T>
-        || std::is_same<T, bool>::value, "cannot enumerate values of types other than bool, enumerations, or enumeration flag types");
-    static_assert(have_metadata2_v<T>, "cannot enumerate values of enumerations without metadata");
+        //ᅟ
+        // Returns an array of the enumerators of a given enumeration type, retrieved from metadata.
+        // Returns `std::array{ false, true }` if the type argument is `bool`.
+        //
+    template <typename T>
+        constexpr auto operator ()(type<T>) const
+    {
+        static_assert(std::is_enum<T>::value
+            || std::is_base_of<makeshift::detail::flags_base, T>
+            || std::is_same<T, bool>::value, "cannot enumerate values of types other than bool, enumerations, or enumeration flag types");
+        static_assert(have_metadata2_v<T>, "cannot enumerate values of enumerations without metadata");
 
-    return array_transform2(
-        [](auto namedValue) { return namedValue.value; },
-        makeshift::detail::reflector<T>{ }());
-}
+        return array_transform2(
+            [](auto namedValue) { return namedValue.value; },
+            makeshift::detail::reflector<T>{ }());
+    }
+};
+
+    //ᅟ
+    // Returns an array of the enumerators of a given enumeration type, retrieved from metadata.
+    // Returns `std::array{ false, true }` if the type argument is `bool`.
+    //
+constexpr inline values_t values = { };
 
 
     //ᅟ
-    // An array of the names and values of the enumerators of a given enumeration type, retrieved from metadata.
+    // Returns an array of the names and values of the enumerators of a given enumeration type, retrieved from metadata.
     // Returns `std::array{ with_name(false, "false"), with_name(true, "true") }` if the type argument is `bool`.
     //
-template <typename T>
-    constexpr auto named_enum_values(type<T> = { })
+struct named_values_t
 {
-    static_assert(std::is_enum<T>::value || std::is_same<T, bool>::value, "cannot enumerate values of types other than bool and enumerations");
-    static_assert(have_metadata2_v<T>, "cannot enumerate values of enumerations without metadata");
+        //ᅟ
+        // Returns an array of the names and values of the enumerators of a given enumeration type, retrieved from metadata.
+        // Returns `std::array{ with_name(false, "false"), with_name(true, "true") }` if the type argument is `bool`.
+        //
+    template <typename T>
+        constexpr auto operator ()(type<T>) const
+    {
+        static_assert(std::is_enum<T>::value || std::is_same<T, bool>::value, "cannot enumerate values of types other than bool and enumerations");
+        static_assert(have_metadata2_v<T>, "cannot enumerate values of enumerations without metadata");
     
-    return makeshift::detail::reflector<T>{ }();
-}
+        return makeshift::detail::reflector<T>{ }();
+    }
+};
+
+    //ᅟ
+    // Returns an array of the names and values of the enumerators of a given enumeration type, retrieved from metadata.
+    // Returns `std::array{ with_name(false, "false"), with_name(true, "true") }` if the type argument is `bool`.
+    //
+constexpr inline named_values_t named_values = { };
 
 
     //ᅟ
-    // A tuple of the accessors of the members in a given compound type, retrieved from metadata.
+    // Returns a tuple of the accessors of the members in a given compound type, retrieved from metadata.
     //
-template <typename T>
-    constexpr auto compound_members(type<T> = { })
+struct compound_members_t
 {
-    static_assert(std::is_class<T>::value, "cannot enumerate members of non-class types");
-    static_assert(have_metadata2_v<T>, "cannot enumerate members of classes without metadata");
+        //ᅟ
+        // Returns a tuple of the accessors of the members in a given compound type, retrieved from metadata.
+        //
+    template <typename T>
+        constexpr auto operator ()(type<T>) const
+    {
+        static_assert(std::is_class<T>::value, "cannot enumerate members of non-class types");
+        static_assert(have_metadata2_v<T>, "cannot enumerate members of classes without metadata");
     
-    return tuple_transform2(
-        [](auto namedMember) { return namedMember.value; },
-        makeshift::detail::reflector<T>{ }());
-}
+        return tuple_transform2(
+            [](auto namedMember) { return namedMember.value; },
+            makeshift::detail::reflector<T>{ }());
+    }
+};
+
+    //ᅟ
+    // Returns a tuple of the accessors of the members in a given compound type, retrieved from metadata.
+    //
+constexpr inline compound_members_t compound_members = { };
 
 
     //ᅟ
-    // A tuple of the names and accessors of the members in a given compound type, retrieved from metadata.
+    // Returns a tuple of the names and accessors of the members in a given compound type, retrieved from metadata.
     //
-template <typename T>
-    constexpr auto named_compound_members(type<T> = { })
+struct named_compound_members_t
 {
-    static_assert(std::is_class<T>::value, "cannot enumerate members of non-class types");
-    static_assert(have_metadata2_v<T>, "cannot enumerate members of classes without metadata");
+        //ᅟ
+        // Returns a tuple of the names and accessors of the members in a given compound type, retrieved from metadata.
+        //
+    template <typename T>
+        constexpr auto named_compound_members(type<T> = { })
+    {
+        static_assert(std::is_class<T>::value, "cannot enumerate members of non-class types");
+        static_assert(have_metadata2_v<T>, "cannot enumerate members of classes without metadata");
     
-    return makeshift::detail::reflector<T>{ }();
-}
+        return makeshift::detail::reflector<T>{ }();
+    }
+};
+
+    //ᅟ
+    // Returns a tuple of the names and accessors of the members in a given compound type, retrieved from metadata.
+    //
+constexpr inline named_compound_members_t named_compound_members = { };
 
 
     //ᅟ
@@ -204,12 +307,12 @@ template <typename ArrayFuncT,
 }*/
 
 
-template <typename T>
+template <typename T, typename ValuesT>
     struct value_array_func
 {
     constexpr auto operator ()(void) const noexcept
     {
-        return enum_values<T>();
+        return ValuesT{ }(type_v<T>);
     }
 };
 
@@ -222,10 +325,11 @@ inline namespace metadata
 
 
     //ᅟ
-    // A `sequence<>` of the enumerators of a given enumeration type, retrieved from metadata.
+    // A `sequence<>` of the values of a given type, retrieved from metadata.
     // Equals `sequence<bool, false, true>` if the type argument is `bool`.
+    // TODO: will this really be used? perhaps we can simply do without...
     //
-template <typename T> using enum_value_sequence = decltype(makeshift::detail::array_to_sequence<makeshift::detail::value_array_func<T>>());
+template <typename T, typename ValuesT> using value_sequence = decltype(makeshift::detail::array_to_sequence<makeshift::detail::value_array_func<T, ValuesT>>());
 
 
 } // inline namespace metadata
