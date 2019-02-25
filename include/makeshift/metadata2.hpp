@@ -12,6 +12,7 @@
 #include <makeshift/type_traits2.hpp> // for type<>
 
 #include <makeshift/detail/workaround.hpp> // for cand()
+#include <makeshift/version.hpp>      // for MAKESHIFT_NODISCARD
 
 
 namespace makeshift
@@ -90,7 +91,7 @@ inline namespace metadata
 
 
 template <typename... Ts>
-    constexpr auto reflect_enum_values(Ts... args)
+    MAKESHIFT_NODISCARD constexpr auto reflect_values(Ts... args)
 {
     static_assert(makeshift::detail::cand(std::is_enum<typename makeshift::detail::as_named_value<std::decay_t<Ts>>::value_type>::value...),
         "cannot use enumeration() for arguments of non-enumeration type");
@@ -98,14 +99,14 @@ template <typename... Ts>
     using Values = std::array<named2<T>, sizeof...(Ts)>;
     return makeshift::detail::raw_enum_metadata<Values>{ { makeshift::detail::as_named_value<Ts>::invoke(args)... } };
 }
-constexpr inline auto reflect_enum_values(void)
+MAKESHIFT_NODISCARD constexpr inline auto reflect_values(void)
 {
     return makeshift::detail::raw_enum_metadata<void>{ };
 }
 
 
 template <typename... Ts>
-    constexpr auto reflect_compound_members(Ts... args)
+    MAKESHIFT_NODISCARD constexpr auto reflect_compound_members(Ts... args)
 {
     using Members = std::tuple<named2<typename makeshift::detail::as_named_value<Ts>::value_type>...>;
     return makeshift::detail::raw_class_metadata<Members>{ { makeshift::detail::as_named_value<Ts>::invoke(args)... } };

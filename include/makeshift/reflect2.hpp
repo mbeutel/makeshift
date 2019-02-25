@@ -13,6 +13,7 @@
 #include <makeshift/type_traits2.hpp> // for type<>, is_iterable<>
 #include <makeshift/metadata2.hpp>
 #include <makeshift/tuple2.hpp>      // for tuple_transform2(), array_transform2()
+#include <makeshift/version.hpp>      // for MAKESHIFT_NODISCARD
 
 
 namespace makeshift
@@ -151,7 +152,7 @@ struct values_t
         // Returns `std::array{ false, true }` if the type argument is `bool`.
         //
     template <typename T>
-        constexpr auto operator ()(type<T>) const
+        MAKESHIFT_NODISCARD constexpr auto operator ()(type<T>) const
     {
         static_assert(std::is_enum<T>::value
             || std::is_base_of<makeshift::detail::flags_base, T>
@@ -182,7 +183,7 @@ struct named_values_t
         // Returns `std::array{ with_name(false, "false"), with_name(true, "true") }` if the type argument is `bool`.
         //
     template <typename T>
-        constexpr auto operator ()(type<T>) const
+        MAKESHIFT_NODISCARD constexpr auto operator ()(type<T>) const
     {
         static_assert(std::is_enum<T>::value || std::is_same<T, bool>::value, "cannot enumerate values of types other than bool and enumerations");
         static_assert(have_metadata2_v<T>, "cannot enumerate values of enumerations without metadata");
@@ -207,7 +208,7 @@ struct compound_members_t
         // Returns a tuple of the accessors of the members in a given compound type, retrieved from metadata.
         //
     template <typename T>
-        constexpr auto operator ()(type<T>) const
+        MAKESHIFT_NODISCARD constexpr auto operator ()(type<T>) const
     {
         static_assert(std::is_class<T>::value, "cannot enumerate members of non-class types");
         static_assert(have_metadata2_v<T>, "cannot enumerate members of classes without metadata");
@@ -233,7 +234,7 @@ struct named_compound_members_t
         // Returns a tuple of the names and accessors of the members in a given compound type, retrieved from metadata.
         //
     template <typename T>
-        constexpr auto named_compound_members(type<T> = { })
+        MAKESHIFT_NODISCARD constexpr auto named_compound_members(type<T> = { })
     {
         static_assert(std::is_class<T>::value, "cannot enumerate members of non-class types");
         static_assert(have_metadata2_v<T>, "cannot enumerate members of classes without metadata");
@@ -252,7 +253,7 @@ constexpr inline named_compound_members_t named_compound_members = { };
     // Returns the value of a member of an object given an object reference and a member accessor.
     //
 template <typename C, typename T>
-    constexpr const T& get_member_value(const C& obj, T C::* member) noexcept
+    MAKESHIFT_NODISCARD constexpr const T& get_member_value(const C& obj, T C::* member) noexcept
 {
     return obj->*member;
 }
@@ -261,7 +262,7 @@ template <typename C, typename T>
     // Returns the value of a member of an object given an object reference and a member accessor.
     //
 template <typename C, typename T>
-    constexpr const T& get_member_value(const C& obj, T (C::* member)(void) const) noexcept
+    MAKESHIFT_NODISCARD constexpr const T& get_member_value(const C& obj, T (C::* member)(void) const) noexcept
 {
     return (obj->*member)();
 }
@@ -271,7 +272,7 @@ template <typename C, typename T>
     //
 template <typename C, typename F,
           typename = decltype(std::declval<F>()(std::declval<const C&>()))>
-    constexpr auto get_member_value(const C& obj, F&& member)
+    MAKESHIFT_NODISCARD constexpr auto get_member_value(const C& obj, F&& member)
 {
     return member(obj);
 }

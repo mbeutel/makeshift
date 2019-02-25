@@ -9,8 +9,9 @@
 #include <utility>     // for move(), forward<>(), tuple_element<>, tuple_size<>, get<>
 #include <type_traits> // for decay<>, integral_constant<>, index_sequence<>, is_nothrow_default_constructible<>
 
-#include <makeshift/type_traits.hpp> // for can_apply<>, none
+#include <makeshift/type_traits.hpp>  // for can_apply<>, none
 #include <makeshift/type_traits2.hpp> // for type<>, type_sequence2<>
+#include <makeshift/version.hpp>      // for MAKESHIFT_NODISCARD
 
 #include <makeshift/detail/workaround.hpp> // for cand()
 
@@ -288,7 +289,7 @@ inline namespace types
     //
 template <std::size_t N, typename F, typename... Ts,
           typename = std::enable_if_t<makeshift::detail::are_tuple_args_v<Ts...>>>
-    constexpr void
+    MAKESHIFT_NODISCARD constexpr void
     tuple_foreach2(F&& func, Ts&&... args)
 {
     makeshift::detail::tuple_transform_impl0<N, makeshift::detail::transform_target::nothing>(std::forward<F>(func), std::forward<Ts>(args)...);
@@ -305,7 +306,7 @@ template <std::size_t N, typename F, typename... Ts,
     //
 template <typename F, typename... Ts,
           typename = std::enable_if_t<makeshift::detail::are_tuple_args_v<Ts...>>>
-    constexpr void
+    MAKESHIFT_NODISCARD constexpr void
     tuple_foreach2(F&& func, Ts&&... args)
 {
     makeshift::detail::tuple_transform_impl0<-1, makeshift::detail::transform_target::nothing>(std::forward<F>(func), std::forward<Ts>(args)...);
@@ -322,7 +323,7 @@ template <typename F, typename... Ts,
     //
 template <std::size_t N, typename F, typename... Ts,
           typename = std::enable_if_t<makeshift::detail::are_tuple_args_v<Ts...>>>
-    constexpr auto
+    MAKESHIFT_NODISCARD constexpr auto
     tuple_transform2(F&& func, Ts&&... args)
 {
     return makeshift::detail::tuple_transform_impl0<N, makeshift::detail::transform_target::tuple>(std::forward<F>(func), std::forward<Ts>(args)...);
@@ -339,7 +340,7 @@ template <std::size_t N, typename F, typename... Ts,
     //
 template <typename F, typename... Ts,
           typename = std::enable_if_t<makeshift::detail::are_tuple_args_v<Ts...>>>
-    constexpr auto
+    MAKESHIFT_NODISCARD constexpr auto
     tuple_transform2(F&& func, Ts&&... args)
 {
     return makeshift::detail::tuple_transform_impl0<-1, makeshift::detail::transform_target::tuple>(std::forward<F>(func), std::forward<Ts>(args)...);
@@ -356,7 +357,7 @@ template <typename F, typename... Ts,
     //
 template <std::size_t N, typename F, typename... Ts,
           typename = std::enable_if_t<makeshift::detail::are_tuple_args_v<Ts...>>>
-    constexpr auto
+    MAKESHIFT_NODISCARD constexpr auto
     array_transform2(F&& func, Ts&&... args)
 {
     return makeshift::detail::tuple_transform_impl0<N, makeshift::detail::transform_target::array>(std::forward<F>(func), std::forward<Ts>(args)...);
@@ -373,7 +374,7 @@ template <std::size_t N, typename F, typename... Ts,
     //
 template <typename F, typename... Ts,
           typename = std::enable_if_t<makeshift::detail::are_tuple_args_v<Ts...>>>
-    constexpr auto
+    MAKESHIFT_NODISCARD constexpr auto
     array_transform2(F&& func, Ts&&... args)
 {
     return makeshift::detail::tuple_transform_impl0<-1, makeshift::detail::transform_target::array>(std::forward<F>(func), std::forward<Ts>(args)...);
@@ -390,7 +391,7 @@ template <typename F, typename... Ts,
     //
 template <std::size_t N, typename F, typename... Ts,
           typename = std::enable_if_t<makeshift::detail::are_tuple_args_v<Ts...>>>
-    constexpr auto
+    MAKESHIFT_NODISCARD constexpr auto
     type_sequence_transform2(F&& func, Ts&&... args)
 {
     return makeshift::detail::tuple_transform_impl0<N, makeshift::detail::transform_target::type_sequence>(std::forward<F>(func), std::forward<Ts>(args)...);
@@ -407,7 +408,7 @@ template <std::size_t N, typename F, typename... Ts,
     //
 template <typename F, typename... Ts,
           typename = std::enable_if_t<makeshift::detail::are_tuple_args_v<Ts...>>>
-    constexpr auto
+    MAKESHIFT_NODISCARD constexpr auto
     type_sequence_transform2(F&& func, Ts&&... args)
 {
     return makeshift::detail::tuple_transform_impl0<-1, makeshift::detail::transform_target::type_sequence>(std::forward<F>(func), std::forward<Ts>(args)...);
@@ -422,7 +423,7 @@ template <typename F, typename... Ts,
     //
 template <typename TupleT, typename T, typename F,
           typename = std::enable_if_t<is_tuple_like2_v<std::decay_t<TupleT>>>>
-    constexpr auto
+    MAKESHIFT_NODISCARD constexpr auto
     tuple_reduce(TupleT&& tuple, T&& initialValue, F&& func)
 {
     return makeshift::detail::fold_impl(makeshift::detail::left_fold{ },
@@ -438,7 +439,7 @@ template <typename TupleT, typename T, typename F,
     //
 template <typename TupleT, typename T, typename F,
           typename = std::enable_if_t<is_tuple_like2_v<std::decay_t<TupleT>>>>
-    constexpr auto
+    MAKESHIFT_NODISCARD constexpr auto
     tuple_reduce_left(TupleT&& tuple, T&& initialValue, F&& func)
 {
     return makeshift::detail::fold_impl(makeshift::detail::left_fold{ },
@@ -454,7 +455,7 @@ template <typename TupleT, typename T, typename F,
     //
 template <typename TupleT, typename T, typename F,
           typename = std::enable_if_t<is_tuple_like2_v<std::decay_t<TupleT>>>>
-    constexpr auto
+    MAKESHIFT_NODISCARD constexpr auto
     tuple_reduce_right(TupleT&& tuple, T&& initialValue, F&& func)
 {
     return makeshift::detail::fold_impl(makeshift::detail::right_fold{ },
@@ -472,7 +473,7 @@ template <typename TupleT, typename T, typename F,
     //
 template <typename TupleT, typename P,
           typename = std::enable_if_t<is_tuple_like2_v<std::decay_t<TupleT>>>>
-    constexpr auto
+    MAKESHIFT_NODISCARD constexpr auto
     tuple_all_of(TupleT&& tuple, P&& pred)
 {
     return makeshift::detail::fold_impl(makeshift::detail::all_fold{ },
@@ -490,7 +491,7 @@ template <typename TupleT, typename P,
     //
 template <typename TupleT, typename P,
           typename = std::enable_if_t<is_tuple_like2_v<std::decay_t<TupleT>>>>
-    constexpr auto
+    MAKESHIFT_NODISCARD constexpr auto
     tuple_any_of(TupleT&& tuple, P&& pred)
 {
     return makeshift::detail::fold_impl(makeshift::detail::any_fold{ },
@@ -508,7 +509,7 @@ template <typename TupleT, typename P,
     //
 template <typename TupleT, typename P,
           typename = std::enable_if_t<is_tuple_like2_v<std::decay_t<TupleT>>>>
-    constexpr auto
+    MAKESHIFT_NODISCARD constexpr auto
     tuple_none_of(TupleT&& tuple, P&& pred)
 {
     return !makeshift::detail::fold_impl(makeshift::detail::any_fold{ },

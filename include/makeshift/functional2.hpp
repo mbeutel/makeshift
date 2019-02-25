@@ -5,7 +5,7 @@
 
 #include <functional> // for hash<>
 
-#include <makeshift/version.hpp>  // for MAKESHIFT_EMPTY_BASES
+#include <makeshift/version.hpp>  // for MAKESHIFT_EMPTY_BASES, MAKESHIFT_NODISCARD
 
 
 namespace makeshift
@@ -52,7 +52,7 @@ template <>
         // Computes a hash value of the given argument.
         //
     template <typename T>
-        constexpr std::size_t operator ()(const T& arg) const noexcept
+        MAKESHIFT_NODISCARD constexpr std::size_t operator ()(const T& arg) const noexcept
     {
         return hash2<T>{ }(arg);
     }
