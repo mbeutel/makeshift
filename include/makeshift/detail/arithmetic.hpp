@@ -15,21 +15,25 @@
 namespace makeshift
 {
 
+inline namespace arithmetic
+{
+
+
+template <typename V>
+    struct factor;
+template <typename V, dim_t NumFactors>
+    struct factorization;
+
+
+} // inline namespace arithmetic
+
+
 namespace detail
 {
 
 
-struct throw_error_handler
-{
-    static constexpr bool isNoexcept = false;
-    static constexpr MAKESHIFT_FORCEINLINE void checkOverflow(bool cond) { if (!cond) throw arithmetic_overflow("integer overflow"); }
-    static constexpr MAKESHIFT_FORCEINLINE void checkUnderflow(bool cond) { if (!cond) throw arithmetic_overflow("integer underflow"); }
-};
-struct assert_error_handler
-{
-    static constexpr MAKESHIFT_FORCEINLINE void checkOverflow(bool cond) { Expects(cond); }
-    static constexpr MAKESHIFT_FORCEINLINE void checkUnderflow(bool cond) { Expects(cond); }
-};
+    // The implementations below have borrowed heavily from the suggestions made and examples used in the SEI CERT C Coding Standard:
+    // https://wiki.sei.cmu.edu/confluence/display/c/
 
 
 template <typename V> struct wider_type;
@@ -158,11 +162,11 @@ template <typename EH, typename V>
         {
                 // Compare with m before computing bᵉ⁺¹ to avoid overflow.
             if (x0 > m)
-                return { x - x0, { factor{ b, e } } };
+                return { x - x0, { factor<V>{ b, e } } };
 
             V x1 = x0 * b; // = bᵉ⁺¹
             if (x1 > x)
-                return { x - x0, { factor{ b, e } } };
+                return { x - x0, { factor<V>{ b, e } } };
 
             x0 = x1;
             ++e;
@@ -177,7 +181,7 @@ template <typename EH, typename V>
             return { 0, fFloor };
         auto xFloor = x - rFloor;
         auto rCeil = checked_operations<EH, V>::multiply(xFloor, b - 1) - rFloor; // x = bᵉ + r =: bᵉ⁺¹ - r' ⇒ r' = bᵉ(b - 1) - r
-        return { rCeil, { factor{ b, fFloor[0].exponent + 1 } } }; // e cannot overflow
+        return { rCeil, { factor<V>{ b, fFloor[0].exponent + 1 } } }; // e cannot overflow
     }
 
         // Computes ⌊log x ÷ log b⌋ for x,b ∊ ℕ, x > 0, b > 1.
@@ -232,7 +236,7 @@ template <typename EH, typename V>
         for (;;)
         {
             if (i == 0)
-                return { cy - x, { factor{ a, ci }, factor{ b, cj } } };
+                return { cy - x, { factor<V>{ a, ci }, factor<V>{ b, cj } } };
 
                 // take factor a
             y /= a;
@@ -272,7 +276,7 @@ template <typename EH, typename V>
         for (;;)
         {
             if (i == 0)
-                return { x - cy, { factor{ a, ci }, factor{ b, cj } } };
+                return { x - cy, { factor<V>{ a, ci }, factor<V>{ b, cj } } };
 
                 // take factor a
             y /= a;
@@ -387,7 +391,7 @@ template <typename EH, typename V>
     {
         Expects(x > 0 && b > 1);
         auto [r, f] = checked_operations<EH, U>::factorize_floor(U(x), U(b));
-        return { V(r), { factor{ b, V(f[0].exponent) } } };
+        return { V(r), { factor<V>{ b, V(f[0].exponent) } } };
     }
 
         // Given x,b ∊ ℕ, x > 0, b > 1, returns (r,{ {b,e} }) such that x = bᵉ - r with r ≥ 0 minimal.
@@ -396,7 +400,7 @@ template <typename EH, typename V>
         Expects(x > 0 && b > 1);
         auto [r, f] = checked_operations<EH, U>::factorize_ceil(U(x), U(b));
         EH::checkOverflow(r <= U(std::numeric_limits<V>::max()));
-        return { V(r), { factor{ b, V(f[0].exponent) } } };
+        return { V(r), { factor<V>{ b, V(f[0].exponent) } } };
     }
 
         // Computes ⌊log x ÷ log b⌋ for x,b ∊ ℕ, x > 0, b > 1.
@@ -419,7 +423,7 @@ template <typename EH, typename V>
         Expects(x > 0 && a > 1 && b > 1 && a != b);
         auto [r, f] = checked_operations<EH, U>::factorize_ceil(U(x), U(a), U(b));
         EH::checkOverflow(r <= U(std::numeric_limits<V>::max()));
-        return { V(r), { factor{ a, V(f[0].exponent) }, factor{ b, V(f[1].exponent) } } };
+        return { V(r), { factor<V>{ a, V(f[0].exponent) }, factor<V>{ b, V(f[1].exponent) } } };
     }
 
         // Given x,a,b ∊ ℕ, x > 0, a,b > 1, a ≠ b, returns (r,{ {a,i}, {b,j} }) such that x = aⁱ ∙ bʲ + r with r ≥ 0 minimal.
@@ -427,7 +431,7 @@ template <typename EH, typename V>
     {
         Expects(x > 0 && a > 1 && b > 1 && a != b);
         auto [r, f] = checked_operations<EH, U>::factorize_floor(U(x), U(a), U(b));
-        return { V(r), { factor{ a, V(f[0].exponent) }, factor{ b, V(f[1].exponent) } } };
+        return { V(r), { factor<V>{ a, V(f[0].exponent) }, factor<V>{ b, V(f[1].exponent) } } };
     }
 };
 template <typename EH, typename V, int_width, int_signedness>

@@ -9,10 +9,10 @@
 #include <utility>     // for move(), integer_sequence<>
 #include <functional>  // for equal_to<>, less<>
 
-#include <makeshift/reflect2.hpp> // for compound_members<>()
-#include <makeshift/tuple2.hpp>   // for tuple_all_of(), tuple_reduce()
+#include <makeshift/reflect2.hpp>    // for compound_members()
+#include <makeshift/tuple2.hpp>      // for tuple_all_of(), tuple_reduce()
 #include <makeshift/functional2.hpp> // for hash<>, adapter_base<>
-#include <makeshift/version.hpp>  // for MAKESHIFT_NODISCARD
+#include <makeshift/version.hpp>     // for MAKESHIFT_NODISCARD
 
 
 namespace makeshift
@@ -152,8 +152,13 @@ template <typename LessT, typename CompoundMembersT>
 };
 
 
+    //ᅟ
+    // Base class for compound types which implements the specified abilities using metadata.
+    //
+    // For example, to declare a regular compound type, inherit from `with_compound_operations<equatable, hashable, comparable>`.
+    //
 template <typename... Ts>
-    struct compound_base
+    struct with_compound_operations
         : Ts::template interface<compound_operation<Ts>>...
 {
 };

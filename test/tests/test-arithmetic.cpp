@@ -44,10 +44,10 @@ const volatile int imin = std::numeric_limits<int>::min(),
                    imax = std::numeric_limits<int>::max();
 const volatile int imaxlog = mk::log_floor(imax, 2);
 const volatile int iminlog = mk::log_floor(imin / -2, 2) + 1;
-const volatile long long lmin = std::numeric_limits<long long>::min(),
-                         lmax = std::numeric_limits<long long>::max();
-const volatile long long lmaxlog = mk::log_floor(lmax, long long(2));
-const volatile long long lminlog = mk::log_floor(lmin / -2, long long(2)) + 1;
+const volatile int64_t lmin = std::numeric_limits<int64_t>::min(),
+                         lmax = std::numeric_limits<int64_t>::max();
+const volatile int64_t lmaxlog = mk::log_floor(lmax, int64_t(2));
+const volatile int64_t lminlog = mk::log_floor(lmin / -2, int64_t(2)) + 1;
 
 
 namespace Catch
@@ -96,23 +96,23 @@ TEST_CASE("factorize")
 
     SECTION("factorize")
     {
-        CHECK(mk::factorize_ceil(1, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor{ 2, 0 }, mk::factor{ 3, 0 } } });
-        CHECK(mk::factorize_ceil(2, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor{ 2, 1 }, mk::factor{ 3, 0 } } });
-        CHECK(mk::factorize_ceil(3, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor{ 2, 0 }, mk::factor{ 3, 1 } } });
-        CHECK(mk::factorize_ceil(4, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor{ 2, 2 }, mk::factor{ 3, 0 } } });
-        CHECK(mk::factorize_ceil(5, 2, 3) == mk::factorization<int, 2>{ 1, { mk::factor{ 2, 1 }, mk::factor{ 3, 1 } } });
-        CHECK(mk::factorize_ceil(6, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor{ 2, 1 }, mk::factor{ 3, 1 } } });
-        CHECK(mk::factorize_ceil(7, 2, 3) == mk::factorization<int, 2>{ 1, { mk::factor{ 2, 3 }, mk::factor{ 3, 0 } } });
-        CHECK(mk::factorize_ceil(8, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor{ 2, 3 }, mk::factor{ 3, 0 } } });
+        CHECK(mk::factorize_ceil(1, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor<int>{ 2, 0 }, mk::factor<int>{ 3, 0 } } });
+        CHECK(mk::factorize_ceil(2, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor<int>{ 2, 1 }, mk::factor<int>{ 3, 0 } } });
+        CHECK(mk::factorize_ceil(3, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor<int>{ 2, 0 }, mk::factor<int>{ 3, 1 } } });
+        CHECK(mk::factorize_ceil(4, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor<int>{ 2, 2 }, mk::factor<int>{ 3, 0 } } });
+        CHECK(mk::factorize_ceil(5, 2, 3) == mk::factorization<int, 2>{ 1, { mk::factor<int>{ 2, 1 }, mk::factor<int>{ 3, 1 } } });
+        CHECK(mk::factorize_ceil(6, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor<int>{ 2, 1 }, mk::factor<int>{ 3, 1 } } });
+        CHECK(mk::factorize_ceil(7, 2, 3) == mk::factorization<int, 2>{ 1, { mk::factor<int>{ 2, 3 }, mk::factor<int>{ 3, 0 } } });
+        CHECK(mk::factorize_ceil(8, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor<int>{ 2, 3 }, mk::factor<int>{ 3, 0 } } });
 
-        CHECK(mk::factorize_floor(1, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor{ 2, 0 }, mk::factor{ 3, 0 } } });
-        CHECK(mk::factorize_floor(2, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor{ 2, 1 }, mk::factor{ 3, 0 } } });
-        CHECK(mk::factorize_floor(3, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor{ 2, 0 }, mk::factor{ 3, 1 } } });
-        CHECK(mk::factorize_floor(4, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor{ 2, 2 }, mk::factor{ 3, 0 } } });
-        CHECK(mk::factorize_floor(5, 2, 3) == mk::factorization<int, 2>{ 1, { mk::factor{ 2, 2 }, mk::factor{ 3, 0 } } });
-        CHECK(mk::factorize_floor(6, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor{ 2, 1 }, mk::factor{ 3, 1 } } });
-        CHECK(mk::factorize_floor(7, 2, 3) == mk::factorization<int, 2>{ 1, { mk::factor{ 2, 1 }, mk::factor{ 3, 1 } } });
-        CHECK(mk::factorize_floor(8, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor{ 2, 3 }, mk::factor{ 3, 0 } } });
+        CHECK(mk::factorize_floor(1, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor<int>{ 2, 0 }, mk::factor<int>{ 3, 0 } } });
+        CHECK(mk::factorize_floor(2, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor<int>{ 2, 1 }, mk::factor<int>{ 3, 0 } } });
+        CHECK(mk::factorize_floor(3, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor<int>{ 2, 0 }, mk::factor<int>{ 3, 1 } } });
+        CHECK(mk::factorize_floor(4, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor<int>{ 2, 2 }, mk::factor<int>{ 3, 0 } } });
+        CHECK(mk::factorize_floor(5, 2, 3) == mk::factorization<int, 2>{ 1, { mk::factor<int>{ 2, 2 }, mk::factor<int>{ 3, 0 } } });
+        CHECK(mk::factorize_floor(6, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor<int>{ 2, 1 }, mk::factor<int>{ 3, 1 } } });
+        CHECK(mk::factorize_floor(7, 2, 3) == mk::factorization<int, 2>{ 1, { mk::factor<int>{ 2, 1 }, mk::factor<int>{ 3, 1 } } });
+        CHECK(mk::factorize_floor(8, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor<int>{ 2, 3 }, mk::factor<int>{ 3, 0 } } });
     }
 }
 
@@ -217,24 +217,24 @@ TEST_CASE("checked")
             CHECK(mk::multiply_or_throw(imin + 1, -1) == imax);
             CHECK(mk::multiply_or_throw(-1, imin + 1) == imax);
 
-            CHECK(mk::multiply_or_throw<long long>(lmax, 1) == lmax);
-            CHECK(mk::multiply_or_throw<long long>(lmax, 0) == 0);
-            CHECK(mk::multiply_or_throw<long long>(1, lmax) == lmax);
-            CHECK(mk::multiply_or_throw<long long>(0, lmax) == 0);
-            CHECK(mk::multiply_or_throw<long long>(lmax / 2, 2) == (lmax / 2) * 2);
-            CHECK(mk::multiply_or_throw<long long>(2, lmax / 2) == (lmax / 2) * 2);
-            CHECK(mk::multiply_or_throw<long long>(lmin / 2, 2) == lmin);
-            CHECK(mk::multiply_or_throw<long long>(2, lmin / 2) == lmin);
-            CHECK(mk::multiply_or_throw<long long>(lmin / -2, -2) == lmin);
-            CHECK(mk::multiply_or_throw<long long>(-2, lmin / -2) == lmin);
+            CHECK(mk::multiply_or_throw<int64_t>(lmax, 1) == lmax);
+            CHECK(mk::multiply_or_throw<int64_t>(lmax, 0) == 0);
+            CHECK(mk::multiply_or_throw<int64_t>(1, lmax) == lmax);
+            CHECK(mk::multiply_or_throw<int64_t>(0, lmax) == 0);
+            CHECK(mk::multiply_or_throw<int64_t>(lmax / 2, 2) == (lmax / 2) * 2);
+            CHECK(mk::multiply_or_throw<int64_t>(2, lmax / 2) == (lmax / 2) * 2);
+            CHECK(mk::multiply_or_throw<int64_t>(lmin / 2, 2) == lmin);
+            CHECK(mk::multiply_or_throw<int64_t>(2, lmin / 2) == lmin);
+            CHECK(mk::multiply_or_throw<int64_t>(lmin / -2, -2) == lmin);
+            CHECK(mk::multiply_or_throw<int64_t>(-2, lmin / -2) == lmin);
 
-            CHECK(mk::multiply_or_throw<long long>(lmax / 2 - 1, 2) == (lmax / 2 - 1) * 2); // make sure the implementation doesn't use floating-point numbers
+            CHECK(mk::multiply_or_throw<int64_t>(lmax / 2 - 1, 2) == (lmax / 2 - 1) * 2); // make sure the implementation doesn't use floating-point numbers
 
-            CHECK(mk::multiply_or_throw<long long>(lmin, 1) == lmin);
-            CHECK(mk::multiply_or_throw<long long>(1, lmin) == lmin);
+            CHECK(mk::multiply_or_throw<int64_t>(lmin, 1) == lmin);
+            CHECK(mk::multiply_or_throw<int64_t>(1, lmin) == lmin);
 
-            CHECK(mk::multiply_or_throw<long long>(lmin + 1, -1) == lmax);
-            CHECK(mk::multiply_or_throw<long long>(-1, lmin + 1) == lmax);
+            CHECK(mk::multiply_or_throw<int64_t>(lmin + 1, -1) == lmax);
+            CHECK(mk::multiply_or_throw<int64_t>(-1, lmin + 1) == lmax);
 
             CHECK(mk::multiply_or_throw(-1, 1) == -1);
             CHECK(mk::multiply_or_throw(1, -1) == -1);
@@ -258,16 +258,16 @@ TEST_CASE("checked")
             CHECK_THROWS_AS(mk::multiply_or_throw(imax - 1, 2), mk::arithmetic_overflow);
             CHECK_THROWS_AS(mk::multiply_or_throw(2, imax - 1), mk::arithmetic_overflow);
 
-            CHECK_THROWS_AS(mk::multiply_or_throw<long long>(lmin, -1), mk::arithmetic_overflow);
-            CHECK_THROWS_AS(mk::multiply_or_throw<long long>(-1, lmin), mk::arithmetic_overflow);
-            CHECK_THROWS_AS(mk::multiply_or_throw<long long>(lmin + 1, 2), mk::arithmetic_overflow);
-            CHECK_THROWS_AS(mk::multiply_or_throw<long long>(2, lmin + 1), mk::arithmetic_overflow);
-            CHECK_THROWS_AS(mk::multiply_or_throw<long long>(lmin + 1, -2), mk::arithmetic_overflow);
-            CHECK_THROWS_AS(mk::multiply_or_throw<long long>(-2, lmin + 1), mk::arithmetic_overflow);
-            CHECK_THROWS_AS(mk::multiply_or_throw<long long>(lmax - 1, -2), mk::arithmetic_overflow);
-            CHECK_THROWS_AS(mk::multiply_or_throw<long long>(-2, lmax - 1), mk::arithmetic_overflow);
-            CHECK_THROWS_AS(mk::multiply_or_throw<long long>(lmax - 1, 2), mk::arithmetic_overflow);
-            CHECK_THROWS_AS(mk::multiply_or_throw<long long>(2, lmax - 1), mk::arithmetic_overflow);
+            CHECK_THROWS_AS(mk::multiply_or_throw<int64_t>(lmin, -1), mk::arithmetic_overflow);
+            CHECK_THROWS_AS(mk::multiply_or_throw<int64_t>(-1, lmin), mk::arithmetic_overflow);
+            CHECK_THROWS_AS(mk::multiply_or_throw<int64_t>(lmin + 1, 2), mk::arithmetic_overflow);
+            CHECK_THROWS_AS(mk::multiply_or_throw<int64_t>(2, lmin + 1), mk::arithmetic_overflow);
+            CHECK_THROWS_AS(mk::multiply_or_throw<int64_t>(lmin + 1, -2), mk::arithmetic_overflow);
+            CHECK_THROWS_AS(mk::multiply_or_throw<int64_t>(-2, lmin + 1), mk::arithmetic_overflow);
+            CHECK_THROWS_AS(mk::multiply_or_throw<int64_t>(lmax - 1, -2), mk::arithmetic_overflow);
+            CHECK_THROWS_AS(mk::multiply_or_throw<int64_t>(-2, lmax - 1), mk::arithmetic_overflow);
+            CHECK_THROWS_AS(mk::multiply_or_throw<int64_t>(lmax - 1, 2), mk::arithmetic_overflow);
+            CHECK_THROWS_AS(mk::multiply_or_throw<int64_t>(2, lmax - 1), mk::arithmetic_overflow);
 
                 // This check is to foil the idea of comparing the result to check for overflow, wrongly assuming that a wrapped multiplication
                 // violates monotonicity.

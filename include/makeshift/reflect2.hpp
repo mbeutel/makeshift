@@ -165,7 +165,7 @@ struct values_t
     // Returns an array of the enumerators of a given enumeration type, retrieved from metadata.
     // Returns `std::array{ false, true }` if the type argument is `bool`.
     //
-constexpr inline values_t values = { };
+static inline constexpr values_t values = { };
 
 
     //ᅟ
@@ -191,7 +191,7 @@ struct named_values_t
     // Returns an array of the names and values of the enumerators of a given enumeration type, retrieved from metadata.
     // Returns `std::array{ with_name(false, "false"), with_name(true, "true") }` if the type argument is `bool`.
     //
-constexpr inline named_values_t named_values = { };
+static inline constexpr named_values_t named_values = { };
 
 
     //ᅟ
@@ -217,7 +217,7 @@ struct compound_members_t
     //ᅟ
     // Returns a tuple of the accessors of the members in a given compound type, retrieved from metadata.
     //
-constexpr inline compound_members_t compound_members = { };
+static inline constexpr compound_members_t compound_members = { };
 
 
     //ᅟ
@@ -241,7 +241,7 @@ struct named_compound_members_t
     //ᅟ
     // Returns a tuple of the names and accessors of the members in a given compound type, retrieved from metadata.
     //
-constexpr inline named_compound_members_t named_compound_members = { };
+static inline constexpr named_compound_members_t named_compound_members = { };
 
 
     //ᅟ

@@ -7,10 +7,12 @@
 #include <stdexcept>   // for runtime_error
 #include <type_traits> // for enable_if<>
 
-#include <makeshift/utility.hpp> // for dim_t
-#include <makeshift/version.hpp> // for MAKESHIFT_NODISCARD, MAKESHIFT_CONSTEXPR_CXX20
+#include <makeshift/utility.hpp>      // for dim_t
+#include <makeshift/type_traits2.hpp> // for type<>
+#include <makeshift/metadata2.hpp>    // for reflect_compound_members()
+#include <makeshift/version.hpp>      // for MAKESHIFT_NODISCARD, MAKESHIFT_CONSTEXPR_CXX20
 
-#include <gsl/span> // for span<>, dynamic_extent
+#include <makeshift/detail/arithmetic.hpp> // for checked_operations<>
 
 
 namespace makeshift
@@ -18,17 +20,6 @@ namespace makeshift
 
 inline namespace arithmetic
 {
-
-
-    // The implementations below have borrowed heavily from the suggestions made and examples used in the SEI CERT C Coding Standard:
-    // https://wiki.sei.cmu.edu/confluence/display/c/
-
-
-class arithmetic_overflow : public std::runtime_error
-{
-public:
-    using std::runtime_error::runtime_error;
-};
 
 
 template <typename V>
@@ -48,9 +39,15 @@ template <typename V>
     }
 };
 template <typename V>
-    factor(V, V) -> factor<V>;
+    constexpr auto reflect(type<factor<V>>)
+{
+    return reflect_compound_members(
+        &factor<V>::base,
+        &factor<V>::exponent
+    );
+}
 
-template <typename V, dim_t NumFactors = gsl::dynamic_extent>
+template <typename V, dim_t NumFactors>
     struct factorization
 {
     V remainder;
@@ -66,37 +63,41 @@ template <typename V, dim_t NumFactors = gsl::dynamic_extent>
         return !(lhs == rhs);
     }
 };
-
-template <typename V, dim_t NumFactors = gsl::dynamic_extent>
-    struct factorization_view
+template <typename V, dim_t NumFactors>
+    constexpr auto reflect(type<factorization<V, NumFactors>>)
 {
-    V remainder;
-    gsl::span<const factor<V>, NumFactors> factors;
+    return reflect_compound_members(
+        &factorization<V, NumFactors>::remainder,
+        &factorization<V, NumFactors>::factors
+    );
+}
 
-    template <dim_t OtherNumFactors,
-              typename = std::enable_if_t<NumFactors == OtherNumFactors || NumFactors == gsl::dynamic_extent || OtherNumFactors == gsl::dynamic_extent>>
-        factorization_view(const factorization<V, OtherNumFactors>& fct)
-            : remainder(fct.remainder), factors(fct.factors)
-    {
-    }
+
+class arithmetic_overflow : public std::runtime_error
+{
+public:
+    using std::runtime_error::runtime_error;
 };
 
 
 } // inline namespace arithmetic
 
-} // namespace makeshift
-
-
-#include <makeshift/detail/arithmetic.hpp> // for checked_operations<>
-
-
-namespace makeshift
-{
 
 namespace detail
 {
 
 
+struct throw_error_handler
+{
+    static constexpr bool isNoexcept = false;
+    static constexpr MAKESHIFT_FORCEINLINE void checkOverflow(bool cond) { if (!cond) throw arithmetic_overflow("integer overflow"); }
+    static constexpr MAKESHIFT_FORCEINLINE void checkUnderflow(bool cond) { if (!cond) throw arithmetic_overflow("integer underflow"); }
+};
+struct assert_error_handler
+{
+    static constexpr MAKESHIFT_FORCEINLINE void checkOverflow(bool cond) { Expects(cond); }
+    static constexpr MAKESHIFT_FORCEINLINE void checkUnderflow(bool cond) { Expects(cond); }
+};
 
 
 } // namespace detail
@@ -354,16 +355,7 @@ template <typename V>
     //ᅟ
     // Computes a + b. Uses `Expects()` to raise error upon overflow.
     //
-template <typename V = void>
-    struct plus_checked
-{
-    MAKESHIFT_NODISCARD constexpr V operator ()(V a, V b) const
-    {
-        return makeshift::detail::checked_operations<makeshift::detail::assert_error_handler, V>::add(a, b);
-    }
-};
-template <>
-    struct plus_checked<void>
+struct plus_checked
 {
     template <typename V>
         MAKESHIFT_NODISCARD constexpr V operator ()(V a, V b) const
@@ -376,16 +368,7 @@ template <>
     //ᅟ
     // Computes a - b. Uses `Expects()` to raise error upon overflow.
     //
-template <typename V = void>
-    struct minus_checked
-{
-    MAKESHIFT_NODISCARD constexpr V operator ()(V a, V b) const
-    {
-        return makeshift::detail::checked_operations<makeshift::detail::assert_error_handler, V>::subtract(a, b);
-    }
-};
-template <>
-    struct minus_checked<void>
+struct minus_checked
 {
     template <typename V>
         MAKESHIFT_NODISCARD constexpr V operator ()(V a, V b) const
@@ -398,16 +381,7 @@ template <>
     //ᅟ
     // Computes a ∙ b. Uses `Expects()` to raise error upon overflow.
     //
-template <typename V = void>
-    struct multiplies_checked
-{
-    MAKESHIFT_NODISCARD constexpr V operator ()(V a, V b) const
-    {
-        return makeshift::detail::checked_operations<makeshift::detail::assert_error_handler, V>::multiply(a, b);
-    }
-};
-template <>
-    struct multiplies_checked<void>
+struct multiplies_checked
 {
     template <typename V>
         MAKESHIFT_NODISCARD constexpr V operator ()(V a, V b) const
@@ -420,16 +394,7 @@ template <>
     //ᅟ
     // Computes n ÷ d for d ≠ 0. Enforces preconditions with `Expects()`. Uses `Expects()` to raise error upon overflow.
     //
-template <typename V = void>
-    struct divides_checked
-{
-    MAKESHIFT_NODISCARD constexpr V operator ()(V n, V d) const
-    {
-        return makeshift::detail::checked_operations<makeshift::detail::assert_error_handler, V>::divide(n, d);
-    }
-};
-template <>
-    struct divides_checked<void>
+struct divides_checked
 {
     template <typename V>
         MAKESHIFT_NODISCARD constexpr V operator ()(V n, V d) const
@@ -442,16 +407,7 @@ template <>
     //ᅟ
     // Computes n mod d for d ≠ 0. Enforces preconditions with `Expects()`. Uses `Expects()` to raise error upon overflow.
     //
-template <typename V = void>
-    struct modulus_checked
-{
-    MAKESHIFT_NODISCARD constexpr V operator ()(V n, V d) const
-    {
-        return makeshift::detail::checked_operations<makeshift::detail::assert_error_handler, V>::modulo(n, d);
-    }
-};
-template <>
-    struct modulus_checked<void>
+struct modulus_checked
 {
     template <typename V>
         MAKESHIFT_NODISCARD constexpr V operator ()(V n, V d) const
@@ -464,16 +420,7 @@ template <>
     //ᅟ
     // Computes a + b. Throws exception upon overflow.
     //
-template <typename V = void>
-    struct plus_or_throw
-{
-    MAKESHIFT_NODISCARD constexpr V operator ()(V a, V b) const
-    {
-        return makeshift::detail::checked_operations<makeshift::detail::throw_error_handler, V>::add(a, b);
-    }
-};
-template <>
-    struct plus_or_throw<void>
+struct plus_or_throw
 {
     template <typename V>
         MAKESHIFT_NODISCARD constexpr V operator ()(V a, V b) const
@@ -486,16 +433,7 @@ template <>
     //ᅟ
     // Computes a - b. Throws exception upon overflow.
     //
-template <typename V = void>
-    struct minus_or_throw
-{
-    MAKESHIFT_NODISCARD constexpr V operator ()(V a, V b) const
-    {
-        return makeshift::detail::checked_operations<makeshift::detail::throw_error_handler, V>::subtract(a, b);
-    }
-};
-template <>
-    struct minus_or_throw<void>
+struct minus_or_throw
 {
     template <typename V>
         MAKESHIFT_NODISCARD constexpr V operator ()(V a, V b) const
@@ -508,16 +446,7 @@ template <>
     //ᅟ
     // Computes a ∙ b. Throws exception upon overflow.
     //
-template <typename V = void>
-    struct multiplies_or_throw
-{
-    MAKESHIFT_NODISCARD constexpr V operator ()(V a, V b) const
-    {
-        return makeshift::detail::checked_operations<makeshift::detail::throw_error_handler, V>::multiply(a, b);
-    }
-};
-template <>
-    struct multiplies_or_throw<void>
+struct multiplies_or_throw
 {
     template <typename V>
         MAKESHIFT_NODISCARD constexpr V operator ()(V a, V b) const
@@ -530,16 +459,7 @@ template <>
     //ᅟ
     // Computes n ÷ d for d ≠ 0. Enforces preconditions with `Expects()`. Throws exception upon overflow.
     //
-template <typename V = void>
-    struct divides_or_throw
-{
-    MAKESHIFT_NODISCARD constexpr V operator ()(V n, V d) const
-    {
-        return makeshift::detail::checked_operations<makeshift::detail::throw_error_handler, V>::divide(n, d);
-    }
-};
-template <>
-    struct divides_or_throw<void>
+struct divides_or_throw
 {
     template <typename V>
         MAKESHIFT_NODISCARD constexpr V operator ()(V n, V d) const
@@ -552,16 +472,7 @@ template <>
     //ᅟ
     // Computes n mod d for d ≠ 0. Enforces preconditions with `Expects()`. Throws exception upon overflow.
     //
-template <typename V = void>
-    struct modulus_or_throw
-{
-    MAKESHIFT_NODISCARD constexpr V operator ()(V n, V d) const
-    {
-        return makeshift::detail::checked_operations<makeshift::detail::throw_error_handler, V>::modulo(n, d);
-    }
-};
-template <>
-    struct modulus_or_throw<void>
+struct modulus_or_throw
 {
     template <typename V>
         MAKESHIFT_NODISCARD constexpr V operator ()(V n, V d) const

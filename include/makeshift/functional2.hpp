@@ -54,7 +54,8 @@ template <>
         //ᅟ
         // Computes a hash value of the given argument.
         //
-    template <typename T>
+    template <typename T,
+              typename = decltype(hash2<T>{ }(std::declval<const T&>()))>
         MAKESHIFT_NODISCARD constexpr std::size_t operator ()(const T& arg) const noexcept
     {
         return hash2<T>{ }(arg);
@@ -62,6 +63,9 @@ template <>
 };
 
 
+    //ᅟ
+    // Represents the ability of a type to be compared for equality with operators `==` and `!=`.
+    //
 struct equatable
 {
     using default_operation = std::equal_to<>;
@@ -69,15 +73,15 @@ struct equatable
     template <typename EqualToT = default_operation>
         struct interface
     {
-        template <typename T>
-            MAKESHIFT_NODISCARD friend constexpr auto operator ==(const T& lhs, const T& rhs) noexcept
-                -> decltype(EqualToT{ }(lhs, rhs)) // bool
+        template <typename T,
+                  typename = decltype(EqualToT{ }(std::declval<const T&>(), std::declval<const T&>()))>
+            MAKESHIFT_NODISCARD friend constexpr bool operator ==(const T& lhs, const T& rhs) noexcept
         {
             return EqualToT{ }(lhs, rhs);
         }
-        template <typename T>
-            MAKESHIFT_NODISCARD friend constexpr auto operator !=(const T& lhs, const T& rhs) noexcept
-                -> decltype(!(rhs == lhs)) // bool
+        template <typename T,
+                  typename = decltype(!(std::declval<const T&>() == std::declval<const T&>()))>
+            MAKESHIFT_NODISCARD friend constexpr bool operator !=(const T& lhs, const T& rhs) noexcept
         {
             return !(rhs == lhs);
         }
@@ -85,6 +89,9 @@ struct equatable
 };
 
 
+    //ᅟ
+    // Represents the ability of a type to be hashed using `hash<>`.
+    //
 struct hashable
 {
     using default_operation = hash2<>;
@@ -104,6 +111,9 @@ template <typename T>
 };
 
 
+    //ᅟ
+    // Represents the ability of a type to be compared for order with operators `<`, `<=`, `>`, and `>=`.
+    //
 struct comparable
 {
     using default_operation = std::less<>;
@@ -111,31 +121,43 @@ struct comparable
     template <typename LessT = default_operation>
         struct interface
     {
-        template <typename T>
-            MAKESHIFT_NODISCARD friend constexpr auto operator <(const T& lhs, const T& rhs) noexcept
-                -> decltype(LessT{ }(lhs, rhs)) // bool
+        template <typename T,
+                  typename = decltype(LessT{ }(std::declval<const T&>(), std::declval<const T&>()))>
+            MAKESHIFT_NODISCARD friend constexpr bool operator <(const T& lhs, const T& rhs) noexcept
         {
             return LessT{ }(lhs, rhs);
         }
-        template <typename T>
-            MAKESHIFT_NODISCARD friend constexpr auto operator <=(const T& lhs, const T& rhs) noexcept
-                -> decltype(!(rhs < lhs)) // bool
+        template <typename T,
+                  typename = decltype(!(std::declval<const T&>() < std::declval<const T&>()))>
+            MAKESHIFT_NODISCARD friend constexpr bool operator <=(const T& lhs, const T& rhs) noexcept
         {
             return !(rhs < lhs); // define in terms of LessT
         }
-        template <typename T>
-            MAKESHIFT_NODISCARD friend constexpr auto operator >(const T& lhs, const T& rhs) noexcept
-                -> decltype(rhs < lhs) // bool
+        template <typename T,
+                  typename = decltype(std::declval<const T&>() < std::declval<const T&>())>
+            MAKESHIFT_NODISCARD friend constexpr bool operator >(const T& lhs, const T& rhs) noexcept
         {
             return (rhs < lhs);
         }
-        template <typename T>
-            MAKESHIFT_NODISCARD friend constexpr auto operator >=(const T& lhs, const T& rhs) noexcept
-                -> decltype(!(lhs < rhs)) // bool
+        template <typename T,
+                  typename = decltype(!(std::declval<const T&>() < std::declval<const T&>()))>
+            MAKESHIFT_NODISCARD friend constexpr bool operator >=(const T& lhs, const T& rhs) noexcept
         {
             return !(lhs < rhs);
         }
     };
+};
+
+
+    //ᅟ
+    // Base class which implements the interface specified abilities based on the primary interface of the ability.
+    //
+    // For example, to define a type with equality and ordering, inherit from `with_operations<equatable, comparable>` and implement operators `==` and `<`.
+    //
+template <typename... Ts>
+    struct with_operations
+        : Ts::template interface<>...
+{
 };
 
 

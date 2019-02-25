@@ -3,7 +3,9 @@
 #define INCLUDED_MAKESHIFT_MEMORY_HPP_
 
 
-#include <memory> // for allocator<>, allocator_traits<>
+#include <new>
+#include <memory>      // for allocator<>, allocator_traits<>
+#include <type_traits> // for is_nothrow_default_constructible<>
 
 
 namespace makeshift
@@ -13,7 +15,7 @@ namespace makeshift
     // Allocator adaptor that interposes construct() calls to convert value initialization into default initialization.
     // cf. https://stackoverflow.com/a/21028912
 template <typename T, typename A = std::allocator<T>>
-class default_init_allocator : public A
+    class default_init_allocator : public A
 {
 public:
     using A::A;

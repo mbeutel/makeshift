@@ -287,11 +287,11 @@ inline namespace types
     //ᅟ        tuple_index
     //ᅟ    ); // prints "0\n1\n2\n"
     //
-template <std::size_t N, typename F, typename... Ts,
-          typename = std::enable_if_t<makeshift::detail::are_tuple_args_v<Ts...>>>
-    MAKESHIFT_NODISCARD constexpr void
+template <std::size_t N, typename F, typename... Ts>
+    constexpr void
     tuple_foreach2(F&& func, Ts&&... args)
 {
+    static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
     makeshift::detail::tuple_transform_impl0<N, makeshift::detail::transform_target::nothing>(std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
@@ -304,11 +304,11 @@ template <std::size_t N, typename F, typename... Ts,
     //ᅟ        std::make_tuple("a", "b"), std::make_tuple(1, 2.3f));
     //ᅟ    // prints "a: 1\nb: 2.3\n"
     //
-template <typename F, typename... Ts,
-          typename = std::enable_if_t<makeshift::detail::are_tuple_args_v<Ts...>>>
-    MAKESHIFT_NODISCARD constexpr void
+template <typename F, typename... Ts>
+    constexpr void
     tuple_foreach2(F&& func, Ts&&... args)
 {
+    static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
     makeshift::detail::tuple_transform_impl0<-1, makeshift::detail::transform_target::nothing>(std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
@@ -321,11 +321,11 @@ template <typename F, typename... Ts,
     //ᅟ        tuple_index);
     //ᅟ    // returns std::tuple{ 0, 1, 2 }
     //
-template <std::size_t N, typename F, typename... Ts,
-          typename = std::enable_if_t<makeshift::detail::are_tuple_args_v<Ts...>>>
+template <std::size_t N, typename F, typename... Ts>
     MAKESHIFT_NODISCARD constexpr auto
     tuple_transform2(F&& func, Ts&&... args)
 {
+    static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
     return makeshift::detail::tuple_transform_impl0<N, makeshift::detail::transform_target::tuple>(std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
@@ -338,11 +338,11 @@ template <std::size_t N, typename F, typename... Ts,
     //ᅟ        std::make_tuple(2, 3.0f));
     //ᅟ    // returns std::tuple{ 4, 9.0f }
     //
-template <typename F, typename... Ts,
-          typename = std::enable_if_t<makeshift::detail::are_tuple_args_v<Ts...>>>
+template <typename F, typename... Ts>
     MAKESHIFT_NODISCARD constexpr auto
     tuple_transform2(F&& func, Ts&&... args)
 {
+    static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
     return makeshift::detail::tuple_transform_impl0<-1, makeshift::detail::transform_target::tuple>(std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
@@ -355,11 +355,11 @@ template <typename F, typename... Ts,
     //ᅟ        tuple_index);
     //ᅟ    // returns std::array{ 0, 1, 2 }
     //
-template <std::size_t N, typename F, typename... Ts,
-          typename = std::enable_if_t<makeshift::detail::are_tuple_args_v<Ts...>>>
+template <std::size_t N, typename F, typename... Ts>
     MAKESHIFT_NODISCARD constexpr auto
     array_transform2(F&& func, Ts&&... args)
 {
+    static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
     return makeshift::detail::tuple_transform_impl0<N, makeshift::detail::transform_target::array>(std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
@@ -372,11 +372,11 @@ template <std::size_t N, typename F, typename... Ts,
     //ᅟ        std::make_tuple(2, 3.0f));
     //ᅟ    // returns std::array{ 4, 9 }
     //
-template <typename F, typename... Ts,
-          typename = std::enable_if_t<makeshift::detail::are_tuple_args_v<Ts...>>>
+template <typename F, typename... Ts>
     MAKESHIFT_NODISCARD constexpr auto
     array_transform2(F&& func, Ts&&... args)
 {
+    static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
     return makeshift::detail::tuple_transform_impl0<-1, makeshift::detail::transform_target::array>(std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
@@ -389,11 +389,11 @@ template <typename F, typename... Ts,
     //ᅟ        tuple_index);
     //ᅟ    // returns type_sequence<integral_constant<std::size_t, 0>, integral_constant<std::size_t, 1>, integral_constant<std::size_t, 2>>
     //
-template <std::size_t N, typename F, typename... Ts,
-          typename = std::enable_if_t<makeshift::detail::are_tuple_args_v<Ts...>>>
+template <std::size_t N, typename F, typename... Ts>
     MAKESHIFT_NODISCARD constexpr auto
     type_sequence_transform2(F&& func, Ts&&... args)
 {
+    static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
     return makeshift::detail::tuple_transform_impl0<N, makeshift::detail::transform_target::type_sequence>(std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
@@ -406,11 +406,11 @@ template <std::size_t N, typename F, typename... Ts,
     //ᅟ        std::make_tuple(2, 3.0f));
     //ᅟ    // returns type_sequence<int, float>
     //
-template <typename F, typename... Ts,
-          typename = std::enable_if_t<makeshift::detail::are_tuple_args_v<Ts...>>>
+template <typename F, typename... Ts>
     MAKESHIFT_NODISCARD constexpr auto
     type_sequence_transform2(F&& func, Ts&&... args)
 {
+    static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
     return makeshift::detail::tuple_transform_impl0<-1, makeshift::detail::transform_target::type_sequence>(std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
@@ -421,11 +421,11 @@ template <typename F, typename... Ts,
     //ᅟ    auto numbers = std::make_tuple(2, 3u);
     //ᅟ    int sum = tuple_reduce(numbers, 0, std::plus<int>{ }); // returns 5
     //
-template <typename TupleT, typename T, typename F,
-          typename = std::enable_if_t<is_tuple_like2_v<std::decay_t<TupleT>>>>
+template <typename TupleT, typename T, typename F>
     MAKESHIFT_NODISCARD constexpr auto
     tuple_reduce(TupleT&& tuple, T&& initialValue, F&& func)
 {
+    static_assert(is_tuple_like2_v<std::decay_t<TupleT>>, "first argument must be tuple or tuple-like type");
     return makeshift::detail::fold_impl(makeshift::detail::left_fold{ },
         std::forward<TupleT>(tuple), std::forward<T>(initialValue), std::forward<F>(func));
 }
@@ -437,11 +437,11 @@ template <typename TupleT, typename T, typename F,
     //ᅟ    auto numbers = std::make_tuple(2, 3u);
     //ᅟ    int sum = tuple_reduce_left(numbers, 0, std::plus<int>{ }); // returns 5
     //
-template <typename TupleT, typename T, typename F,
-          typename = std::enable_if_t<is_tuple_like2_v<std::decay_t<TupleT>>>>
+template <typename TupleT, typename T, typename F>
     MAKESHIFT_NODISCARD constexpr auto
     tuple_reduce_left(TupleT&& tuple, T&& initialValue, F&& func)
 {
+    static_assert(is_tuple_like2_v<std::decay_t<TupleT>>, "first argument must be tuple or tuple-like type");
     return makeshift::detail::fold_impl(makeshift::detail::left_fold{ },
         std::forward<TupleT>(tuple), std::forward<T>(initialValue), std::forward<F>(func));
 }
@@ -453,11 +453,11 @@ template <typename TupleT, typename T, typename F,
     //ᅟ    auto numbers = std::make_tuple(2, 3u);
     //ᅟ    int sum = tuple_reduce_right(numbers, 0, std::plus<int>{ }); // returns 5
     //
-template <typename TupleT, typename T, typename F,
-          typename = std::enable_if_t<is_tuple_like2_v<std::decay_t<TupleT>>>>
+template <typename TupleT, typename T, typename F>
     MAKESHIFT_NODISCARD constexpr auto
     tuple_reduce_right(TupleT&& tuple, T&& initialValue, F&& func)
 {
+    static_assert(is_tuple_like2_v<std::decay_t<TupleT>>, "first argument must be tuple or tuple-like type");
     return makeshift::detail::fold_impl(makeshift::detail::right_fold{ },
         std::forward<TupleT>(tuple), std::forward<T>(initialValue), std::forward<F>(func));
 }
@@ -471,11 +471,11 @@ template <typename TupleT, typename T, typename F,
     //ᅟ        [](auto v) { return v > 0; }));
     //ᅟ    // returns true
     //
-template <typename TupleT, typename P,
-          typename = std::enable_if_t<is_tuple_like2_v<std::decay_t<TupleT>>>>
+template <typename TupleT, typename P>
     MAKESHIFT_NODISCARD constexpr auto
     tuple_all_of(TupleT&& tuple, P&& pred)
 {
+    static_assert(is_tuple_like2_v<std::decay_t<TupleT>>, "first argument must be tuple or tuple-like type");
     return makeshift::detail::fold_impl(makeshift::detail::all_fold{ },
         std::forward<TupleT>(tuple), true, std::forward<P>(pred));
 }
@@ -489,11 +489,11 @@ template <typename TupleT, typename P,
     //ᅟ        [](auto v) { return v > 0; }));
     //ᅟ    // returns true
     //
-template <typename TupleT, typename P,
-          typename = std::enable_if_t<is_tuple_like2_v<std::decay_t<TupleT>>>>
+template <typename TupleT, typename P>
     MAKESHIFT_NODISCARD constexpr auto
     tuple_any_of(TupleT&& tuple, P&& pred)
 {
+    static_assert(is_tuple_like2_v<std::decay_t<TupleT>>, "first argument must be tuple or tuple-like type");
     return makeshift::detail::fold_impl(makeshift::detail::any_fold{ },
         std::forward<TupleT>(tuple), false, std::forward<P>(pred));
 }
@@ -507,11 +507,11 @@ template <typename TupleT, typename P,
     //ᅟ        [](auto v) { return v > 0; }));
     //ᅟ    // returns false
     //
-template <typename TupleT, typename P,
-          typename = std::enable_if_t<is_tuple_like2_v<std::decay_t<TupleT>>>>
+template <typename TupleT, typename P>
     MAKESHIFT_NODISCARD constexpr auto
     tuple_none_of(TupleT&& tuple, P&& pred)
 {
+    static_assert(is_tuple_like2_v<std::decay_t<TupleT>>, "first argument must be tuple or tuple-like type");
     return !makeshift::detail::fold_impl(makeshift::detail::any_fold{ },
         std::forward<TupleT>(tuple), false, std::forward<P>(pred));
 }

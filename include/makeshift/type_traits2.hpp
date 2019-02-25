@@ -66,7 +66,6 @@ template <typename... Ts>
 template <>
     struct type_sequence2<>
 {
-    constexpr type_sequence2(void) noexcept = default;
 };
 
 
