@@ -30,6 +30,9 @@ template <typename... Ts>
 };
 
 
+struct hashable_base { };
+
+
 } // namespace detail
 
 
@@ -38,7 +41,7 @@ inline namespace types
 
 
     //ᅟ
-    // Like `std::hash<>` but permits conditional specialization with `enable_if<>`.
+    // Similar to `std::hash<>` but permits omitting the type argument and conditional specialization with `enable_if<>`.
     //
 template <typename KeyT = void, typename = void>
     struct hash2 : std::hash<KeyT>
@@ -46,7 +49,7 @@ template <typename KeyT = void, typename = void>
     using std::hash<KeyT>::hash;
 };
 template <>
-    struct hash2<void, void>
+    struct hash2<void>
 {
         //ᅟ
         // Computes a hash value of the given argument.
@@ -59,13 +62,81 @@ template <>
 };
 
 
-    //ᅟ
-    // Computes a hash value of the given argument.
-    //
-static constexpr inline hash2<> hash_of = { };
+struct equatable
+{
+    using default_operation = std::equal_to<>;
+
+    template <typename EqualToT = default_operation>
+        struct interface
+    {
+        template <typename T>
+            MAKESHIFT_NODISCARD friend constexpr auto operator ==(const T& lhs, const T& rhs) noexcept
+                -> decltype(EqualToT{ }(lhs, rhs)) // bool
+        {
+            return EqualToT{ }(lhs, rhs);
+        }
+        template <typename T>
+            MAKESHIFT_NODISCARD friend constexpr auto operator !=(const T& lhs, const T& rhs) noexcept
+                -> decltype(!(rhs == lhs)) // bool
+        {
+            return !(rhs == lhs);
+        }
+    };
+};
 
 
+struct hashable
+{
+    using default_operation = hash2<>;
 
+    template <typename HashT = default_operation>
+        struct interface : private makeshift::detail::hashable_base
+    {
+        using hashable_hash = HashT;
+    };
+};
+
+template <typename T>
+    struct hash2<T, std::enable_if_t<std::is_base_of<makeshift::detail::hashable_base, T>::value>>
+        : T::hashable_hash
+{
+    using T::hashable_hash::hashable_hash;
+};
+
+
+struct comparable
+{
+    using default_operation = std::less<>;
+
+    template <typename LessT = default_operation>
+        struct interface
+    {
+        template <typename T>
+            MAKESHIFT_NODISCARD friend constexpr auto operator <(const T& lhs, const T& rhs) noexcept
+                -> decltype(LessT{ }(lhs, rhs)) // bool
+        {
+            return LessT{ }(lhs, rhs);
+        }
+        template <typename T>
+            MAKESHIFT_NODISCARD friend constexpr auto operator <=(const T& lhs, const T& rhs) noexcept
+                -> decltype(!(rhs < lhs)) // bool
+        {
+            return !(rhs < lhs); // define in terms of LessT
+        }
+        template <typename T>
+            MAKESHIFT_NODISCARD friend constexpr auto operator >(const T& lhs, const T& rhs) noexcept
+                -> decltype(rhs < lhs) // bool
+        {
+            return (rhs < lhs);
+        }
+        template <typename T>
+            MAKESHIFT_NODISCARD friend constexpr auto operator >=(const T& lhs, const T& rhs) noexcept
+                -> decltype(!(lhs < rhs)) // bool
+        {
+            return !(lhs < rhs);
+        }
+    };
+};
 
 
 } // inline namespace types
