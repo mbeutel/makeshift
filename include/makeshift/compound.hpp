@@ -12,8 +12,7 @@
 #include <makeshift/reflect2.hpp> // for compound_members<>()
 #include <makeshift/tuple2.hpp>   // for tuple_all_of(), tuple_reduce()
 #include <makeshift/functional2.hpp> // for hash<>, adapter_base<>
-
-#include <makeshift/detail/utility_flags.hpp> // for define_flags<>
+#include <makeshift/version.hpp>  // for MAKESHIFT_NODISCARD
 
 
 namespace makeshift
@@ -38,20 +37,43 @@ inline namespace metadata
 
 
     //ᅟ
-    // Hasher for compound types which computes a hash by combining the hashes of the members.
+    // Equality comparer for compound types which determines equivalence by comparing members for equality.
     //
-template <typename HashT = hash2, typename CompoundMembersT = compound_members_t>
-    struct compound_hash : private makeshift::detail::adapter_base<HashT, CompoundMembersT>
+template <typename EqualToT = std::equal_to<>, typename CompoundMembersT = compound_members_t>
+    struct compound_equal_to : private makeshift::detail::adapter_base<EqualToT, CompoundMembersT>
 {
-    using makeshift::detail::adapter_base::adapter_base;
+    using makeshift::detail::adapter_base<EqualToT, CompoundMembersT>::adapter_base;
 
     template <typename T>
-        constexpr std::size_t operator ()(const T& obj) const noexcept
+        MAKESHIFT_NODISCARD constexpr bool operator ()(const T& lhs, const T& rhs) const noexcept
+    {
+        auto& equalTo = static_cast<const EqualToT&>(*this);
+        auto& compoundMembers = static_cast<const CompoundMembersT&>(*this);
+        return tuple_all_of(
+            compoundMembers(type_v<T>),
+            [&equalTo, &lhs, &rhs](auto&& member)
+            {
+                return equalTo(get_member_value(lhs, member), get_member_value(rhs, member));
+            });
+    }
+};
+
+
+    //ᅟ
+    // Hasher for compound types which computes a hash by combining the hashes of the members.
+    //
+template <typename HashT = hash2<>, typename CompoundMembersT = compound_members_t>
+    struct compound_hash : private makeshift::detail::adapter_base<HashT, CompoundMembersT>
+{
+    using makeshift::detail::adapter_base<HashT, CompoundMembersT>::adapter_base;
+
+    template <typename T>
+        MAKESHIFT_NODISCARD constexpr std::size_t operator ()(const T& obj) const noexcept
     {
         auto& hash = static_cast<const HashT&>(*this);
         auto& compoundMembers = static_cast<const CompoundMembersT&>(*this);
         return tuple_reduce(
-            compoundMembers(type<T>),
+            compoundMembers(type_v<T>),
             std::size_t(0),
             [&hash, &obj](std::size_t seed, auto&& member)
             {
@@ -63,35 +85,12 @@ template <typename HashT = hash2, typename CompoundMembersT = compound_members_t
 
 
     //ᅟ
-    // Equality comparer for compound types which determines equivalence by comparing members for equality.
-    //
-template <typename EqualToT = std::equal_to, typename CompoundMembersT = compound_members_t>
-    struct compound_equal_to : private makeshift::detail::adapter_base<EqualToT, CompoundMembersT>
-{
-    using makeshift::detail::adapter_base::adapter_base;
-
-    template <typename T>
-        constexpr bool operator ()(const T& lhs, const T& rhs) const noexcept
-    {
-        auto& equalTo = static_cast<const EqualToT&>(*this);
-        auto& compoundMembers = static_cast<const CompoundMembersT&>(*this);
-        return tuple_all_of(
-            compoundMembers(type<T>),
-            [&equalTo, &obj](auto&& member)
-            {
-                return equalTo(get_member_value(lhs, member), get_member_value(rhs, member));
-            });
-    }
-};
-
-
-    //ᅟ
     // Ordering comparer for compound types which determines order by lexicographically comparing members.
     //
-template <typename LessT = std::less, typename CompoundMembersT = compound_members_t>
+template <typename LessT = std::less<>, typename CompoundMembersT = compound_members_t>
     struct compound_less : private makeshift::detail::adapter_base<LessT, CompoundMembersT>
 {
-    using makeshift::detail::adapter_base::adapter_base;
+    using makeshift::detail::adapter_base<LessT, CompoundMembersT>::adapter_base;
 
 private:
     template <typename MembersT, typename T>
@@ -112,26 +111,52 @@ private:
 
 public:
     template <typename T>
-        constexpr bool operator ()(const T& lhs, const T& rhs) const noexcept
+        MAKESHIFT_NODISCARD constexpr bool operator ()(const T& lhs, const T& rhs) const noexcept
     {
         auto& compoundMembers = static_cast<const CompoundMembersT&>(*this);
-        auto members = compoundMembers(type<T>);
+        auto members = compoundMembers(type_v<T>);
         return invoke_(std::make_index_sequence<std::tuple_size<std::decay_t<decltype(members)>>::value>{ },
             members, lhs, rhs);
     }
 };
 
 
-/*struct regular_relation : define_flags<regular_relation>
+template <typename CategoryT, typename OperationT = typename CategoryT::default_operation, typename CompoundMembersT = compound_members_t>
+    struct compound_operation;
+
+    //ᅟ
+    // Equality comparer for compound types which determines equivalence by comparing members for equality.
+    //
+template <typename EqualToT, typename CompoundMembersT>
+    struct compound_operation<equatable, EqualToT, CompoundMembersT> : compound_equal_to<EqualToT, CompoundMembersT>
 {
-    static constexpr flag equatable { 1 };
-    static constexpr flag hashable { 2 };
-    static constexpr flag comparable { 4 };
+    using compound_equal_to<EqualToT, CompoundMembersT>::compound_equal_to;
 };
-using regular_relations = regular_relation::flags;
+
+    //ᅟ
+    // Hasher for compound types which computes a hash by combining the hashes of the members.
+    //
+template <typename HashT, typename CompoundMembersT>
+    struct compound_operation<hashable, HashT, CompoundMembersT> : compound_hash<HashT, CompoundMembersT>
+{
+    using compound_hash<HashT, CompoundMembersT>::compound_hash;
+};
+
+    //ᅟ
+    // Ordering comparer for compound types which determines order by lexicographically comparing members.
+    //
+template <typename LessT, typename CompoundMembersT>
+    struct compound_operation<comparable, LessT, CompoundMembersT> : compound_less<LessT, CompoundMembersT>
+{
+    using compound_less<LessT, CompoundMembersT>::compound_less;
+};
 
 
-template <regular_relations RegularRelations>*/
+template <typename... Ts>
+    struct compound_base
+        : Ts::template interface<compound_operation<Ts>>...
+{
+};
 
 
 } // inline namespace types
