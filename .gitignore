@@ -1,0 +1,5 @@
+external/
+build/
+build-*/
+.vs/
+CMakeSettings.json
