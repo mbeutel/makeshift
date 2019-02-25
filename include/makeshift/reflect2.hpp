@@ -9,10 +9,10 @@
 #include <tuple>
 #include <utility>     // for integer_sequence<>
 
-#include <makeshift/type_traits.hpp> // for sequence<>, can_apply<>
+#include <makeshift/type_traits.hpp>  // for sequence<>, can_apply<>
 #include <makeshift/type_traits2.hpp> // for type<>, is_iterable<>
 #include <makeshift/metadata2.hpp>
-#include <makeshift/tuple2.hpp>      // for tuple_transform2(), array_transform2()
+#include <makeshift/tuple2.hpp>       // for tuple_transform2(), array_transform2()
 #include <makeshift/version.hpp>      // for MAKESHIFT_NODISCARD
 
 
@@ -23,7 +23,10 @@ namespace detail
 {
 
 
-template <typename T> using raw_metadata2_of_r = decltype(reflect(type<T>{ }));
+template <typename T> using raw_metadata_of_r = decltype(reflect(type<T>{ }));
+template <typename T> struct have_raw_metadata : can_apply<makeshift::detail::raw_metadata_of_r, T> { };
+template <typename T> struct is_value_metadata : std::is_base_of<value_metadata_base, raw_metadata_of_r<T>> { };
+template <typename T> struct is_compound_metadata : std::is_base_of<compound_metadata_base, raw_metadata_of_r<T>> { };
 
 
 } // namespace detail
@@ -34,15 +37,28 @@ inline namespace metadata
 
 
     //ᅟ
-    // Determines whether there is metadata for the given type.
+    // Determines whether values can be enumerated for the given type.
     //
-template <typename T> struct have_metadata2 : can_apply<makeshift::detail::raw_metadata2_of_r, T> { };
-template <> struct have_metadata2<bool> : std::true_type { };
+template <typename T> struct have_value_metadata : std::conjunction<makeshift::detail::have_raw_metadata<T>, makeshift::detail::is_value_metadata<T>> { };
+template <> struct have_value_metadata<bool> : std::true_type { };
 
     //ᅟ
-    // Determines whether there is metadata for the given type.
+    // Determines whether values can be enumerated for the given type.
     //
-template <typename T> constexpr bool have_metadata2_v = have_metadata2<T>::value;
+template <typename T> constexpr bool have_value_metadata_v = have_value_metadata<T>::value;
+
+
+    //ᅟ
+    // Determines whether members can be enumerated for the given type.
+    //
+template <typename T> struct have_compound_metadata : std::disjunction<
+    std::conjunction<is_tuple_like2<T>, std::negation<is_iterable<T>>>,
+    std::conjunction<makeshift::detail::have_raw_metadata<T>, makeshift::detail::is_compound_metadata<T>>> { };
+
+    //ᅟ
+    // Determines whether members can be enumerated for the given type.
+    //
+template <typename T> constexpr bool have_compound_metadata_v = have_compound_metadata<T>::value;
 
 
 } // inline namespace metadata
@@ -53,22 +69,21 @@ namespace detail
 
 
 template <typename T, typename ValuesT>
-    constexpr const ValuesT& get_metadata(const raw_enum_metadata<ValuesT>& md) noexcept
+    constexpr const ValuesT& get_metadata(const raw_value_metadata<ValuesT>& md) noexcept
 {
     return { md.values };
 }
 template <typename T>
-    constexpr std::array<named2<T>, 0> get_metadata(raw_enum_metadata<void> md) noexcept
+    constexpr std::array<named2<T>, 0> get_metadata(raw_value_metadata<void> md) noexcept
 {
     return { };
 }
 
 
 template <typename T, typename MembersT>
-    constexpr const MembersT& get_metadata(const raw_class_metadata<MembersT>& md) noexcept
+    constexpr const MembersT& get_metadata(const raw_compound_metadata<MembersT>& md) noexcept
 {
-    static_assert(std::is_class<T>::value, "cannot use compound() for arguments of non-class type");
-    return { md.values };
+    return { md.members };
 }
 
 
@@ -104,14 +119,12 @@ template <>
     }
 };
 template <typename T>
-    struct reflector<T,
-                     std::enable_if_t<std::conjunction_v<is_tuple_like2<T>, std::negation<is_iterable<T>>>>>
+    struct reflector<T, std::enable_if_t<std::conjunction_v<is_tuple_like2<T>, std::negation<is_iterable<T>>>>>
         : tuple_reflector<T, std::make_index_sequence<std::tuple_size<T>::value>>
 {
 };
 template <typename T>
-    struct reflector<T,
-                     std::enable_if_t<have_metadata2_v<T>>>
+    struct reflector<T, std::enable_if_t<have_raw_metadata<T>::value>>
 {
     constexpr decltype(auto) operator ()(void) const noexcept
     {
@@ -128,20 +141,6 @@ inline namespace metadata
 
 
     //ᅟ
-    // Determines whether the given type is a compound type.
-    //
-template <typename T> struct is_compound : std::disjunction<
-    std::conjunction<is_tuple_like2<T>, std::negation<is_iterable<T>>>,
-    std::conjunction<std::is_class<T>, have_metadata2<T>>
-> { };
-
-    //ᅟ
-    // Determines whether the given type is a compound type.
-    //
-template <typename T> constexpr bool is_compound_v = is_compound<T>::value;
-
-
-    //ᅟ
     // Returns an array of the enumerators of a given enumeration type, retrieved from metadata.
     // Returns `std::array{ false, true }` if the type argument is `bool`.
     //
@@ -154,10 +153,7 @@ struct values_t
     template <typename T>
         MAKESHIFT_NODISCARD constexpr auto operator ()(type<T>) const
     {
-        static_assert(std::is_enum<T>::value
-            || std::is_base_of<makeshift::detail::flags_base, T>
-            || std::is_same<T, bool>::value, "cannot enumerate values of types other than bool, enumerations, or enumeration flag types");
-        static_assert(have_metadata2_v<T>, "cannot enumerate values of enumerations without metadata");
+        static_assert(have_value_metadata_v<T>, "cannot enumerate values without metadata");
 
         return array_transform2(
             [](auto namedValue) { return namedValue.value; },
@@ -185,8 +181,7 @@ struct named_values_t
     template <typename T>
         MAKESHIFT_NODISCARD constexpr auto operator ()(type<T>) const
     {
-        static_assert(std::is_enum<T>::value || std::is_same<T, bool>::value, "cannot enumerate values of types other than bool and enumerations");
-        static_assert(have_metadata2_v<T>, "cannot enumerate values of enumerations without metadata");
+        static_assert(have_value_metadata_v<T>, "cannot enumerate values without metadata");
     
         return makeshift::detail::reflector<T>{ }();
     }
@@ -211,7 +206,7 @@ struct compound_members_t
         MAKESHIFT_NODISCARD constexpr auto operator ()(type<T>) const
     {
         static_assert(std::is_class<T>::value, "cannot enumerate members of non-class types");
-        static_assert(have_metadata2_v<T>, "cannot enumerate members of classes without metadata");
+        static_assert(have_compound_metadata_v<T>, "cannot enumerate members of classes without metadata");
     
         return tuple_transform2(
             [](auto namedMember) { return namedMember.value; },
@@ -237,7 +232,7 @@ struct named_compound_members_t
         MAKESHIFT_NODISCARD constexpr auto named_compound_members(type<T> = { })
     {
         static_assert(std::is_class<T>::value, "cannot enumerate members of non-class types");
-        static_assert(have_metadata2_v<T>, "cannot enumerate members of classes without metadata");
+        static_assert(have_compound_metadata_v<T>, "cannot enumerate members of classes without metadata");
     
         return makeshift::detail::reflector<T>{ }();
     }
@@ -255,7 +250,7 @@ constexpr inline named_compound_members_t named_compound_members = { };
 template <typename C, typename T>
     MAKESHIFT_NODISCARD constexpr const T& get_member_value(const C& obj, T C::* member) noexcept
 {
-    return obj->*member;
+    return obj.*member;
 }
 
     //ᅟ
@@ -264,7 +259,7 @@ template <typename C, typename T>
 template <typename C, typename T>
     MAKESHIFT_NODISCARD constexpr const T& get_member_value(const C& obj, T (C::* member)(void) const) noexcept
 {
-    return (obj->*member)();
+    return (obj.*member)();
 }
 
     //ᅟ

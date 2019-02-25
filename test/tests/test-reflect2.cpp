@@ -1,6 +1,7 @@
 
 #include <makeshift/reflect2.hpp>
 #include <makeshift/utility.hpp>  // for define_flags<>
+#include <makeshift/compound.hpp>
 
 #include <catch.hpp>
 
@@ -15,7 +16,7 @@ enum class BoundaryCondition
 };
 constexpr auto reflect(mk::type<BoundaryCondition>)
 {
-    return mk::reflect_enum_values(
+    return mk::reflect_values(
         mk::with_name(BoundaryCondition::periodic, "periodic"),
         mk::with_name(BoundaryCondition::dirichlet, "dirichlet")
     );
@@ -30,14 +31,14 @@ struct PartitionFlag : mk::define_flags<PartitionFlag>
 using PartitionFlags = PartitionFlag::flags;
 constexpr auto reflect(mk::type<PartitionFlag>)
 {
-    return mk::reflect_enum_values(
+    return mk::reflect_values(
         PartitionFlag::enclosedBoundary,
         PartitionFlag::nodeCut,
         PartitionFlag::threadCut
     );
 }
 
-struct PartitionAxis // : regular_compound<regular_category::equivalence | regular_category::hash | regular_category::ordering>
+struct PartitionAxis : mk::compound_base<mk::equatable, mk::hashable, mk::comparable>
 {
     mk::index_t first;
     mk::index_t last;
