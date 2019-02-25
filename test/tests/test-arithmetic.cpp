@@ -54,7 +54,7 @@ namespace Catch
 {
 
 
-template <typename T, std::size_t N>
+template <typename T, mk::dim_t N>
     struct StringMaker<mk::factorization<T, N>>
 {
     static std::string convert(const mk::factorization<T, N>& fct)
