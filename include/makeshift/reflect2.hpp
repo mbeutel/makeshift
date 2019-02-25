@@ -11,9 +11,11 @@
 
 #include <makeshift/type_traits.hpp>  // for sequence<>, can_apply<>
 #include <makeshift/type_traits2.hpp> // for type<>, is_iterable<>
-#include <makeshift/metadata2.hpp>
+#include <makeshift/metadata2.hpp>    // for raw_value_metadata<>, raw_class_metadata<>
 #include <makeshift/tuple2.hpp>       // for tuple_transform2(), array_transform2()
 #include <makeshift/version.hpp>      // for MAKESHIFT_NODISCARD
+
+#include <makeshift/detail/metadata2.hpp> // for raw_value_metadata<>, raw_class_metadata<>
 
 
 namespace makeshift
@@ -27,45 +29,6 @@ template <typename T> using raw_metadata_of_r = decltype(reflect(type<T>{ }));
 template <typename T> struct have_raw_metadata : can_apply<makeshift::detail::raw_metadata_of_r, T> { };
 template <typename T> struct is_value_metadata : std::is_base_of<value_metadata_base, raw_metadata_of_r<T>> { };
 template <typename T> struct is_compound_metadata : std::is_base_of<compound_metadata_base, raw_metadata_of_r<T>> { };
-
-
-} // namespace detail
-
-
-inline namespace metadata
-{
-
-
-    //ᅟ
-    // Determines whether values can be enumerated for the given type.
-    //
-template <typename T> struct have_value_metadata : std::conjunction<makeshift::detail::have_raw_metadata<T>, makeshift::detail::is_value_metadata<T>> { };
-template <> struct have_value_metadata<bool> : std::true_type { };
-
-    //ᅟ
-    // Determines whether values can be enumerated for the given type.
-    //
-template <typename T> constexpr bool have_value_metadata_v = have_value_metadata<T>::value;
-
-
-    //ᅟ
-    // Determines whether members can be enumerated for the given type.
-    //
-template <typename T> struct have_compound_metadata : std::disjunction<
-    std::conjunction<is_tuple_like2<T>, std::negation<is_iterable<T>>>,
-    std::conjunction<makeshift::detail::have_raw_metadata<T>, makeshift::detail::is_compound_metadata<T>>> { };
-
-    //ᅟ
-    // Determines whether members can be enumerated for the given type.
-    //
-template <typename T> constexpr bool have_compound_metadata_v = have_compound_metadata<T>::value;
-
-
-} // inline namespace metadata
-
-
-namespace detail
-{
 
 
 template <typename T, typename ValuesT>
@@ -132,12 +95,36 @@ template <typename T>
     }
 };
 
-
 } // namespace detail
 
 
 inline namespace metadata
 {
+
+
+    //ᅟ
+    // Determines whether values can be enumerated for the given type.
+    //
+template <typename T> struct have_value_metadata : std::conjunction<makeshift::detail::have_raw_metadata<T>, makeshift::detail::is_value_metadata<T>> { };
+template <> struct have_value_metadata<bool> : std::true_type { };
+
+    //ᅟ
+    // Determines whether values can be enumerated for the given type.
+    //
+template <typename T> constexpr bool have_value_metadata_v = have_value_metadata<T>::value;
+
+
+    //ᅟ
+    // Determines whether members can be enumerated for the given type.
+    //
+template <typename T> struct have_compound_metadata : std::disjunction<
+    std::conjunction<is_tuple_like2<T>, std::negation<is_iterable<T>>>,
+    std::conjunction<makeshift::detail::have_raw_metadata<T>, makeshift::detail::is_compound_metadata<T>>> { };
+
+    //ᅟ
+    // Determines whether members can be enumerated for the given type.
+    //
+template <typename T> constexpr bool have_compound_metadata_v = have_compound_metadata<T>::value;
 
 
     //ᅟ

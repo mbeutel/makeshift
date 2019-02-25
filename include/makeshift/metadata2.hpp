@@ -6,11 +6,12 @@
 #include <array>
 #include <tuple>
 #include <utility>     // for move()
-#include <type_traits> // for is_enum<>, common_type<>
+#include <type_traits> // for common_type<>
 #include <string_view>
 
-#include <makeshift/type_traits2.hpp> // for type<>
 #include <makeshift/version.hpp>      // for MAKESHIFT_NODISCARD
+
+#include <makeshift/detail/metadata2.hpp> // for raw_value_metadata<>, raw_compound_metadata<>, unwrap_named_<>
 
 
 namespace makeshift
@@ -34,64 +35,6 @@ template <typename T>
 {
     return { std::move(value), name };
 }
-
-
-} // inline namespace metadata
-
-
-namespace detail
-{
-
-
-template <typename T> struct unwrap_named_ { using type = T; };
-template <typename T> struct unwrap_named_<named2<T>> { using type = T; };
-template <typename T>
-    constexpr named2<T> wrap_named(T value) noexcept
-{
-    return { std::move(value) };
-}
-template <typename T>
-    constexpr named2<T> wrap_named(named2<T> value) noexcept
-{
-    return { std::move(value) };
-}
-
-struct value_metadata_base { };
-struct compound_metadata_base { };
-
-template <typename ValuesT>
-    struct raw_value_metadata : private value_metadata_base
-{
-    ValuesT values;
-
-    constexpr raw_value_metadata(ValuesT _values)
-        : values{ std::move(_values) }
-    {
-    }
-};
-template <>
-    struct raw_value_metadata<void> : private value_metadata_base
-{
-};
-
-
-template <typename MembersT>
-    struct raw_compound_metadata : private compound_metadata_base
-{
-    MembersT members;
-
-    constexpr raw_compound_metadata(MembersT _members)
-        : members{ std::move(_members) }
-    {
-    }
-};
-
-
-} // namespace detail
-
-
-inline namespace metadata
-{
 
 
 template <typename... Ts>

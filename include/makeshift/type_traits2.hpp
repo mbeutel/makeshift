@@ -3,10 +3,13 @@
 #define INCLUDED_MAKESHIFT_TYPE_TRAITS2_HPP_
 
 
-#include <iterator>    // for begin(), end()
-#include <type_traits> // for declval<>()
+#include <cstddef>     // for size_t
+#include <utility>     // for tuple_size<>, tuple_element<>
+#include <type_traits> // for integral_constant<>
 
 #include <makeshift/type_traits.hpp> // for nth_type<>, try_index_of_type<>, can_apply<>
+
+#include <makeshift/detail/type_traits2.hpp> // for is_iterable_r<>
 
 
 namespace makeshift
@@ -20,21 +23,8 @@ namespace detail
 template <typename T> struct type_t { using type = T; };
 
 
-namespace is_iterable_ns
-{
-
-
-using std::begin;
-using std::end;
-
-
-template <typename T> using is_iterable_r = decltype(begin(std::declval<T&>()) != end(std::declval<T&>()));
-
-
-} // is_iterable_ns
-
-
 } // namespace detail
+
 
 inline namespace types
 {
