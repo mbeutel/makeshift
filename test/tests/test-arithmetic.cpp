@@ -50,35 +50,6 @@ const volatile int64_t lmaxlog = mk::log_floor(lmax, int64_t(2));
 const volatile int64_t lminlog = mk::log_floor(lmin / -2, int64_t(2)) + 1;
 
 
-namespace Catch
-{
-
-
-template <typename T, mk::dim_t N>
-    struct StringMaker<mk::factorization<T, N>>
-{
-    static std::string convert(const mk::factorization<T, N>& fct)
-    {
-        std::ostringstream sstr;
-        bool first = true;
-        for (auto&& factor : fct.factors)
-        {
-            if (first)
-                first = false;
-            else
-                sstr << " + ";
-            sstr << factor.base << '^' << factor.exponent;
-        }
-        if (fct.remainder != 0)
-            sstr << " + " << fct.remainder;
-        return sstr.str();
-    }
-};
-
-
-} // namespace Catch
-
-
 TEST_CASE("factorize")
 {
     SECTION("log")

@@ -4,6 +4,7 @@
 
 
 #include <array>
+#include <iosfwd>      // for ostream
 #include <stdexcept>   // for runtime_error
 #include <type_traits> // for enable_if<>
 
@@ -28,6 +29,7 @@ template <typename V>
     V base;
     V exponent;
 
+        // equivalence
     MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR_CXX20 friend bool operator ==(const factor& lhs, const factor& rhs) noexcept
     {
         return lhs.base == rhs.base
@@ -36,6 +38,12 @@ template <typename V>
     MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR_CXX20 friend bool operator !=(const factor& lhs, const factor& rhs) noexcept
     {
         return !(lhs == rhs);
+    }
+
+        // string conversion
+    friend std::ostream& operator <<(std::ostream& stream, const factor& f)
+    {
+        return stream << f.base << '^' << f.exponent;
     }
 };
 template <typename V>
@@ -53,6 +61,7 @@ template <typename V, dim_t NumFactors>
     V remainder;
     std::array<factor<V>, NumFactors> factors;
 
+        // equivalence
     MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR_CXX20 friend bool operator ==(const factorization& lhs, const factorization& rhs) noexcept
     {
         return lhs.remainder == rhs.remainder
@@ -61,6 +70,23 @@ template <typename V, dim_t NumFactors>
     MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR_CXX20 friend bool operator !=(const factorization& lhs, const factorization& rhs) noexcept
     {
         return !(lhs == rhs);
+    }
+
+        // string conversion
+    friend std::ostream& operator <<(std::ostream& stream, const factorization& f)
+    {
+        bool first = true;
+        for (auto&& factor : f.factors)
+        {
+            if (first)
+                first = false;
+            else
+                stream << " + ";
+            stream << factor;
+        }
+        if (f.remainder != 0)
+            stream << " + " << f.remainder;
+        return stream;
     }
 };
 template <typename V, dim_t NumFactors>
