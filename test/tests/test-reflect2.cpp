@@ -38,7 +38,7 @@ constexpr auto reflect(mk::type<PartitionFlag>)
     );
 }
 
-struct PartitionAxis : mk::with_compound_operations<mk::equatable, mk::hashable, mk::comparable>
+struct PartitionAxis
 {
     mk::index_t first;
     mk::index_t last;

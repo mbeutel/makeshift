@@ -126,18 +126,6 @@ struct comparable
 };
 
 
-    //ᅟ
-    // Base class which implements the interface specified abilities based on the primary interface of the ability.
-    //
-    // For example, to define a type with equality and ordering, inherit from `with_operations<equatable, comparable>` and implement operators `==` and `<`.
-    //
-template <typename... Ts>
-    struct with_operations
-        : Ts::template interface<>...
-{
-};
-
-
 /*
 TODO:
 Req' for op_tag:

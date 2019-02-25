@@ -11,8 +11,10 @@
 
 #include <makeshift/reflect2.hpp>    // for compound_members()
 #include <makeshift/tuple2.hpp>      // for tuple_all_of(), tuple_reduce()
-#include <makeshift/functional2.hpp> // for hash<>, adapter_base<>
+#include <makeshift/functional2.hpp> // for hash<>
 #include <makeshift/version.hpp>     // for MAKESHIFT_NODISCARD
+
+#include <makeshift/detail/functional2.hpp> // for adapter_base<>
 
 
 namespace makeshift
@@ -118,49 +120,6 @@ public:
         return invoke_(std::make_index_sequence<std::tuple_size<std::decay_t<decltype(members)>>::value>{ },
             members, lhs, rhs);
     }
-};
-
-
-template <typename CategoryT, typename OperationT = typename CategoryT::default_operation, typename CompoundMembersT = compound_members_t>
-    struct compound_operation;
-
-    //ᅟ
-    // Equality comparer for compound types which determines equivalence by comparing members for equality.
-    //
-template <typename EqualToT, typename CompoundMembersT>
-    struct compound_operation<equatable, EqualToT, CompoundMembersT> : compound_equal_to<EqualToT, CompoundMembersT>
-{
-    using compound_equal_to<EqualToT, CompoundMembersT>::compound_equal_to;
-};
-
-    //ᅟ
-    // Hasher for compound types which computes a hash by combining the hashes of the members.
-    //
-template <typename HashT, typename CompoundMembersT>
-    struct compound_operation<hashable, HashT, CompoundMembersT> : compound_hash<HashT, CompoundMembersT>
-{
-    using compound_hash<HashT, CompoundMembersT>::compound_hash;
-};
-
-    //ᅟ
-    // Ordering comparer for compound types which determines order by lexicographically comparing members.
-    //
-template <typename LessT, typename CompoundMembersT>
-    struct compound_operation<comparable, LessT, CompoundMembersT> : compound_less<LessT, CompoundMembersT>
-{
-    using compound_less<LessT, CompoundMembersT>::compound_less;
-};
-
-
-    //ᅟ
-    // Base class for compound types which implements the specified abilities using metadata.
-    //
-    // For example, to declare a regular compound type, inherit from `with_compound_operations<equatable, hashable, comparable>`.
-    //
-template <typename... Ts>
-    struct with_compound_operations
-        : Ts::template interface<compound_operation<Ts>>...
-{
 };
 
 
