@@ -139,6 +139,38 @@ struct comparable
 };
 
 
+/*
+TODO:
+Req' for op_tag:
+
+Interface:
+- { op_tag = op... } -> op_stack
+- op_stack | ... -> op_stack
+- op_tag(op_stack) -> op
+
+Implementation:
+- fallback, if any
+- ...that's it?
+
+ops:
+- to_string
+- to_stream, from_stream
+- memory_usage
+- less, equal_to, hash
+
+
+We can generalize the base class if
+- we know op_tag -> compound_op
+- we can define 
+
+
+
+- default impl, or compiler error if not available
+- impl (possibly templatized) for known types
+- ability to inject custom impl
+*/
+
+
 } // inline namespace types
 
 } // namespace makeshift
