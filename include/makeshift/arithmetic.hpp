@@ -42,8 +42,8 @@ template <typename V>
     constexpr auto reflect(type<factor<V>>)
 {
     return reflect_compound_members(
-        &factor<V>::base,
-        &factor<V>::exponent
+        with_name(&factor<V>::base, "base"),
+        with_name(&factor<V>::exponent, "exponent")
     );
 }
 
@@ -67,8 +67,8 @@ template <typename V, dim_t NumFactors>
     constexpr auto reflect(type<factorization<V, NumFactors>>)
 {
     return reflect_compound_members(
-        &factorization<V, NumFactors>::remainder,
-        &factorization<V, NumFactors>::factors
+        with_name(&factorization<V, NumFactors>::remainder, "remainder"),
+        with_name(&factorization<V, NumFactors>::factors, "factors")
     );
 }
 
