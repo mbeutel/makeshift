@@ -9,7 +9,7 @@
 #include <utility>     // for move(), integer_sequence<>
 #include <functional>  // for equal_to<>, less<>
 
-#include <makeshift/reflect2.hpp>    // for compound_members()
+#include <makeshift/reflect2.hpp>    // for compound_members_of()
 #include <makeshift/tuple2.hpp>      // for tuple_all_of(), tuple_reduce()
 #include <makeshift/functional2.hpp> // for hash<>
 #include <makeshift/version.hpp>     // for MAKESHIFT_NODISCARD
@@ -41,7 +41,7 @@ inline namespace metadata
     //ᅟ
     // Equality comparer for compound types which determines equivalence by comparing members for equality.
     //
-template <typename EqualToT = std::equal_to<>, typename CompoundMembersT = compound_members_t>
+template <typename EqualToT = std::equal_to<>, typename CompoundMembersT = compound_members_of_t>
     struct compound_equal_to : private makeshift::detail::adapter_base<EqualToT, CompoundMembersT>
 {
     using makeshift::detail::adapter_base<EqualToT, CompoundMembersT>::adapter_base;
@@ -64,7 +64,7 @@ template <typename EqualToT = std::equal_to<>, typename CompoundMembersT = compo
     //ᅟ
     // Hasher for compound types which computes a hash by combining the hashes of the members.
     //
-template <typename HashT = hash2<>, typename CompoundMembersT = compound_members_t>
+template <typename HashT = hash2<>, typename CompoundMembersT = compound_members_of_t>
     struct compound_hash : private makeshift::detail::adapter_base<HashT, CompoundMembersT>
 {
     using makeshift::detail::adapter_base<HashT, CompoundMembersT>::adapter_base;
@@ -89,7 +89,7 @@ template <typename HashT = hash2<>, typename CompoundMembersT = compound_members
     //ᅟ
     // Ordering comparer for compound types which determines order by lexicographically comparing members.
     //
-template <typename LessT = std::less<>, typename CompoundMembersT = compound_members_t>
+template <typename LessT = std::less<>, typename CompoundMembersT = compound_members_of_t>
     struct compound_less : private makeshift::detail::adapter_base<LessT, CompoundMembersT>
 {
     using makeshift::detail::adapter_base<LessT, CompoundMembersT>::adapter_base;

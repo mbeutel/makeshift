@@ -128,13 +128,13 @@ template <typename T> constexpr bool have_compound_metadata_v = have_compound_me
 
 
     //ᅟ
-    // Returns an array of the enumerators of a given enumeration type, retrieved from metadata.
+    // Returns an array of the values of a given type, retrieved from metadata.
     // Returns `std::array{ false, true }` if the type argument is `bool`.
     //
-struct values_t
+struct values_of_t
 {
         //ᅟ
-        // Returns an array of the enumerators of a given enumeration type, retrieved from metadata.
+        // Returns an array of the values of a given type, retrieved from metadata.
         // Returns `std::array{ false, true }` if the type argument is `bool`.
         //
     template <typename T>
@@ -149,20 +149,20 @@ struct values_t
 };
 
     //ᅟ
-    // Returns an array of the enumerators of a given enumeration type, retrieved from metadata.
+    // Returns an array of the values of a given type, retrieved from metadata.
     // Returns `std::array{ false, true }` if the type argument is `bool`.
     //
-static inline constexpr values_t values = { };
+static inline constexpr values_of_t values_of = { };
 
 
     //ᅟ
-    // Returns an array of the names and values of the enumerators of a given enumeration type, retrieved from metadata.
+    // Returns an array of the names and values of a given type, retrieved from metadata.
     // Returns `std::array{ with_name(false, "false"), with_name(true, "true") }` if the type argument is `bool`.
     //
-struct named_values_t
+struct named_values_of_t
 {
         //ᅟ
-        // Returns an array of the names and values of the enumerators of a given enumeration type, retrieved from metadata.
+        // Returns an array of the names and values of a given type, retrieved from metadata.
         // Returns `std::array{ with_name(false, "false"), with_name(true, "true") }` if the type argument is `bool`.
         //
     template <typename T>
@@ -175,16 +175,16 @@ struct named_values_t
 };
 
     //ᅟ
-    // Returns an array of the names and values of the enumerators of a given enumeration type, retrieved from metadata.
+    // Returns an array of the names and values of a given type, retrieved from metadata.
     // Returns `std::array{ with_name(false, "false"), with_name(true, "true") }` if the type argument is `bool`.
     //
-static inline constexpr named_values_t named_values = { };
+static inline constexpr named_values_of_t named_values_of = { };
 
 
     //ᅟ
     // Returns a tuple of the accessors of the members in a given compound type, retrieved from metadata.
     //
-struct compound_members_t
+struct compound_members_of_t
 {
         //ᅟ
         // Returns a tuple of the accessors of the members in a given compound type, retrieved from metadata.
@@ -204,13 +204,13 @@ struct compound_members_t
     //ᅟ
     // Returns a tuple of the accessors of the members in a given compound type, retrieved from metadata.
     //
-static inline constexpr compound_members_t compound_members = { };
+static inline constexpr compound_members_of_t compound_members_of = { };
 
 
     //ᅟ
     // Returns a tuple of the names and accessors of the members in a given compound type, retrieved from metadata.
     //
-struct named_compound_members_t
+struct named_compound_members_of_t
 {
         //ᅟ
         // Returns a tuple of the names and accessors of the members in a given compound type, retrieved from metadata.
@@ -228,7 +228,7 @@ struct named_compound_members_t
     //ᅟ
     // Returns a tuple of the names and accessors of the members in a given compound type, retrieved from metadata.
     //
-static inline constexpr named_compound_members_t named_compound_members = { };
+static inline constexpr named_compound_members_of_t named_compound_members_of = { };
 
 
     //ᅟ

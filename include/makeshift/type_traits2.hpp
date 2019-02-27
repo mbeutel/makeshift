@@ -60,6 +60,12 @@ template <>
 
 
     //ᅟ
+    // Type sequence, i.e. tuple without runtime value representation.
+    //
+template <typename... Ts> constexpr inline type_sequence2<Ts...> type_sequence2_v { };
+
+
+    //ᅟ
     // Return a type sequence that represents the types of the given values.
     //
 template <typename... Ts>

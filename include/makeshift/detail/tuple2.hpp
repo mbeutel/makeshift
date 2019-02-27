@@ -193,7 +193,7 @@ template <std::ptrdiff_t N, transform_target TransformTarget, typename F, typena
     static_assert(Eq::value, "sizes of tuple arguments do not match");
     static_assert(N != -1 || Eq::size != -1 || N == Eq::size, "given size argument does not match sizes of tuple arguments");
     static_assert(N != -1 || Eq::size != -1, "no tuple argument and no size given");
-    static constexpr std::size_t size = std::size_t(N != -1 ? N : Eq::size);
+    constexpr std::size_t size = std::size_t(N != -1 ? N : Eq::size);
     
     return tuple_transform_impl1(std::integral_constant<transform_target, TransformTarget>{ }, std::make_index_sequence<size>{ },
         std::forward<F>(func), std::forward<Ts>(args)...);
