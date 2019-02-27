@@ -28,7 +28,7 @@ TEST_CASE("variant2")
         constexpr auto a3 = (values(&Params::precision) = { Precision::single, Precision::double_ })
                           * (values(&Params::gangSize) = { 1, 2, 4 })
                           * (values(&Params::numThreadsX, &Params::numThreadsY) = { { 16, 16 }, { 32, 32 } });
-        //constexpr auto allValues = makeshift::detail::_values_in(a2);
+        constexpr auto allValues = makeshift::detail::_values_in(a3);
     }
     
 }

@@ -11,7 +11,6 @@
 #include <functional>
 
 #include <makeshift/reflect2.hpp>     // for values_of()
-#include <makeshift/type_traits2.hpp> // for type_sequence2<>
 #include <makeshift/tuple2.hpp>       // for tuple_reduce(), array_transform2()
 #include <makeshift/version.hpp>      // for MAKESHIFT_NODISCARD
 
@@ -28,12 +27,12 @@ namespace detail
 template <typename T, std::size_t N>
     constexpr std::array<std::remove_cv_t<T>, N> to_array2(const T (&array)[N])
 {
-    return array_transform2<N>([&](auto i) constexpr { return array[decltype(i)::value]; }, tuple_index);
+    return array_transform2<N>([&](auto i) { return array[decltype(i)::value]; }, tuple_index);
 }
 template <typename T, std::size_t N>
     constexpr std::array<std::tuple<std::remove_cv_t<T>>, N> to_tuple_array(const T (&array)[N])
 {
-    return array_transform2<N>([&](auto i) constexpr { return array[decltype(i)::value]; }, tuple_index);
+    return array_transform2<N>([&](auto i) { return array[decltype(i)::value]; }, tuple_index);
 }
 
 template <std::size_t N, typename C, typename... Ts>
@@ -234,13 +233,6 @@ template <typename C, typename... Fs>
     return _members_impl(std::index_sequence_for<Fs...>{ }, product);
 }
 
-template <typename C, typename... Fs>
-    constexpr auto _num_values_array(const value_product_t<C, Fs...>& product) noexcept
-{
-    return array_transform2(
-        [](const auto& factor) { return std::tuple_size<std::decay_t<decltype(factor.values())>>::value; },
-        product.factors());
-}
 template <std::size_t N>
     constexpr std::array<std::size_t, N> _shape_to_strides(const std::array<std::size_t, N>& shape) noexcept
 {
@@ -254,11 +246,6 @@ template <std::size_t N>
     return result;
 }
 
-template <typename C, typename... Fs>
-    constexpr auto _num_values(const value_product_t<C, Fs...>& product) noexcept
-{
-    return tuple_reduce(_num_values_array(product), std::size_t(1), std::multiplies<>{ });
-}
 
 template <std::size_t... Is, std::size_t N, typename C, typename... Ts>
     constexpr void _apply_value_impl(std::index_sequence<Is...>, C& result, const member_values_t<N, C, Ts...>& memberValues, std::size_t i)
