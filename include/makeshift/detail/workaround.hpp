@@ -13,6 +13,12 @@ template <typename R, typename... Ts>
     auto term = R{ };
     return (vs + ... + term);
 }
+template <typename R, typename... Ts>
+    constexpr inline R cmul(Ts... vs) noexcept // workaround to make VC++ accept non-trivial fold expressions
+{
+    auto term = R{ 1 };
+    return (vs * ... * term);
+}
 template <typename... Ts>
     constexpr inline bool cor(Ts... vs) noexcept // workaround to make VC++ accept non-trivial fold expressions
 {

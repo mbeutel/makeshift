@@ -20,6 +20,7 @@ add_executable(test-makeshift
     "tests/test-tuple2.cpp"
     "tests/test-reflect2.cpp"
     "tests/test-variant.cpp"
+    "tests/test-variant2.cpp"
     "tests/test-utility.cpp"
     "tests/test-metadata.cpp")
 
