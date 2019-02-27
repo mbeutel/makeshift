@@ -30,22 +30,10 @@ template <typename T, std::size_t N>
 {
     return array_transform2<N>([&](auto i) constexpr { return array[decltype(i)::value]; }, tuple_index);
 }
-template <std::size_t... Is, typename T, std::size_t N>
-    constexpr std::array<std::tuple<std::remove_cv_t<T>>, N> to_tuple_array_impl(std::index_sequence<Is...>, const T (&array)[N])
-{
-    (void) array;
-#ifdef MAKESHIFT_INTELLISENSE_PARSER
-    return { { array[Is] }... };
-#else // MAKESHIFT_INTELLISENSE_PARSER
-    return {{ { array[Is] }... }};
-    //return { std::tuple<std::remove_cv_t<T>>{ array[Is] }... };
-#endif // MAKESHIFT_INTELLISENSE_PARSER
-}
 template <typename T, std::size_t N>
     constexpr std::array<std::tuple<std::remove_cv_t<T>>, N> to_tuple_array(const T (&array)[N])
 {
     return array_transform2<N>([&](auto i) constexpr { return array[decltype(i)::value]; }, tuple_index);
-    //return to_tuple_array_impl(std::make_index_sequence<N>{ }, array);
 }
 
 template <std::size_t N, typename C, typename... Ts>
@@ -108,8 +96,6 @@ public:
     template <std::size_t N> 
         MAKESHIFT_NODISCARD constexpr member_values_t<N, C, T> operator =(T (&&vals)[N]) const &&
     {
-        //return { member_, array_transform2([](auto val) constexpr { return std::make_tuple(val); }, to_array2(vals)) };
-        //return { member_, to_tuple_array(vals) };
         return { member_, std::make_tuple(to_array2(vals)) };
     }
     constexpr std::tuple<T C::*> members(void) const noexcept { return member_; }
@@ -162,7 +148,6 @@ template <typename C, typename... Fs>
     class value_product_t
 {
 private:
-//public:
     std::tuple<Fs...> factors_;
 
 public:
