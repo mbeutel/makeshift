@@ -25,17 +25,27 @@ namespace detail
 {
 
 
+template <typename T, std::size_t N>
+    constexpr std::array<std::remove_cv_t<T>, N> to_array2(const T (&array)[N])
+{
+    return array_transform2<N>([&](auto i) constexpr { return array[decltype(i)::value]; }, tuple_index);
+}
 template <std::size_t... Is, typename T, std::size_t N>
-    constexpr std::array<std::remove_cv_t<T>, N> to_array2_impl(std::index_sequence<Is...>, T (&array)[N])
+    constexpr std::array<std::tuple<std::remove_cv_t<T>>, N> to_tuple_array_impl(std::index_sequence<Is...>, const T (&array)[N])
 {
     (void) array;
-    return { array[Is]... };
+#ifdef MAKESHIFT_INTELLISENSE_PARSER
+    return { { array[Is] }... };
+#else // MAKESHIFT_INTELLISENSE_PARSER
+    return {{ { array[Is] }... }};
+    //return { std::tuple<std::remove_cv_t<T>>{ array[Is] }... };
+#endif // MAKESHIFT_INTELLISENSE_PARSER
 }
 template <typename T, std::size_t N>
-    constexpr std::array<std::remove_cv_t<T>, N> to_array2(T (&array)[N])
+    constexpr std::array<std::tuple<std::remove_cv_t<T>>, N> to_tuple_array(const T (&array)[N])
 {
-    //return array_transform2<N>([&](auto i) constexpr { return array[decltype(i)::value]; }, tuple_index);
-    return to_array2_impl(std::make_index_sequence<N>{ }, array);
+    return array_transform2<N>([&](auto i) constexpr { return array[decltype(i)::value]; }, tuple_index);
+    //return to_tuple_array_impl(std::make_index_sequence<N>{ }, array);
 }
 
 template <std::size_t N, typename C, typename... Ts>
@@ -43,15 +53,15 @@ template <std::size_t N, typename C, typename... Ts>
 {
 private:
     std::tuple<Ts C::*...> members_;
-    std::array<std::tuple<Ts...>, N> values_;
+    std::tuple<std::array<Ts, N>...> values_;
 
 public:
-    constexpr member_values_t(std::tuple<Ts C::*...> _members, std::array<std::tuple<Ts...>, N> _values)
+    constexpr member_values_t(std::tuple<Ts C::*...> _members, std::tuple<std::array<Ts, N>...> _values)
         : members_(std::move(_members)), values_(std::move(_values))
     {
     }
     constexpr const std::tuple<Ts C::*...>& members(void) const noexcept { return members_; }
-    constexpr const std::array<std::tuple<Ts...>, N>& values(void) const noexcept { return values_; }
+    constexpr const std::tuple<std::array<Ts, N>...>& values(void) const noexcept { return values_; }
     static constexpr std::size_t num_values = N;
 };
 
@@ -61,15 +71,26 @@ template <typename C, typename... Ts>
 private:
     std::tuple<Ts C::*...> members_;
 
+    template <std::size_t TI, std::size_t... Is>
+        constexpr static std::array<std::tuple_element_t<TI, std::tuple<Ts...>>, sizeof...(Is)> with_values_impl1(std::index_sequence<Is...>, const std::tuple<Ts...> (&vals)[sizeof...(Is)])
+    {
+        return { std::get<TI>(vals[Is])... };
+    }
+    template <std::size_t... TIs, std::size_t N>
+        constexpr static std::tuple<std::array<Ts, N>...> with_values_impl0(std::index_sequence<TIs...>, const std::tuple<Ts...> (&vals)[N])
+    {
+        return std::make_tuple(with_values_impl1<TIs>(std::make_index_sequence<N>{ }, vals)...);
+    }
+
 public:
     constexpr members_t(Ts C::*... _members) noexcept
         : members_{ _members... }
     {
     }
-    template <std::size_t N> 
+    template <std::size_t N>
         MAKESHIFT_NODISCARD constexpr member_values_t<N, C, Ts...> operator =(std::tuple<Ts...> (&&vals)[N]) const &&
     {
-        return { members_, to_array2(vals) };
+        return { members_, with_values_impl0(std::index_sequence_for<Ts...>{ }, vals) };
     }
     constexpr std::tuple<Ts C::*...> members(void) const noexcept { return members_; }
 };
@@ -87,7 +108,9 @@ public:
     template <std::size_t N> 
         MAKESHIFT_NODISCARD constexpr member_values_t<N, C, T> operator =(T (&&vals)[N]) const &&
     {
-        return { member_, array_transform2([](auto val) constexpr { return std::make_tuple(val); }, to_array2(vals)) };
+        //return { member_, array_transform2([](auto val) constexpr { return std::make_tuple(val); }, to_array2(vals)) };
+        //return { member_, to_tuple_array(vals) };
+        return { member_, std::make_tuple(to_array2(vals)) };
     }
     constexpr std::tuple<T C::*> members(void) const noexcept { return member_; }
 };
@@ -139,7 +162,9 @@ template <typename C, typename... Fs>
     class value_product_t
 {
 private:
+//public:
     std::tuple<Fs...> factors_;
+
 public:
     constexpr value_product_t(const std::tuple<Fs...>& _factors)
         : factors_(_factors)
@@ -244,11 +269,6 @@ template <std::size_t N>
     return result;
 }
 
-/*template <std::size_t... Is, typename C, typename... Fs>
-    constexpr auto _num_values_impl(std::index_sequence<Is...>, const value_product_t<C, Fs...>& product) noexcept
-{
-    return cmul(std::tuple_size<std::decay_t<decltype(std::get<Is>(product.factors()).values())>>::value...);
-}*/
 template <typename C, typename... Fs>
     constexpr auto _num_values(const value_product_t<C, Fs...>& product) noexcept
 {
@@ -258,7 +278,7 @@ template <typename C, typename... Fs>
 template <std::size_t... Is, std::size_t N, typename C, typename... Ts>
     constexpr void _apply_value_impl(std::index_sequence<Is...>, C& result, const member_values_t<N, C, Ts...>& memberValues, std::size_t i)
 {
-    ((result.*(std::get<Is>(memberValues.members())) = std::get<Is>(memberValues.values()[i])), ...);
+    ((result.*(std::get<Is>(memberValues.members())) = std::get<Is>(memberValues.values())[i]), ...);
 }
 template <std::size_t N, typename C, typename... Ts>
     constexpr void _apply_value(C& result, const member_values_t<N, C, Ts...>& memberValues, std::size_t i)
