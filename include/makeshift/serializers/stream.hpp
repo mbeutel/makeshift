@@ -129,7 +129,7 @@ struct stream_serializer_options
     enum_serialization_options enum_options;
     any_compound_serialization_options any_compound_options;
 
-    constexpr stream_serializer_options(void) noexcept = default;
+    constexpr stream_serializer_options(void) = default;
     constexpr stream_serializer_options(enum_serialization_options _enum_options) noexcept : enum_options(_enum_options) { }
 };
 

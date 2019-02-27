@@ -5,7 +5,7 @@
 #include <makeshift/functional.hpp> // for overload()
 #include <makeshift/tuple.hpp>
 
-#include <catch.hpp>
+#include <catch2/catch.hpp>
 
 
 using namespace std::literals;

@@ -89,7 +89,7 @@ template <std::size_t I, typename... Ts>
     // Returns the type sequence element of type `T`.
     //
 template <typename T, typename... Ts>
-    constexpr type<T> get(const type_sequence2<Ts...>& ts) noexcept
+    constexpr type<T> get(const type_sequence2<Ts...>&) noexcept
 {
 	constexpr std::size_t index = try_index_of_type_v<T, Ts...>;
     static_assert(index != std::size_t(-1), "type T does not appear in type sequence");

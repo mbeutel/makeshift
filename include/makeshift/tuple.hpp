@@ -207,7 +207,7 @@ struct tuple_size_aggregator
     friend constexpr tuple_size_aggregator operator +(tuple_size_aggregator lhs, std::size_t rhs_size_or_default) noexcept
     {
         if (!lhs.all_equal || rhs_size_or_default == std::size_t(-1))
-            return std::move(lhs);
+            return lhs;
         else if (lhs.value == std::size_t(-1))
             return { rhs_size_or_default, true };
         return { lhs.value, lhs.value == rhs_size_or_default };

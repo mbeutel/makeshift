@@ -37,7 +37,7 @@ template <typename T, typename ValuesT>
     return { md.values };
 }
 template <typename T>
-    constexpr std::array<named2<T>, 0> get_metadata(raw_value_metadata<void> md) noexcept
+    constexpr std::array<named2<T>, 0> get_metadata(raw_value_metadata<void>) noexcept
 {
     return { };
 }

@@ -29,7 +29,7 @@ template <typename T> struct unwrap_named_<named2<T>> { using type = T; };
 template <typename T>
     constexpr named2<T> wrap_named(T value) noexcept
 {
-    return { std::move(value) };
+    return { std::move(value), { } };
 }
 template <typename T>
     constexpr named2<T> wrap_named(named2<T> value) noexcept

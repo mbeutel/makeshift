@@ -4,7 +4,7 @@
 #include <makeshift/utility.hpp>
 #include <makeshift/tuple.hpp>
 
-#include <catch.hpp>
+#include <catch2/catch.hpp>
 
 namespace mk = makeshift;
 using namespace makeshift::literals;

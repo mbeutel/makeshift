@@ -12,7 +12,7 @@
 #include <sstream>
 #include <string>
 
-#include <catch.hpp>
+#include <catch2/catch.hpp>
 
 namespace mk = makeshift;
 

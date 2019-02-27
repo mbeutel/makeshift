@@ -1,7 +1,7 @@
 
 #include <makeshift/tuple2.hpp>
 
-#include <catch.hpp>
+#include <catch2/catch.hpp>
 
 
 namespace mk = makeshift;

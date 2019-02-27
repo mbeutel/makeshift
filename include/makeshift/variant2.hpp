@@ -216,7 +216,7 @@ template <typename C, typename T1, typename T2>
 template <std::size_t... Is, typename C, typename... Fs>
     constexpr auto _members_impl(std::index_sequence<Is...>, const value_product_t<C, Fs...>& product) noexcept
 {
-    return std::tuple_cat(std::get<Is>(product.factors()).members());
+    return std::tuple_cat(std::get<Is>(product.factors()).members()...);
 }
 template <typename C, typename... Fs>
     constexpr auto _members(const value_product_t<C, Fs...>& product) noexcept
@@ -268,7 +268,7 @@ template <std::size_t N, typename C, typename... Ts>
 template <std::size_t... Is, typename C, typename... Fs>
     constexpr void _apply_values_impl(std::index_sequence<Is...>,
         C& result, const value_product_t<C, Fs...>& product,
-        const std::array<std::size_t, sizeof...(Fs)>& shape, const std::array<std::size_t, sizeof...(Fs)>& strides,
+        const std::array<std::size_t, sizeof...(Fs)>& strides,
         std::size_t i)
 {
     (_apply_value(result, std::get<Is>(product.factors()), (i / strides[Is]) % Fs::num_values), ...);
@@ -276,23 +276,22 @@ template <std::size_t... Is, typename C, typename... Fs>
 template <typename C, typename... Fs>
     constexpr void _apply_values(
         C& result, const value_product_t<C, Fs...>& product,
-        const std::array<std::size_t, sizeof...(Fs)>& shape, const std::array<std::size_t, sizeof...(Fs)>& strides,
+        const std::array<std::size_t, sizeof...(Fs)>& strides,
         std::size_t i)
 {
-    _apply_values_impl(std::index_sequence_for<Fs...>{ }, result, product, shape, strides, i);
+    _apply_values_impl(std::index_sequence_for<Fs...>{ }, result, product, strides, i);
 }
 
 template <typename C, typename... Fs>
     constexpr auto _values_in(const value_product_t<C, Fs...>& product) noexcept
 {
-    auto shape = std::array{ Fs::num_values... };
-    auto strides = _shape_to_strides(shape);
+    auto strides = _shape_to_strides(std::array{ Fs::num_values... });
     constexpr std::size_t numValues = cmul<std::size_t>(Fs::num_values...);
     return array_transform2<numValues>(
         [&](std::size_t i)
         {
             auto result = C{ };
-            _apply_values(result, product, shape, strides, i);
+            _apply_values(result, product, strides, i);
             return result;
         },
         tuple_index);

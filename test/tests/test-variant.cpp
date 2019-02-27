@@ -2,7 +2,7 @@
 #include <makeshift/tuple.hpp>
 #include <makeshift/variant.hpp>
 
-#include <catch.hpp>
+#include <catch2/catch.hpp>
 
 
 using namespace std::literals;

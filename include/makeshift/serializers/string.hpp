@@ -24,7 +24,7 @@ namespace detail
 {
 
 
-inline std::string scalar_to_string(std::string s) { return std::move(s); }
+inline std::string scalar_to_string(std::string s) { return s; }
 inline std::string scalar_to_string(int val) { return std::to_string(val); }
 inline std::string scalar_to_string(unsigned val) { return std::to_string(val); }
 inline std::string scalar_to_string(long val) { return std::to_string(val); }
@@ -98,7 +98,7 @@ struct string_serializer_options
 {
     enum_serialization_options enum_options;
 
-    constexpr string_serializer_options(void) noexcept = default;
+    constexpr string_serializer_options(void) = default;
     constexpr string_serializer_options(enum_serialization_options _enum_options) noexcept : enum_options(_enum_options) { }
 };
 

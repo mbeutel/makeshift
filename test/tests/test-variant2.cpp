@@ -1,7 +1,7 @@
 
 #include <makeshift/variant2.hpp>
 
-#include <catch.hpp>
+#include <catch2/catch.hpp>
 
 
 namespace mk = makeshift;

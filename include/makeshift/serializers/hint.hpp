@@ -44,7 +44,7 @@ struct hint_options
     //std::string_view option_separator = "|";
     //std::string_view flags_separator = ",";
 
-    constexpr hint_options(void) noexcept = default;
+    constexpr hint_options(void) = default;
 };
 
 

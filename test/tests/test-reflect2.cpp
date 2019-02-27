@@ -3,7 +3,7 @@
 #include <makeshift/utility.hpp>  // for define_flags<>
 #include <makeshift/compound.hpp>
 
-#include <catch.hpp>
+#include <catch2/catch.hpp>
 
 
 namespace mk = makeshift;
