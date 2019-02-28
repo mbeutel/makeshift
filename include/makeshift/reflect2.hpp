@@ -32,7 +32,7 @@ template <typename T> struct is_compound_metadata : std::is_base_of<compound_met
 
 
 template <typename T, typename ValuesT>
-    constexpr const ValuesT& get_metadata(const raw_value_metadata<ValuesT>& md) noexcept
+    constexpr ValuesT get_metadata(const raw_value_metadata<ValuesT>& md) noexcept
 {
     return { md.values };
 }
@@ -44,7 +44,7 @@ template <typename T>
 
 
 template <typename T, typename MembersT>
-    constexpr const MembersT& get_metadata(const raw_compound_metadata<MembersT>& md) noexcept
+    constexpr MembersT get_metadata(const raw_compound_metadata<MembersT>& md) noexcept
 {
     return { md.members };
 }
@@ -89,7 +89,7 @@ template <typename T>
 template <typename T>
     struct reflector<T, std::enable_if_t<have_raw_metadata<T>::value>>
 {
-    constexpr decltype(auto) operator ()(void) const noexcept
+    constexpr auto operator ()(void) const noexcept
     {
         return makeshift::detail::get_metadata<T>(reflect(type<T>{ }));
     }

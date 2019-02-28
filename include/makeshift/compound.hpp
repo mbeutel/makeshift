@@ -49,13 +49,13 @@ template <typename EqualToT = std::equal_to<>, typename CompoundMembersT = compo
     template <typename T>
         MAKESHIFT_NODISCARD constexpr bool operator ()(const T& lhs, const T& rhs) const noexcept
     {
-        auto& equalTo = static_cast<const EqualToT&>(*this);
+        auto& equal = static_cast<const EqualToT&>(*this);
         auto& compoundMembers = static_cast<const CompoundMembersT&>(*this);
         return tuple_all_of(
             compoundMembers(type_v<T>),
-            [&equalTo, &lhs, &rhs](auto&& member)
+            [&equal, &lhs, &rhs](auto&& member)
             {
-                return equalTo(get_member_value(lhs, member), get_member_value(rhs, member));
+                return equal(get_member_value(lhs, member), get_member_value(rhs, member));
             });
     }
 };
