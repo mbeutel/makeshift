@@ -9,10 +9,13 @@
 #include <utility>
 #include <type_traits>
 #include <functional>
+#include <numeric>     // for iota()
+#include <algorithm>   // for sort()
 
-#include <makeshift/reflect2.hpp>     // for values_of()
-#include <makeshift/tuple2.hpp>       // for tuple_reduce(), array_transform2()
-#include <makeshift/version.hpp>      // for MAKESHIFT_NODISCARD
+#include <makeshift/reflect2.hpp> // for values_of()
+#include <makeshift/tuple2.hpp>   // for tuple_reduce(), array_transform2()
+#include <makeshift/compound.hpp> // for compound_hash<>, compound_equal_to<>
+#include <makeshift/version.hpp>  // for MAKESHIFT_NODISCARD
 
 #include <makeshift/detail/workaround.hpp>
 
@@ -104,9 +107,8 @@ template <typename C, typename T>
     constexpr auto _default_values(const members_t<C, T>& member)
 {
     auto values = values_of(type_v<T>);
-    auto valueTuples = array_transform2([](auto value) { return std::make_tuple(value); }, values);
     constexpr std::size_t n = std::tuple_size<std::decay_t<decltype(values)>>::value;
-    return member_values_t<n, C, T>{ member.members(), valueTuples };
+    return member_values_t<n, C, T>{ member.members(), std::make_tuple(values) };
 }
 
 template <std::size_t N, typename C>
@@ -143,18 +145,18 @@ public:
     }
 };
 
-template <typename C, typename... Fs>
+template <typename C, typename... FactorsT>
     class value_product_t
 {
 private:
-    std::tuple<Fs...> factors_;
+    std::tuple<FactorsT...> factors_;
 
 public:
-    constexpr value_product_t(const std::tuple<Fs...>& _factors)
+    constexpr value_product_t(const std::tuple<FactorsT...>& _factors)
         : factors_(_factors)
     {
     }
-    constexpr const std::tuple<Fs...>& factors(void) const noexcept { return factors_; }
+    constexpr const std::tuple<FactorsT...>& factors(void) const noexcept { return factors_; }
 };
 
 template <typename C, std::size_t N, typename... Ts>
@@ -167,8 +169,8 @@ template <typename C, typename T>
 {
     return _to_value_product(_default_values(member));
 }
-template <typename C, typename... Fs>
-    constexpr value_product_t<C, Fs...> _to_value_product(const value_product_t<C, Fs...>& product)
+template <typename C, typename... FactorsT>
+    constexpr value_product_t<C, FactorsT...> _to_value_product(const value_product_t<C, FactorsT...>& product)
 {
     return product;
 }
@@ -179,23 +181,23 @@ template <typename C, typename... LFs, typename... RFs>
     // TODO: we should raise an assertion if a member appears more than once
     return { std::tuple_cat(lhs.factors(), rhs.factors()) };
 }
-template <std::size_t N, typename C, typename... Ts, typename... Fs>
-    MAKESHIFT_NODISCARD constexpr value_product_t<C, member_values_t<N, C, Ts...>, Fs...> operator *(const member_values_t<N, C, Ts...>& lhs, const value_product_t<C, Fs...>& rhs)
+template <std::size_t N, typename C, typename... Ts, typename... FactorsT>
+    MAKESHIFT_NODISCARD constexpr value_product_t<C, member_values_t<N, C, Ts...>, FactorsT...> operator *(const member_values_t<N, C, Ts...>& lhs, const value_product_t<C, FactorsT...>& rhs)
 {
     return _to_value_product(lhs) * rhs;
 }
-template <std::size_t N, typename C, typename... Ts, typename... Fs>
-    MAKESHIFT_NODISCARD constexpr value_product_t<C, Fs..., member_values_t<N, C, Ts...>> operator *(const value_product_t<C, Fs...>& lhs, const member_values_t<N, C, Ts...>& rhs)
+template <std::size_t N, typename C, typename... Ts, typename... FactorsT>
+    MAKESHIFT_NODISCARD constexpr value_product_t<C, FactorsT..., member_values_t<N, C, Ts...>> operator *(const value_product_t<C, FactorsT...>& lhs, const member_values_t<N, C, Ts...>& rhs)
 {
     return lhs * _to_value_product(rhs);
 }
-template <typename C, typename T, typename... Fs>
-    MAKESHIFT_NODISCARD constexpr auto operator *(const members_t<C, T>& lhs, const value_product_t<C, Fs...>& rhs)
+template <typename C, typename T, typename... FactorsT>
+    MAKESHIFT_NODISCARD constexpr auto operator *(const members_t<C, T>& lhs, const value_product_t<C, FactorsT...>& rhs)
 {
     return _to_value_product(lhs) * rhs;
 }
-template <typename C, typename T, typename... Fs>
-    MAKESHIFT_NODISCARD constexpr auto operator *(const value_product_t<C, Fs...>& lhs, const members_t<C, T>& rhs)
+template <typename C, typename T, typename... FactorsT>
+    MAKESHIFT_NODISCARD constexpr auto operator *(const value_product_t<C, FactorsT...>& lhs, const members_t<C, T>& rhs)
 {
     return lhs * _to_value_product(rhs);
 }
@@ -222,15 +224,15 @@ template <typename C, typename T1, typename T2>
 
 // TODO: we could also implement operator |(), but it is a lot of tedious work, and YAGNI
 
-template <std::size_t... Is, typename C, typename... Fs>
-    constexpr auto _members_impl(std::index_sequence<Is...>, const value_product_t<C, Fs...>& product) noexcept
+template <std::size_t... Is, typename C, typename... FactorsT>
+    constexpr auto _members_impl(std::index_sequence<Is...>, const value_product_t<C, FactorsT...>& product) noexcept
 {
     return std::tuple_cat(std::get<Is>(product.factors()).members()...);
 }
-template <typename C, typename... Fs>
-    constexpr auto _members(const value_product_t<C, Fs...>& product) noexcept
+template <typename C, typename... FactorsT>
+    constexpr auto _members(const value_product_t<C, FactorsT...>& product) noexcept
 {
-    return _members_impl(std::index_sequence_for<Fs...>{ }, product);
+    return _members_impl(std::index_sequence_for<FactorsT...>{ }, product);
 }
 
 template <std::size_t N>
@@ -257,28 +259,28 @@ template <std::size_t N, typename C, typename... Ts>
 {
     _apply_value_impl(std::index_sequence_for<Ts...>{ }, result, memberValues, i);
 }
-template <std::size_t... Is, typename C, typename... Fs>
+template <std::size_t... Is, typename C, typename... FactorsT>
     constexpr void _apply_values_impl(std::index_sequence<Is...>,
-        C& result, const value_product_t<C, Fs...>& product,
-        const std::array<std::size_t, sizeof...(Fs)>& strides,
+        C& result, const value_product_t<C, FactorsT...>& product,
+        const std::array<std::size_t, sizeof...(FactorsT)>& strides,
         std::size_t i)
 {
-    (_apply_value(result, std::get<Is>(product.factors()), (i / strides[Is]) % Fs::num_values), ...);
+    (_apply_value(result, std::get<Is>(product.factors()), (i / strides[Is]) % FactorsT::num_values), ...);
 }
-template <typename C, typename... Fs>
+template <typename C, typename... FactorsT>
     constexpr void _apply_values(
-        C& result, const value_product_t<C, Fs...>& product,
-        const std::array<std::size_t, sizeof...(Fs)>& strides,
+        C& result, const value_product_t<C, FactorsT...>& product,
+        const std::array<std::size_t, sizeof...(FactorsT)>& strides,
         std::size_t i)
 {
-    _apply_values_impl(std::index_sequence_for<Fs...>{ }, result, product, strides, i);
+    _apply_values_impl(std::index_sequence_for<FactorsT...>{ }, result, product, strides, i);
 }
 
-template <typename C, typename... Fs>
-    constexpr auto _values_in(const value_product_t<C, Fs...>& product) noexcept
+template <typename C, typename... FactorsT>
+    constexpr auto _values_in(const value_product_t<C, FactorsT...>& product) noexcept
 {
-    auto strides = _shape_to_strides(std::array{ Fs::num_values... });
-    constexpr std::size_t numValues = cmul<std::size_t>(Fs::num_values...);
+    auto strides = _shape_to_strides(std::array{ FactorsT::num_values... });
+    constexpr std::size_t numValues = cmul<std::size_t>(FactorsT::num_values...);
     return array_transform2<numValues>(
         [&](std::size_t i)
         {
