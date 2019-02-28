@@ -1,4 +1,6 @@
 
+#include <variant>
+
 #include <makeshift/metadata2.hpp>
 #include <makeshift/variant2.hpp>
 
@@ -27,6 +29,18 @@ struct Params
     int gangSize;
     int numThreadsX;
     int numThreadsY;
+
+    friend constexpr bool operator ==(const Params& lhs, const Params& rhs) noexcept
+    {
+        return lhs.precision == rhs.precision
+            && lhs.gangSize == rhs.gangSize
+            && lhs.numThreadsX == rhs.numThreadsX
+            && lhs.numThreadsY == rhs.numThreadsY;
+    }
+    friend constexpr bool operator !=(const Params& lhs, const Params& rhs) noexcept
+    {
+        return !(lhs == rhs);
+    }
 };
 
 TEST_CASE("variant2")
@@ -43,4 +57,71 @@ TEST_CASE("variant2")
         constexpr auto allValues = makeshift::detail::_values_in(a3);
     }
     
+    SECTION("expand")
+    {
+        auto p1 = Precision::double_;
+        auto p1VO = mk::try_expand2(p1);
+        CHECK(p1VO.has_value());
+        std::visit([p1](auto p1R)
+            {
+                constexpr Precision p1C = get(p1R);
+                CHECK(p1C == p1);
+            },
+            *p1VO);
+
+        auto p2 = Precision::double_;
+        auto p2VO = mk::try_expand2(p2,
+            [](auto values)
+            {
+                return values = { Precision::single, Precision::double_ };
+            });
+        CHECK(p2VO.has_value());
+        std::visit([p2](auto p2R)
+            {
+                constexpr Precision p2C = get(p2R);
+                CHECK(p2C == p2);
+            },
+            *p2VO);
+
+        auto p3 = Precision::double_;
+        auto p3VO = mk::try_expand2(p3,
+            [](auto values)
+            {
+                return values = { Precision::single };
+            });
+        CHECK_FALSE(p3VO.has_value());
+
+        auto s1 = Params{ Precision::double_, 2, 32, 32 };
+        auto s1VO = mk::try_expand2(s1,
+            [](auto values)
+            {
+                return values = {
+                    { Precision::single, 4, 32, 32 },
+                    { Precision::double_, 2, 32, 32 }
+                };
+            });
+        CHECK(s1VO.has_value());
+        std::visit([s1](auto s1R)
+            {
+                constexpr Params s1C = get(s1R);
+                CHECK(s1C == s1);
+            },
+            *s1VO);
+
+        auto s2 = Params{ Precision::double_, 2, 32, 32 };
+        auto s2VO = mk::try_expand2(s2,
+            [](auto values)
+            {
+                return values(&Params::precision)
+                    * (values(&Params::gangSize) = { 1, 2, 4 })
+                    * (values(&Params::numThreadsX, &Params::numThreadsY) = { { 16, 16 }, { 32, 32 } });
+            });
+        CHECK(s2VO.has_value());
+        std::visit([s2](auto s2R)
+            {
+                constexpr Params s2C = get(s2R);
+                CHECK(s2C == s2);
+            },
+            *s2VO);
+    }
 }
