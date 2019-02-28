@@ -291,6 +291,84 @@ template <typename C, typename... FactorsT>
         tuple_index);
 }
 
+/*template <typename T, typename F>
+    constexpr auto expand2_impl2(const T& value, F&& valuesFunc)
+{
+    constexpr auto product = _to_value_product(valuesFunc(object_t<T>{ }));
+    constexpr auto values = _values_in(product);
+    constexpr auto memberAccessor = [members = _members(product)] { return members; };
+    constexpr auto hash = compound_hash<hash2<>, decltype(memberAccessor)>{ { }, memberAcessor };
+    constexpr auto equal = compound_equal_to<std::equal_to<>, decltype(memberAccessor)>{ { }, memberAcessor };
+
+    std::array<
+}*/
+
+template <typename T>
+    void foo(void)
+{
+
+    /*
+        Some links about how to simulate default-constructible lambdas, and some draft code:
+
+        http://pfultz2.com/blog/2014/09/02/static-lambda/
+        https://en.cppreference.com/w/cpp/types/is_empty
+        https://www.boost.org/doc/libs/1_65_1/libs/type_traits/doc/html/boost_typetraits/reference/is_stateless.html
+
+        template<class F>
+        struct wrapper
+        {
+            union
+            {
+                F obj;
+                char c;
+            };
+            static_assert(std::is_empty<F>::value, "lambdas must be empty");
+            constexpr wrapper(void) : c(0) { }
+            template<class... Ts>
+            constexpr decltype(auto) operator()(Ts&&... xs) const
+            {
+                return obj(std::forward<Ts>(xs)...);
+            }
+        };
+    */
+
+}
+
+template <typename T, typename F, typename HashT, typename EqualToT>
+    constexpr auto expand2_impl2(const T& value, F&& valuesFunc, HashT&& hash, EqualToT&& equal)
+{
+    constexpr auto product = _to_value_product(valuesFunc(object_t<T>{ }));
+    constexpr auto values = _values_in(product);
+
+
+    constexpr auto memberAccessor = [members = _members(product)] { return members; };
+    auto hash = compound_hash<std::decay_t<HashT>, decltype(memberAccessor)>{ std::forward<HashT>(hash), memberAcessor };
+    auto equal = compound_equal_to<std::decay_t<EqualToT>, decltype(memberAccessor)>{ std::forward<EqualToT>(equal), memberAcessor };
+    
+    auto std::array<
+}
+
+template <typename T, typename... FactorsT, typename F, typename HashT, typename EqualToT>
+    constexpr auto expand2_impl1(type<value_product_t<T, FactorsT...>>, const T& value, F&& valuesFunc, HashT&& hash, EqualToT&& equal)
+{
+    return expand2_impl1(value,
+        std::forward<F>(valuesFunc), std::forward<HashT>(hash), std::forward<EqualToT>(equal));
+}
+template <typename T, std::size_t N, typename... Ts, typename F, typename HashT, typename EqualToT>
+    constexpr auto expand2_impl1(type<member_values_t<N, T, Ts...>>, const T& value, F&& valuesFunc, HashT&& hash, EqualToT&& equal)
+{
+    return expand2_impl1(type_v<value_product_t<T, member_values_t<N, T, Ts...>>>,
+        value, std::forward<F>(valuesFunc), std::forward<HashT>(hash), std::forward<EqualToT>(equal));
+}
+
+template <typename T, typename F, typename HashT, typename EqualToT>
+    constexpr auto expand2_impl0(const T& value, F&& valuesFunc, HashT&& hash, EqualToT&& equal)
+{
+    using ValuesT = decltype(valuesFunc(object_t<T>{ }));
+    return expand2_impl1(type_v<ValuesT>,
+        value, std::forward<F>(valuesFunc), std::forward<HashT>(hash), std::forward<EqualToT>(equal));
+}
+
 
 } // namespace detail
 
