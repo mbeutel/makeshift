@@ -27,8 +27,8 @@ namespace detail
 
 template <typename T> using raw_metadata_of_r = decltype(reflect(type<T>{ }));
 template <typename T> struct have_raw_metadata : can_apply<makeshift::detail::raw_metadata_of_r, T> { };
-template <typename T> struct is_value_metadata : std::is_base_of<value_metadata_base, raw_metadata_of_r<T>> { };
-template <typename T> struct is_compound_metadata : std::is_base_of<compound_metadata_base, raw_metadata_of_r<T>> { };
+template <typename T> struct is_value_metadata : std::is_base_of<value_metadata2_base, raw_metadata_of_r<T>> { };
+template <typename T> struct is_compound_metadata : std::is_base_of<compound_metadata2_base, raw_metadata_of_r<T>> { };
 
 
 template <typename T, typename ValuesT>

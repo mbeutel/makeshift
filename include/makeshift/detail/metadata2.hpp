@@ -37,11 +37,11 @@ template <typename T>
     return { std::move(value) };
 }
 
-struct value_metadata_base { };
-struct compound_metadata_base { };
+struct value_metadata2_base { };
+struct compound_metadata2_base { };
 
 template <typename ValuesT>
-    struct raw_value_metadata : private value_metadata_base
+    struct raw_value_metadata : private value_metadata2_base
 {
     ValuesT values;
 
@@ -51,13 +51,13 @@ template <typename ValuesT>
     }
 };
 template <>
-    struct raw_value_metadata<void> : private value_metadata_base
+    struct raw_value_metadata<void> : private value_metadata2_base
 {
 };
 
 
 template <typename MembersT>
-    struct raw_compound_metadata : private compound_metadata_base
+    struct raw_compound_metadata : private compound_metadata2_base
 {
     MembersT members;
 

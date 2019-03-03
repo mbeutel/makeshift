@@ -161,29 +161,33 @@ template <std::size_t... Is, typename F, typename... Ts>
     constexpr void
     tuple_transform_impl1(std::integral_constant<transform_target, transform_target::nothing>, std::index_sequence<Is...>, F&& func, Ts&&... args)
 {
+    (void) func;
     using Swallow = int[];
     (void) Swallow{ 1,
-        (tuple_transform_impl2<Is>(std::forward<F>(func), std::forward<Ts>(args)...), void(), int{ })...
+        (tuple_transform_impl2<Is>(func, std::forward<Ts>(args)...), void(), int{ })...
     };
 }
 template <std::size_t... Is, typename F, typename... Ts>
     constexpr auto
     tuple_transform_impl1(std::integral_constant<transform_target, transform_target::type_sequence>, std::index_sequence<Is...>, F&& func, Ts&&... args)
 {
-    return type_sequence2<typename unwrap_type_<decltype(tuple_transform_impl2<Is>(std::forward<F>(func), std::forward<Ts>(args)...))>::type...>{ };
+    (void) func;
+    return type_sequence2<typename unwrap_type_<decltype(tuple_transform_impl2<Is>(func, std::forward<Ts>(args)...))>::type...>{ };
 }
 template <std::size_t... Is, typename F, typename... Ts>
     constexpr auto
     tuple_transform_impl1(std::integral_constant<transform_target, transform_target::tuple>, std::index_sequence<Is...>, F&& func, Ts&&... args)
 {
-    return std::make_tuple(tuple_transform_impl2<Is>(std::forward<F>(func), std::forward<Ts>(args)...)...);
+    (void) func;
+    return std::make_tuple(tuple_transform_impl2<Is>(func, std::forward<Ts>(args)...)...);
 }
 template <std::size_t... Is, typename F, typename... Ts>
     constexpr auto
     tuple_transform_impl1(std::integral_constant<transform_target, transform_target::array>, std::index_sequence<Is...>, F&& func, Ts&&... args)
 {
+    (void) func;
     using R = typename homogeneous_result_<sizeof...(Is), cand(is_std_array_<std::decay_t<Ts>>::value...), F, Ts...>::type;
-    return std::array<R, sizeof...(Is)>{ tuple_transform_impl2<Is>(std::forward<F>(func), std::forward<Ts>(args)...)... };
+    return std::array<R, sizeof...(Is)>{ tuple_transform_impl2<Is>(func, std::forward<Ts>(args)...)... };
 }
 
 template <std::ptrdiff_t N, transform_target TransformTarget, typename F, typename... Ts>
@@ -195,6 +199,7 @@ template <std::ptrdiff_t N, transform_target TransformTarget, typename F, typena
     static_assert(N != -1 || Eq::size != -1, "no tuple argument and no size given");
     constexpr std::size_t size = std::size_t(N != -1 ? N : Eq::size);
     
+    (void) func;
     return tuple_transform_impl1(std::integral_constant<transform_target, TransformTarget>{ }, std::make_index_sequence<size>{ },
         std::forward<F>(func), std::forward<Ts>(args)...);
 }
