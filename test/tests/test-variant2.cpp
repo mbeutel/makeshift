@@ -46,14 +46,17 @@ struct Params
 TEST_CASE("variant2")
 {
     
-    SECTION("foreach")
+    SECTION("product")
     {
         constexpr auto a1 = mk::values<Params> = { { Precision::single, 4, 32, 32 }, { Precision::double_, 2, 32, 32 } };
+        (void) a1;
         constexpr auto a2 = mk::member_values(&Params::precision) = { Precision::single, Precision::double_ };
+        (void) a2;
         constexpr auto a3 =  mk::member_values(&Params::precision)
                           * (mk::member_values(&Params::gangSize) = { 1, 2, 4 })
                           * (mk::member_values(&Params::numThreadsX, &Params::numThreadsY) = { { 16, 16 }, { 32, 32 } });
         constexpr auto allValues = to_array(a3);
+        (void) allValues;
     }
     
     SECTION("expand")
