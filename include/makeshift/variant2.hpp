@@ -69,6 +69,10 @@ public:
         : members_{ _members... }
     {
     }
+    MAKESHIFT_NODISCARD constexpr member_values_t<0, C, Ts...> operator =(no_values_tag) const
+    {
+        return { members_, { } };
+    }
     template <std::size_t N>
         MAKESHIFT_NODISCARD constexpr member_values_t<N, C, Ts...> operator =(std::tuple<Ts...> (&&vals)[N]) const &&
     {
@@ -86,6 +90,10 @@ public:
     constexpr members_t(T C::* _member) noexcept
         : member_{ _member }
     {
+    }
+    MAKESHIFT_NODISCARD constexpr member_values_t<0, C, T> operator =(no_values_tag) const
+    {
+        return { member_, { } };
     }
     template <std::size_t N> 
         MAKESHIFT_NODISCARD constexpr member_values_t<N, C, T> operator =(T (&&vals)[N]) const &&

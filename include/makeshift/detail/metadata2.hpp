@@ -29,6 +29,8 @@ template <typename T, std::size_t N>
 
 struct values_base { };
 
+struct no_values_tag { };
+
 template <typename T, std::size_t N>
     struct values_t : values_base
 {
@@ -45,7 +47,11 @@ template <typename T, std::size_t N>
 template <typename T>
     struct values_initializer_t
 {
-    template <std::size_t N> 
+    MAKESHIFT_NODISCARD constexpr values_t<T, 0> operator =(no_values_tag) const
+    {
+        return { { } };
+    }
+    template <std::size_t N>
         MAKESHIFT_NODISCARD constexpr values_t<T, N> operator =(T (&&vals)[N]) const
     {
         return { makeshift::detail::to_array2(vals) };
