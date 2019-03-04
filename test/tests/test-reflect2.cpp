@@ -15,7 +15,7 @@ enum class BoundaryCondition
     periodic,  // axis wraps around
     dirichlet  // constant boundary value (currently read from halo)
 };
-constexpr auto reflect(mk::type<BoundaryCondition>)
+constexpr inline auto reflect(mk::type<BoundaryCondition>)
 {
     return mk::named_values<BoundaryCondition> = {
         { BoundaryCondition::periodic, "periodic" },
@@ -30,7 +30,7 @@ struct PartitionFlag : mk::define_flags<PartitionFlag>
     static constexpr flag threadCut        { 0x040u };
 };
 using PartitionFlags = PartitionFlag::flags;
-constexpr auto reflect(mk::type<PartitionFlag>)
+constexpr inline auto reflect(mk::type<PartitionFlag>)
 {
     return mk::values<PartitionFlags> = {
         PartitionFlag::enclosedBoundary,

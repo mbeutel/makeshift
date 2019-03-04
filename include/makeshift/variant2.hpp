@@ -259,17 +259,26 @@ template <typename C, typename... FactorsT>
 }
 
 template <typename C, typename... FactorsT>
+    struct make_value_functor
+{
+    const value_product_t<C, FactorsT...>& product;
+    const std::array<std::size_t, sizeof...(FactorsT)>& strides;
+
+    constexpr C operator ()(std::size_t i) const
+    {
+        auto result = C{ };
+        _apply_values(result, product, strides, i);
+        return result;
+    }
+};
+
+template <typename C, typename... FactorsT>
     constexpr auto to_array(const value_product_t<C, FactorsT...>& product) noexcept
 {
-    auto strides = _shape_to_strides(std::array{ FactorsT::num_values... });
+    std::array<std::size_t, sizeof...(FactorsT)> strides = _shape_to_strides(std::array{ FactorsT::num_values... });
     constexpr std::size_t numValues = cmul<std::size_t>(FactorsT::num_values...);
     return array_transform2<numValues>(
-        [&](std::size_t i)
-        {
-            auto result = C{ };
-            _apply_values(result, product, strides, i);
-            return result;
-        },
+        make_value_functor<C, FactorsT...>{ product, strides },
         tuple_index);
 }
 template <std::size_t N, typename C, typename... Ts>

@@ -15,7 +15,7 @@ enum class Precision
     single,
     double_
 };
-constexpr static auto reflect(mk::type<Precision>)
+constexpr inline auto reflect(mk::type<Precision>)
 {
     return mk::values<Precision> = {
         Precision::single,
