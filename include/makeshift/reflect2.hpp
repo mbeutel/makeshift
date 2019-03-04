@@ -50,6 +50,16 @@ template <typename T, typename MembersT>
 }
 
 
+template <std::size_t I>
+    struct tuple_reflector_functor
+{
+    template <typename TupleT>
+        constexpr auto operator ()(const TupleT& t) const
+    {
+        return std::get<I>(t);
+    }
+};
+
 template <typename TupleT, typename Is>
     struct tuple_reflector;
 template <typename TupleT, std::size_t... Is>
@@ -59,10 +69,8 @@ template <typename TupleT, std::size_t... Is>
     {
         return std::make_tuple(
             with_name(
-                [](const TupleT& t)
-                {
-                    return std::get<Is>(t);
-                },
+                //[](const TupleT& t) { return std::get<Is>(t); },
+                tuple_reflector_functor<Is>{ },
                 { })...
         );
     }
@@ -94,6 +102,17 @@ template <typename T>
         return makeshift::detail::get_metadata<T>(reflect(type<T>{ }));
     }
 };
+
+
+struct value_of_functor
+{
+    template <typename T>
+        constexpr auto operator ()(const named2<T>& t) const
+    {
+        return t.value;
+    }
+};
+
 
 } // namespace detail
 
@@ -143,7 +162,8 @@ struct values_of_t
         static_assert(have_value_metadata_v<T>, "cannot enumerate values without metadata");
 
         return array_transform2(
-            [](auto namedValue) { return namedValue.value; },
+            //[](auto namedValue) { return namedValue.value; },
+            makeshift::detail::value_of_functor{ },
             makeshift::detail::reflector<T>{ }());
     }
 };
@@ -196,7 +216,8 @@ struct compound_members_of_t
         static_assert(have_compound_metadata_v<T>, "cannot enumerate members of classes without metadata");
     
         return tuple_transform2(
-            [](auto namedMember) { return namedMember.value; },
+            //[](auto namedMember) { return namedMember.value; },
+            makeshift::detail::value_of_functor{ },
             makeshift::detail::reflector<T>{ }());
     }
 };

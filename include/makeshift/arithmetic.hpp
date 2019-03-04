@@ -99,6 +99,9 @@ template <typename V, dim_t NumFactors>
 }
 
 
+    //ᅟ
+    // Exception class thrown upon overflow by arithmetic routines named `*_or_throw()`.
+    //
 class arithmetic_overflow : public std::runtime_error
 {
 public:
