@@ -18,7 +18,7 @@ set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 project(makeshift
     VERSION 3.0.0
     LANGUAGES CXX)
-set(makeshift_APIVERSION 2)
+set(makeshift_APIVERSION 3)
 
 # Define build options.
 option(BUILD_TESTS "Build tests" OFF)
@@ -40,7 +40,7 @@ endif()
 ## 3. Installation
 ## ===============
 
-find_package(CMakeshift 3.3 REQUIRED)
+find_package(CMakeshift 3.4 REQUIRED)
 include(CMakeshift/InstallSimpleLibraryPackage)
 cmakeshift_install_simple_library_package(
     EXPORT makeshiftExport

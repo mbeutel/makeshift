@@ -8,7 +8,7 @@ cmake_minimum_required(VERSION 3.12)
 
 # dependencies
 find_package(Catch2 2.4 REQUIRED)
-find_package(CMakeshift 3.3 REQUIRED)
+find_package(CMakeshift 3.4 REQUIRED)
 find_package(MS-GSL REQUIRED)
 
 # test target
@@ -29,7 +29,7 @@ include(CMakeshift/TargetCompileSettings)
 cmakeshift_target_compile_settings(test-makeshift
     PRIVATE
         default
-        pedantic
+        diagnostics
         $<$<CONFIG:Debug>:runtime-checks>)
 
 # test properties

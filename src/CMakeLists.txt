@@ -7,7 +7,7 @@
 cmake_minimum_required(VERSION 3.12)
 
 # dependencies
-find_package(CMakeshift 3.3 REQUIRED)
+find_package(CMakeshift 3.4 REQUIRED)
 find_package(MS-GSL REQUIRED)
 
 # library target
@@ -48,7 +48,7 @@ include(CMakeshift/TargetCompileSettings)
 cmakeshift_target_compile_settings(makeshift
     PRIVATE
         default
-        pedantic
+        diagnostics
         $<$<CONFIG:Debug>:runtime-checks>)
 
 # library version
