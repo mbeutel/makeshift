@@ -48,32 +48,30 @@ TEST_CASE("variant2")
     
     SECTION("foreach")
     {
-        makeshift::detail::object_t<Params> values;
-        constexpr auto a1 = (values = { { Precision::single, 4, 32, 32 }, { Precision::double_, 2, 32, 32 } });
-        constexpr auto a2 = (values(&Params::precision) = { Precision::single, Precision::double_ });
-        constexpr auto a3 =  values(&Params::precision)
-                          * (values(&Params::gangSize) = { 1, 2, 4 })
-                          * (values(&Params::numThreadsX, &Params::numThreadsY) = { { 16, 16 }, { 32, 32 } });
-        constexpr auto allValues = makeshift::detail::_values_in(a3);
+        constexpr auto a1 = mk::values<Params> = { { Precision::single, 4, 32, 32 }, { Precision::double_, 2, 32, 32 } };
+        constexpr auto a2 = mk::member_values(&Params::precision) = { Precision::single, Precision::double_ };
+        constexpr auto a3 =  mk::member_values(&Params::precision)
+                          * (mk::member_values(&Params::gangSize) = { 1, 2, 4 })
+                          * (mk::member_values(&Params::numThreadsX, &Params::numThreadsY) = { { 16, 16 }, { 32, 32 } });
+        constexpr auto allValues = to_array(a3);
     }
     
     SECTION("expand")
     {
         auto p1 = Precision::double_;
-        auto p1VO = mk::try_expand2(p1);
-        CHECK(p1VO.has_value());
+        auto p1VO = mk::expand2(p1);
         std::visit([p1](auto p1R)
             {
                 constexpr Precision p1C = get(p1R);
                 CHECK(p1C == p1);
             },
-            *p1VO);
+            p1VO);
 
         auto p2 = Precision::double_;
         auto p2VO = mk::try_expand2(p2,
-            [](auto values)
+            []
             {
-                return values = { Precision::single, Precision::double_ };
+                return mk::values<Precision> = { Precision::single, Precision::double_ };
             });
         CHECK(p2VO.has_value());
         std::visit([p2](auto p2R)
@@ -85,17 +83,17 @@ TEST_CASE("variant2")
 
         auto p3 = Precision::double_;
         auto p3VO = mk::try_expand2(p3,
-            [](auto values)
+            []
             {
-                return values = { Precision::single };
+                return mk::values<Precision> = { Precision::single };
             });
         CHECK_FALSE(p3VO.has_value());
 
         auto s1 = Params{ Precision::double_, 2, 32, 32 };
         auto s1VO = mk::try_expand2(s1,
-            [](auto values)
+            []
             {
-                return values = {
+                return mk::values<Params> = {
                     { Precision::single, 4, 32, 32 },
                     { Precision::double_, 2, 32, 32 }
                 };
@@ -110,11 +108,11 @@ TEST_CASE("variant2")
 
         auto s2 = Params{ Precision::double_, 2, 32, 32 };
         auto s2VO = mk::try_expand2(s2,
-            [](auto values)
+            []
             {
-                return values(&Params::precision)
-                    * (values(&Params::gangSize) = { 1, 2, 4 })
-                    * (values(&Params::numThreadsX, &Params::numThreadsY) = { { 16, 16 }, { 32, 32 } });
+                return mk::member_values(&Params::precision)
+                    * (mk::member_values(&Params::gangSize) = { 1, 2, 4 })
+                    * (mk::member_values(&Params::numThreadsX, &Params::numThreadsY) = { { 16, 16 }, { 32, 32 } });
             });
         CHECK(s2VO.has_value());
         std::visit([s2](auto s2R)

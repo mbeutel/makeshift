@@ -11,6 +11,9 @@
 #include <utility>     // for move(), forward<>(), integer_sequence<>
 #include <functional>  // for equal_to<>
 #include <type_traits> // for decay<>, is_class<>, is_empty<>, is_default_constructible<>
+#include <stdexcept>   // for runtime_error
+
+#include <gsl/gsl_assert> // for Expects()
 
 #include <makeshift/reflect2.hpp> // for values_of()
 #include <makeshift/tuple2.hpp>   // for array_transform2()
@@ -28,9 +31,22 @@ namespace detail
 
 
 template <typename T, std::size_t N>
+    struct to_array2_functor
+{
+    const T (&array)[N];
+
+    constexpr T operator ()(std::size_t i) const
+    {
+        return array[i];
+    }
+};
+
+template <typename T, std::size_t N>
     constexpr std::array<std::remove_cv_t<T>, N> to_array2(const T (&array)[N])
 {
-    return array_transform2<N>([&](auto i) { return array[decltype(i)::value]; }, tuple_index);
+    //return array_transform2<N>([&](auto i) { return array[decltype(i)::value]; }, tuple_index);
+    //return array_transform2<N>([&](std::size_t i) { return array[i]; }, tuple_index);
+    return array_transform2<N>(to_array2_functor<T, N>{ array }, tuple_index);
 }
 
 template <std::size_t N, typename C, typename... Ts>
@@ -101,9 +117,9 @@ public:
 template <typename C, typename T>
     constexpr auto _default_values(const members_t<C, T>& member)
 {
-    auto values = values_of(type_v<T>);
-    constexpr std::size_t n = std::tuple_size<std::decay_t<decltype(values)>>::value;
-    return member_values_t<n, C, T>{ member.members(), std::make_tuple(values) };
+    auto lvalues = values_of(type_v<T>);
+    constexpr std::size_t n = std::tuple_size<std::decay_t<decltype(lvalues)>>::value;
+    return member_values_t<n, C, T>{ member.members(), std::make_tuple(lvalues) };
 }
 
 template <std::size_t N, typename C>
@@ -112,27 +128,9 @@ template <std::size_t N, typename C>
     std::array<C, N> values;
 };
 
-template <typename C, bool IsClass>
-    class object0_t;
 template <typename C>
-    class object0_t<C, false>
+    struct values_initializer_t
 {
-};
-template <typename C>
-    class object0_t<C, true> : public object0_t<C, false>
-{
-public:
-    template <typename... Ts>
-        MAKESHIFT_NODISCARD constexpr makeshift::detail::members_t<C, Ts...> operator ()(Ts C::*... members)
-    {
-        // TODO: we should raise an assertion if a member appears more than once
-        return { members... };
-    }
-};
-template <typename C>
-    class object_t : public object0_t<C, std::is_class<C>::value>
-{
-public:
     template <std::size_t N> 
         MAKESHIFT_NODISCARD constexpr values_t<N, C> operator =(C (&&vals)[N]) const
     {
@@ -142,6 +140,16 @@ public:
         MAKESHIFT_NODISCARD constexpr values_t<N, C> operator =(const std::array<C, N>& vals) const
     {
         return { vals };
+    }
+};
+
+struct member_values_initializer_t
+{
+    template <typename C, typename... Ts>
+        MAKESHIFT_NODISCARD constexpr makeshift::detail::members_t<C, Ts...> operator ()(Ts C::*... members) const
+    {
+        // TODO: we should raise an assertion if a member appears more than once
+        return { members... };
     }
 };
 
@@ -272,7 +280,7 @@ template <typename C, typename... FactorsT>
 }
 
 template <typename C, typename... FactorsT>
-    constexpr auto _values_in(const value_product_t<C, FactorsT...>& product) noexcept
+    constexpr auto to_array(const value_product_t<C, FactorsT...>& product) noexcept
 {
     auto strides = _shape_to_strides(std::array{ FactorsT::num_values... });
     constexpr std::size_t numValues = cmul<std::size_t>(FactorsT::num_values...);
@@ -286,12 +294,12 @@ template <typename C, typename... FactorsT>
         tuple_index);
 }
 template <std::size_t N, typename C, typename... Ts>
-    constexpr auto _values_in(const member_values_t<N, C, Ts...>& memberValues) noexcept
+    constexpr auto to_array(const member_values_t<N, C, Ts...>& memberValues) noexcept
 {
-    return _values_in(_to_value_product(memberValues));
+    return to_array(_to_value_product(memberValues));
 }
 template <std::size_t N, typename C>
-    constexpr auto _values_in(const values_t<N, C>& values) noexcept
+    constexpr auto to_array(const values_t<N, C>& values) noexcept
 {
     return values.values;
 }
@@ -299,7 +307,6 @@ template <std::size_t N, typename C>
     // Workaround for non-default-constructible lambdas in C++17.
     // Does not rely on UB (as far as I can tell). Works with GCC 8.2, Clang 7.0, MSVC 19.20, and ICC 19.0 (also `constexpr` evaluation).
     // Idea taken from http://pfultz2.com/blog/2014/09/02/static-lambda/ and modified to avoid casts.
-    // TODO: look at https://www.boost.org/doc/libs/1_65_1/libs/type_traits/doc/html/boost_typetraits/reference/is_stateless.html
 template <typename F>
     struct stateless_lambda
 {
@@ -308,7 +315,7 @@ template <typename F>
 private:
     union
     {
-        F obj; // we can legally use `obj` even if it wasn't initialized because it is empty
+        F obj;
         char dummy;
     };
 
@@ -317,7 +324,7 @@ public:
     template <typename... Ts>
         constexpr decltype(auto) operator()(Ts&&... args) const
     {
-        return obj(std::forward<Ts>(args)...);
+        return obj(std::forward<Ts>(args)...); // we can legally use `obj` even if it wasn't initialized because it is empty
     }
 };
 
@@ -329,17 +336,13 @@ template <typename F> using stateless_functor = typename stateless_functor_0_<F,
 template <typename T, typename F, std::size_t I>
     struct value_functor
 {
-    /*constexpr T operator ()(void) const
-    {
-        constexpr auto value = _values_in(F{ }(object_t<T>{ }))[I];
-        return value;
-    }*/
-    friend constexpr T get(const value_functor&)
-    {
-        constexpr auto value = F{ }()[I];
-        return value;
-    }
 };
+template <typename T, typename F, std::size_t I>
+    constexpr T get(const value_functor<T, F, I>&)
+{
+    constexpr auto value = F{ }()[I];
+    return value;
+}
 
 template <typename T, typename F, typename Is>
     struct expand_type_;
@@ -350,41 +353,85 @@ template <typename T, typename F, std::size_t... Is>
 };
 template <typename ExpandTypeT>
     using expand_type_factory = ExpandTypeT (*)(void);
+
+template <typename ExpandTypeT>
+    struct expand_type_factory_functor
+{
+    template <std::size_t I>
+        static constexpr auto invoke(void)
+    {
+        return ExpandTypeT{ std::in_place_index<I> };
+    }
+    template <std::size_t I>
+        constexpr expand_type_factory<ExpandTypeT> operator ()(std::integral_constant<std::size_t, I>) const
+    {
+        return invoke<I>;
+    }
+};
+
 template <typename ExpandTypeT, std::size_t N>
     constexpr auto _make_expand_factories(void)
 {
     return array_transform2<N>(
-        [](auto i) -> expand_type_factory<ExpandTypeT>
+        /*[](auto i) -> expand_type_factory<ExpandTypeT>
         {
             return +[]
             {
                 constexpr std::size_t I = decltype(i)::value;
                 return ExpandTypeT{ std::in_place_index<I> };
             };
-        },
+        },*/
+        expand_type_factory_functor<ExpandTypeT>{ },
         tuple_index);
 }
 template <typename T, typename F, typename HashT, typename EqualToT>
      constexpr auto _value_to_variant(const T& value, F&&, HashT&& /*hash*/, EqualToT&& equal)
 {
     using ValuesFunc = stateless_functor<std::decay_t<F>>;
-    constexpr auto values = ValuesFunc{ }();
-    constexpr std::size_t numValues = std::tuple_size<decltype(values)>::value;
+    constexpr auto lvalues = ValuesFunc{ }();
+    constexpr std::size_t numValues = std::tuple_size<decltype(lvalues)>::value;
     using ExpandType = typename expand_type_<T, ValuesFunc, std::make_index_sequence<numValues>>::type;
 
     constexpr auto factories = _make_expand_factories<ExpandType, numValues>();
 
     for (std::size_t i = 0; i != numValues; ++i)
-        if (equal(value, values[i]))
+        if (equal(value, lvalues[i]))
             return std::optional<ExpandType>{ ExpandType{ factories[i]() } };
     return std::optional<ExpandType>{ std::nullopt };
 }
+
+template <typename F>
+    struct values_cfunctor
+{
+    constexpr auto operator ()(void) const
+    {
+        return F{ }().values;
+    }
+};
+
+template <typename F>
+    struct to_array_cfunctor
+{
+    constexpr auto operator ()(void) const
+    {
+        return to_array(F{ }());
+    }
+};
+
+template <typename T>
+    struct values_of_cfunctor
+{
+    constexpr auto operator ()(void) const
+    {
+        return values_initializer_t<T>{ } = values_of(type_v<T>);
+    }
+};
 
 template <typename T, typename F, typename HashT, typename EqualToT>
     constexpr auto expand2_impl2(const T& value, F&&, HashT&& hash, EqualToT&& equal)
 {
     using ValuesFunc = stateless_functor<std::decay_t<F>>;
-    constexpr auto valuesFunc2 = [] { return ValuesFunc{ }(object_t<T>{ }).values; };
+    constexpr auto valuesFunc2 = values_cfunctor<ValuesFunc>{ }; // [] { return ValuesFunc{ }().values; };
 
         // If hash and equal are empty, we can build a hash table at compile time.
         // We won't bother in the case where they are not because we need to traverse all elements at runtime anyway.
@@ -398,8 +445,8 @@ template <typename T, typename F, typename HashT, typename EqualToT>
     constexpr auto expand2_impl2_compound(const T& value, F&&, HashT&& hash, EqualToT&& equal)
 {
     using ProductFunc = stateless_functor<std::decay_t<F>>;
-    constexpr auto product = ProductFunc{ }(object_t<T>{ });
-    constexpr auto valuesFunc = [] { return _values_in(ProductFunc{ }(object_t<T>{ })); };
+    constexpr auto product = ProductFunc{ }();
+    constexpr auto valuesFunc = to_array_cfunctor<ProductFunc>{ }; // [] { return to_array(ProductFunc{ }()); };
 
         // If hash and equal are empty, we can build a hash table at compile time.
         // We won't bother in the case where they are not because we need to traverse all elements at runtime anyway.
@@ -432,7 +479,7 @@ template <typename T, std::size_t N, typename F, typename HashT, typename EqualT
 template <typename T, typename F, typename HashT, typename EqualToT>
     constexpr auto expand2_impl0(const T& value, F&& valuesFunc, HashT&& hash, EqualToT&& equal)
 {
-    using ValuesT = decltype(valuesFunc(object_t<T>{ }));
+    using ValuesT = decltype(valuesFunc());
     return expand2_impl1(type_v<ValuesT>, value, std::forward<F>(valuesFunc), std::forward<HashT>(hash), std::forward<EqualToT>(equal));
 }
 
@@ -445,19 +492,36 @@ inline namespace types
 
 
     //ᅟ
-    // Given a runtime value, a retriever of known values, a hasher, and an equality comparer, returns an optional variant of retrievers
-    // of the known values.
+    // Exception class thrown by `expand()` if the runtime value to be expanded is not among the values listed.
+    //
+class unsupported_runtime_value : public std::runtime_error
+{
+public:
+    using std::runtime_error::runtime_error;
+};
+
+
+template <typename T>
+    constexpr inline makeshift::detail::values_initializer_t<T> values = { };
+
+
+constexpr inline makeshift::detail::member_values_initializer_t member_values = { };
+
+
     //ᅟ
-    //ᅟ    auto bitValuesR = [](auto value) { return value = { 16, 32, 64 }; };
+    // Given a runtime value, a retriever of known values, a hasher, and an equality comparer, returns an optional variant of retrievers
+    // of the known values. The result is `nullopt` if the runtime value is not among the values listed.
     //ᅟ
     //ᅟ    int bits = ...;
-    //ᅟ    auto bitsV = try_expand(bits, bitValuesR, hash2<>{ }, std::equal_to<>{ });
+    //ᅟ    auto bitsV = try_expand(bits, []{ return values<int> = { 16, 32, 64 }; },
+    //ᅟ        hash2<>{ }, std::equal_to<>{ });
     //ᅟ
-    //ᅟ    std::visit([](auto bitsR)
-    //ᅟ               {
-    //ᅟ                   constexpr int bitsC = get(bitsR);
-    //ᅟ                   ...
-    //ᅟ               },
+    //ᅟ    std::visit(
+    //ᅟ        [](auto bitsR)
+    //ᅟ        {
+    //ᅟ            constexpr int bitsC = get(bitsR);
+    //ᅟ            ...
+    //ᅟ        },
     //ᅟ        bitsV.value());
     //
 template <typename T, typename F, typename HashT, typename EqualToT>
@@ -467,18 +531,17 @@ template <typename T, typename F, typename HashT, typename EqualToT>
 }
 
     //ᅟ
-    // Given a runtime value and a retriever of known values, returns an optional variant of retrievers of the known values.
-    //ᅟ
-    //ᅟ    auto bitValuesR = [](auto value) { return value = { 16, 32, 64 }; };
+    // Given a runtime value and a retriever of known values, returns an optional variant of retrievers of the known values. The result is
+    // `nullopt` if the runtime value is not among the values listed.
     //ᅟ
     //ᅟ    int bits = ...;
-    //ᅟ    auto bitsV = try_expand(bits, bitValuesR);
+    //ᅟ    auto bitsV = try_expand(bits, []{ return values<int> = { 16, 32, 64 }; });
     //ᅟ
-    //ᅟ    std::visit([](auto bitsR)
-    //ᅟ               {
-    //ᅟ                   constexpr int bitsC = get(bitsR);
-    //ᅟ                   ...
-    //ᅟ               },
+    //ᅟ    std::visit(
+    //ᅟ        [](auto bitsR)
+    //ᅟ            constexpr int bitsC = get(bitsR);
+    //ᅟ            ...
+    //ᅟ        },
     //ᅟ        bitsV.value());
     //
 template <typename T, typename F>
@@ -487,33 +550,53 @@ template <typename T, typename F>
     return try_expand2(value, std::forward<F>(valuesFunc), hash2<>{ }, std::equal_to<>{ });
 }
 
+
     //ᅟ
-    // Given a runtime value with metadata, a hasher, and an equality comparer, returns an optional variant of retrievers
-    // of the known values.
+    // Given a runtime value, a retriever of known values, a hasher, and an equality comparer, returns an optional variant of retrievers
+    // of the known values. An exception of type `unsupported_runtime_value` is thrown if the runtime value is not among the values listed.
     //ᅟ
-    //ᅟ    enum class Precision { single, double_ };
-    //ᅟ    constexpr static auto reflect(mk::type<Precision>) { ... }
+    //ᅟ    int bits = ...;
+    //ᅟ    auto bitsV = expand_or_throw(bits, []{ return values<int> = { 16, 32, 64 }; },
+    //ᅟ        hash2<>{ }, std::equal_to<>{ });
     //ᅟ
-    //ᅟ    Precision precision = ...;
-    //ᅟ    auto precisionV = try_expand(precision, hash2<>{ }, std::equal_to<>{ });
-    //ᅟ
-    //ᅟ    std::visit([](auto precisionR)
-    //ᅟ               {
-    //ᅟ                   constexpr int precisionC = get(precisionR);
-    //ᅟ                   ...
-    //ᅟ               },
-    //ᅟ        precisionV.value());
+    //ᅟ    std::visit(
+    //ᅟ        [](auto bitsR)
+    //ᅟ        {
+    //ᅟ            constexpr int bitsC = get(bitsR);
+    //ᅟ            ...
+    //ᅟ        },
+    //ᅟ        bitsV);
     //
-template <typename T, typename HashT, typename EqualToT>
-    MAKESHIFT_NODISCARD constexpr auto try_expand2(const T& value, HashT&& hash, EqualToT&& equal)
+template <typename T, typename F, typename HashT, typename EqualToT>
+    MAKESHIFT_NODISCARD constexpr auto expand2_or_throw(const T& value, F&& valuesFunc, HashT&& hash, EqualToT&& equal)
 {
-    return try_expand2(value,
-        [](auto values)
-        {
-            return values = values_of(type_v<T>);
-        },
-        std::forward<HashT>(hash), std::forward<EqualToT>(equal));
+    auto maybeResult = try_expand2(value, std::forward<F>(valuesFunc), std::forward<HashT>(hash), std::forward<EqualToT>(equal));
+    if (!maybeResult.has_value())
+        throw unsupported_runtime_value("unsupported runtime value");
+    return *maybeResult;
 }
+
+    //ᅟ
+    // Given a runtime value and a retriever of known values, returns an optional variant of retrievers of the known values. An exception
+    // of type `unsupported_runtime_value` is thrown if the runtime value is not among the values listed.
+    //ᅟ
+    //ᅟ    int bits = ...;
+    //ᅟ    auto bitsV = expand_or_throw(bits, []{ return values<int> = { 16, 32, 64 }; });
+    //ᅟ
+    //ᅟ    std::visit(
+    //ᅟ        [](auto bitsR)
+    //ᅟ        {
+    //ᅟ            constexpr int bitsC = get(bitsR);
+    //ᅟ            ...
+    //ᅟ        },
+    //ᅟ        bitsV);
+    //
+template <typename T, typename F>
+    MAKESHIFT_NODISCARD constexpr auto expand2_or_throw(const T& value, F&& valuesFunc)
+{
+    return expand2_or_throw(value, std::forward<F>(valuesFunc), hash2<>{ }, std::equal_to<>{ });
+}
+
 
     //ᅟ
     // Given a runtime value with metadata, returns an optional variant of retrievers of the known values.
@@ -522,23 +605,24 @@ template <typename T, typename HashT, typename EqualToT>
     //ᅟ    constexpr static auto reflect(mk::type<Precision>) { ... }
     //ᅟ
     //ᅟ    Precision precision = ...;
-    //ᅟ    auto precisionV = try_expand(precision);
+    //ᅟ    auto precisionV = expand(precision);
     //ᅟ
-    //ᅟ    std::visit([](auto precisionR)
-    //ᅟ               {
-    //ᅟ                   constexpr int precisionC = get(precisionR);
-    //ᅟ                   ...
-    //ᅟ               },
-    //ᅟ        precisionV.value());
+    //ᅟ    std::visit(
+    //ᅟ        [](auto precisionR)
+    //ᅟ        {
+    //ᅟ            constexpr int precisionC = get(precisionR);
+    //ᅟ            ...
+    //ᅟ        },
+    //ᅟ        precisionV);
     //
 template <typename T>
-    MAKESHIFT_NODISCARD constexpr auto try_expand2(const T& value)
+    MAKESHIFT_NODISCARD constexpr auto expand2(const T& value)
 {
-    return try_expand2(value,
-        [](auto values) constexpr
-        {
-            return values = values_of(type_v<T>);
-        });
+    auto maybeResult = try_expand2(value,
+        //[]{ return values<T> = values_of(type_v<T>); });
+        makeshift::detail::values_of_cfunctor<T>{ });
+    Expects(maybeResult.has_value());
+    return *maybeResult;
 }
 
 
