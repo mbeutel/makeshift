@@ -3,67 +3,57 @@
 #define INCLUDED_MAKESHIFT_DETAIL_METADATA2_HPP_
 
 
-#include <utility>     // for move()
+#include <array>
+#include <cstddef> // for size_t
+#include <utility> // for move(), integer_sequence<>
 
 
 namespace makeshift
 {
 
-inline namespace metadata
-{
-
-
-template <typename T>
-    struct named2;
-
-
-} // inline namespace metadata
-
-
 namespace detail
 {
 
 
-template <typename T> struct unwrap_named_ { using type = T; };
-template <typename T> struct unwrap_named_<named2<T>> { using type = T; };
-template <typename T>
-    constexpr named2<T> wrap_named(T value) noexcept
+template <std::size_t... Is, typename T, std::size_t N>
+    constexpr std::array<std::remove_cv_t<T>, N> to_array2_impl(std::index_sequence<Is...>, const T (&array)[N])
 {
-    return { std::move(value), { } };
+    return { array[Is]... };
 }
-template <typename T>
-    constexpr named2<T> wrap_named(named2<T> value) noexcept
+template <typename T, std::size_t N>
+    constexpr std::array<std::remove_cv_t<T>, N> to_array2(const T (&array)[N])
 {
-    return { std::move(value) };
+    return to_array2_impl(std::make_index_sequence<N>{ }, array);
 }
 
-struct value_metadata2_base { };
-struct compound_metadata2_base { };
 
-template <typename ValuesT>
-    struct raw_value_metadata : private value_metadata2_base
+struct values_base { };
+
+template <typename T, std::size_t N>
+    struct values_t : values_base
 {
-    ValuesT values;
+    std::array<T, N> values;
 
-    constexpr raw_value_metadata(ValuesT _values)
-        : values{ std::move(_values) }
+    constexpr values_t(const std::array<T, N>& _values) : values(_values) { }
+};
+template <typename T, std::size_t N>
+    constexpr std::array<T, N> to_array(const values_t<T, N>& values)
+{
+    return values.values;
+}
+
+template <typename T>
+    struct values_initializer_t
+{
+    template <std::size_t N> 
+        MAKESHIFT_NODISCARD constexpr values_t<T, N> operator =(T (&&vals)[N]) const
     {
+        return { makeshift::detail::to_array2(vals) };
     }
-};
-template <>
-    struct raw_value_metadata<void> : private value_metadata2_base
-{
-};
-
-
-template <typename MembersT>
-    struct raw_compound_metadata : private compound_metadata2_base
-{
-    MembersT members;
-
-    constexpr raw_compound_metadata(MembersT _members)
-        : members{ std::move(_members) }
+    template <std::size_t N> 
+        MAKESHIFT_NODISCARD constexpr values_t<T, N> operator =(const std::array<T, N>& vals) const
     {
+        return { vals };
     }
 };
 

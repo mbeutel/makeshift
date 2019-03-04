@@ -1,4 +1,5 @@
 
+#include <makeshift/metadata2.hpp>
 #include <makeshift/reflect2.hpp>
 #include <makeshift/utility.hpp>  // for define_flags<>
 #include <makeshift/compound.hpp>
@@ -16,10 +17,10 @@ enum class BoundaryCondition
 };
 constexpr auto reflect(mk::type<BoundaryCondition>)
 {
-    return mk::reflect_values(
-        mk::with_name(BoundaryCondition::periodic, "periodic"),
-        mk::with_name(BoundaryCondition::dirichlet, "dirichlet")
-    );
+    return mk::named_values<BoundaryCondition> = {
+        { BoundaryCondition::periodic, "periodic" },
+        { BoundaryCondition::dirichlet, "dirichlet" }
+    };
 }
 
 struct PartitionFlag : mk::define_flags<PartitionFlag>
@@ -31,26 +32,11 @@ struct PartitionFlag : mk::define_flags<PartitionFlag>
 using PartitionFlags = PartitionFlag::flags;
 constexpr auto reflect(mk::type<PartitionFlag>)
 {
-    return mk::reflect_values(
+    return mk::values<PartitionFlags> = {
         PartitionFlag::enclosedBoundary,
         PartitionFlag::nodeCut,
         PartitionFlag::threadCut
-    );
-}
-
-struct PartitionAxis
-{
-    mk::index_t first;
-    mk::index_t last;
-    PartitionFlags flags;
-};
-constexpr auto reflect(mk::type<PartitionAxis>)
-{
-    return mk::reflect_compound_members(
-        mk::with_name(&PartitionAxis::first, "first"),
-        mk::with_name(&PartitionAxis::last, "last"),
-        mk::with_name(&PartitionAxis::flags, "flags")
-    );
+    };
 }
 
 TEST_CASE("reflect2", "[flags]")

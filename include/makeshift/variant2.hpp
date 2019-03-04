@@ -30,25 +30,6 @@ namespace detail
 {
 
 
-template <typename T, std::size_t N>
-    struct to_array2_functor
-{
-    const T (&array)[N];
-
-    constexpr T operator ()(std::size_t i) const
-    {
-        return array[i];
-    }
-};
-
-template <typename T, std::size_t N>
-    constexpr std::array<std::remove_cv_t<T>, N> to_array2(const T (&array)[N])
-{
-    //return array_transform2<N>([&](auto i) { return array[decltype(i)::value]; }, tuple_index);
-    //return array_transform2<N>([&](std::size_t i) { return array[i]; }, tuple_index);
-    return array_transform2<N>(to_array2_functor<T, N>{ array }, tuple_index);
-}
-
 template <std::size_t N, typename C, typename... Ts>
     class member_values_t
 {
@@ -121,27 +102,6 @@ template <typename C, typename T>
     constexpr std::size_t n = std::tuple_size<std::decay_t<decltype(lvalues)>>::value;
     return member_values_t<n, C, T>{ member.members(), std::make_tuple(lvalues) };
 }
-
-template <std::size_t N, typename C>
-    struct values_t
-{
-    std::array<C, N> values;
-};
-
-template <typename C>
-    struct values_initializer_t
-{
-    template <std::size_t N> 
-        MAKESHIFT_NODISCARD constexpr values_t<N, C> operator =(C (&&vals)[N]) const
-    {
-        return { to_array2(vals) };
-    }
-    template <std::size_t N> 
-        MAKESHIFT_NODISCARD constexpr values_t<N, C> operator =(const std::array<C, N>& vals) const
-    {
-        return { vals };
-    }
-};
 
 struct member_values_initializer_t
 {
@@ -227,6 +187,25 @@ template <typename C, typename T1, typename T2>
 
 // TODO: we could also implement operator |(), but it is a lot of tedious work, and YAGNI
 
+template <typename T, typename C>
+    struct member_functor
+{
+private:
+    T C::* member_;
+
+public:
+    constexpr member_functor(T C::* _member) noexcept : member_(_member) { }
+    constexpr const T& operator ()(const C& obj) noexcept { return obj.*member_; }
+};
+
+struct member_transform_functor
+{
+    template <typename T, typename C>
+        constexpr member_functor<T, C> operator ()(T C::* member) noexcept
+    {
+        return { member };
+    }
+};
 template <std::size_t... Is, typename C, typename... FactorsT>
     constexpr auto _members_impl(std::index_sequence<Is...>, const value_product_t<C, FactorsT...>& product) noexcept
 {
@@ -235,7 +214,7 @@ template <std::size_t... Is, typename C, typename... FactorsT>
 template <typename C, typename... FactorsT>
     constexpr auto _members(const value_product_t<C, FactorsT...>& product) noexcept
 {
-    return _members_impl(std::index_sequence_for<FactorsT...>{ }, product);
+    return tuple_transform2(member_transform_functor{ }, _members_impl(std::index_sequence_for<FactorsT...>{ }, product));
 }
 
 template <std::size_t N>
@@ -297,11 +276,6 @@ template <std::size_t N, typename C, typename... Ts>
     constexpr auto to_array(const member_values_t<N, C, Ts...>& memberValues) noexcept
 {
     return to_array(_to_value_product(memberValues));
-}
-template <std::size_t N, typename C>
-    constexpr auto to_array(const values_t<N, C>& values) noexcept
-{
-    return values.values;
 }
 
     // Workaround for non-default-constructible lambdas in C++17.
@@ -454,8 +428,8 @@ template <typename T, typename F, typename HashT, typename EqualToT>
         // (TODO: is there an acceptable way of checking for constexpr-ness?)
 
     auto memberAccessor = [members = _members(product)](type<T>) { return members; };
-    auto compoundHash = compound_hash<std::decay_t<HashT>, decltype(memberAccessor)>{ std::forward<HashT>(hash), memberAccessor };
-    auto compoundEqual = compound_equal_to<std::decay_t<EqualToT>, decltype(memberAccessor)>{ std::forward<EqualToT>(equal), memberAccessor };
+    auto compoundHash = compound_hash<decltype(memberAccessor), std::decay_t<HashT>>{ std::forward<HashT>(hash), memberAccessor };
+    auto compoundEqual = compound_equal_to<decltype(memberAccessor), std::decay_t<EqualToT>>{ std::forward<EqualToT>(equal), memberAccessor };
 
     return _value_to_variant(value, std::move(valuesFunc), std::move(compoundHash), std::move(compoundEqual));
 }
@@ -471,7 +445,7 @@ template <typename T, std::size_t N, typename... Ts, typename F, typename HashT,
     return expand2_impl2_compound(value, std::forward<F>(valuesFunc), std::forward<HashT>(hash), std::forward<EqualToT>(equal));
 }
 template <typename T, std::size_t N, typename F, typename HashT, typename EqualToT>
-    constexpr auto expand2_impl1(type<values_t<N, T>>, const T& value, F&& valuesFunc, HashT&& hash, EqualToT&& equal)
+    constexpr auto expand2_impl1(type<values_t<T, N>>, const T& value, F&& valuesFunc, HashT&& hash, EqualToT&& equal)
 {
     return expand2_impl2(value, std::forward<F>(valuesFunc), std::forward<HashT>(hash), std::forward<EqualToT>(equal));
 }
@@ -499,10 +473,6 @@ class unsupported_runtime_value : public std::runtime_error
 public:
     using std::runtime_error::runtime_error;
 };
-
-
-template <typename T>
-    constexpr inline makeshift::detail::values_initializer_t<T> values = { };
 
 
 constexpr inline makeshift::detail::member_values_initializer_t member_values = { };
@@ -602,7 +572,7 @@ template <typename T, typename F>
     // Given a runtime value with metadata, returns an optional variant of retrievers of the known values.
     //ᅟ
     //ᅟ    enum class Precision { single, double_ };
-    //ᅟ    constexpr static auto reflect(mk::type<Precision>) { ... }
+    //ᅟ    constexpr static auto reflect(mk::type<Precision>) { return values<Precision> = { Precision::single, Precision::double_ }; }
     //ᅟ
     //ᅟ    Precision precision = ...;
     //ᅟ    auto precisionV = expand(precision);

@@ -17,10 +17,10 @@ enum class Precision
 };
 constexpr static auto reflect(mk::type<Precision>)
 {
-    return mk::reflect_values(
+    return mk::values<Precision> = {
         Precision::single,
         Precision::double_
-    );
+    };
 }
 
 struct Params

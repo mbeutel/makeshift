@@ -9,8 +9,6 @@
 #include <type_traits> // for enable_if<>
 
 #include <makeshift/utility.hpp>      // for dim_t
-#include <makeshift/type_traits2.hpp> // for type<>
-#include <makeshift/metadata2.hpp>    // for reflect_compound_members()
 #include <makeshift/version.hpp>      // for MAKESHIFT_NODISCARD, MAKESHIFT_CONSTEXPR_CXX20
 
 #include <makeshift/detail/arithmetic.hpp> // for checked_operations<>
@@ -46,14 +44,6 @@ template <typename V>
         return stream << f.base << '^' << f.exponent;
     }
 };
-template <typename V>
-    constexpr auto reflect(type<factor<V>>)
-{
-    return reflect_compound_members(
-        with_name(&factor<V>::base, "base"),
-        with_name(&factor<V>::exponent, "exponent")
-    );
-}
 
 template <typename V, dim_t NumFactors>
     struct factorization
@@ -89,14 +79,6 @@ template <typename V, dim_t NumFactors>
         return stream;
     }
 };
-template <typename V, dim_t NumFactors>
-    constexpr auto reflect(type<factorization<V, NumFactors>>)
-{
-    return reflect_compound_members(
-        with_name(&factorization<V, NumFactors>::remainder, "remainder"),
-        with_name(&factorization<V, NumFactors>::factors, "factors")
-    );
-}
 
 
     //ᅟ
