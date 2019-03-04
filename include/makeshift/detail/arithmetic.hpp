@@ -352,7 +352,15 @@ template <typename EH, typename V>
             // negative powers are not integral
         Expects(e >= 0);
 
-            // factor out sign if `b` is negative
+            // in the special case of `b` assuming the smallest representable value, `sign * b` would overflow,
+            // so we handle it separately
+        if (b == std::numeric_limits<V>::min())
+        {
+            EH::checkOverflow(e <= 1); // `powi()` would overflow for exponents greater than 1
+            return e == 0 ? 1 : b;
+        }
+
+            // factor out sign
         V sign = b >= 0
             ? 1
             : 1 - 2 * (e % 2);
@@ -361,7 +369,7 @@ template <typename EH, typename V>
         using U = std::make_unsigned_t<V>;
         U absPow = checked_operations<EH, U>::powi(U(sign * b), e);
 
-            // handle special case where result is `numeric_limits<T>::min()`
+            // handle special case where result is smallest representable value
         if (sign == -1 && absPow == U(std::numeric_limits<V>::max()) + 1)
             return std::numeric_limits<V>::min(); // assuming two's complement
 
