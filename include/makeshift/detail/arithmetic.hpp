@@ -67,18 +67,18 @@ template <typename EH, typename V>
     }
     static constexpr V negate(V arg)
     {
-        EH::checkUnderflow(arg == 0);
+        EH::check_underflow(arg == 0);
         return 0;
     }
     static constexpr V subtract(V lhs, V rhs)
     {
-        EH::checkUnderflow(lhs >= rhs);
+        EH::check_underflow(lhs >= rhs);
         return lhs - rhs;
     }
     static constexpr V shl(V lhs, V rhs)
     {
         Expects(rhs < sizeof(V)*8);
-        EH::checkOverflow(lhs <= (std::numeric_limits<V>::max() >> rhs));
+        EH::check_overflow(lhs <= (std::numeric_limits<V>::max() >> rhs));
         return lhs << rhs;
     }
     static constexpr V shr(V lhs, V rhs)
@@ -109,7 +109,7 @@ template <typename EH, typename V>
         while (e > 0)
         {
                 // ensure the multiplication cannot overflow
-            EH::checkOverflow(result <= m);
+            EH::check_overflow(result <= m);
             result *= b;
             --e;
         }
@@ -176,7 +176,7 @@ template <typename EH, typename V>
         // Given x,b ∊ ℕ, x > 0, b > 1, returns (r,{ {b,e} }) such that x = bᵉ - r with r ≥ 0 minimal.
     static constexpr factorization<V, 1> factorize_ceil(V x, V b)
     {
-        auto [rFloor, fFloor] = factorize_floor(x, b);
+        auto [rFloor, fFloor] = checked_3_::factorize_floor(x, b);
         if (rFloor == 0)
             return { 0, fFloor };
         auto xFloor = x - rFloor;
@@ -187,7 +187,7 @@ template <typename EH, typename V>
         // Computes ⌊log x ÷ log b⌋ for x,b ∊ ℕ, x > 0, b > 1.
     static constexpr V log_floor(V x, V b)
     {
-        auto result = factorize_floor(x, b);
+        auto result = checked_3_::factorize_floor(x, b);
         return result.factors[0].exponent;
     }
 
@@ -225,7 +225,7 @@ template <typename EH, typename V>
 
             // algorithm discussed in http://stackoverflow.com/a/39050139 and slightly altered to avoid unnecessary overflows
 
-        auto [r, f] = factorize_ceil(x, a);
+        auto [r, f] = checked_3_::factorize_ceil(x, a);
         V i = f[0].exponent,
           j = 0;
         V ci = i,
@@ -265,7 +265,7 @@ template <typename EH, typename V>
 
             // adaption of algorithm in factorize_ceil() for different optimisation criterion
 
-        auto [r, f] = factorize_floor(x, a);
+        auto [r, f] = checked_3_::factorize_floor(x, a);
         V i = f[0].exponent,
           j = 0;
         V ci = i,
@@ -307,24 +307,24 @@ template <typename EH, typename V>
     static constexpr V divide(V lhs, V rhs)
     {
         Expects(rhs != 0);
-        EH::checkOverflow(lhs != std::numeric_limits<V>::min() || rhs != -1);
+        EH::check_overflow(lhs != std::numeric_limits<V>::min() || rhs != -1);
         return lhs / rhs;
     }
     static constexpr V modulo(V lhs, V rhs)
     {
         Expects(rhs != 0);
-        EH::checkOverflow(lhs != std::numeric_limits<V>::min() || rhs != -1);
+        EH::check_overflow(lhs != std::numeric_limits<V>::min() || rhs != -1);
         return lhs % rhs;
     }
     static constexpr V negate(V arg)
     {
             // this assumes a two's complement representation (it will yield a false negative for one's complement integers)
-        EH::checkUnderflow(arg != std::numeric_limits<V>::min());
+        EH::check_underflow(arg != std::numeric_limits<V>::min());
         return -arg;
     }
     static constexpr V subtract(V lhs, V rhs)
     {
-        EH::checkUnderflow(
+        EH::check_underflow(
             (rhs <= 0 || lhs >= std::numeric_limits<V>::min() + rhs)
          && (rhs >= 0 || lhs <= std::numeric_limits<V>::max() + rhs));
         return lhs - rhs;
@@ -333,7 +333,7 @@ template <typename EH, typename V>
     {
             // note that we fail when shifting negative integers
         Expects(lhs >= 0 && rhs >= 0 && rhs < V(sizeof(V)*8));
-        EH::checkOverflow(lhs <= (std::numeric_limits<V>::max() >> rhs));
+        EH::check_overflow(lhs <= (std::numeric_limits<V>::max() >> rhs));
         return lhs << rhs;
     }
     static constexpr V shr(V lhs, V rhs)
@@ -356,7 +356,7 @@ template <typename EH, typename V>
             // so we handle it separately
         if (b == std::numeric_limits<V>::min())
         {
-            EH::checkOverflow(e <= 1); // `powi()` would overflow for exponents greater than 1
+            EH::check_overflow(e <= 1); // `powi()` would overflow for exponents greater than 1
             return e == 0 ? 1 : b;
         }
 
@@ -374,7 +374,7 @@ template <typename EH, typename V>
             return std::numeric_limits<V>::min(); // assuming two's complement
 
             // convert back to signed, prefix with sign
-        EH::checkOverflow(absPow <= U(std::numeric_limits<V>::max()));
+        EH::check_overflow(absPow <= U(std::numeric_limits<V>::max()));
         return sign * V(absPow);
     }
 
@@ -407,7 +407,7 @@ template <typename EH, typename V>
     {
         Expects(x > 0 && b > 1);
         auto [r, f] = checked_operations<EH, U>::factorize_ceil(U(x), U(b));
-        EH::checkOverflow(r <= U(std::numeric_limits<V>::max()));
+        EH::check_overflow(r <= U(std::numeric_limits<V>::max()));
         return { V(r), { factor<V>{ b, V(f[0].exponent) } } };
     }
 
@@ -430,7 +430,7 @@ template <typename EH, typename V>
     {
         Expects(x > 0 && a > 1 && b > 1 && a != b);
         auto [r, f] = checked_operations<EH, U>::factorize_ceil(U(x), U(a), U(b));
-        EH::checkOverflow(r <= U(std::numeric_limits<V>::max()));
+        EH::check_overflow(r <= U(std::numeric_limits<V>::max()));
         return { V(r), { factor<V>{ a, V(f[0].exponent) }, factor<V>{ b, V(f[1].exponent) } } };
     }
 
@@ -452,13 +452,13 @@ template <typename EH, typename V>
     static constexpr V add(V lhs, V rhs)
     {
         W result = W(lhs) + W(rhs);
-        EH::checkOverflow(result <= std::numeric_limits<V>::max());
+        EH::check_overflow(result <= std::numeric_limits<V>::max());
         return V(result);
     }
     static constexpr V multiply(V lhs, V rhs)
     {
         W result = W(lhs) * W(rhs);
-        EH::checkOverflow(result <= std::numeric_limits<V>::max());
+        EH::check_overflow(result <= std::numeric_limits<V>::max());
         return V(result);
     }
     static constexpr bool can_multiply(V lhs, V rhs)
@@ -475,13 +475,13 @@ template <typename EH, typename V>
     static constexpr V add(V lhs, V rhs)
     {
         W result = W(lhs) + W(rhs);
-        EH::checkOverflow(result >= std::numeric_limits<V>::min() && result <= std::numeric_limits<V>::max());
+        EH::check_overflow(result >= std::numeric_limits<V>::min() && result <= std::numeric_limits<V>::max());
         return V(result);
     }
     static constexpr V multiply(V lhs, V rhs)
     {
         W result = W(lhs) * W(rhs);
-        EH::checkOverflow(result >= std::numeric_limits<V>::min() && result <= std::numeric_limits<V>::max());
+        EH::check_overflow(result >= std::numeric_limits<V>::min() && result <= std::numeric_limits<V>::max());
         return V(result);
     }
     static constexpr bool can_multiply(V lhs, V rhs)
@@ -496,12 +496,12 @@ template <typename EH, typename V>
     static constexpr V add(V lhs, V rhs)
     {
         V result = lhs + rhs;
-        EH::checkOverflow(result >= lhs && result >= rhs);
+        EH::check_overflow(result >= lhs && result >= rhs);
         return result;
     }
     static constexpr V multiply(V lhs, V rhs)
     {
-        EH::checkOverflow(can_multiply(lhs, rhs));
+        EH::check_overflow(can_multiply(lhs, rhs));
         return lhs * rhs;
     }
     static constexpr bool can_multiply(V lhs, V rhs)
@@ -517,14 +517,14 @@ template <typename EH, typename V>
     static constexpr V add(V lhs, V rhs)
     {
         V result = V(U(lhs) + U(rhs));
-        EH::checkOverflow(
+        EH::check_overflow(
             (lhs >= 0 || rhs >= 0 || result < 0) // at least one operand is non-negative, or the result is negative
          && (lhs <  0 || rhs <  0 || result >= 0)); // at least one operand is negative, or the result is non-negative
         return result;
     }
     static constexpr V multiply(V lhs, V rhs)
     {
-        EH::checkOverflow(can_multiply(lhs, rhs));
+        EH::check_overflow(can_multiply(lhs, rhs));
         return lhs * rhs;
     }
     static constexpr bool can_multiply(V lhs, V rhs)

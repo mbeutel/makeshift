@@ -104,7 +104,7 @@ template <> struct equal_types_<> : std::true_type { };
 template <typename T0> struct equal_types_<T0> : std::true_type { using value_type = T0; };
 template <typename T0, typename T1, typename... Ts> struct equal_types_<T0, T1, Ts...> : std::conditional_t<std::is_same<T0, T1>::value, equal_types_<T1, Ts...>, std::false_type> { };
 
-template <typename F, std::size_t I, typename... Ts> struct result_type_ { using type = decltype(std::declval<F>()(get_element<I>(std::declval<Ts>())...)); };
+template <typename F, std::size_t I, typename... Ts> struct result_type_ { using type = decltype(std::declval<F>()(makeshift::detail::get_element<I>(std::declval<Ts>())...)); };
 
 template <typename F, typename Is, typename... Ts>
     struct result_types_;
@@ -154,7 +154,7 @@ template <std::size_t I, typename... Ts, typename F>
     constexpr decltype(auto)
     tuple_transform_impl2(F&& func, Ts&&... args)
 {
-    return func(get_element<I>(std::forward<Ts>(args))...);
+    return func(makeshift::detail::get_element<I>(std::forward<Ts>(args))...);
 }
 
 template <std::size_t... Is, typename F, typename... Ts>
@@ -164,7 +164,7 @@ template <std::size_t... Is, typename F, typename... Ts>
     (void) func;
     using Swallow = int[];
     (void) Swallow{ 1,
-        (tuple_transform_impl2<Is>(func, std::forward<Ts>(args)...), void(), int{ })...
+        (makeshift::detail::tuple_transform_impl2<Is>(func, std::forward<Ts>(args)...), void(), int{ })...
     };
 }
 template <std::size_t... Is, typename F, typename... Ts>
@@ -172,14 +172,14 @@ template <std::size_t... Is, typename F, typename... Ts>
     tuple_transform_impl1(std::integral_constant<transform_target, transform_target::type_sequence>, std::index_sequence<Is...>, F&& func, Ts&&... args)
 {
     (void) func;
-    return type_sequence2<typename unwrap_type_<decltype(tuple_transform_impl2<Is>(func, std::forward<Ts>(args)...))>::type...>{ };
+    return type_sequence2<typename unwrap_type_<decltype(makeshift::detail::tuple_transform_impl2<Is>(func, std::forward<Ts>(args)...))>::type...>{ };
 }
 template <std::size_t... Is, typename F, typename... Ts>
     constexpr auto
     tuple_transform_impl1(std::integral_constant<transform_target, transform_target::tuple>, std::index_sequence<Is...>, F&& func, Ts&&... args)
 {
     (void) func;
-    return std::make_tuple(tuple_transform_impl2<Is>(func, std::forward<Ts>(args)...)...);
+    return std::make_tuple(makeshift::detail::tuple_transform_impl2<Is>(func, std::forward<Ts>(args)...)...);
 }
 template <std::size_t... Is, typename F, typename... Ts>
     constexpr auto
@@ -187,7 +187,7 @@ template <std::size_t... Is, typename F, typename... Ts>
 {
     (void) func;
     using R = typename homogeneous_result_<sizeof...(Is), cand(is_std_array_<std::decay_t<Ts>>::value...), F, Ts...>::type;
-    return std::array<R, sizeof...(Is)>{ tuple_transform_impl2<Is>(func, std::forward<Ts>(args)...)... };
+    return std::array<R, sizeof...(Is)>{ makeshift::detail::tuple_transform_impl2<Is>(func, std::forward<Ts>(args)...)... };
 }
 
 template <std::ptrdiff_t N, transform_target TransformTarget, typename F, typename... Ts>
@@ -200,7 +200,7 @@ template <std::ptrdiff_t N, transform_target TransformTarget, typename F, typena
     constexpr std::size_t size = std::size_t(N != -1 ? N : Eq::size);
     
     (void) func;
-    return tuple_transform_impl1(std::integral_constant<transform_target, TransformTarget>{ }, std::make_index_sequence<size>{ },
+    return makeshift::detail::tuple_transform_impl1(std::integral_constant<transform_target, TransformTarget>{ }, std::make_index_sequence<size>{ },
         std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
@@ -218,7 +218,7 @@ template <std::size_t I0, std::size_t... Is, typename TupleT, typename T, typena
     constexpr auto
     fold_impl(std::index_sequence<I0, Is...>, left_fold, TupleT&& tuple, T&& initialValue, F&& func)
 {
-    return fold_impl(std::index_sequence<Is...>{ }, left_fold{ }, std::forward<TupleT>(tuple),
+    return makeshift::detail::fold_impl(std::index_sequence<Is...>{ }, left_fold{ }, std::forward<TupleT>(tuple),
         func(std::forward<T>(initialValue), std::get<I0>(std::forward<TupleT>(tuple))),
         std::forward<F>(func));
 }
@@ -226,7 +226,7 @@ template <std::size_t I0, std::size_t... Is, typename TupleT, typename T, typena
     constexpr auto
     fold_impl(std::index_sequence<I0, Is...>, right_fold, TupleT&& tuple, T&& initialValue, F&& func)
 {
-    return fold_impl(std::index_sequence<Is...>{ }, right_fold{ }, std::forward<TupleT>(tuple),
+    return makeshift::detail::fold_impl(std::index_sequence<Is...>{ }, right_fold{ }, std::forward<TupleT>(tuple),
         func(std::get<std::tuple_size<std::decay_t<TupleT>>::value - 1 - I0>(std::forward<TupleT>(tuple)), std::forward<T>(initialValue)),
         std::forward<F>(func));
 }
@@ -235,20 +235,20 @@ template <std::size_t I0, std::size_t... Is, typename TupleT, typename F>
     fold_impl(std::index_sequence<I0, Is...>, all_fold, TupleT&& tuple, bool, F&& func)
 {
     return func(std::get<I0>(std::forward<TupleT>(tuple)))
-        && fold_impl(std::index_sequence<Is...>{ }, all_fold{ }, std::forward<TupleT>(tuple), true, std::forward<F>(func));
+        && makeshift::detail::fold_impl(std::index_sequence<Is...>{ }, all_fold{ }, std::forward<TupleT>(tuple), true, std::forward<F>(func));
 }
 template <std::size_t I0, std::size_t... Is, typename TupleT, typename F>
     constexpr auto
     fold_impl(std::index_sequence<I0, Is...>, any_fold, TupleT&& tuple, bool, F&& func)
 {
     return func(std::get<I0>(std::forward<TupleT>(tuple)))
-        || fold_impl(std::index_sequence<Is...>{ }, any_fold{ }, std::forward<TupleT>(tuple), false, std::forward<F>(func));
+        || makeshift::detail::fold_impl(std::index_sequence<Is...>{ }, any_fold{ }, std::forward<TupleT>(tuple), false, std::forward<F>(func));
 }
 template <typename FoldT, typename TupleT, typename T, typename F>
     constexpr auto
     fold_impl(FoldT, TupleT&& tuple, T&& initialValue, F&& func)
 {
-    return fold_impl(std::make_index_sequence<std::tuple_size<std::decay_t<TupleT>>::value>{ }, FoldT{ },
+    return makeshift::detail::fold_impl(std::make_index_sequence<std::tuple_size<std::decay_t<TupleT>>::value>{ }, FoldT{ },
         std::forward<TupleT>(tuple), std::forward<T>(initialValue), std::forward<F>(func));
 }
 

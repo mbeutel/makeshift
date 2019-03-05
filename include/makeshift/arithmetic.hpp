@@ -101,13 +101,13 @@ namespace detail
 struct throw_error_handler
 {
     static constexpr bool isNoexcept = false;
-    static constexpr MAKESHIFT_FORCEINLINE void checkOverflow(bool cond) { if (!cond) throw arithmetic_overflow("integer overflow"); }
-    static constexpr MAKESHIFT_FORCEINLINE void checkUnderflow(bool cond) { if (!cond) throw arithmetic_overflow("integer underflow"); }
+    static constexpr MAKESHIFT_FORCEINLINE void check_overflow(bool cond) { if (!cond) throw arithmetic_overflow("integer overflow"); }
+    static constexpr MAKESHIFT_FORCEINLINE void check_underflow(bool cond) { if (!cond) throw arithmetic_overflow("integer underflow"); }
 };
 struct assert_error_handler
 {
-    static constexpr MAKESHIFT_FORCEINLINE void checkOverflow(bool cond) { Expects(cond); }
-    static constexpr MAKESHIFT_FORCEINLINE void checkUnderflow(bool cond) { Expects(cond); }
+    static constexpr MAKESHIFT_FORCEINLINE void check_overflow(bool cond) { Expects(cond); }
+    static constexpr MAKESHIFT_FORCEINLINE void check_underflow(bool cond) { Expects(cond); }
 };
 
 

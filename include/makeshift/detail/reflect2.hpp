@@ -4,16 +4,13 @@
 
 
 #include <array>
-#include <tuple>
 #include <cstddef>     // for size_t
-#include <utility>     // for integer_sequence<>
-#include <type_traits> // for is_base_of<>, conjunction<>, negation<>, enable_if<>
+#include <type_traits> // for is_base_of<>, integral_constant<>
 
 #include <makeshift/type_traits.hpp>  // for can_apply<>
-#include <makeshift/type_traits2.hpp> // for type<>, is_iterable<>
-#include <makeshift/version.hpp>      // for MAKESHIFT_NODISCARD
-
-#include <makeshift/detail/metadata2.hpp> // for raw_value_metadata<>, raw_class_metadata<>
+#include <makeshift/type_traits2.hpp> // for type<>
+#include <makeshift/metadata2.hpp>    // for named2<>
+#include <makeshift/tuple2.hpp>       // for array_transform2()
 
 
 namespace makeshift
@@ -24,74 +21,91 @@ namespace detail
 
 
 template <typename T> using raw_metadata_of_r = decltype(reflect(type<T>{ }));
-template <typename T> struct have_raw_metadata : can_apply<raw_metadata_of_r, T> { };
-template <typename T> struct is_value_metadata : std::is_base_of<value_metadata_base, raw_metadata_of_r<T>> { };
-template <typename T> struct is_compound_metadata : std::is_base_of<compound_metadata_base, raw_metadata_of_r<T>> { };
+template <typename T> struct have_raw_metadata : can_apply<makeshift::detail::raw_metadata_of_r, T> { };
+template <typename T> struct is_value_metadata : std::is_base_of<values_base, raw_metadata_of_r<T>> { };
 
 
-template <typename T, typename ValuesT>
-    constexpr const ValuesT& get_metadata(const raw_value_metadata<ValuesT>& md) noexcept
+struct strip_names_functor
 {
-    return { md.values };
-}
-template <typename T>
-    constexpr std::array<named2<T>, 0> get_metadata(raw_value_metadata<void> md) noexcept
+    template <typename T>
+        constexpr T operator ()(const named2<T> v) const
+    {
+        return v.value;
+    }
+};
+struct add_names_functor
 {
-    return { };
-}
+    template <typename T>
+        constexpr named2<T> operator ()(const T& v) const
+    {
+        return { v, { } };
+    }
+};
 
-
-template <typename T, typename MembersT>
-    constexpr const MembersT& get_metadata(const raw_compound_metadata<MembersT>& md) noexcept
-{
-    return { md.members };
-}
-
-
-template <typename TupleT, typename Is>
-    struct tuple_reflector;
-template <typename TupleT, std::size_t... Is>
-    struct tuple_reflector<TupleT, std::index_sequence<Is...>>
+template <typename ValuesT>
+    struct values_reflector0;
+template <typename T, std::size_t N>
+    struct values_reflector0<values_t<T, N>>
 {
     constexpr auto operator ()(void) const noexcept
     {
-        return std::make_tuple(
-            with_name(
-                [](const TupleT& t)
-                {
-                    return std::get<Is>(t);
-                },
-                { })...
-        );
+        return reflect(type<T>{ }).values;
+    }
+};
+template <typename T, std::size_t N>
+    struct values_reflector0<values_t<named2<T>, N>>
+{
+    constexpr auto operator ()(void) const noexcept
+    {
+        return makeshift::array_transform2(strip_names_functor{ }, reflect(type<T>{ }).values);
     }
 };
 
-template <typename T, typename = void>
-    struct reflector;
+template <typename ValuesT>
+    struct named_values_reflector0;
+template <typename T, std::size_t N>
+    struct named_values_reflector0<values_t<T, N>>
+{
+    constexpr auto operator ()(void) const noexcept
+    {
+        return makeshift::array_transform2(add_names_functor{ }, reflect(type<T>{ }).values);
+    }
+};
+template <typename T, std::size_t N>
+    struct named_values_reflector0<values_t<named2<T>, N>>
+{
+    constexpr auto operator ()(void) const noexcept
+    {
+        return reflect(type<T>{ }).values;
+    }
+};
+
+template <typename T>
+    struct values_reflector : values_reflector0<raw_metadata_of_r<T>>
+{
+};
 template <>
-    struct reflector<bool>
+    struct values_reflector<bool>
+{
+    constexpr std::array<bool, 2> operator ()(void) const noexcept
+    {
+        return { false, true };
+    }
+};
+
+template <typename T>
+    struct named_values_reflector : named_values_reflector0<raw_metadata_of_r<T>>
+{
+};
+template <>
+    struct named_values_reflector<bool>
 {
     constexpr std::array<named2<bool>, 2> operator ()(void) const noexcept
     {
-        return {
-            with_name(false, "false"),
-            with_name(true, "true")
-        };
+        return { named2<bool>{ false, "false" }, named2<bool>{ true, "true" } };
     }
 };
-template <typename T>
-    struct reflector<T, std::enable_if_t<std::conjunction_v<is_tuple_like2<T>, std::negation<is_iterable<T>>>>>
-        : tuple_reflector<T, std::make_index_sequence<std::tuple_size<T>::value>>
-{
-};
-template <typename T>
-    struct reflector<T, std::enable_if_t<have_raw_metadata<T>::value>>
-{
-    constexpr decltype(auto) operator ()(void) const noexcept
-    {
-        return makeshift::detail::get_metadata<T>(reflect(type<T>{ }));
-    }
-};
+
 
 } // namespace detail
 
