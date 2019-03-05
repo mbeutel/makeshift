@@ -65,7 +65,7 @@ TEST_CASE("variant2")
         auto p1VO = mk::expand2(p1);
         std::visit([p1](auto p1R)
             {
-                constexpr Precision p1C = get(p1R);
+                constexpr Precision p1C = mk::retrieve(p1R);
                 CHECK(p1C == p1);
             },
             p1VO);
@@ -79,7 +79,7 @@ TEST_CASE("variant2")
         CHECK(p2VO.has_value());
         std::visit([p2](auto p2R)
             {
-                constexpr Precision p2C = get(p2R);
+                constexpr Precision p2C = mk::retrieve(p2R);
                 CHECK(p2C == p2);
             },
             *p2VO);
@@ -104,7 +104,7 @@ TEST_CASE("variant2")
         CHECK(s1VO.has_value());
         std::visit([s1](auto s1R)
             {
-                constexpr Params s1C = get(s1R);
+                constexpr Params s1C = mk::retrieve(s1R);
                 CHECK(s1C == s1);
             },
             *s1VO);
@@ -120,7 +120,7 @@ TEST_CASE("variant2")
         CHECK(s2VO.has_value());
         std::visit([s2](auto s2R)
             {
-                constexpr Params s2C = get(s2R);
+                constexpr Params s2C = mk::retrieve(s2R);
                 CHECK(s2C == s2);
             },
             *s2VO);
