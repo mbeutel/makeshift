@@ -254,7 +254,7 @@ template <typename V>
 }
 
     //ᅟ
-    // Given x,a,b ∊ ℕ, x > 0, a,b > 1, a ≠ b, returns (r,{ {a,i}, {b,j} }) such that x = aⁱ ∙ bʲ - r with r ≥ 0 minimal. Enforces preconditions with `Expects()`.
+    // Given x,a,b ∊ ℕ, x > 0, a,b > 1, a ≠ b, returns (r,{ {a,i}, {b,j} }) such that x = aⁱ ∙ bʲ + r with r ≥ 0 minimal. Enforces preconditions with `Expects()`.
     //
 template <typename V>
     constexpr factorization<V, 2> factorize_floor(V x, V a, V b)
