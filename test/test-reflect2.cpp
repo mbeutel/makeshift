@@ -1,7 +1,7 @@
 
 #include <makeshift/metadata2.hpp>
 #include <makeshift/reflect2.hpp>
-#include <makeshift/utility.hpp>  // for define_flags<>
+#include <makeshift/utility2.hpp>  // for define_flags<>
 #include <makeshift/compound.hpp>
 
 #include <catch2/catch.hpp>
