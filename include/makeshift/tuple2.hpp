@@ -9,7 +9,7 @@
 #include <utility>     // for forward<>()
 #include <type_traits> // for decay<>
 
-#include <makeshift/type_traits.hpp>  // for can_apply<>
+#include <makeshift/type_traits2.hpp> // for can_apply<>
 #include <makeshift/version.hpp>      // for MAKESHIFT_NODISCARD
 
 #include <makeshift/detail/tuple2.hpp>

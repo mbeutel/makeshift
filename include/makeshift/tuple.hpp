@@ -10,6 +10,7 @@
 #include <type_traits> // for decay<>, integral_constant<>, index_sequence<>, is_nothrow_default_constructible<>
 
 #include <makeshift/type_traits.hpp> // for can_apply<>, none
+#include <makeshift/tuple2.hpp>      // for tuple_index
 
 #include <makeshift/detail/workaround.hpp> // for cand()
 
@@ -107,27 +108,6 @@ template <typename T, typename... Ts>
     static_assert(try_index_of_type_v<T, Ts...> != std::size_t(-1), "type T does not appear in type sequence");
     return { };
 }
-
-
-    //ᅟ
-    // Pass `tuple_index` to `tuple_foreach()` or `tuple_map()` to have the tuple element index passed as a functor argument.
-    // The argument is of type `integral_constant<std::size_t, I>` and implicitly converts to `std::size_t`.
-    //ᅟ
-    //ᅟ    auto print_tuple = tuple_foreach([](auto element, std::size_t idx) { std::cout << idx << ": " << element << '\n'; });
-    //ᅟ    auto tuple = std::tuple{ 42, 1.41421 };
-    //ᅟ    print_tuple(tuple, tuple_index); // prints "0: 42\n1: 1.41421"
-    //
-struct tuple_index_t { };
-
-    //ᅟ
-    // Pass `tuple_index` to `tuple_foreach()` or `tuple_map()` to have the tuple element index passed as a functor argument.
-    // The argument is of type `integral_constant<std::size_t, I>` and implicitly converts to `std::size_t`.
-    //ᅟ
-    //ᅟ    auto print_tuple = tuple_foreach([](auto element, std::size_t idx) { std::cout << idx << ": " << element << '\n'; });
-    //ᅟ    auto tuple = std::tuple{ 42, 1.41421 };
-    //ᅟ    print_tuple(tuple, tuple_index); // prints "0: 42\n1: 1.41421"
-    //
-static constexpr tuple_index_t tuple_index { };
 
 
 } // inline namespace types

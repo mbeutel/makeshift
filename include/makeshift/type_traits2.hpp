@@ -5,11 +5,9 @@
 
 #include <cstddef>     // for size_t
 #include <utility>     // for tuple_size<>, tuple_element<>
-#include <type_traits> // for integral_constant<>
+#include <type_traits> // for integral_constant<>, declval<>(), conjunction<>, is_enum<>
 
-#include <makeshift/type_traits.hpp> // for nth_type<>, try_index_of_type<>, can_apply<>
-
-#include <makeshift/detail/type_traits2.hpp> // for is_iterable_r<>
+#include <makeshift/detail/type_traits2.hpp>
 
 
 namespace makeshift
@@ -42,6 +40,50 @@ template <typename T> using type = makeshift::detail::type_t<T>;
     // Use `type_v<T>` as a value representation of `T` for tag dispatching.
     //
 template <typename T> constexpr inline type<T> type_v { };
+
+
+    //ᅟ
+    // Determines the `N`-th type in the variadic type sequence.
+    //
+template <std::size_t N, typename... Ts> struct nth_type : makeshift::detail::nth_type_<N, Ts...> { };
+
+    //ᅟ
+    // Determines the `N`-th type in the variadic type sequence.
+    //
+template <std::size_t N, typename... Ts> using nth_type_t = typename nth_type<N, Ts...>::type;
+
+
+    //ᅟ
+    // Determines the index of the type `T` in the variadic type sequence. If `T` does not appear in the type sequence, the index is `size_t(-1)`.
+    //
+template <typename T, typename... Ts> struct try_index_of_type : std::integral_constant<std::size_t, makeshift::detail::try_type_pack_index_<T, Ts...>::value> { };
+
+    //ᅟ
+    // Determines the index of the type `T` in the variadic type sequence. If `T` does not appear in the type sequence, the index is `size_t(-1)`.
+    //
+template <typename T, typename... Ts> constexpr std::size_t try_index_of_type_v = try_index_of_type<T, Ts...>::value;
+
+
+    //ᅟ
+    // Determines the index of the type `T` in the variadic type sequence.
+    //
+template <typename T, typename... Ts> struct index_of_type : std::integral_constant<std::size_t, makeshift::detail::type_pack_index_<T, Ts...>::value> { };
+
+    //ᅟ
+    // Determines the index of the type `T` in the variadic type sequence.
+    //
+template <typename T, typename... Ts> constexpr std::size_t index_of_type_v = index_of_type<T, Ts...>::value;
+
+
+    //ᅟ
+    // Determines whether the template instantiation `Z<Ts...>` would be valid. Useful for expression SFINAE.
+    //
+template <template <typename...> class Z, typename... Ts> struct can_apply : makeshift::detail::can_apply_1_<Z, void, Ts...> { };
+
+    //ᅟ
+    // Determines whether the template instantiation `Z<Ts...>` would be valid. Useful for expression SFINAE.
+    //
+template <template <typename...> class Z, typename... Ts> constexpr bool can_apply_v = can_apply<Z, Ts...>::value;
 
 
     //ᅟ
@@ -106,6 +148,28 @@ template <typename T> struct is_iterable : can_apply<makeshift::detail::is_itera
     // Determines whether the given type is iterable, i.e. functions `begin()` and `end()` are well-defined for arguments of type `T`.
     //
 template <typename T> constexpr bool is_iterable_v = is_iterable<T>::value;
+
+
+    //ᅟ
+    // Retrieves the flag type (i.e. the `struct` which inherits from `define_flags<>` and defines flag values) of a flags enum.
+    //
+template <typename T> struct flag_type_of : decltype(flag_type_of_(std::declval<T>(), makeshift::detail::flags_tag{ })) { };
+
+    //ᅟ
+    // Retrieves the flag type (i.e. the `struct` which inherits from `define_flags<>` and defines flag values) of a flags enum.
+    //
+template <typename T> using flag_type_of_t = typename flag_type_of<T>::type;
+
+
+    //ᅟ
+    // Determines whether the given type is a flags enum.
+    //
+template <typename T> struct is_flags_enum : std::conjunction<std::is_enum<T>, can_apply<flag_type_of, T>> { };
+
+    //ᅟ
+    // Determines whether the given type is a flags enum.
+    //
+template <typename T> constexpr bool is_flags_enum_v = is_flags_enum<T>::value;
 
 
 } // inline namespace types

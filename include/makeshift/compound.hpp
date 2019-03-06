@@ -51,7 +51,7 @@ template <typename CompoundMembersT, typename EqualToT = std::equal_to<>>
     {
         const EqualToT& equal = *this;
         const CompoundMembersT& compoundMembers = *this;
-        return tuple_all_of(
+        return makeshift::tuple_all_of(
             compoundMembers(type_v<T>),
             [&equal, &lhs, &rhs](auto&& member)
             {
@@ -74,7 +74,7 @@ template <typename CompoundMembersT, typename HashT = hash2<>>
     {
         const HashT& hash = *this;
         const CompoundMembersT& compoundMembers = *this;
-        return tuple_reduce(
+        return makeshift::tuple_reduce(
             compoundMembers(type_v<T>),
             std::size_t(0),
             [&hash, &obj](std::size_t seed, auto&& member)

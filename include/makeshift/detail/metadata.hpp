@@ -3,7 +3,7 @@
 #define INCLUDED_MAKESHIFT_DETAIL_METADATA_HPP_
 
 
-#include <makeshift/detail/utility_flags.hpp>
+#include <makeshift/utility2.hpp>
 
 
 namespace makeshift

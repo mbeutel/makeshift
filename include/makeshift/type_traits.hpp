@@ -7,6 +7,8 @@
 #include <type_traits> // for integral_constant<>, declval<>(), is_aggregate<>, is_scalar<>, is_same<>, is_base_of<>, enable_if<>, is_convertible<>, decay<>, declval<>(), negation<>, conjunction<>, disjunction<>
 #include <utility>     // for integer_sequence<>, move(), forward<>()
 
+#include <makeshift/type_traits2.hpp>
+
 
 namespace makeshift
 {
@@ -62,9 +64,6 @@ struct serializer_base { };
 namespace detail
 {
 
-
-struct flags_base { };
-struct flags_tag { };
 
 struct constrained_integer_base { };
 
@@ -195,11 +194,6 @@ template <typename P,
 }
 
 
-template <typename...> using void_t = void; // ICC doesn't have std::void_t<> yet
-template <template <typename...> class, typename, typename...> struct can_apply_1_ : std::false_type { };
-template <template <typename...> class Z, typename... Ts> struct can_apply_1_<Z, void_t<Z<Ts...>>, Ts...> : std::true_type { };
-
-
 template <typename RSeqT, typename... Ts> struct type_sequence_cat_;
 template <typename RSeqT> struct type_sequence_cat_<RSeqT> { using type = RSeqT; };
 template <template <typename...> class TypeSeqT, typename... RSeqT, typename... NSeqT, typename... Ts>
@@ -233,49 +227,6 @@ template <std::size_t... SelectedIs, std::size_t NextI> struct select_next_index
 template <std::size_t... SelectedIs, std::size_t NextI> struct select_next_index_<std::index_sequence<SelectedIs...>, NextI, false> { using type = std::index_sequence<SelectedIs...>; };
 
 
-    // taken from http://ldionne.com/2015/11/29/efficient-parameter-pack-indexing/
-    // (cf. the same URL for a discussion of the benefits and drawbacks of the MI approach vs. a recursive one)
-template <std::size_t I, typename T>
-    struct type_pack_index_base
-{
-    static constexpr std::size_t index = I;
-    using type = T;
-};
-struct type_pack_no_match
-{
-    static constexpr std::size_t index = std::size_t(-1);
-};
-template <typename IsT, typename... Ts> struct type_pack_indexer;
-template <std::size_t... Is, typename... Ts> struct type_pack_indexer<std::index_sequence<Is...>, Ts...> : type_pack_index_base<Is, Ts>... { };
-template <std::size_t I, typename T>
-    static type_pack_index_base<I, T> select_type_seq_entry_by_idx(type_pack_index_base<I, T>);
-template <typename T, std::size_t I>
-    static type_pack_index_base<I, T> select_type_seq_entry_by_type(type_pack_index_base<I, T>);
-template <typename T>
-    static type_pack_no_match select_type_seq_entry_by_type(...);
-
-template <std::size_t I, typename... Ts>
-    struct type_pack_element_
-{
-    using index_base = decltype(makeshift::detail::select_type_seq_entry_by_idx<I>(type_pack_indexer<std::make_index_sequence<sizeof...(Ts)>, Ts...>{ }));
-    using type = typename index_base::type;
-};
-
-template <typename T, typename... Ts>
-    struct try_type_pack_index_
-{
-    using index_base = decltype(makeshift::detail::select_type_seq_entry_by_type<T>(type_pack_indexer<std::make_index_sequence<sizeof...(Ts)>, Ts...>{ }));
-    static constexpr std::size_t value = index_base::index;
-};
-
-template <typename T, typename... Ts>
-    struct type_pack_index_
-{
-    static constexpr std::size_t value = type_pack_index_<T, Ts...>::value;
-    static_assert(value != ~std::size_t(0), "type T does not appear in type sequence");
-};
-
-
     // borrowed from the VC++ STL's variant implementation
 template <typename T, std::size_t I>
     struct type_with_index
@@ -305,17 +256,6 @@ template <typename T, typename... Ts> using value_overload_type_t = typename val
 
 template <typename T, typename... Ts> struct value_overload_index : std::integral_constant<std::size_t, value_overload_init_<void, T, Ts...>::type::index> { };
 template <typename T, typename... Ts> static constexpr std::size_t value_overload_index_v = value_overload_init_<void, T, Ts...>::type::index;
-
-#ifdef __clang__
- #if __has_builtin(__type_pack_element)
-    template <std::size_t I, typename... Ts> struct nth_type_ { using type = __type_pack_element<I, Ts...>; };
- #else // __has_builtin(__type_pack_element)
-template <std::size_t I, typename... Ts> using nth_type_ = type_pack_element_<I, Ts...>;
- #endif // __has_builtin(__type_pack_element)
-#else // __clang__
-    // work around a VC++ bug with decltype() and dependent types
-template <std::size_t I, typename... Ts> using nth_type_ = type_pack_element_<I, Ts...>;
-#endif
 
 
 } // namespace detail
@@ -349,17 +289,6 @@ template <typename T>
 
 
     //ᅟ
-    // Determines whether the template instantiation `Z<Ts...>` would be valid. Useful for expression SFINAE.
-    //
-template <template <typename...> class Z, typename... Ts> struct can_apply : makeshift::detail::can_apply_1_<Z, void, Ts...> { };
-
-    //ᅟ
-    // Determines whether the template instantiation `Z<Ts...>` would be valid. Useful for expression SFINAE.
-    //
-template <template <typename...> class Z, typename... Ts> constexpr bool can_apply_v = can_apply<Z, Ts...>::value;
-
-
-    //ᅟ
     // Applies the type arguments to the given template template, i.e. instantiates `Z<Ts...>` for `SeqT = type_sequence<Ts...>`.
     //
 template <template <typename...> class Z, typename SeqT> struct apply;
@@ -385,39 +314,6 @@ template <typename... Ts>
 {
     return { };
 }
-
-
-    //ᅟ
-    // Determines the `N`-th type in the variadic type sequence.
-    //
-template <std::size_t N, typename... Ts> struct nth_type : makeshift::detail::nth_type_<N, Ts...> { };
-
-    //ᅟ
-    // Determines the `N`-th type in the variadic type sequence.
-    //
-template <std::size_t N, typename... Ts> using nth_type_t = typename nth_type<N, Ts...>::type;
-
-
-    //ᅟ
-    // Determines the index of the type `T` in the variadic type sequence. If `T` does not appear in the type sequence, the index is `size_t(-1)`.
-    //
-template <typename T, typename... Ts> struct try_index_of_type : std::integral_constant<std::size_t, makeshift::detail::try_type_pack_index_<T, Ts...>::value> { };
-
-    //ᅟ
-    // Determines the index of the type `T` in the variadic type sequence. If `T` does not appear in the type sequence, the index is `size_t(-1)`.
-    //
-template <typename T, typename... Ts> constexpr std::size_t try_index_of_type_v = try_index_of_type<T, Ts...>::value;
-
-
-    //ᅟ
-    // Determines the index of the type `T` in the variadic type sequence.
-    //
-template <typename T, typename... Ts> struct index_of_type : std::integral_constant<std::size_t, makeshift::detail::type_pack_index_<T, Ts...>::value> { };
-
-    //ᅟ
-    // Determines the index of the type `T` in the variadic type sequence.
-    //
-template <typename T, typename... Ts> constexpr std::size_t index_of_type_v = index_of_type<T, Ts...>::value;
 
 
     //ᅟ
@@ -680,28 +576,6 @@ template <> struct is_none<none> : std::true_type { };
     // Determines whether the given type is `none`.
     //
 template <typename T> constexpr bool is_none_v = is_none<T>::value;
-
-
-    //ᅟ
-    // Retrieves the flag type (i.e. the `struct` which inherits from `define_flags<>` and defines flag values) of a flags enum.
-    //
-template <typename T> struct flag_type_of : decltype(flag_type_of_(std::declval<T>(), makeshift::detail::flags_tag{ })) { };
-
-    //ᅟ
-    // Retrieves the flag type (i.e. the `struct` which inherits from `define_flags<>` and defines flag values) of a flags enum.
-    //
-template <typename T> using flag_type_of_t = typename flag_type_of<T>::type;
-
-
-    //ᅟ
-    // Determines whether the given type is a flags enum.
-    //
-template <typename T> struct is_flags_enum : std::conjunction<std::is_enum<T>, can_apply<flag_type_of, T>> { };
-
-    //ᅟ
-    // Determines whether the given type is a flags enum.
-    //
-template <typename T> constexpr bool is_flags_enum_v = is_flags_enum<T>::value;
 
 
     //ᅟ

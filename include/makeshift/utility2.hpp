@@ -1,10 +1,14 @@
 ﻿
-#ifndef INCLUDED_MAKESHIFT_DETAIL_UTILITY_FLAGS_HPP_
-#define INCLUDED_MAKESHIFT_DETAIL_UTILITY_FLAGS_HPP_
+#ifndef INCLUDED_MAKESHIFT_UTILITY2_HPP_
+#define INCLUDED_MAKESHIFT_UTILITY2_HPP_
 
 
-#include <makeshift/type_traits.hpp> // for flags_base, none, tag<>
-#include <makeshift/type_traits2.hpp> // for type<>
+#include <cstddef>     // for ptrdiff_t
+#include <type_traits> // for underlying_type<>
+
+#include <makeshift/type_traits.hpp> // for none
+
+#include <makeshift/detail/utility2.hpp>
 
 
 namespace makeshift
@@ -17,33 +21,6 @@ namespace adl
 {
 
 
-template <typename FlagsT, typename UnderlyingTypeT>
-    struct define_flags_base : makeshift::detail::flags_base
-{
-    using base_type = UnderlyingTypeT;
-    enum class flags : UnderlyingTypeT { none = 0 };
-    using flag = flags; // alias for declaring flag constants
-
-    friend constexpr tag<FlagsT> flag_type_of_(flags, makeshift::detail::flags_tag) { return { }; }
-
-        // We just forward the metadata defined for the derived type.
-        // TODO: ensure that have_metadata<flag> is false if no metadata is defined for FlagsT.
-    template <typename MetadataTagT>
-        friend constexpr auto reflect(tag<flag>, MetadataTagT) -> decltype(reflect(tag<FlagsT>{ }, MetadataTagT{ }))
-    {
-        return reflect(tag<FlagsT>{ }, MetadataTagT{ });
-    }
-
-        // We just forward the metadata defined for the derived type.
-        // TODO: ensure that have_metadata<flag> is false if no metadata is defined for FlagsT.
-    template <typename U = FlagsT>
-        friend constexpr auto reflect(type<flag>) -> decltype(reflect(type<U>{ }))
-    {
-        return reflect(type<FlagsT>{ });
-    }
-};
-
-
 template <typename EnumT> constexpr EnumT operator |(EnumT lhs, EnumT rhs) noexcept { return EnumT(std::underlying_type_t<EnumT>(lhs) | std::underlying_type_t<EnumT>(rhs)); }
 template <typename EnumT> constexpr EnumT operator &(EnumT lhs, EnumT rhs) noexcept { return EnumT(std::underlying_type_t<EnumT>(lhs) & std::underlying_type_t<EnumT>(rhs)); }
 template <typename EnumT> constexpr EnumT operator ^(EnumT lhs, EnumT rhs) noexcept { return EnumT(std::underlying_type_t<EnumT>(lhs) ^ std::underlying_type_t<EnumT>(rhs)); }
@@ -51,6 +28,7 @@ template <typename EnumT> constexpr EnumT operator ~(EnumT arg) noexcept { retur
 template <typename EnumT> constexpr EnumT operator |=(EnumT& lhs, EnumT rhs) noexcept { lhs = lhs | rhs; return lhs; }
 template <typename EnumT> constexpr EnumT operator &=(EnumT& lhs, EnumT rhs) noexcept { lhs = lhs & rhs; return lhs; }
 template <typename EnumT> constexpr EnumT operator ^=(EnumT& lhs, EnumT rhs) noexcept { lhs = lhs ^ rhs; return lhs; }
+
 template <typename EnumT> constexpr bool operator ==(EnumT lhs, none) noexcept { return lhs == EnumT(0); }
 template <typename EnumT> constexpr bool operator ==(none, EnumT rhs) noexcept { return rhs == EnumT(0); }
 template <typename EnumT> constexpr bool operator !=(EnumT lhs, none) noexcept { return lhs != EnumT(0); }
@@ -58,12 +36,12 @@ template <typename EnumT> constexpr bool operator !=(none, EnumT rhs) noexcept {
 
 
     //ᅟ
-    // `has_flag(haystack, needle)` determines whether the flags enum `haystack` contains the flag `needle`. Equivalent to `(haystack & needle) != none_v`.
+    // `has_flag(haystack, needle)` determines whether the flags enum `haystack` contains the flag `needle`. Equivalent to `(haystack & needle) != EnumT::none`.
     //
 template <typename EnumT> constexpr bool has_flag(EnumT haystack, EnumT needle) noexcept { return (haystack & needle) != EnumT(0); }
     
     //ᅟ
-    // `has_any_of(haystack, needles)` determines whether the flags enum `haystack` contains any of the flags in `needles`. Equivalent to `(haystack & needles) != none_v`.
+    // `has_any_of(haystack, needles)` determines whether the flags enum `haystack` contains any of the flags in `needles`. Equivalent to `(haystack & needles) != EnumT::none`.
     //
 template <typename EnumT> constexpr bool has_any_of(EnumT haystack, EnumT needles) noexcept { return (haystack & needles) != EnumT(0); }
     
@@ -99,9 +77,33 @@ template <typename FlagsT, typename UnderlyingTypeT = unsigned>
 };
 
 
+    //ᅟ
+    // Represents an index value.
+    //
+using index2 = std::ptrdiff_t;
+
+
+    //ᅟ
+    // Represents a difference value.
+    //
+using diff2 = std::ptrdiff_t;
+
+
+    //ᅟ
+    // Represents an array stride.
+    //
+using stride2 = std::ptrdiff_t;
+
+
+    //ᅟ
+    // Represents a dimension value.
+    //
+using dim2 = std::ptrdiff_t;
+
+
 } // inline namespace types
 
 } // namespace makeshift
 
 
-#endif // INCLUDED_MAKESHIFT_DETAIL_UTILITY_FLAGS_HPP_
+#endif // INCLUDED_MAKESHIFT_UTILITY2_HPP_

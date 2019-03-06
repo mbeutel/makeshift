@@ -13,11 +13,11 @@
 
 #include <gsl/gsl_assert> // for Expects()
 
+#include <makeshift/constexpr.hpp> // for retrieve()
+#include <makeshift/compound.hpp>  // for compound_hash<>, compound_equal_to<>
 #include <makeshift/reflect2.hpp>  // for values_of()
 #include <makeshift/tuple2.hpp>    // for array_transform2()
-#include <makeshift/compound.hpp>  // for compound_hash<>, compound_equal_to<>
 #include <makeshift/version.hpp>   // for MAKESHIFT_NODISCARD
-#include <makeshift/constexpr.hpp> // for retrieve()
 
 #include <makeshift/detail/workaround.hpp> // for cmul<>()
 
