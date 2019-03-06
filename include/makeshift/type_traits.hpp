@@ -194,15 +194,6 @@ template <typename P,
 }
 
 
-template <typename RSeqT, typename... Ts> struct type_sequence_cat_;
-template <typename RSeqT> struct type_sequence_cat_<RSeqT> { using type = RSeqT; };
-template <template <typename...> class TypeSeqT, typename... RSeqT, typename... NSeqT, typename... Ts>
-    struct type_sequence_cat_<TypeSeqT<RSeqT...>, TypeSeqT<NSeqT...>, Ts...>
-        : type_sequence_cat_<TypeSeqT<RSeqT..., NSeqT...>, Ts...> 
-{
-};
-
-
 struct identity_transform
 {
     template <typename T>
@@ -317,6 +308,17 @@ template <typename... Ts>
 
 
     //ᅟ
+    // Concatenates a sequence of type sequences.
+    //
+template <typename... Ts> struct type_sequence_cat : makeshift::detail::type_sequence_cat_<type_sequence<>, Ts...> { };
+
+    //ᅟ
+    // Concatenates a sequence of type sequences.
+    //
+template <typename... Ts> using type_sequence_cat_t = typename type_sequence_cat<Ts...>::type;
+
+
+    //ᅟ
     // Determines the `N`-th value in the variadic sequence.
     //
 template <std::size_t N, auto... Vs> struct nth_value : nth_type_t<N, std::integral_constant<decltype(Vs), Vs>...> { };
@@ -376,16 +378,6 @@ template <std::size_t N, typename T, template <typename, T> class SeqT, T... Vs>
     //
 template <std::size_t N, typename SeqT> constexpr typename SeqT::value_type nth_value_in_v = nth_value_in<N, SeqT>::value;
 
-
-    //ᅟ
-    // Concatenates a sequence of type sequences.
-    //
-template <typename... Ts> struct type_sequence_cat : makeshift::detail::type_sequence_cat_<type_sequence<>, Ts...> { };
-
-    //ᅟ
-    // Concatenates a sequence of type sequences.
-    //
-template <typename... Ts> using type_sequence_cat_t = typename type_sequence_cat<Ts...>::type;
 
 
 

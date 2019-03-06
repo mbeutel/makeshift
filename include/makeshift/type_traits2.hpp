@@ -140,6 +140,17 @@ template <typename T, typename... Ts>
 
 
     //ᅟ
+    // Concatenates a sequence of type sequences.
+    //
+template <typename... Ts> struct type_sequence2_cat : makeshift::detail::type_sequence_cat_<type_sequence2<>, Ts...> { };
+
+    //ᅟ
+    // Concatenates a sequence of type sequences.
+    //
+template <typename... Ts> using type_sequence2_cat_t = typename type_sequence2_cat<Ts...>::type;
+
+
+    //ᅟ
     // Determines whether the given type is iterable, i.e. functions `begin()` and `end()` are well-defined for arguments of type `T`.
     //
 template <typename T> struct is_iterable : can_apply<makeshift::detail::is_iterable_ns::is_iterable_r, T> { };

@@ -13,11 +13,12 @@
 
 #include <gsl/gsl_assert> // for Expects()
 
-#include <makeshift/constexpr.hpp> // for retrieve()
-#include <makeshift/compound.hpp>  // for compound_hash<>, compound_equal_to<>
-#include <makeshift/reflect2.hpp>  // for values_of()
-#include <makeshift/tuple2.hpp>    // for array_transform2()
-#include <makeshift/version.hpp>   // for MAKESHIFT_NODISCARD
+#include <makeshift/constexpr.hpp>    // for retrieve()
+#include <makeshift/compound.hpp>     // for compound_hash<>, compound_equal_to<>
+#include <makeshift/reflect2.hpp>     // for values_of()
+#include <makeshift/type_traits2.hpp> // for type_sequence2<>
+#include <makeshift/tuple2.hpp>       // for array_transform2()
+#include <makeshift/version.hpp>      // for MAKESHIFT_NODISCARD
 
 #include <makeshift/detail/workaround.hpp> // for cmul<>()
 
@@ -27,6 +28,9 @@ namespace makeshift
 
 namespace detail
 {
+
+
+template <typename T> using is_variant_like_r = std::integral_constant<std::size_t, std::variant_size<T>::value>;
 
 
 template <std::size_t N, typename C, typename... Ts>
@@ -430,6 +434,45 @@ template <typename T, typename R, typename HashT, typename EqualToT>
 {
     return expand2_impl1(type_v<retrieved_t<R>>, value, valuesR, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
 }
+
+
+template <typename T> struct decay_to_args;
+template <template <typename...> class T, typename... Ts> struct decay_to_args<T<Ts...>> { using type = T<Ts...>; };
+template <template <typename...> class T, typename... Ts> struct decay_to_args<T<Ts...>&> { using type = T<Ts&...>; };
+template <template <typename...> class T, typename... Ts> struct decay_to_args<const T<Ts...>&> { using type = T<const Ts&...>; };
+template <template <typename...> class T, typename... Ts> struct decay_to_args<T<Ts...>&&> { using type = T<Ts&&...>; };
+template <typename T> using decay_to_args_t = typename decay_to_args<T>::type;
+
+template <typename F, typename... ArgsT> using call_result_t = decltype(std::declval<F>()(std::declval<ArgsT>()...));
+
+template <typename R, typename F, typename L, typename... Vs> struct visit_many_result_0_;
+template <typename R, typename F, typename... Ls>
+    struct visit_many_result_0_<R, F, type_sequence2<Ls...>>
+{
+    using type = type_sequence2<call_result_t<F, Ls...>>;
+};
+template <typename R, typename F, typename... Ls, template <typename...> class V, typename... V0s, typename... Vs>
+    struct visit_many_result_0_<R, F, type_sequence2<Ls...>, V<V0s...>, Vs...>
+        : type_sequence2_cat<typename visit_many_result_0_<R, F, type_sequence2<Ls..., V0s>, Vs...>::type...>
+{
+};
+
+template <typename T, typename Ts> struct is_in_;
+template <typename T> struct is_in_<T, type_sequence2<>> : std::false_type{ };
+template <typename T, typename T0, typename... Ts> struct is_in_<T, type_sequence2<T0, Ts...>> : is_in_<T, type_sequence2<Ts...>> { };
+template <typename T, typename... Ts> struct is_in_<T, type_sequence2<T, Ts...>> : std::true_type { };
+
+template <typename T, typename Ts, bool IsIn> struct add_unique_0_;
+template <typename T, typename... Ts> struct add_unique_0_<T, type_sequence2<Ts...>, false> { using type = type_sequence2<T, Ts...>; };
+template <typename T, typename... Ts> struct add_unique_0_<T, type_sequence2<Ts...>, true> { using type = type_sequence2<Ts...>; };
+template <typename T, typename Ts> struct add_unique_ : add_unique_0_<T, Ts, is_in_<T, Ts>::value> { };
+
+template <typename Rs, typename Ts> struct unique_sequence_0_;
+template <typename Rs> struct unique_sequence_0_<Rs, type_sequence2<>> { using type = Rs; };
+template <typename Rs, typename T, typename... Ts> struct unique_sequence_0_<Rs, type_sequence2<T, Ts...>> : unique_sequence_0_<typename add_unique_<T, Rs>::type, type_sequence2<Ts...>> { };
+template <typename Ts> struct unique_sequence_ : unique_sequence_0_<type_sequence2<>, Ts> { };
+
+template <typename F, typename... Vs> struct visit_many_result_ : apply_<std::variant, typename unique_sequence_<typename visit_many_result_0_<type_sequence2<>, F, type_sequence2<>, decay_to_args_t<Vs>...>::type>::type> { };
 
 
 } // namespace detail

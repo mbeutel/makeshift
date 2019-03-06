@@ -10,7 +10,7 @@
 #include <type_traits> // for decay<>, integral_constant<>, index_sequence<>, is_nothrow_default_constructible<>
 
 #include <makeshift/type_traits.hpp> // for can_apply<>, none
-#include <makeshift/tuple2.hpp>      // for tuple_index
+#include <makeshift/tuple2.hpp>      // for is_tuple_like<>, tuple_index
 
 #include <makeshift/detail/workaround.hpp> // for cand()
 
@@ -18,29 +18,8 @@
 namespace makeshift
 {
 
-namespace detail
-{
-
-
-template <typename T> using is_tuple_like_r = std::integral_constant<std::size_t, std::tuple_size<T>::value>;
-
-
-} // namespace detail
-
-
 inline namespace types
 {
-
-
-    //ᅟ
-    // Determines whether a type has a tuple-like interface (i.e. whether `std::tuple_size<T>::value` is well-formed).
-    //
-template <typename T> struct is_tuple_like : can_apply<makeshift::detail::is_tuple_like_r, T> { };
-
-    //ᅟ
-    // Determines whether a type has a tuple-like interface (i.e. whether `std::tuple_size<T>::value` is well-formed).
-    //
-template <typename T> constexpr bool is_tuple_like_v = is_tuple_like<T>::value;
 
 
     //ᅟ

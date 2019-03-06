@@ -11,35 +11,14 @@
 
 #include <makeshift/type_traits.hpp> // for can_apply<>
 #include <makeshift/tuple.hpp>       // for is_tuple_like<>
+#include <makeshift/variant2.hpp>    // for is_variant_like<>
 
 
 namespace makeshift
 {
 
-namespace detail
-{
-
-
-template <typename T> using is_variant_like_r = std::integral_constant<std::size_t, std::variant_size<T>::value>;
-
-
-} // namespace detail
-
-
 inline namespace types
 {
-
-
-    //ᅟ
-    // Determines whether a type has a variant-like interface (i.e. whether `std::variant_size<T>::value` is well-formed).
-    //
-template <typename T> struct is_variant_like : can_apply<makeshift::detail::is_variant_like_r, T> { };
-
-    //ᅟ
-    // Determines whether a type has a variant-like interface (i.e. whether `std::variant_size<T>::value` is well-formed).
-    //
-template <typename T> constexpr bool is_variant_like_v = is_variant_like<T>::value;
-
 
 template <typename T>
     struct unknown_value : std::monostate
@@ -223,45 +202,6 @@ public:
         return invoke(std::forward<VariantT>(variant), select_variant_indices_t<std::decay_t<VariantT>, PredT>{ });
     }
 };
-
-template <typename T> struct decay_to_args;
-template <template <typename...> class T, typename... Ts> struct decay_to_args<T<Ts...>> { using type = T<Ts...>; };
-template <template <typename...> class T, typename... Ts> struct decay_to_args<T<Ts...>&> { using type = T<Ts&...>; };
-template <template <typename...> class T, typename... Ts> struct decay_to_args<const T<Ts...>&> { using type = T<const Ts&...>; };
-template <template <typename...> class T, typename... Ts> struct decay_to_args<T<Ts...>&&> { using type = T<Ts&&...>; };
-template <typename T> using decay_to_args_t = typename decay_to_args<T>::type;
-
-template <typename F, typename... ArgsT> using call_result_t = decltype(std::declval<F>()(std::declval<ArgsT>()...));
-
-template <typename R, typename F, typename L, typename... Vs> struct visit_many_result_0_;
-template <typename R, typename F, typename... Ls>
-    struct visit_many_result_0_<R, F, type_sequence<Ls...>>
-{
-    using type = type_sequence<call_result_t<F, Ls...>>;
-};
-template <typename R, typename F, typename... Ls, template <typename...> class V, typename... V0s, typename... Vs>
-    struct visit_many_result_0_<R, F, type_sequence<Ls...>, V<V0s...>, Vs...>
-        : type_sequence_cat<typename visit_many_result_0_<R, F, type_sequence<Ls..., V0s>, Vs...>::type...>
-{
-};
-
-template <typename T, typename Ts> struct is_in_;
-template <typename T> struct is_in_<T, type_sequence<>> : std::false_type{ };
-template <typename T, typename T0, typename... Ts> struct is_in_<T, type_sequence<T0, Ts...>> : is_in_<T, type_sequence<Ts...>> { };
-template <typename T, typename... Ts> struct is_in_<T, type_sequence<T, Ts...>> : std::true_type { };
-
-template <typename T, typename Ts, bool IsIn> struct add_unique_0_;
-template <typename T, typename... Ts> struct add_unique_0_<T, type_sequence<Ts...>, false> { using type = type_sequence<T, Ts...>; };
-template <typename T, typename... Ts> struct add_unique_0_<T, type_sequence<Ts...>, true> { using type = type_sequence<Ts...>; };
-template <typename T, typename Ts> struct add_unique_ : add_unique_0_<T, Ts, is_in_<T, Ts>::value> { };
-
-template <typename Rs, typename Ts> struct unique_sequence_0_;
-template <typename Rs> struct unique_sequence_0_<Rs, type_sequence<>> { using type = Rs; };
-template <typename Rs, typename T, typename... Ts> struct unique_sequence_0_<Rs, type_sequence<T, Ts...>> : unique_sequence_0_<typename add_unique_<T, Rs>::type, type_sequence<Ts...>> { };
-template <typename Ts> struct unique_sequence_ : unique_sequence_0_<type_sequence<>, Ts> { };
-
-template <typename F, typename... Vs> struct visit_many_result_ : apply<std::variant, typename unique_sequence_<typename visit_many_result_0_<type_sequence<>, F, type_sequence<>, decay_to_args_t<Vs>...>::type>::type> { };
-
 
 template <typename R, typename... Vs> struct flat_variant_0_;
 template <template <typename...> class V, typename... Rs> struct flat_variant_0_<V<Rs...>> { using type = V<Rs...>; };
@@ -531,22 +471,6 @@ template <typename VariantT,
     variant_cat(VariantT&& variant)
 {
     return variant_cat()(std::forward<VariantT>(variant));
-}
-
-
-    //ᅟ
-    // Like `std::visit()`, but permits the functor to return different types for different argument types, and returns a variant of the possible results.
-    //
-template <typename F, typename... VariantsT,
-          typename = std::enable_if_t<std::conjunction<is_variant_like<std::decay_t<VariantsT>>...>::value>>
-    constexpr typename makeshift::detail::visit_many_result_<F, VariantsT...>::type
-    visit_many(F&& func, VariantsT&&... variants)
-{
-    using VisitManyResult = typename makeshift::detail::visit_many_result_<F, VariantsT...>::type;
-    return std::visit([func = std::forward<F>(func)](auto&&... args)
-    {
-        return VisitManyResult{ func(std::forward<decltype(args)>(args)...) };
-    }, std::forward<VariantsT>(variants)...);
 }
 
 

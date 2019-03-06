@@ -97,6 +97,18 @@ template <std::size_t I, typename... Ts> using nth_type_ = type_pack_element_<I,
 #undef MAKESHIFT_BUILTIN_TYPE_PACK_ELEMENT_
 
 
+template <typename RSeqT, typename... Ts> struct type_sequence_cat_;
+template <typename RSeqT> struct type_sequence_cat_<RSeqT> { using type = RSeqT; };
+template <template <typename...> class TypeSeq1T, template <typename...> class TypeSeq2T, typename... RSeqT, typename... NSeqT, typename... Ts>
+    struct type_sequence_cat_<TypeSeq1T<RSeqT...>, TypeSeq2T<NSeqT...>, Ts...>
+        : type_sequence_cat_<TypeSeq1T<RSeqT..., NSeqT...>, Ts...> 
+{
+};
+
+template <template <typename...> class Z, typename SeqT> struct apply_;
+template <template <typename...> class Z, template <typename...> class SeqT, typename... Ts> struct apply_<Z, SeqT<Ts...>> { using type = Z<Ts...>; };
+
+
 } // namespace detail
 
 } // namespace makeshift
