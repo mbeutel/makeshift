@@ -3,15 +3,10 @@
 #define INCLUDED_MAKESHIFT_METADATA2_HPP_
 
 
-#include <array>
-#include <tuple>
-#include <utility>     // for move()
-#include <type_traits> // for common_type<>
 #include <string_view>
+#include <type_traits> // for decay<>
 
-#include <makeshift/version.hpp> // for MAKESHIFT_NODISCARD
-
-#include <makeshift/detail/metadata2.hpp> // for values_initializer_t<>, named_values_initializer_t<>
+#include <makeshift/detail/metadata2.hpp>
 
 
 namespace makeshift

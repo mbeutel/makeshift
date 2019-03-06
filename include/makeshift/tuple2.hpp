@@ -9,7 +9,7 @@
 #include <utility>     // for forward<>()
 #include <type_traits> // for decay<>
 
-#include <makeshift/type_traits.hpp>  // for can_apply<>
+#include <makeshift/type_traits2.hpp> // for can_apply<>
 #include <makeshift/version.hpp>      // for MAKESHIFT_NODISCARD
 
 #include <makeshift/detail/tuple2.hpp>
@@ -25,12 +25,12 @@ inline namespace types
     //ᅟ
     // Determines whether a type has a tuple-like interface (i.e. whether `std::tuple_size<T>::value` is well-formed).
     //
-template <typename T> struct is_tuple_like2 : can_apply<makeshift::detail::is_tuple_like2_r, T> { };
+template <typename T> struct is_tuple_like : can_apply<makeshift::detail::is_tuple_like_r, T> { };
 
     //ᅟ
     // Determines whether a type has a tuple-like interface (i.e. whether `std::tuple_size<T>::value` is well-formed).
     //
-template <typename T> constexpr bool is_tuple_like2_v = is_tuple_like2<T>::value;
+template <typename T> constexpr bool is_tuple_like_v = is_tuple_like<T>::value;
 
 
     //ᅟ
@@ -191,7 +191,7 @@ template <typename TupleT, typename T, typename F>
     MAKESHIFT_NODISCARD constexpr auto
     tuple_reduce(TupleT&& tuple, T&& initialValue, F&& func)
 {
-    static_assert(is_tuple_like2_v<std::decay_t<TupleT>>, "first argument must be tuple or tuple-like type");
+    static_assert(is_tuple_like_v<std::decay_t<TupleT>>, "first argument must be tuple or tuple-like type");
     return makeshift::detail::fold_impl(makeshift::detail::left_fold{ },
         std::forward<TupleT>(tuple), std::forward<T>(initialValue), std::forward<F>(func));
 }
@@ -207,7 +207,7 @@ template <typename TupleT, typename T, typename F>
     MAKESHIFT_NODISCARD constexpr auto
     tuple_reduce_left(TupleT&& tuple, T&& initialValue, F&& func)
 {
-    static_assert(is_tuple_like2_v<std::decay_t<TupleT>>, "first argument must be tuple or tuple-like type");
+    static_assert(is_tuple_like_v<std::decay_t<TupleT>>, "first argument must be tuple or tuple-like type");
     return makeshift::detail::fold_impl(makeshift::detail::left_fold{ },
         std::forward<TupleT>(tuple), std::forward<T>(initialValue), std::forward<F>(func));
 }
@@ -223,7 +223,7 @@ template <typename TupleT, typename T, typename F>
     MAKESHIFT_NODISCARD constexpr auto
     tuple_reduce_right(TupleT&& tuple, T&& initialValue, F&& func)
 {
-    static_assert(is_tuple_like2_v<std::decay_t<TupleT>>, "first argument must be tuple or tuple-like type");
+    static_assert(is_tuple_like_v<std::decay_t<TupleT>>, "first argument must be tuple or tuple-like type");
     return makeshift::detail::fold_impl(makeshift::detail::right_fold{ },
         std::forward<TupleT>(tuple), std::forward<T>(initialValue), std::forward<F>(func));
 }
@@ -241,7 +241,7 @@ template <typename TupleT, typename P>
     MAKESHIFT_NODISCARD constexpr auto
     tuple_all_of(TupleT&& tuple, P&& pred)
 {
-    static_assert(is_tuple_like2_v<std::decay_t<TupleT>>, "first argument must be tuple or tuple-like type");
+    static_assert(is_tuple_like_v<std::decay_t<TupleT>>, "first argument must be tuple or tuple-like type");
     return makeshift::detail::fold_impl(makeshift::detail::all_fold{ },
         std::forward<TupleT>(tuple), true, std::forward<P>(pred));
 }
@@ -259,7 +259,7 @@ template <typename TupleT, typename P>
     MAKESHIFT_NODISCARD constexpr auto
     tuple_any_of(TupleT&& tuple, P&& pred)
 {
-    static_assert(is_tuple_like2_v<std::decay_t<TupleT>>, "first argument must be tuple or tuple-like type");
+    static_assert(is_tuple_like_v<std::decay_t<TupleT>>, "first argument must be tuple or tuple-like type");
     return makeshift::detail::fold_impl(makeshift::detail::any_fold{ },
         std::forward<TupleT>(tuple), false, std::forward<P>(pred));
 }
@@ -277,7 +277,7 @@ template <typename TupleT, typename P>
     MAKESHIFT_NODISCARD constexpr auto
     tuple_none_of(TupleT&& tuple, P&& pred)
 {
-    static_assert(is_tuple_like2_v<std::decay_t<TupleT>>, "first argument must be tuple or tuple-like type");
+    static_assert(is_tuple_like_v<std::decay_t<TupleT>>, "first argument must be tuple or tuple-like type");
     return !makeshift::detail::fold_impl(makeshift::detail::any_fold{ },
         std::forward<TupleT>(tuple), false, std::forward<P>(pred));
 }

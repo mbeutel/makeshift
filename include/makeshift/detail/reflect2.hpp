@@ -7,8 +7,7 @@
 #include <cstddef>     // for size_t
 #include <type_traits> // for is_base_of<>, integral_constant<>
 
-#include <makeshift/type_traits.hpp>  // for can_apply<>
-#include <makeshift/type_traits2.hpp> // for type<>
+#include <makeshift/type_traits2.hpp> // for can_apply<>, type<>
 #include <makeshift/metadata2.hpp>    // for named2<>
 #include <makeshift/tuple2.hpp>       // for array_transform2()
 

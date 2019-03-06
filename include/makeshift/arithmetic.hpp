@@ -4,14 +4,13 @@
 
 
 #include <array>
-#include <iosfwd>      // for ostream
-#include <stdexcept>   // for runtime_error
-#include <type_traits> // for enable_if<>
+#include <iosfwd>    // for ostream
+#include <stdexcept> // for runtime_error
 
-#include <makeshift/utility.hpp>      // for dim_t
-#include <makeshift/version.hpp>      // for MAKESHIFT_NODISCARD, MAKESHIFT_CONSTEXPR_CXX20
+#include <makeshift/utility2.hpp> // for dim2
+#include <makeshift/version.hpp>  // for MAKESHIFT_NODISCARD, MAKESHIFT_CONSTEXPR_CXX20
 
-#include <makeshift/detail/arithmetic.hpp> // for checked_operations<>
+#include <makeshift/detail/arithmetic.hpp>
 
 
 namespace makeshift
@@ -45,7 +44,7 @@ template <typename V>
     }
 };
 
-template <typename V, dim_t NumFactors>
+template <typename V, dim2 NumFactors>
     struct factorization
 {
     V remainder;

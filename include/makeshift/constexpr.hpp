@@ -35,7 +35,7 @@ template <typename R>
     //
 template <typename R>
     MAKESHIFT_NODISCARD constexpr std::invoke_result_t<R>
-    retrieve(R) noexcept
+    retrieve(const R&) noexcept
 {
     return makeshift::detail::stateless_functor<R>{ }();
 }

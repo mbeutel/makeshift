@@ -23,6 +23,17 @@ inline namespace types
 
 
     //ᅟ
+    // Determines whether a type has a variant-like interface (i.e. whether `std::variant_size<T>::value` is well-formed).
+    //
+template <typename T> struct is_variant_like : can_apply<makeshift::detail::is_variant_like_r, T> { };
+
+    //ᅟ
+    // Determines whether a type has a variant-like interface (i.e. whether `std::variant_size<T>::value` is well-formed).
+    //
+template <typename T> constexpr bool is_variant_like_v = is_variant_like<T>::value;
+
+
+    //ᅟ
     // Exception class thrown by `expand()` if the runtime value to be expanded is not among the values listed.
     //
 class unsupported_runtime_value : public std::runtime_error
@@ -149,6 +160,24 @@ template <typename T>
         makeshift::detail::values_of_retriever<T>{ });
     Expects(maybeResult.has_value());
     return *maybeResult;
+}
+
+
+    //ᅟ
+    // Like `std::visit()`, but permits the functor to return different types for different argument types, and returns a variant of the possible results.
+    //
+template <typename F, typename... VariantsT,
+          typename = std::enable_if_t<std::conjunction<is_variant_like<std::decay_t<VariantsT>>...>::value>>
+    constexpr typename makeshift::detail::visit_many_result_<F, VariantsT...>::type
+    visit_many(F&& func, VariantsT&&... variants)
+{
+    using VisitManyResult = typename makeshift::detail::visit_many_result_<F, VariantsT...>::type;
+    return std::visit(
+        [func = std::forward<F>(func)](auto&&... args)
+        {
+            return VisitManyResult{ func(std::forward<decltype(args)>(args)...) };
+        },
+        std::forward<VariantsT>(variants)...);
 }
 
 

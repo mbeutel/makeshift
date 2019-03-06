@@ -7,6 +7,8 @@
 #include <cstddef> // for size_t
 #include <utility> // for move(), integer_sequence<>
 
+#include <makeshift/version.hpp> // for MAKESHIFT_NODISCARD
+
 
 namespace makeshift
 {
@@ -39,7 +41,7 @@ template <typename T, std::size_t N>
     constexpr values_t(const std::array<T, N>& _values) : values(_values) { }
 };
 template <typename T, std::size_t N>
-    constexpr std::array<T, N> to_array(const values_t<T, N>& values)
+    MAKESHIFT_NODISCARD constexpr std::array<T, N> to_array(const values_t<T, N>& values)
 {
     return values.values;
 }

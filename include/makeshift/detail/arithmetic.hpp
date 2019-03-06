@@ -4,11 +4,12 @@
 
 
 #include <limits>
-#include <type_traits> // for is_[un]signed<>, is_integral<>
 #include <cstdint>     // for [u]int(8|16|32|64)_t
+#include <type_traits> // for make_unsigned<>, is_signed<>, is_integral<>, is_same<>
 
 #include <gsl/gsl_assert> // for Expects()
 
+#include <makeshift/utility2.hpp> // for dim2
 #include <makeshift/version.hpp> // for MAKESHIFT_FORCEINLINE
 
 
@@ -21,7 +22,7 @@ inline namespace arithmetic
 
 template <typename V>
     struct factor;
-template <typename V, dim_t NumFactors>
+template <typename V, dim2 NumFactors>
     struct factorization;
 
 

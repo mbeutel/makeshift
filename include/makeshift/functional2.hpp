@@ -3,9 +3,11 @@
 #define INCLUDED_MAKESHIFT_FUNCTIONAL2_HPP_
 
 
-#include <functional> // for hash<>
+#include <utility>     // for move()
+#include <functional>  // for hash<>
+#include <type_traits> // for decay<>
 
-#include <makeshift/version.hpp>  // for MAKESHIFT_NODISCARD
+#include <makeshift/version.hpp>  // for MAKESHIFT_NODISCARD, MAKESHIFT_EMPTY_BASES
 
 #include <makeshift/detail/functional2.hpp> // for hashable_base
 
@@ -15,6 +17,25 @@ namespace makeshift
 
 inline namespace types
 {
+
+
+    //ᅟ
+    // Constructs a functor wrapper that selects the matching overload among a number of given functors.
+    //ᅟ
+    //ᅟ    auto type_name_func = overload(
+    //ᅟ        [](int)   { return "int"; },
+    //ᅟ        [](float) { return "float"; },
+    //ᅟ        [](auto)  { return "unknown"; }
+    //ᅟ    );
+    //
+template <typename... Fs>
+    struct MAKESHIFT_EMPTY_BASES overload2 : Fs...
+{
+    constexpr overload2(Fs... fs) : Fs(std::move(fs))... { }
+    using Fs::operator ()...;
+};
+template <typename... Ts>
+    overload2(Ts&&...) -> overload2<std::decay_t<Ts>...>;
 
 
     //ᅟ
@@ -38,124 +59,6 @@ template <>
         return hash2<T>{ }(arg);
     }
 };
-
-
-    //ᅟ
-    // Represents the ability of a type to be compared for equality with operators `==` and `!=`.
-    //
-struct equatable
-{
-    using default_operation = std::equal_to<>;
-
-    template <typename EqualToT = default_operation>
-        struct interface
-    {
-        template <typename T,
-                  typename = decltype(EqualToT{ }(std::declval<const T&>(), std::declval<const T&>()))>
-            MAKESHIFT_NODISCARD friend constexpr bool operator ==(const T& lhs, const T& rhs) noexcept
-        {
-            return EqualToT{ }(lhs, rhs);
-        }
-        template <typename T,
-                  typename = decltype(!(std::declval<const T&>() == std::declval<const T&>()))>
-            MAKESHIFT_NODISCARD friend constexpr bool operator !=(const T& lhs, const T& rhs) noexcept
-        {
-            return !(rhs == lhs);
-        }
-    };
-};
-
-
-    //ᅟ
-    // Represents the ability of a type to be hashed using `hash<>`.
-    //
-struct hashable
-{
-    using default_operation = hash2<>;
-
-    template <typename HashT = default_operation>
-        struct interface : private makeshift::detail::hashable_base
-    {
-        using hashable_hash = HashT;
-    };
-};
-
-template <typename T>
-    struct hash2<T, std::enable_if_t<std::is_base_of<makeshift::detail::hashable_base, T>::value>>
-        : T::hashable_hash
-{
-    using T::hashable_hash::hashable_hash;
-};
-
-
-    //ᅟ
-    // Represents the ability of a type to be compared for order with operators `<`, `<=`, `>`, and `>=`.
-    //
-struct comparable
-{
-    using default_operation = std::less<>;
-
-    template <typename LessT = default_operation>
-        struct interface
-    {
-        template <typename T,
-                  typename = decltype(LessT{ }(std::declval<const T&>(), std::declval<const T&>()))>
-            MAKESHIFT_NODISCARD friend constexpr bool operator <(const T& lhs, const T& rhs) noexcept
-        {
-            return LessT{ }(lhs, rhs);
-        }
-        template <typename T,
-                  typename = decltype(!(std::declval<const T&>() < std::declval<const T&>()))>
-            MAKESHIFT_NODISCARD friend constexpr bool operator <=(const T& lhs, const T& rhs) noexcept
-        {
-            return !(rhs < lhs); // define in terms of LessT
-        }
-        template <typename T,
-                  typename = decltype(std::declval<const T&>() < std::declval<const T&>())>
-            MAKESHIFT_NODISCARD friend constexpr bool operator >(const T& lhs, const T& rhs) noexcept
-        {
-            return (rhs < lhs);
-        }
-        template <typename T,
-                  typename = decltype(!(std::declval<const T&>() < std::declval<const T&>()))>
-            MAKESHIFT_NODISCARD friend constexpr bool operator >=(const T& lhs, const T& rhs) noexcept
-        {
-            return !(lhs < rhs);
-        }
-    };
-};
-
-
-/*
-TODO:
-Req' for op_tag:
-
-Interface:
-- { op_tag = op... } -> op_stack
-- op_stack | ... -> op_stack
-- op_tag(op_stack) -> op
-
-Implementation:
-- fallback, if any
-- ...that's it?
-
-ops:
-- to_string
-- to_stream, from_stream
-- memory_usage
-- less, equal_to, hash
-
-
-We can generalize the base class if
-- we know op_tag -> compound_op
-- we can define 
-
-
-
-- default impl, or compiler error if not available
-- impl (possibly templatized) for known types
-- ability to inject custom impl
-*/
 
 
 } // inline namespace types

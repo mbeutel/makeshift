@@ -9,6 +9,43 @@ Goals for makeshift 3.x:
 Constexpr function args for C++14: https://mpark.github.io/programming/2017/05/26/constexpr-function-parameters/
 
 
+-----
+
+
+For "composable customization point objects" aka "serializers and comparers 2.0" (still looking for the right term) we need:
+
+Req' for op_tag:
+
+Interface:
+- { op_tag = op... } -> op_stack
+- op_stack | ... -> op_stack
+- op_tag(op_stack) -> op
+
+Implementation:
+- fallback, if any
+- ...that's it?
+
+ops:
+- to_string
+- to_stream, from_stream
+- memory_usage
+- less, equal_to, hash
+
+
+We can generalize the base class if
+- we know op_tag -> compound_op
+- we can define 
+
+
+
+- default impl, or compiler error if not available
+- impl (possibly templatized) for known types
+- ability to inject custom impl
+
+
+-----
+
+
 For serialization we need:
 - custom fields:
 	General:

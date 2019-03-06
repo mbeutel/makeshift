@@ -14,15 +14,16 @@ find_package(MS-GSL REQUIRED)
 # test target
 add_executable(test-makeshift
     "main.cpp"
-    "tests/test-arithmetic.cpp"
-    "tests/test-quantity.cpp"
-    "tests/test-tuple.cpp"
-    "tests/test-tuple2.cpp"
-    "tests/test-reflect2.cpp"
-    "tests/test-variant.cpp"
-    "tests/test-variant2.cpp"
-    "tests/test-utility.cpp"
-    "tests/test-metadata.cpp")
+    "test-arithmetic.cpp"
+    "test-quantity.cpp"
+    "test-tuple.cpp"
+    "test-tuple2.cpp"
+    "test-reflect2.cpp"
+    "test-variant.cpp"
+    "test-variant2.cpp"
+    "test-utility.cpp"
+    "test-utility2.cpp"
+    "test-metadata.cpp")
 
 # compiler settings
 include(CMakeshift/TargetCompileSettings)

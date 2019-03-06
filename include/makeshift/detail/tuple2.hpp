@@ -9,10 +9,9 @@
 #include <utility>     // for move(), forward<>(), integer_sequence<>, tuple_element<>, tuple_size<>, get<>()
 #include <type_traits> // for decay<>, integral_constant<>, conjunction<>, disjunction<>
 
-#include <makeshift/type_traits.hpp>  // for can_apply<>
-#include <makeshift/type_traits2.hpp> // for type<>, type_sequence2<>
+#include <makeshift/type_traits2.hpp> // for can_apply<>, type<>, type_sequence2<>
 
-#include <makeshift/detail/workaround.hpp> // for cand()
+#include <makeshift/detail/workaround.hpp> // for cand<>()
 
 
 namespace makeshift
@@ -22,7 +21,7 @@ namespace detail
 {
 
 
-template <typename T> using is_tuple_like2_r = std::integral_constant<std::size_t, std::tuple_size<T>::value>;
+template <typename T> using is_tuple_like_r = std::integral_constant<std::size_t, std::tuple_size<T>::value>;
 
 
 } // namespace detail
@@ -51,7 +50,7 @@ namespace detail
 {
 
 
-template <typename T> struct is_tuple_arg : std::disjunction<std::is_same<std::decay_t<T>, tuple_index_t>, can_apply<is_tuple_like2_r, std::decay_t<T>>> { };
+template <typename T> struct is_tuple_arg : std::disjunction<std::is_same<std::decay_t<T>, tuple_index_t>, can_apply<is_tuple_like_r, std::decay_t<T>>> { };
 template <typename T> constexpr bool is_tuple_arg_v = is_tuple_arg<T>::value;
 
 template <typename... Ts> struct are_tuple_args : std::conjunction<is_tuple_arg<Ts>...> { };
@@ -119,10 +118,10 @@ template <typename R, typename T> struct transfer_ref_<R&, T> { using type = T&;
 template <typename R, typename T> struct transfer_ref_<const R&, T> { using type = const T&; };
 template <typename R, typename T> struct transfer_ref_<R&&, T> { using type = T; };
 
-template <typename T> struct wrap_type_ { using type = makeshift::type<T>; };
-template <typename T> struct wrap_type_<type<T>> : wrap_type_<T> { };
+template <typename T> struct wrap_type_ { using type = makeshift::types::type<T>; };
+template <typename T> struct wrap_type_<makeshift::types::type<T>> : wrap_type_<T> { };
 template <typename T> struct unwrap_type_ { using type = T; };
-template <typename T> struct unwrap_type_<type<T>> : unwrap_type_<T> { };
+template <typename T> struct unwrap_type_<makeshift::types::type<T>> : unwrap_type_<T> { };
 
 template <std::ptrdiff_t N, bool HomogeneousArgs, typename F, typename... Ts>
     struct homogeneous_result_;
