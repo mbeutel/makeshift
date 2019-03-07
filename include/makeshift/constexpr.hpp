@@ -100,6 +100,25 @@ template <typename F, typename... Rs>
 }
 
 
+    //ᅟ
+    // Returns a retriever for the value of the function applied to the retrievers' values.
+    //ᅟ
+    //ᅟ    auto getF = [](auto indexR)
+    //ᅟ    {
+    //ᅟ        auto tuple = ...;
+    //ᅟ        return std::get<retrieve(indexR)>(tuple);
+    //ᅟ    };
+    //ᅟ    auto indexR = retriever_extend(getF, []{ return 1; });
+    //
+template <typename RF, typename... Rs>
+    MAKESHIFT_NODISCARD constexpr makeshift::detail::retriever_extend_functor<RF, Rs...>
+    retriever_extend(RF, Rs...) noexcept
+{
+    static_assert(std::is_empty<RF>::value, "extender must be stateless");
+    static_assert(makeshift::detail::cand(is_retriever_v<Rs>...), "arguments must be retrievers");
+    return { };
+}
+
 
 } // inline namespace types
 

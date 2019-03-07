@@ -59,6 +59,15 @@ template <typename F, typename... Rs>
     }
 };
 
+template <typename RF, typename... Rs>
+    struct retriever_extend_functor
+{
+    constexpr auto operator ()(void) const
+    {
+        return retriever<RF>{ }(retriever<Rs>{ }...);
+    }
+};
+
 
 } // namespace detail
 
