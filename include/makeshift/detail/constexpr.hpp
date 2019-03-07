@@ -1,10 +1,10 @@
-
+﻿
 #ifndef INCLUDED_MAKESHIFT_DETAIL_CONSTEXPR_HPP_
 #define INCLUDED_MAKESHIFT_DETAIL_CONSTEXPR_HPP_
 
 
 #include <utility>     // for forward<>()
-#include <type_traits> // for is_empty<>, is_default_constructible<>
+#include <type_traits> // for is_empty<>, is_default_constructible<>, integral_constant<>
 
 
 namespace makeshift
@@ -12,6 +12,12 @@ namespace makeshift
 
 namespace detail
 {
+
+
+template <typename F> using is_retriever_r = decltype(std::declval<F>()());
+
+    // idea taken from Ben Deane & Jason Turner, "constexpr ALL the things!", C++Now 2017
+template <typename F> using is_constexpr_retriever_r = std::integral_constant<bool, (std::declval<F>()(), true)>;
 
 
     // Workaround for non-default-constructible lambdas in C++17.
@@ -41,14 +47,15 @@ public:
 template <typename F, bool IsDefaultConstructible> struct stateless_functor_0_;
 template <typename F> struct stateless_functor_0_<F, true> { using type = F; };
 template <typename F> struct stateless_functor_0_<F, false> { using type = stateless_lambda<F>; };
-template <typename F> using stateless_functor = typename stateless_functor_0_<F, std::is_default_constructible_v<F>>::type;
+template <typename R> using retriever = typename stateless_functor_0_<R, std::is_default_constructible<R>::value>::type;
+
 
 template <typename F, typename... Rs>
-    struct constexpr_transform_functor
+    struct retriever_transform_functor
 {
     constexpr auto operator ()(void) const
     {
-        return stateless_functor<F>{ }(stateless_functor<Rs>{ }()...);
+        return retriever<F>{ }(retriever<Rs>{ }()...);
     }
 };
 
