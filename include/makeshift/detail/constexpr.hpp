@@ -14,12 +14,6 @@ namespace detail
 {
 
 
-template <typename F> using is_retriever_r = decltype(std::declval<F>()());
-
-    // idea taken from Ben Deane & Jason Turner, "constexpr ALL the things!", C++Now 2017
-template <typename F> using is_constexpr_retriever_r = std::integral_constant<bool, (std::declval<F>()(), true)>;
-
-
     // Workaround for non-default-constructible lambdas in C++17.
     // Does not rely on UB (as far as I can tell). Works with GCC 8.2, Clang 7.0, MSVC 19.20, and ICC 19.0 (also `constexpr` evaluation).
     // Idea taken from http://pfultz2.com/blog/2014/09/02/static-lambda/ and modified to avoid casts.
@@ -48,6 +42,12 @@ template <typename F, bool IsDefaultConstructible> struct stateless_functor_0_;
 template <typename F> struct stateless_functor_0_<F, true> { using type = F; };
 template <typename F> struct stateless_functor_0_<F, false> { using type = stateless_lambda<F>; };
 template <typename R> using retriever = typename stateless_functor_0_<R, std::is_default_constructible<R>::value>::type;
+
+
+//template <typename F> using is_retriever_r = decltype(retriever<F>{ }());
+
+    // idea taken from Ben Deane & Jason Turner, "constexpr ALL the things!", C++Now 2017
+template <typename F> using is_constexpr_retriever_r = std::integral_constant<bool, (retriever<F>{ }(), true)>;
 
 
 template <typename F, typename... Rs>

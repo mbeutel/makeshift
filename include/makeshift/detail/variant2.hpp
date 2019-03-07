@@ -295,7 +295,7 @@ template <typename C, typename... FactorsT>
 template <std::size_t N, typename C, typename... Ts>
     constexpr auto to_array(const member_values_t<N, C, Ts...>& memberValues) noexcept
 {
-    return to_array(makeshift::to_value_product(memberValues));
+    return to_array(makeshift::detail::to_value_product(memberValues));
 }
 
 
