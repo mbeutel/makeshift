@@ -5,7 +5,9 @@
 
 #include <cstddef>     // for size_t
 #include <utility>     // for tuple_size<>, tuple_element<>
-#include <type_traits> // for integral_constant<>, declval<>(), conjunction<>, is_enum<>
+#include <type_traits> // for integral_constant<>, declval<>(), conjunction<>, is_enum<>, is_same<>
+
+#include <makeshift/version.hpp> // for MAKESHIFT_NODISCARD
 
 #include <makeshift/detail/type_traits2.hpp>
 
@@ -17,8 +19,29 @@ namespace detail
 {
 
 
-    // needed because `type<>` cannot have a member `type`
-template <typename T> struct type_t { using type = T; };
+    //ᅟ
+    // `type<>` is a generic type tag.
+    //ᅟ
+    // Use `type_v<T>` as a value representation of `T`.
+    //
+template <typename T>
+    struct type_t
+{
+    using type = T;
+};
+
+template <typename T1, typename T2>
+    MAKESHIFT_NODISCARD constexpr std::is_same<T1, T2>
+    operator ==(type_t<T1>, type_t<T2>) noexcept
+{
+    return { };
+}
+template <typename T1, typename T2>
+    MAKESHIFT_NODISCARD constexpr std::negation<std::is_same<T1, T2>>
+    operator !=(type_t<T1>, type_t<T2>) noexcept
+{
+    return { };
+}
 
 
 } // namespace detail
