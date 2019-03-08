@@ -61,6 +61,48 @@ template <>
 };
 
 
+    //ᅟ
+    // Invokes a callable object. (This is a constexpr version of `std::invoke()`.)
+    //
+template <typename F, typename... ArgsT>
+    constexpr decltype(auto) invoke(F&& f, ArgsT&&... args)
+{
+    return std::forward<F>(f)(std::forward<ArgsT>(args)...);
+}
+
+    //ᅟ
+    // Invokes a callable object. (This is a constexpr version of `std::invoke()`.)
+    //
+template <typename F, typename C, typename Arg0T, typename... ArgsT>
+    constexpr decltype(auto) invoke(F C::* f, Arg0T&& arg0, ArgsT&&... args)
+{
+#ifdef MAKESHIFT_CXX17
+    if constexpr (std::is_member_function_pointer<F C::*>::value)
+    {
+        if constexpr (std::is_base_of<C, std::decay_t<Arg0T>>::value)
+            return (std::forward<Arg0T>(arg0).*f)(std::forward<ArgsT>(args)...);
+        else if constexpr (makeshift::detail::is_reference_wrapper<std::decay_t<Arg0T>>::value)
+            return (arg0.get().*f)(std::forward<ArgsT>(args)...);
+        else
+            return ((*std::forward<Arg0T>(arg0)).*f)(std::forward<ArgsT>(args)...);
+    }
+    else
+    {
+        static_assert(std::is_member_object_pointer<F C::*>::value);
+        static_assert(sizeof...(ArgsT) == 0);
+        if constexpr (std::is_base_of<C, std::decay_t<Arg0T>>::value)
+            return std::forward<Arg0T>(arg0).*f;
+        else if constexpr (makeshift::detail::is_reference_wrapper<std::decay_t<Arg0T>>::value)
+            return arg0.get().*f;
+        else
+            return (*std::forward<Arg0T>(arg0)).*f;
+    }
+#else // MAKESHIFT_CXX17
+    return makeshift::detail::invoke_impl(std::is_member_function_pointer<F C::*>{ }, f, std::forward<Arg0T>(arg0), std::forward<ArgsT>(args)...);
+#endif // MAKESHIFT_CXX17
+}
+
+
 } // inline namespace types
 
 } // namespace makeshift
