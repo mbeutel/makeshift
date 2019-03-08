@@ -189,7 +189,7 @@ template <typename F, typename... VariantsT,
     //ᅟ    constexpr auto floatType = retrieve_variant(floatTypeR); // = type_v<double>
     //
 template <typename R>
-    MAKESHIFT_NODISCARD constexpr auto retrieve_variant(const R& variantR)
+    MAKESHIFT_NODISCARD constexpr auto retrieve_variant(const R&)
 {
     static_assert(is_variant_like_v<retrieved_t<R>>, "argument must retrieve a variant");
     constexpr auto theVariant = makeshift::retrieve<R>();

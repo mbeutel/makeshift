@@ -139,14 +139,14 @@ TEST_CASE("variant2")
                 };
             });
         CHECK(v1VO.has_value());
-        std::visit([v1](auto v1R)
+        std::visit([](auto v1R)
             {
                 constexpr auto v1CV = mk::retrieve(v1R);
-                constexpr auto v1C = mk::retrieve_variant(v1R);
-                //constexpr std::size_t v1CI = v1CV.index();
-                //constexpr auto v1C = std::get<v1CI>(v1CV);
+                //constexpr auto v1C = mk::retrieve_variant(v1R);
+                constexpr std::size_t v1CI = v1CV.index();
+                constexpr auto v1C = std::get<v1CI>(v1CV);
                 //constexpr auto v1C = std::get<v1CV.index()>(v1CV);
-                //CHECK(v1C == v1);
+                CHECK(v1C == mk::type_v<float>);
             },
             *v1VO);
     }
