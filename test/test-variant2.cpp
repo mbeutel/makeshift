@@ -23,6 +23,8 @@ constexpr inline auto reflect(mk::type<Precision>)
     };
 }
 
+using FloatType = std::variant<mk::type<float>, mk::type<double>>;
+
 struct Params
 {
     Precision precision;
@@ -42,6 +44,8 @@ struct Params
         return !(lhs == rhs);
     }
 };
+
+template <typename...> class TD;
 
 TEST_CASE("variant2")
 {
@@ -124,5 +128,26 @@ TEST_CASE("variant2")
                 CHECK(s2C == s2);
             },
             *s2VO);
+
+        auto v1 = FloatType{ mk::type_v<float> };
+        auto v1VO = mk::try_expand2(v1,
+            []
+            {
+                return mk::values<FloatType> = {
+                    FloatType{ mk::type_v<float> },
+                    FloatType{ mk::type_v<double> }
+                };
+            });
+        CHECK(v1VO.has_value());
+        std::visit([v1](auto v1R)
+            {
+                constexpr auto v1CV = mk::retrieve(v1R);
+                constexpr auto v1C = mk::retrieve_variant(v1R);
+                //constexpr std::size_t v1CI = v1CV.index();
+                //constexpr auto v1C = std::get<v1CI>(v1CV);
+                //constexpr auto v1C = std::get<v1CV.index()>(v1CV);
+                //CHECK(v1C == v1);
+            },
+            *v1VO);
     }
 }

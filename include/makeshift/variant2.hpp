@@ -181,6 +181,22 @@ template <typename F, typename... VariantsT,
 }
 
 
+    //ᅟ
+    // Extracts the value of a retriever of a variant.
+    //ᅟ
+    //ᅟ    using FloatType = std::variant<type<float>, type<double>>;
+    //ᅟ    auto floatTypeR = []{ return FloatType{ type_v<double> } };
+    //ᅟ    constexpr auto floatType = retrieve_variant(floatTypeR); // = type_v<double>
+    //
+template <typename R>
+    MAKESHIFT_NODISCARD constexpr auto retrieve_variant(const R& variantR)
+{
+    static_assert(is_variant_like_v<retrieved_t<R>>, "argument must retrieve a variant");
+    constexpr auto theVariant = makeshift::retrieve<R>();
+    return std::get<theVariant.index()>(theVariant);
+}
+
+
 } // inline namespace types
 
 } // namespace makeshift
