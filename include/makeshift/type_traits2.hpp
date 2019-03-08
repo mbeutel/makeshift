@@ -62,7 +62,7 @@ template <typename T> using type = makeshift::detail::type_t<T>;
     //ᅟ
     // Use `type_v<T>` as a value representation of `T` for tag dispatching.
     //
-template <typename T> constexpr inline type<T> type_v { };
+template <typename T> constexpr inline makeshift::detail::type_t<T> type_v { };
 
 
     //ᅟ

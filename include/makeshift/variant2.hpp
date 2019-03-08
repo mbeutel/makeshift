@@ -63,7 +63,7 @@ constexpr inline makeshift::detail::member_values_initializer_t member_values = 
     //ᅟ        bitsV.value());
     //
 template <typename T, typename R, typename HashT, typename EqualToT>
-    MAKESHIFT_NODISCARD constexpr auto try_expand2(const T& value, R valuesR, HashT&& hash, EqualToT&& equal)
+    MAKESHIFT_NODISCARD constexpr auto try_expand2(const T& value, const R& valuesR, HashT&& hash, EqualToT&& equal)
 {
     return makeshift::detail::expand2_impl0(value, valuesR, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
 }
@@ -83,7 +83,7 @@ template <typename T, typename R, typename HashT, typename EqualToT>
     //ᅟ        bitsV.value());
     //
 template <typename T, typename R>
-    MAKESHIFT_NODISCARD constexpr auto try_expand2(const T& value, R valuesR)
+    MAKESHIFT_NODISCARD constexpr auto try_expand2(const T& value, const R& valuesR)
 {
     return makeshift::try_expand2(value, valuesR, hash2<>{ }, std::equal_to<>{ });
 }
@@ -106,7 +106,7 @@ template <typename T, typename R>
     //ᅟ        bitsV);
     //
 template <typename T, typename R, typename HashT, typename EqualToT>
-    MAKESHIFT_NODISCARD constexpr auto expand2_or_throw(const T& value, R valuesR, HashT&& hash, EqualToT&& equal)
+    MAKESHIFT_NODISCARD constexpr auto expand2_or_throw(const T& value, const R& valuesR, HashT&& hash, EqualToT&& equal)
 {
     auto maybeResult = makeshift::try_expand2(value, valuesR, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
     if (!maybeResult.has_value())
@@ -130,7 +130,7 @@ template <typename T, typename R, typename HashT, typename EqualToT>
     //ᅟ        bitsV);
     //
 template <typename T, typename R>
-    MAKESHIFT_NODISCARD constexpr auto expand2_or_throw(const T& value, R valuesR)
+    MAKESHIFT_NODISCARD constexpr auto expand2_or_throw(const T& value, const R& valuesR)
 {
     return makeshift::expand2_or_throw(value, valuesR, hash2<>{ }, std::equal_to<>{ });
 }

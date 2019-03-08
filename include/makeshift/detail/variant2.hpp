@@ -304,7 +304,8 @@ template <typename T, typename R, std::size_t I>
 {
     constexpr T operator ()(void) const
     {
-        return makeshift::retrieve<R>()[I];
+        constexpr auto lvalues = makeshift::retrieve<R>();
+        return lvalues[I];
     }
 };
 

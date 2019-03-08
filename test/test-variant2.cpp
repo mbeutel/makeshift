@@ -45,7 +45,6 @@ struct Params
     }
 };
 
-template <typename...> class TD;
 
 TEST_CASE("variant2")
 {
@@ -67,9 +66,11 @@ TEST_CASE("variant2")
     {
         auto p1 = Precision::double_;
         auto p1V = mk::expand2(p1);
-        std::visit([p1](auto p1R)
+        std::visit(
+            [p1](auto p1R)
             {
-                constexpr Precision p1C = mk::retrieve(p1R);
+                //constexpr Precision p1C = mk::retrieve(p1R);
+                constexpr Precision p1C = p1R();
                 CHECK(p1C == p1);
             },
             p1V);
@@ -81,9 +82,11 @@ TEST_CASE("variant2")
                 return mk::values<Precision> = { Precision::single, Precision::double_ };
             });
         CHECK(p2VO.has_value());
-        std::visit([p2](auto p2R)
+        std::visit(
+            [p2](auto p2R)
             {
-                constexpr Precision p2C = mk::retrieve(p2R);
+                //constexpr Precision p2C = mk::retrieve(p2R);
+                constexpr Precision p2C = p2R();
                 CHECK(p2C == p2);
             },
             *p2VO);
@@ -106,9 +109,11 @@ TEST_CASE("variant2")
                 };
             });
         CHECK(s1VO.has_value());
-        std::visit([s1](auto s1R)
+        std::visit(
+            [s1](auto s1R)
             {
-                constexpr Params s1C = mk::retrieve(s1R);
+                //constexpr Params s1C = mk::retrieve(s1R);
+                constexpr Params s1C = s1R();
                 CHECK(s1C == s1);
             },
             *s1VO);
@@ -122,14 +127,16 @@ TEST_CASE("variant2")
                     * (mk::member_values(&Params::numThreadsX, &Params::numThreadsY) = { { 16, 16 }, { 32, 32 } });
             });
         CHECK(s2VO.has_value());
-        std::visit([s2](auto s2R)
+        std::visit(
+            [s2](auto s2R)
             {
-                constexpr Params s2C = mk::retrieve(s2R);
+                //constexpr Params s2C = mk::retrieve(s2R);
+                constexpr Params s2C = s2R();
                 CHECK(s2C == s2);
             },
             *s2VO);
 
-        auto v1 = FloatType{ mk::type_v<float> };
+        auto v1 = FloatType{ mk::type_v<double> };
         auto v1VO = mk::try_expand2(v1,
             []
             {
@@ -139,15 +146,17 @@ TEST_CASE("variant2")
                 };
             });
         CHECK(v1VO.has_value());
-        std::visit([](auto v1R)
+        auto v1V = *v1VO;
+
+        std::visit(
+            [](auto v1R)
             {
+#ifndef _MSC_VER // bug: https://developercommunity.visualstudio.com/content/problem/483944/vc2017vc2019-stdvariant-stdvisit-constexpr-error-c.html
                 constexpr auto v1CV = mk::retrieve(v1R);
-                //constexpr auto v1C = mk::retrieve_variant(v1R);
-                constexpr std::size_t v1CI = v1CV.index();
-                constexpr auto v1C = std::get<v1CI>(v1CV);
-                //constexpr auto v1C = std::get<v1CV.index()>(v1CV);
+                constexpr auto v1C = std::get<v1CV.index()>(v1CV);
                 CHECK(v1C == mk::type_v<float>);
+#endif // _MSC_VER
             },
-            *v1VO);
+            v1V);
     }
 }

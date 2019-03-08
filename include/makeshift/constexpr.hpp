@@ -92,7 +92,7 @@ template <typename R>
     //
 template <typename F, typename... Rs>
     MAKESHIFT_NODISCARD constexpr makeshift::detail::retriever_transform_functor<F, Rs...>
-    retriever_transform(F, Rs...) noexcept
+    retriever_transform(const F&, const Rs&...) noexcept
 {
     static_assert(std::is_empty<F>::value, "transformer must be stateless");
     static_assert(makeshift::detail::cand(is_retriever_v<Rs>...), "arguments must be retrievers");
@@ -112,7 +112,7 @@ template <typename F, typename... Rs>
     //
 template <typename RF, typename... Rs>
     MAKESHIFT_NODISCARD constexpr makeshift::detail::retriever_extend_functor<RF, Rs...>
-    retriever_extend(RF, Rs...) noexcept
+    retriever_extend(const RF&, const Rs&...) noexcept
 {
     static_assert(std::is_empty<RF>::value, "extender must be stateless");
     static_assert(makeshift::detail::cand(is_retriever_v<Rs>...), "arguments must be retrievers");
