@@ -22,8 +22,8 @@ inline namespace types
     //ᅟ
     // Determines whether the given type is a retriever, i.e. a stateless functor type with constexpr nullary `operator ()`.
     //
-template <typename F> struct is_retriever : std::conjunction<std::is_empty<F>, can_apply<makeshift::detail::is_constexpr_retriever_r, F>> { };
-//template <typename F> struct is_retriever : std::conjunction<std::is_empty<F>, can_apply<makeshift::detail::is_retriever_r, F>> { };
+//template <typename F> struct is_retriever : std::conjunction<std::is_empty<F>, can_apply<makeshift::detail::is_constexpr_retriever_r, F>> { };
+template <typename F> struct is_retriever : std::conjunction<std::is_empty<F>, can_apply<makeshift::detail::is_retriever_r, F>> { };
 
     //ᅟ
     // Determines whether the given type is a retriever, i.e. a stateless functor type with constexpr nullary `operator ()`.

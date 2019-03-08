@@ -44,7 +44,7 @@ template <typename F> struct stateless_functor_0_<F, false> { using type = state
 template <typename R> using retriever = typename stateless_functor_0_<R, std::is_default_constructible<R>::value>::type;
 
 
-//template <typename F> using is_retriever_r = decltype(retriever<F>{ }());
+template <typename F> using is_retriever_r = decltype(retriever<F>{ }());
 
     // idea taken from Ben Deane & Jason Turner, "constexpr ALL the things!", C++Now 2017
 template <typename F> using is_constexpr_retriever_r = std::integral_constant<bool, (retriever<F>{ }(), true)>;
