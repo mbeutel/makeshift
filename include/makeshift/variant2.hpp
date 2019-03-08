@@ -168,7 +168,7 @@ template <typename T>
     //
 template <typename F, typename... VariantsT,
           typename = std::enable_if_t<std::conjunction<is_variant_like<std::decay_t<VariantsT>>...>::value>>
-    constexpr typename makeshift::detail::visit_many_result_<F, VariantsT...>::type
+    MAKESHIFT_NODISCARD constexpr typename makeshift::detail::visit_many_result_<F, VariantsT...>::type
     visit_many(F&& func, VariantsT&&... variants)
 {
     using VisitManyResult = typename makeshift::detail::visit_many_result_<F, VariantsT...>::type;

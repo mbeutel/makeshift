@@ -62,13 +62,13 @@ TEST_CASE("variant2")
     SECTION("expand")
     {
         auto p1 = Precision::double_;
-        auto p1VO = mk::expand2(p1);
+        auto p1V = mk::expand2(p1);
         std::visit([p1](auto p1R)
             {
                 constexpr Precision p1C = mk::retrieve(p1R);
                 CHECK(p1C == p1);
             },
-            p1VO);
+            p1V);
 
         auto p2 = Precision::double_;
         auto p2VO = mk::try_expand2(p2,
