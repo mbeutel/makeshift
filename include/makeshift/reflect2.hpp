@@ -20,7 +20,9 @@ inline namespace metadata
     //ᅟ
     // Determines whether values can be enumerated for the given type.
     //
-template <typename T> struct have_value_metadata : std::conjunction<makeshift::detail::have_raw_metadata<T>, makeshift::detail::is_value_metadata<T>> { };
+template <typename T> struct have_value_metadata : std::disjunction<
+    makeshift::detail::can_infer_values_<T>,
+    std::conjunction<makeshift::detail::have_raw_metadata<T>, makeshift::detail::is_value_metadata<T>>> { };
 template <> struct have_value_metadata<bool> : std::true_type { };
 
     //ᅟ
