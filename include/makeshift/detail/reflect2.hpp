@@ -4,6 +4,7 @@
 
 
 #include <array>
+#include <variant>
 #include <cstddef>     // for size_t
 #include <type_traits> // for is_base_of<>, integral_constant<>
 
@@ -60,6 +61,23 @@ template <typename T>
         return { { } };
     }
 };
+template <typename... Ts>
+    struct values_inferrer<std::variant<Ts...>, std::enable_if_t<std::conjunction_v<can_infer_values_<Ts>...>>>
+{
+private:
+    using V = std::variant<Ts...>;
+    template <std::size_t... Is>
+        static constexpr std::array<V, sizeof...(Ts)> invoke(std::index_sequence<Is...>) noexcept
+    {
+        return { V{ std::in_place_index<Is> }... };
+    }
+public:
+    constexpr std::array<V, sizeof...(Ts)> operator ()(void) const noexcept
+    {
+        return invoke(std::index_sequence_for<Ts...>{ });
+    }
+};
+
 template <typename ValuesT>
     struct values_reflector1;
 template <typename T, std::size_t N>

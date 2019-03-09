@@ -195,6 +195,15 @@ TEST_CASE("variant2")
         CHECK(v1VO.has_value());
         auto v1V = *v1VO;
 
+        auto v1V2 = mk::expand2(v1);
+        std::visit(
+            [](auto v1VR, auto v1V2R)
+            {
+                //CHECK(mk::retrieve(v1VR) == mk::retrieve(v1V2R));
+                CHECK(v1VR() == v1V2R());
+            },
+            v1V, v1V2);
+
         std::visit(
             [](auto v1VR)
             {
