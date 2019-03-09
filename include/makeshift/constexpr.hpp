@@ -19,6 +19,10 @@ inline namespace types
 {
 
 
+    // For a reference to the general idea behind retrievers, cf.
+    // https://mpark.github.io/programming/2017/05/26/constexpr-function-parameters/ .
+
+
     //ᅟ
     // Determines whether the given type is a retriever, i.e. a stateless functor type with constexpr nullary `operator ()`.
     //
@@ -103,12 +107,15 @@ template <typename F, typename... Rs>
     //ᅟ
     // Returns a retriever for the value of the function applied to the retrievers' values.
     //ᅟ
-    //ᅟ    auto getF = [](auto indexR)
-    //ᅟ    {
-    //ᅟ        auto tuple = ...;
-    //ᅟ        return std::get<retrieve(indexR)>(tuple);
-    //ᅟ    };
-    //ᅟ    auto indexR = retriever_extend(getF, []{ return 1; });
+    //ᅟ    auto variantR = []{ return std::variant<int, float>{ 42 }; };
+    //ᅟ    auto elementR = retriever_extend(
+    //ᅟ        [](auto _variantR)
+    //ᅟ        {
+    //ᅟ            constexpr auto variant = retrieve(_variantR);
+    //ᅟ            return std::get<variant.index()>(variant);
+    //ᅟ        },
+    //ᅟ        variantR);
+    //ᅟ    // returns 42
     //
 template <typename RF, typename... Rs>
     MAKESHIFT_NODISCARD constexpr makeshift::detail::retriever_extend_functor<RF, Rs...>

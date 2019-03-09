@@ -6,9 +6,6 @@ Goals for makeshift 3.x:
 - strip all non-essential parts
 
 
-Constexpr function args for C++14: https://mpark.github.io/programming/2017/05/26/constexpr-function-parameters/
-
-
 -----
 
 

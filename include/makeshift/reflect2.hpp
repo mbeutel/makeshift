@@ -30,14 +30,12 @@ template <typename T> constexpr bool have_value_metadata_v = have_value_metadata
 
 
     //ᅟ
-    // Returns an array of the values of a given type, retrieved from metadata.
-    // Returns `std::array{ false, true }` if the type argument is `bool`.
+    // Returns an array of the values of a given type, derived from the type or retrieved from metadata.
     //
 struct values_of_t
 {
         //ᅟ
-        // Returns an array of the values of a given type, retrieved from metadata.
-        // Returns `std::array{ false, true }` if the type argument is `bool`.
+        // Returns an array of the values of a given type, derived from the type or retrieved from metadata.
         //
     template <typename T>
         MAKESHIFT_NODISCARD constexpr auto operator ()(type<T>) const
@@ -49,21 +47,18 @@ struct values_of_t
 };
 
     //ᅟ
-    // Returns an array of the values of a given type, retrieved from metadata.
-    // Returns `std::array{ false, true }` if the type argument is `bool`.
+    // Returns an array of the values of a given type, derived from the type or retrieved from metadata.
     //
 static inline constexpr values_of_t values_of = { };
 
 
     //ᅟ
-    // Returns an array of the names and values of a given type, retrieved from metadata.
-    // Returns `std::array{ named{ false, "false" }, named{ true, "true" } }` if the type argument is `bool`.
+    // Returns an array of the names and values of a given type, derived from the type or retrieved from metadata.
     //
 struct named_values_of_t
 {
         //ᅟ
-        // Returns an array of the names and values of a given type, retrieved from metadata.
-        // Returns `std::array{ named{ false, "false" }, named{ true, "true" } }` if the type argument is `bool`.
+        // Returns an array of the names and values of a given type, derived from the type or retrieved from metadata.
         //
     template <typename T>
         MAKESHIFT_NODISCARD constexpr auto operator ()(type<T>) const
@@ -75,8 +70,7 @@ struct named_values_of_t
 };
 
     //ᅟ
-    // Returns an array of the names and values of a given type, retrieved from metadata.
-    // Returns `std::array{ named{ false, "false" }, named{ true, "true" } }` if the type argument is `bool`.
+    // Returns an array of the names and values of a given type, derived from the type or retrieved from metadata.
     //
 static inline constexpr named_values_of_t named_values_of = { };
 

@@ -149,12 +149,23 @@ TEST_CASE("variant2")
         auto v1V = *v1VO;
 
         std::visit(
-            [](auto v1R)
+            [](auto v1VR)
             {
 #ifndef _MSC_VER // bug: https://developercommunity.visualstudio.com/content/problem/483944/vc2017vc2019-stdvariant-stdvisit-constexpr-error-c.html
-                constexpr auto v1CV = mk::retrieve(v1R);
-                constexpr auto v1C = std::get<v1CV.index()>(v1CV);
+                constexpr auto v1VC = mk::retrieve(v1VR);
+                constexpr auto v1C = std::get<v1VC.index()>(v1VC);
                 CHECK(v1C == mk::type_v<float>);
+                auto v1R = mk::retriever_extend(
+                    [](auto _v1R)
+                    {
+                        constexpr auto v1 = _v1R();
+                        return std::get<v1.index()>(v1);
+                    },
+                    v1VR);
+                constexpr auto v1C2 = mk::retrieve(v1R);
+                CHECK(v1C2 == mk::type_v<float>);
+#else // _MSC_VER
+                (void) v1VR;
 #endif // _MSC_VER
             },
             v1V);

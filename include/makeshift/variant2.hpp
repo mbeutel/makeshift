@@ -51,7 +51,7 @@ constexpr inline makeshift::detail::member_values_initializer_t member_values = 
     // of the known values. The result is `nullopt` if the runtime value is not among the values listed.
     //ᅟ
     //ᅟ    int bits = ...;
-    //ᅟ    auto bitsV = try_expand(bits, []{ return values<int> = { 16, 32, 64 }; },
+    //ᅟ    auto bitsVO = try_expand(bits, []{ return values<int> = { 16, 32, 64 }; },
     //ᅟ        hash2<>{ }, std::equal_to<>{ });
     //ᅟ
     //ᅟ    std::visit(
@@ -60,7 +60,7 @@ constexpr inline makeshift::detail::member_values_initializer_t member_values = 
     //ᅟ            constexpr int bitsC = retrieve(bitsR);
     //ᅟ            ...
     //ᅟ        },
-    //ᅟ        bitsV.value());
+    //ᅟ        bitsVO.value());
     //
 template <typename T, typename R, typename HashT, typename EqualToT>
     MAKESHIFT_NODISCARD constexpr auto try_expand2(const T& value, const R& valuesR, HashT&& hash, EqualToT&& equal)
@@ -73,14 +73,14 @@ template <typename T, typename R, typename HashT, typename EqualToT>
     // `nullopt` if the runtime value is not among the values listed.
     //ᅟ
     //ᅟ    int bits = ...;
-    //ᅟ    auto bitsV = try_expand(bits, []{ return values<int> = { 16, 32, 64 }; });
+    //ᅟ    auto bitsVO = try_expand(bits, []{ return values<int> = { 16, 32, 64 }; });
     //ᅟ
     //ᅟ    std::visit(
     //ᅟ        [](auto bitsR)
     //ᅟ            constexpr int bitsC = retrieve(bitsR);
     //ᅟ            ...
     //ᅟ        },
-    //ᅟ        bitsV.value());
+    //ᅟ        bitsVO.value());
     //
 template <typename T, typename R>
     MAKESHIFT_NODISCARD constexpr auto try_expand2(const T& value, const R& valuesR)
