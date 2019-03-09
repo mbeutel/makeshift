@@ -124,7 +124,7 @@ struct member_values_initializer_t
     }
 };
 
-template <typename C, typename... FactorsT>
+template <bool Exhaustive, typename C, typename... FactorsT>
     class value_product_t
 {
 private:
@@ -139,39 +139,45 @@ public:
 };
 
 template <typename C, std::size_t N, typename... Ts>
-    constexpr value_product_t<C, member_values_t<N, C, Ts...>> to_value_product(const member_values_t<N, C, Ts...>& values)
+    constexpr value_product_t<true, C, member_values_t<N, C, Ts...>> default_values_to_value_product(const member_values_t<N, C, Ts...>& values)
+{
+    return { { values } };
+}
+
+template <typename C, std::size_t N, typename... Ts>
+    constexpr value_product_t<false, C, member_values_t<N, C, Ts...>> to_value_product(const member_values_t<N, C, Ts...>& values)
 {
     return { { values } };
 }
 template <typename C, typename T>
     constexpr auto to_value_product(const members_t<C, T>& member)
 {
-    return makeshift::detail::to_value_product(makeshift::detail::default_values(member));
+    return makeshift::detail::default_values_to_value_product(makeshift::detail::default_values(member));
 }
 
-template <typename C, typename... LFs, typename... RFs>
-    MAKESHIFT_NODISCARD constexpr value_product_t<C, LFs..., RFs...> operator *(const value_product_t<C, LFs...>& lhs, const value_product_t<C, RFs...>& rhs)
+template <typename C, bool LExhaustive, typename... LFs, bool RExhaustive, typename... RFs>
+    MAKESHIFT_NODISCARD constexpr value_product_t<LExhaustive && RExhaustive, C, LFs..., RFs...> operator *(const value_product_t<LExhaustive, C, LFs...>& lhs, const value_product_t<RExhaustive, C, RFs...>& rhs)
 {
     // TODO: we should raise an assertion if a member appears more than once
     return { std::tuple_cat(lhs.factors(), rhs.factors()) };
 }
-template <std::size_t N, typename C, typename... Ts, typename... FactorsT>
-    MAKESHIFT_NODISCARD constexpr value_product_t<C, member_values_t<N, C, Ts...>, FactorsT...> operator *(const member_values_t<N, C, Ts...>& lhs, const value_product_t<C, FactorsT...>& rhs)
+template <std::size_t N, typename C, typename... Ts, bool RExhaustive, typename... FactorsT>
+    MAKESHIFT_NODISCARD constexpr value_product_t<false, C, member_values_t<N, C, Ts...>, FactorsT...> operator *(const member_values_t<N, C, Ts...>& lhs, const value_product_t<RExhaustive, C, FactorsT...>& rhs)
 {
     return makeshift::detail::to_value_product(lhs) * rhs;
 }
-template <std::size_t N, typename C, typename... Ts, typename... FactorsT>
-    MAKESHIFT_NODISCARD constexpr value_product_t<C, FactorsT..., member_values_t<N, C, Ts...>> operator *(const value_product_t<C, FactorsT...>& lhs, const member_values_t<N, C, Ts...>& rhs)
+template <std::size_t N, typename C, typename... Ts, bool LExhaustive, typename... FactorsT>
+    MAKESHIFT_NODISCARD constexpr value_product_t<LExhaustive, C, FactorsT..., member_values_t<N, C, Ts...>> operator *(const value_product_t<LExhaustive, C, FactorsT...>& lhs, const member_values_t<N, C, Ts...>& rhs)
 {
     return lhs * makeshift::detail::to_value_product(rhs);
 }
-template <typename C, typename T, typename... FactorsT>
-    MAKESHIFT_NODISCARD constexpr auto operator *(const members_t<C, T>& lhs, const value_product_t<C, FactorsT...>& rhs)
+template <typename C, typename T, bool RExhaustive, typename... FactorsT>
+    MAKESHIFT_NODISCARD constexpr auto operator *(const members_t<C, T>& lhs, const value_product_t<RExhaustive, C, FactorsT...>& rhs)
 {
     return makeshift::detail::to_value_product(lhs) * rhs;
 }
-template <typename C, typename T, typename... FactorsT>
-    MAKESHIFT_NODISCARD constexpr auto operator *(const value_product_t<C, FactorsT...>& lhs, const members_t<C, T>& rhs)
+template <typename C, typename T, bool LExhaustive, typename... FactorsT>
+    MAKESHIFT_NODISCARD constexpr auto operator *(const value_product_t<LExhaustive, C, FactorsT...>& lhs, const members_t<C, T>& rhs)
 {
     return lhs * makeshift::detail::to_value_product(rhs);
 }
@@ -217,15 +223,20 @@ struct member_transform_functor
         return { member };
     }
 };
-template <std::size_t... Is, typename C, typename... FactorsT>
-    constexpr auto members_impl(std::index_sequence<Is...>, const value_product_t<C, FactorsT...>& product) noexcept
+template <std::size_t... Is, bool Exhaustive, typename C, typename... FactorsT>
+    constexpr auto members_impl(std::index_sequence<Is...>, const value_product_t<Exhaustive, C, FactorsT...>& product) noexcept
 {
     return std::tuple_cat(std::get<Is>(product.factors()).members()...);
 }
-template <typename C, typename... FactorsT>
-    constexpr auto _members(const value_product_t<C, FactorsT...>& product) noexcept
+template <bool Exhaustive, typename C, typename... FactorsT>
+    constexpr auto members(const value_product_t<Exhaustive, C, FactorsT...>& product) noexcept
 {
     return makeshift::tuple_transform2(member_transform_functor{ }, makeshift::detail::members_impl(std::index_sequence_for<FactorsT...>{ }, product));
+}
+template <typename C, typename T>
+    constexpr std::tuple<member_functor<T, C>> members(const members_t<C, T>& product) noexcept
+{
+    return { { std::get<0>(product.members()) } };
 }
 
 template <std::size_t N>
@@ -252,27 +263,27 @@ template <std::size_t N, typename C, typename... Ts>
 {
     makeshift::detail::apply_value_impl(std::index_sequence_for<Ts...>{ }, result, memberValues, i);
 }
-template <std::size_t... Is, typename C, typename... FactorsT>
+template <std::size_t... Is, bool Exhaustive, typename C, typename... FactorsT>
     constexpr void apply_values_impl(std::index_sequence<Is...>,
-        C& result, const value_product_t<C, FactorsT...>& product,
+        C& result, const value_product_t<Exhaustive, C, FactorsT...>& product,
         const std::array<std::size_t, sizeof...(FactorsT)>& strides,
         std::size_t i)
 {
     (makeshift::detail::apply_value(result, std::get<Is>(product.factors()), (i / strides[Is]) % FactorsT::num_values), ...);
 }
-template <typename C, typename... FactorsT>
+template <bool Exhaustive, typename C, typename... FactorsT>
     constexpr void apply_values(
-        C& result, const value_product_t<C, FactorsT...>& product,
+        C& result, const value_product_t<Exhaustive, C, FactorsT...>& product,
         const std::array<std::size_t, sizeof...(FactorsT)>& strides,
         std::size_t i)
 {
     makeshift::detail::apply_values_impl(std::index_sequence_for<FactorsT...>{ }, result, product, strides, i);
 }
 
-template <typename C, typename... FactorsT>
+template <bool Exhaustive, typename C, typename... FactorsT>
     struct make_value_functor
 {
-    const value_product_t<C, FactorsT...>& product;
+    const value_product_t<Exhaustive, C, FactorsT...>& product;
     const std::array<std::size_t, sizeof...(FactorsT)>& strides;
 
     constexpr C operator ()(std::size_t i) const
@@ -283,19 +294,24 @@ template <typename C, typename... FactorsT>
     }
 };
 
-template <typename C, typename... FactorsT>
-    constexpr auto to_array(const value_product_t<C, FactorsT...>& product) noexcept
+template <bool Exhaustive, typename C, typename... FactorsT>
+    constexpr auto to_array(const value_product_t<Exhaustive, C, FactorsT...>& product) noexcept
 {
     std::array<std::size_t, sizeof...(FactorsT)> strides = makeshift::detail::shape_to_strides(std::array{ FactorsT::num_values... });
     constexpr std::size_t numValues = cmul<std::size_t>(FactorsT::num_values...);
     return makeshift::array_transform2<numValues>(
-        make_value_functor<C, FactorsT...>{ product, strides },
+        make_value_functor<Exhaustive, C, FactorsT...>{ product, strides },
         tuple_index);
 }
 template <std::size_t N, typename C, typename... Ts>
     constexpr auto to_array(const member_values_t<N, C, Ts...>& memberValues) noexcept
 {
     return to_array(makeshift::detail::to_value_product(memberValues));
+}
+template <typename C, typename T>
+    constexpr auto to_array(const members_t<C, T>& member) noexcept
+{
+    return to_array(makeshift::detail::to_value_product(member));
 }
 
 
@@ -407,20 +423,25 @@ template <typename T, typename R, typename HashT, typename EqualToT>
         // (TODO: implement)
         // (TODO: is there an acceptable way of checking for constexpr-ness?)
 
-    auto memberAccessor = [members = _members(product)](type<T>) { return members; };
+    auto memberAccessor = [members = makeshift::detail::members(product)](type<T>) { return members; };
     auto compoundHash = compound_hash<decltype(memberAccessor), std::decay_t<HashT>>{ std::forward<HashT>(hash), memberAccessor };
     auto compoundEqual = compound_equal_to<decltype(memberAccessor), std::decay_t<EqualToT>>{ std::forward<EqualToT>(equal), memberAccessor };
 
     return makeshift::detail::value_to_variant(value, valueArrayR, std::move(compoundHash), std::move(compoundEqual));
 }
 
-template <typename T, typename... FactorsT, typename R, typename HashT, typename EqualToT>
-    constexpr auto expand2_impl1(type<value_product_t<T, FactorsT...>>, const T& value, R valuesR, HashT&& hash, EqualToT&& equal)
+template <bool Exhaustive, typename T, typename... FactorsT, typename R, typename HashT, typename EqualToT>
+    constexpr auto expand2_impl1(type<value_product_t<Exhaustive, T, FactorsT...>>, const T& value, R valuesR, HashT&& hash, EqualToT&& equal)
 {
     return expand2_impl2_compound(value, valuesR, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
 }
 template <typename T, std::size_t N, typename... Ts, typename R, typename HashT, typename EqualToT>
     constexpr auto expand2_impl1(type<member_values_t<N, T, Ts...>>, const T& value, R valuesR, HashT&& hash, EqualToT&& equal)
+{
+    return expand2_impl2_compound(value, valuesR, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
+}
+template <typename C, typename T, typename R, typename HashT, typename EqualToT>
+    constexpr auto expand2_impl1(type<members_t<C, T>>, const C& value, R valuesR, HashT&& hash, EqualToT&& equal)
 {
     return expand2_impl2_compound(value, valuesR, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
 }
@@ -436,6 +457,12 @@ template <typename T, typename R, typename HashT, typename EqualToT>
     return expand2_impl1(type_v<retrieved_t<R>>, value, valuesR, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
 }
 
+template <typename T> struct is_exhaustive_0_;
+template <bool Exhaustive, typename T, typename... FactorsT> struct is_exhaustive_0_<value_product_t<Exhaustive, T, FactorsT...>> : std::integral_constant<bool, Exhaustive> { };
+template <typename T, std::size_t N, typename... Ts> struct is_exhaustive_0_<member_values_t<N, T, Ts...>> : std::false_type { };
+template <typename C, typename T> struct is_exhaustive_0_<members_t<C, T>> : std::true_type { };
+template <typename T, std::size_t N> struct is_exhaustive_0_<values_t<T, N>> : std::false_type { };
+template <typename R> constexpr bool is_exhaustive_v = is_exhaustive_0_<retrieved_t<R>>::value;
 
 template <typename T> struct decay_to_args;
 template <template <typename...> class T, typename... Ts> struct decay_to_args<T<Ts...>> { using type = T<Ts...>; };

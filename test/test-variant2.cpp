@@ -23,6 +23,22 @@ constexpr inline auto reflect(mk::type<Precision>)
     };
 }
 
+struct ExhaustibleParams
+{
+    Precision precision = Precision::single;
+    bool transmogrify = false;
+
+    friend constexpr bool operator ==(const ExhaustibleParams& lhs, const ExhaustibleParams& rhs) noexcept
+    {
+        return lhs.precision == rhs.precision
+            && lhs.transmogrify == rhs.transmogrify;
+    }
+    friend constexpr bool operator !=(const ExhaustibleParams& lhs, const ExhaustibleParams& rhs) noexcept
+    {
+        return !(lhs == rhs);
+    }
+};
+
 using FloatType = std::variant<mk::type<float>, mk::type<double>>;
 
 struct Params
@@ -135,6 +151,37 @@ TEST_CASE("variant2")
                 CHECK(s2C == s2);
             },
             *s2VO);
+
+        auto e1 = ExhaustibleParams{ Precision::single, false };
+        auto e1V = mk::expand2(e1,
+            []
+            {
+                return mk::member_values(&ExhaustibleParams::precision);
+            });
+        std::visit(
+            [e1](auto e1R)
+            {
+                //constexpr ExhaustibleParams e1C = mk::retrieve(e1R);
+                constexpr ExhaustibleParams e1C = e1R();
+                CHECK(e1 == e1C);
+            },
+            e1V);
+
+        auto e2 = ExhaustibleParams{ Precision::single, true };
+        auto e2V = mk::expand2(e2,
+            []
+            {
+                return mk::member_values(&ExhaustibleParams::precision)
+                     * mk::member_values(&ExhaustibleParams::transmogrify);
+            });
+        std::visit(
+            [e2](auto e2R)
+            {
+                //constexpr ExhaustibleParams e2C = mk::retrieve(e2R);
+                constexpr ExhaustibleParams e2C = e2R();
+                CHECK(e2 == e2C);
+            },
+            e2V);
 
         auto v1 = FloatType{ mk::type_v<double> };
         auto v1VO = mk::try_expand2(v1,

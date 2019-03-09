@@ -137,7 +137,33 @@ template <typename T, typename R>
 
 
     //ᅟ
-    // Given a runtime value with metadata, returns an optional variant of retrievers of the known values.
+    // Given a runtime value and a retriever of known values, returns a variant of retrievers of the known values.
+    //ᅟ
+    //ᅟ    struct Params { bool foo; bool bar; };
+    //ᅟ
+    //ᅟ    Params params = ...;
+    //ᅟ    auto paramsV = expand(params, []{ return member_values(&Params::foo) * member_values(&Params::bar); });
+    //ᅟ
+    //ᅟ    std::visit(
+    //ᅟ        [](auto paramsR)
+    //ᅟ            constexpr Params paramsC = retrieve(paramsR);
+    //ᅟ            ...
+    //ᅟ        },
+    //ᅟ        paramsV);
+    //
+template <typename T, typename R>
+    MAKESHIFT_NODISCARD constexpr auto expand2(const T& value, const R& valuesR)
+{
+    static_assert(makeshift::detail::is_exhaustive_v<R>, "use try_expand() or expand_or_throw() if the list of values is non-exhaustive");
+
+    auto maybeResult = makeshift::try_expand2(value, valuesR);
+    Expects(maybeResult.has_value());
+    return *maybeResult;
+}
+
+
+    //ᅟ
+    // Given a runtime value with metadata, returns a variant of retrievers of the known values.
     //ᅟ
     //ᅟ    enum class Precision { single, double_ };
     //ᅟ    constexpr static auto reflect(mk::type<Precision>) { return values<Precision> = { Precision::single, Precision::double_ }; }
