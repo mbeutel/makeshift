@@ -34,7 +34,7 @@ template <typename T> constexpr bool is_variant_like_v = is_variant_like<T>::val
 
 
     //ᅟ
-    // Exception class thrown by `expand()` if the runtime value to be expanded is not among the values listed.
+    // Exception class thrown by `expand_or_throw()` if the runtime value to be expanded is not among the values listed.
     //
 class unsupported_runtime_value : public std::runtime_error
 {
@@ -47,8 +47,8 @@ constexpr inline makeshift::detail::member_values_initializer_t member_values = 
 
 
     //ᅟ
-    // Given a runtime value, a retriever of known values, a hasher, and an equality comparer, returns an optional variant of retrievers
-    // of the known values. The result is `nullopt` if the runtime value is not among the values listed.
+    // Given a runtime value, a constexpr value list, a hasher, and an equality comparer, returns an optional variant of known
+    // constexpr values. The result is `nullopt` if the runtime value is not among the values listed.
     //ᅟ
     //ᅟ    int bits = ...;
     //ᅟ    auto bitsVO = try_expand(bits, []{ return values<int> = { 16, 32, 64 }; },
@@ -57,7 +57,7 @@ constexpr inline makeshift::detail::member_values_initializer_t member_values = 
     //ᅟ    std::visit(
     //ᅟ        [](auto bitsR)
     //ᅟ        {
-    //ᅟ            constexpr int bitsC = retrieve(bitsR);
+    //ᅟ            constexpr int bitsC = bitsR();
     //ᅟ            ...
     //ᅟ        },
     //ᅟ        bitsVO.value());
@@ -69,7 +69,7 @@ template <typename T, typename R, typename HashT, typename EqualToT>
 }
 
     //ᅟ
-    // Given a runtime value and a retriever of known values, returns an optional variant of retrievers of the known values. The result is
+    // Given a runtime value and a constexpr value list, returns an optional variant of known constexpr values. The result is
     // `nullopt` if the runtime value is not among the values listed.
     //ᅟ
     //ᅟ    int bits = ...;
@@ -77,7 +77,7 @@ template <typename T, typename R, typename HashT, typename EqualToT>
     //ᅟ
     //ᅟ    std::visit(
     //ᅟ        [](auto bitsR)
-    //ᅟ            constexpr int bitsC = retrieve(bitsR);
+    //ᅟ            constexpr int bitsC = bitsR();
     //ᅟ            ...
     //ᅟ        },
     //ᅟ        bitsVO.value());
@@ -90,8 +90,8 @@ template <typename T, typename R>
 
 
     //ᅟ
-    // Given a runtime value, a retriever of known values, a hasher, and an equality comparer, returns an optional variant of retrievers
-    // of the known values. An exception of type `unsupported_runtime_value` is thrown if the runtime value is not among the values listed.
+    // Given a runtime value, a constexpr value list, a hasher, and an equality comparer, returns an optional variant of known
+    // constexpr values. An exception of type `unsupported_runtime_value` is thrown if the runtime value is not among the values listed.
     //ᅟ
     //ᅟ    int bits = ...;
     //ᅟ    auto bitsV = expand_or_throw(bits, []{ return values<int> = { 16, 32, 64 }; },
@@ -100,7 +100,7 @@ template <typename T, typename R>
     //ᅟ    std::visit(
     //ᅟ        [](auto bitsR)
     //ᅟ        {
-    //ᅟ            constexpr int bitsC = retrieve(bitsR);
+    //ᅟ            constexpr int bitsC = bitsR();
     //ᅟ            ...
     //ᅟ        },
     //ᅟ        bitsV);
@@ -115,7 +115,7 @@ template <typename T, typename R, typename HashT, typename EqualToT>
 }
 
     //ᅟ
-    // Given a runtime value and a retriever of known values, returns an optional variant of retrievers of the known values. An exception
+    // Given a runtime value and a constexpr value list, returns an optional variant of known constexpr values. An exception
     // of type `unsupported_runtime_value` is thrown if the runtime value is not among the values listed.
     //ᅟ
     //ᅟ    int bits = ...;
@@ -124,7 +124,7 @@ template <typename T, typename R, typename HashT, typename EqualToT>
     //ᅟ    std::visit(
     //ᅟ        [](auto bitsR)
     //ᅟ        {
-    //ᅟ            constexpr int bitsC = retrieve(bitsR);
+    //ᅟ            constexpr int bitsC = bitsR();
     //ᅟ            ...
     //ᅟ        },
     //ᅟ        bitsV);
@@ -137,7 +137,7 @@ template <typename T, typename R>
 
 
     //ᅟ
-    // Given a runtime value and a retriever of known values, returns a variant of retrievers of the known values.
+    // Given a runtime value and a constexpr value list, returns a variant of known constexpr values.
     //ᅟ
     //ᅟ    struct Params { bool foo; bool bar; };
     //ᅟ
@@ -146,7 +146,7 @@ template <typename T, typename R>
     //ᅟ
     //ᅟ    std::visit(
     //ᅟ        [](auto paramsR)
-    //ᅟ            constexpr Params paramsC = retrieve(paramsR);
+    //ᅟ            constexpr Params paramsC = paramsR();
     //ᅟ            ...
     //ᅟ        },
     //ᅟ        paramsV);
@@ -163,7 +163,7 @@ template <typename T, typename R>
 
 
     //ᅟ
-    // Given a runtime value with metadata, returns a variant of retrievers of the known values.
+    // Given a runtime value, returns a variant of known constexpr values.
     //ᅟ
     //ᅟ    enum class Precision { single, double_ };
     //ᅟ    constexpr static auto reflect(mk::type<Precision>) { return values<Precision> = { Precision::single, Precision::double_ }; }
@@ -174,7 +174,7 @@ template <typename T, typename R>
     //ᅟ    std::visit(
     //ᅟ        [](auto precisionR)
     //ᅟ        {
-    //ᅟ            constexpr int precisionC = retrieve(precisionR);
+    //ᅟ            constexpr int precisionC = precisionR();
     //ᅟ            ...
     //ᅟ        },
     //ᅟ        precisionV);

@@ -83,10 +83,9 @@ TEST_CASE("variant2")
         auto p1 = Precision::double_;
         auto p1V = mk::expand2(p1);
         std::visit(
-            [p1](auto p1R)
+            [p1](auto p1CV)
             {
-                //constexpr Precision p1C = mk::retrieve(p1R);
-                constexpr Precision p1C = p1R();
+                constexpr Precision p1C = p1CV();
                 CHECK(p1C == p1);
             },
             p1V);
@@ -99,10 +98,9 @@ TEST_CASE("variant2")
             });
         CHECK(p2VO.has_value());
         std::visit(
-            [p2](auto p2R)
+            [p2](auto p2CV)
             {
-                //constexpr Precision p2C = mk::retrieve(p2R);
-                constexpr Precision p2C = p2R();
+                constexpr Precision p2C = p2CV();
                 CHECK(p2C == p2);
             },
             *p2VO);
@@ -126,10 +124,9 @@ TEST_CASE("variant2")
             });
         CHECK(s1VO.has_value());
         std::visit(
-            [s1](auto s1R)
+            [s1](auto s1CV)
             {
-                //constexpr Params s1C = mk::retrieve(s1R);
-                constexpr Params s1C = s1R();
+                constexpr Params s1C = s1CV();
                 CHECK(s1C == s1);
             },
             *s1VO);
@@ -144,10 +141,9 @@ TEST_CASE("variant2")
             });
         CHECK(s2VO.has_value());
         std::visit(
-            [s2](auto s2R)
+            [s2](auto s2CV)
             {
-                //constexpr Params s2C = mk::retrieve(s2R);
-                constexpr Params s2C = s2R();
+                constexpr Params s2C = s2CV();
                 CHECK(s2C == s2);
             },
             *s2VO);
@@ -159,10 +155,9 @@ TEST_CASE("variant2")
                 return mk::member_values(&ExhaustibleParams::precision);
             });
         std::visit(
-            [e1](auto e1R)
+            [e1](auto e1CV)
             {
-                //constexpr ExhaustibleParams e1C = mk::retrieve(e1R);
-                constexpr ExhaustibleParams e1C = e1R();
+                constexpr ExhaustibleParams e1C = e1CV();
                 CHECK(e1 == e1C);
             },
             e1V);
@@ -175,10 +170,9 @@ TEST_CASE("variant2")
                      * mk::member_values(&ExhaustibleParams::transmogrify);
             });
         std::visit(
-            [e2](auto e2R)
+            [e2](auto e2CV)
             {
-                //constexpr ExhaustibleParams e2C = mk::retrieve(e2R);
-                constexpr ExhaustibleParams e2C = e2R();
+                constexpr ExhaustibleParams e2C = e2CV();
                 CHECK(e2 == e2C);
             },
             e2V);
@@ -197,31 +191,30 @@ TEST_CASE("variant2")
 
         auto v1V2 = mk::expand2(v1);
         std::visit(
-            [](auto v1VR, auto v1V2R)
+            [](auto v1VCV, auto v1V2CV)
             {
-                //CHECK(mk::retrieve(v1VR) == mk::retrieve(v1V2R));
-                CHECK(v1VR() == v1V2R());
+                CHECK(v1VCV() == v1V2CV());
             },
             v1V, v1V2);
 
         std::visit(
-            [](auto v1VR)
+            [](auto v1VCV)
             {
 #ifndef _MSC_VER // bug: https://developercommunity.visualstudio.com/content/problem/483944/vc2017vc2019-stdvariant-stdvisit-constexpr-error-c.html
-                constexpr auto v1VC = mk::retrieve(v1VR);
+                constexpr auto v1VC = v1VCV();
                 constexpr auto v1C = std::get<v1VC.index()>(v1VC);
                 CHECK(v1C == mk::type_v<float>);
-                auto v1R = mk::retriever_extend(
-                    [](auto _v1R)
+                auto v1CV = mk::constexpr_extend(
+                    [](auto _v1CV)
                     {
-                        constexpr auto v1 = _v1R();
+                        constexpr auto v1 = _v1CV();
                         return std::get<v1.index()>(v1);
                     },
-                    v1VR);
-                constexpr auto v1C2 = mk::retrieve(v1R);
+                    v1VCV);
+                constexpr auto v1C2 = v1CV();
                 CHECK(v1C2 == mk::type_v<float>);
 #else // _MSC_VER
-                (void) v1VR;
+                (void) v1VCV;
 #endif // _MSC_VER
             },
             v1V);

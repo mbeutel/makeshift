@@ -19,110 +19,60 @@ inline namespace types
 {
 
 
-    // For a reference to the general idea behind retrievers, cf.
+    // For a reference to the general idea behind constexpr values, cf.
     // https://mpark.github.io/programming/2017/05/26/constexpr-function-parameters/ .
 
 
+template <typename T> constexpr makeshift::detail::constexpr_t<T> constexpr_value = { };
+
+
     //ᅟ
-    // Determines whether the given type is a retriever, i.e. a stateless functor type with constexpr nullary `operator ()`.
+    // Determines whether the given type is a constexpr value, i.e. a stateless functor type with constexpr nullary `operator ()`.
     //
-//template <typename F> struct is_retriever : std::conjunction<std::is_empty<F>, can_apply<makeshift::detail::is_constexpr_retriever_r, F>> { };
-template <typename F> struct is_retriever : std::conjunction<std::is_empty<F>, can_apply<makeshift::detail::is_retriever_r, F>> { };
+template <typename F> struct is_constexpr_value : std::conjunction<std::is_empty<F>, can_apply<makeshift::detail::is_constexpr_value_r, F>> { };
 
     //ᅟ
-    // Determines whether the given type is a retriever, i.e. a stateless functor type with constexpr nullary `operator ()`.
+    // Determines whether the given type is a constexpr value, i.e. a stateless functor type with constexpr nullary `operator ()`.
     //
-template <typename F> constexpr bool is_retriever_v = is_retriever<F>::value;
+template <typename F> constexpr bool is_constexpr_value_v = is_constexpr_value<F>::value;
 
 
     //ᅟ
-    // Obtains the type of the value returned by a retriever.
-    //ᅟ
-    //ᅟ    auto valueR = []{ return 42; };
-    //ᅟ    using Value = retrieved_t<decltype(valueR)>; // int
-    //
-template <typename R>
-    struct retrieved
-{
-    static_assert(is_retriever_v<R>, "type must be a retriever");
-
-    using type = decltype(makeshift::detail::retriever<R>{ }());
-};
-
-    //ᅟ
-    // Obtains the type of the value returned by a retriever.
-    //ᅟ
-    //ᅟ    auto valueR = []{ return 42; };
-    //ᅟ    using Value = retrieved_t<decltype(valueR)>; // int
-    //
-template <typename R> using retrieved_t = typename retrieved<R>::type;
-
-
-    //ᅟ
-    // Extracts the value of a retriever.
-    //ᅟ
-    //ᅟ    auto valueR = []{ return 42; };
-    //ᅟ    constexpr int value = retrieve(valueR); // 42
-    //
-template <typename R>
-    MAKESHIFT_NODISCARD constexpr typename std::enable_if_t<is_retriever_v<R>, retrieved<R>>::type
-    retrieve(const R&) noexcept
-{
-    return makeshift::detail::retriever<R>{ }();
-}
-
-
-    //ᅟ
-    // Extracts the value of a retriever.
-    //ᅟ
-    //ᅟ    auto valueR = []{ return 42; };
-    //ᅟ    using ValueR = decltype(valueR);
-    //ᅟ    constexpr int value = retrieve<ValueR>(); // 42
-    //
-template <typename R>
-    MAKESHIFT_NODISCARD constexpr typename std::enable_if_t<is_retriever_v<R>, retrieved<R>>::type
-    retrieve(void) noexcept
-{
-    return makeshift::detail::retriever<R>{ }();
-}
-
-
-    //ᅟ
-    // Returns a retriever for the value of the function applied to the retrievers' values.
+    // Returns the result of the function applied to the values of the given constexpr values as a constexpr value.
     //ᅟ
     //ᅟ    auto baseIndexR = []{ return 42; };
     //ᅟ    auto offsetR = []{ return 3; };
-    //ᅟ    auto indexR = retriever_transform(std::plus<>, baseIndexR, offsetR); // equivalent to `[]{ return 45; }`
+    //ᅟ    auto indexR = constexpr_transform(std::plus<>, baseIndexR, offsetR); // equivalent to `[]{ return 45; }`
     //
 template <typename F, typename... Rs>
-    MAKESHIFT_NODISCARD constexpr makeshift::detail::retriever_transform_functor<F, Rs...>
-    retriever_transform(const F&, const Rs&...) noexcept
+    MAKESHIFT_NODISCARD constexpr makeshift::detail::constexpr_transform_functor<F, Rs...>
+    constexpr_transform(const F&, const Rs&...) noexcept
 {
     static_assert(std::is_empty<F>::value, "transformer must be stateless");
-    static_assert(makeshift::detail::cand(is_retriever_v<Rs>...), "arguments must be retrievers");
+    static_assert(makeshift::detail::cand(is_constexpr_value_v<Rs>...), "arguments must be constexpr values");
     return { };
 }
 
 
     //ᅟ
-    // Returns a retriever for the value of the function applied to the retrievers' values.
+    // Returns the result of the function applied to the given constexpr values as a constexpr value.
     //ᅟ
     //ᅟ    auto variantR = []{ return std::variant<int, float>{ 42 }; };
-    //ᅟ    auto elementR = retriever_extend(
+    //ᅟ    auto elementR = constexpr_extend(
     //ᅟ        [](auto _variantR)
     //ᅟ        {
-    //ᅟ            constexpr auto variant = retrieve(_variantR);
+    //ᅟ            constexpr auto variant = _variantR();
     //ᅟ            return std::get<variant.index()>(variant);
     //ᅟ        },
     //ᅟ        variantR);
-    //ᅟ    // returns 42
+    //ᅟ    // equivalent to `[]{ return 42; }`
     //
 template <typename RF, typename... Rs>
-    MAKESHIFT_NODISCARD constexpr makeshift::detail::retriever_extend_functor<RF, Rs...>
-    retriever_extend(const RF&, const Rs&...) noexcept
+    MAKESHIFT_NODISCARD constexpr makeshift::detail::constexpr_extend_functor<RF, Rs...>
+    constexpr_extend(const RF&, const Rs&...) noexcept
 {
     static_assert(std::is_empty<RF>::value, "extender must be stateless");
-    static_assert(makeshift::detail::cand(is_retriever_v<Rs>...), "arguments must be retrievers");
+    static_assert(makeshift::detail::cand(is_constexpr_value_v<Rs>...), "arguments must be constexpr values");
     return { };
 }
 
