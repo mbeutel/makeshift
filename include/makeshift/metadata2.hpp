@@ -6,6 +6,8 @@
 #include <string_view>
 #include <type_traits> // for decay<>
 
+#include <makeshift/version.hpp> // for MAKESHIFT_NODISCARD
+
 #include <makeshift/detail/metadata2.hpp>
 
 
@@ -16,22 +18,18 @@ inline namespace metadata
 {
 
 
-template <typename T>
-    struct named2
+constexpr makeshift::detail::parameter<makeshift::detail::name_t> name = { };
+
+template <typename T> constexpr inline makeshift::detail::array_parameter<makeshift::detail::values_t, T> values = { };
+
+template <typename T> constexpr inline makeshift::detail::array_parameter<makeshift::detail::named_values_t, makeshift::detail::named_t<T>> named_values = { };
+
+
+template <typename... ParamsT>
+    MAKESHIFT_NODISCARD constexpr makeshift::detail::metadata_t<ParamsT...> define_metadata(ParamsT... params)
 {
-    T value;
-    std::string_view name;
+    return { params... };
 };
-template <typename T>
-    named2(T&&, std::string_view) -> named2<std::decay_t<T>>;
-
-
-template <typename T>
-    constexpr inline makeshift::detail::values_initializer_t<T> values = { };
-
-
-template <typename T>
-    constexpr inline makeshift::detail::values_initializer_t<named2<T>> named_values = { };
 
 
 } // inline namespace metadata

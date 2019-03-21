@@ -3,7 +3,7 @@
 #define INCLUDED_MAKESHIFT_REFLECT2_HPP_
 
 
-#include <type_traits> // for integral_constant<>, conjunction<>
+#include <type_traits> // for integral_constant<>
 
 #include <makeshift/version.hpp> // for MAKESHIFT_NODISCARD
 
@@ -20,9 +20,7 @@ inline namespace metadata
     //ᅟ
     // Determines whether values can be enumerated for the given type.
     //
-template <typename T> struct have_value_metadata : std::disjunction<
-    makeshift::detail::can_infer_values_<T>,
-    std::conjunction<makeshift::detail::have_raw_metadata<T>, makeshift::detail::is_value_metadata<T>>> { };
+template <typename T> struct have_value_metadata : makeshift::detail::have_value_metadata_<T> { };
 template <> struct have_value_metadata<bool> : std::true_type { };
 
     //ᅟ

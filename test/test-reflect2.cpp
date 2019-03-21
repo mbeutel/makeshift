@@ -17,10 +17,12 @@ enum class BoundaryCondition
 };
 constexpr inline auto reflect(mk::type<BoundaryCondition>)
 {
-    return mk::named_values<BoundaryCondition> = {
-        { BoundaryCondition::periodic, "periodic" },
-        { BoundaryCondition::dirichlet, "dirichlet" }
-    };
+    return mk::define_metadata(
+        mk::named_values<BoundaryCondition> = {
+            { BoundaryCondition::periodic, "periodic" },
+            { BoundaryCondition::dirichlet, "dirichlet" }
+        }
+    );
 }
 
 struct PartitionFlag : mk::define_flags<PartitionFlag>
@@ -32,11 +34,13 @@ struct PartitionFlag : mk::define_flags<PartitionFlag>
 using PartitionFlags = PartitionFlag::flags;
 constexpr inline auto reflect(mk::type<PartitionFlag>)
 {
-    return mk::values<PartitionFlags> = {
-        PartitionFlag::enclosedBoundary,
-        PartitionFlag::nodeCut,
-        PartitionFlag::threadCut
-    };
+    return mk::define_metadata(
+        mk::values<PartitionFlags> = {
+            PartitionFlag::enclosedBoundary,
+            PartitionFlag::nodeCut,
+            PartitionFlag::threadCut
+        }
+    );
 }
 
 TEST_CASE("reflect2", "[flags]")
