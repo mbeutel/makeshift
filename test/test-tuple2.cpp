@@ -66,4 +66,10 @@ TEST_CASE("tuple2", "[flags]")
         bool noneGreaterThan4 = mk::tuple_none_of(numbers, [](auto x) { return x > 4; });
         CHECK(noneGreaterThan4);
     }
+    SECTION("array")
+    {
+        auto moreNumbers = std::array{ 6, 8 };
+        auto allNumbers = mk::array_cat<int>(numbers, moreNumbers);
+        CHECK(allNumbers == std::array{ 2, 3, 6, 8 });
+    }
 }

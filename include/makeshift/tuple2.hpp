@@ -283,6 +283,27 @@ template <typename TupleT, typename P>
 }
 
 
+    //ᅟ
+    // Takes a list of tuples and returns an array of concatenated elements.
+    //ᅟ
+    //ᅟ    auto numbers = std::tuple{ 2, 3u };
+    //ᅟ    auto moreNumbers = std::array{ 6, 8 };
+    //ᅟ    auto allNumbers = array_cat<int>(numbers, moreNumbers);
+    //ᅟ    // returns { 2, 3, 6, 8 }
+    //
+template <typename T, typename... Ts>
+    MAKESHIFT_NODISCARD constexpr auto
+    array_cat(const Ts&... tuples)
+{
+    static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
+    constexpr std::size_t numElements = makeshift::detail::cadd<std::size_t>(std::tuple_size<Ts>::value...);
+    auto result = std::array<T, numElements>{ };
+    auto appendFunc = makeshift::detail::append_arrays_functor<T>{ result.data() };
+    tuple_foreach2(appendFunc, std::tuple<const Ts&...>(tuples...));
+    return result;
+}
+
+
 } // inline namespace types
 
 } // namespace makeshift

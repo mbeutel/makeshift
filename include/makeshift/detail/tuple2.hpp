@@ -251,6 +251,35 @@ template <typename FoldT, typename TupleT, typename T, typename F>
         std::forward<TupleT>(tuple), std::forward<T>(initialValue), std::forward<F>(func));
 }
 
+template <typename T>
+    struct append_array_functor
+{
+    T*& dst;
+
+    constexpr void operator ()(const T& elem) const
+    {
+        *dst++ = elem;
+    }
+};
+template <typename T>
+    struct append_arrays_functor
+{
+    T* dst;
+
+    template <std::size_t N>
+        constexpr void operator ()(const std::array<T, N>& array)
+    {
+        for (std::size_t i = 0; i != N; ++i)
+            *dst++ = array[i];
+    }
+    template <typename TupleT>
+        constexpr void operator ()(const TupleT& tuple)
+    {
+        makeshift::detail::tuple_transform_impl0<-1, makeshift::detail::transform_target::nothing>(
+            append_array_functor<T>{ dst }, tuple);
+    }
+};
+
 
 } // namespace detail
 
