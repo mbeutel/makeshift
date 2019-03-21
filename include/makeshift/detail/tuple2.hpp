@@ -251,34 +251,41 @@ template <typename FoldT, typename TupleT, typename T, typename F>
         std::forward<TupleT>(tuple), std::forward<T>(initialValue), std::forward<F>(func));
 }
 
-template <typename T>
-    struct append_array_functor
+    // borrowing the 2-d indexing technique that first appeared in the `tuple_cat()` implementation of Microsoft's STL
+template <std::size_t... Ns>
+    struct indices_2d_
 {
-    T*& dst;
-
-    constexpr void operator ()(const T& elem) const
+    static constexpr std::size_t size = cadd<std::size_t>(Ns...);
+    static constexpr std::size_t row(std::size_t i) noexcept
     {
-        *dst++ = elem;
+        std::size_t sizes[] = { Ns... };
+        std::size_t r = 0;
+        while (i >= sizes[r]) // compiler error if sizeof...(Ns) == 0 or i >= (Ns + ... + 0)
+        {
+            ++r;
+            i -= sizes[r];
+        }
+        return r;
+    }
+    static constexpr std::size_t col(std::size_t i) noexcept
+    {
+        std::size_t sizes[] = { Ns... };
+        std::size_t r = 0;
+        while (i >= sizes[r]) // compiler error if sizeof...(Ns) == 0 or i >= (Ns + ... + 0)
+        {
+            ++r;
+            i -= sizes[r];
+        }
+        return i;
     }
 };
-template <typename T>
-    struct append_arrays_functor
-{
-    T* dst;
 
-    template <std::size_t N>
-        constexpr void operator ()(const std::array<T, N>& array)
-    {
-        for (std::size_t i = 0; i != N; ++i)
-            *dst++ = array[i];
-    }
-    template <typename TupleT>
-        constexpr void operator ()(const TupleT& tuple)
-    {
-        makeshift::detail::tuple_transform_impl0<-1, makeshift::detail::transform_target::nothing>(
-            append_array_functor<T>{ dst }, tuple);
-    }
-};
+template <typename T, std::size_t... Is, typename IndicesT, typename... Ts>
+    constexpr std::array<T, IndicesT::size> array_cat_impl(std::index_sequence<Is...>, IndicesT, std::tuple<Ts...> tupleOfTuples)
+{
+    using std::get;
+    return { get<IndicesT::col(Is)>(get<IndicesT::row(Is)>(tupleOfTuples))... };
+}
 
 
 } // namespace detail

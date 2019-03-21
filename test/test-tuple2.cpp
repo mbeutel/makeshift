@@ -68,8 +68,9 @@ TEST_CASE("tuple2", "[flags]")
     }
     SECTION("array")
     {
+        constexpr auto homogeneousNumbers = std::tuple{ 2, 3 };
         auto moreNumbers = std::array{ 6, 8 };
-        auto allNumbers = mk::array_cat<int>(numbers, moreNumbers);
+        auto allNumbers = mk::array_cat<int>(homogeneousNumbers, moreNumbers);
         CHECK(allNumbers == std::array{ 2, 3, 6, 8 });
     }
 }

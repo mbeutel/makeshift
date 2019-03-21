@@ -286,21 +286,18 @@ template <typename TupleT, typename P>
     //ᅟ
     // Takes a list of tuples and returns an array of concatenated elements.
     //ᅟ
-    //ᅟ    auto numbers = std::tuple{ 2, 3u };
+    //ᅟ    auto numbers = std::tuple{ 2, 3 };
     //ᅟ    auto moreNumbers = std::array{ 6, 8 };
     //ᅟ    auto allNumbers = array_cat<int>(numbers, moreNumbers);
     //ᅟ    // returns { 2, 3, 6, 8 }
     //
 template <typename T, typename... Ts>
     MAKESHIFT_NODISCARD constexpr auto
-    array_cat(const Ts&... tuples)
+    array_cat(Ts&&... tuples)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
-    constexpr std::size_t numElements = makeshift::detail::cadd<std::size_t>(std::tuple_size<Ts>::value...);
-    auto result = std::array<T, numElements>{ };
-    auto appendFunc = makeshift::detail::append_arrays_functor<T>{ result.data() };
-    tuple_foreach2(appendFunc, std::tuple<const Ts&...>(tuples...));
-    return result;
+    using Indices = makeshift::detail::indices_2d_<std::tuple_size<std::decay_t<Ts>>::value...>;
+    return makeshift::detail::array_cat_impl<T>(std::make_index_sequence<Indices::size>{ }, Indices{ }, std::tuple<Ts&&...>{ std::forward<Ts>(tuples)... });
 }
 
 
