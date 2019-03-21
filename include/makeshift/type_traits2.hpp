@@ -15,42 +15,6 @@
 namespace makeshift
 {
 
-namespace detail
-{
-
-
-    //ᅟ
-    // `type<>` is a generic type tag.
-    //ᅟ
-    // Use `type_v<T>` as a value representation of `T`.
-    //
-template <typename T>
-    struct type_t
-{
-    using type = T;
-
-    // TODO: invocation operator?
-
-    // TODO: conversion operator for type enums?
-};
-
-template <typename T1, typename T2>
-    MAKESHIFT_NODISCARD constexpr std::is_same<T1, T2>
-    operator ==(type_t<T1>, type_t<T2>) noexcept
-{
-    return { };
-}
-template <typename T1, typename T2>
-    MAKESHIFT_NODISCARD constexpr std::negation<std::is_same<T1, T2>>
-    operator !=(type_t<T1>, type_t<T2>) noexcept
-{
-    return { };
-}
-
-
-} // namespace detail
-
-
 inline namespace types
 {
 
@@ -120,7 +84,7 @@ template <typename... Ts>
     struct type_sequence2
 {
     constexpr type_sequence2(void) noexcept = default;
-    constexpr type_sequence2(type<Ts>...) noexcept { }
+    constexpr type_sequence2(makeshift::detail::type_t<Ts>...) noexcept { }
 };
 template <>
     struct type_sequence2<>
@@ -142,6 +106,58 @@ template <typename... Ts>
 {
     return { };
 }
+
+
+} // inline namespace types
+
+
+namespace detail
+{
+
+
+template <typename T, typename TypeSeqT> struct try_index_of_type_in;
+template <typename T, template <typename...> class TypeSeqT, typename... Ts> struct try_index_of_type_in<T, TypeSeqT<Ts...>> : try_index_of_type<T, Ts...> { };
+
+
+    //ᅟ
+    // `type<>` is a generic type tag.
+    //ᅟ
+    // Use `type_v<T>` as a value representation of `T`.
+    //
+template <typename T>
+    struct type_t
+{
+    using type = T;
+
+        // This conversion exists so expressions of type `type<>` can be used as case labels of switch statements over type enums.
+    template <typename EnumT,
+              typename TypeEnumTypeT = decltype(type_enum_type_of_(EnumT{ }, makeshift::detail::unwrap_enum_tag{ })),
+              typename = std::enable_if_t<try_index_of_type_in<T, typename TypeEnumTypeT::type::types>::value != -1>>
+        constexpr operator EnumT(void) const noexcept
+    {
+        return EnumT(int(try_index_of_type_in<T, typename TypeEnumTypeT::types>::value));
+    }
+};
+
+template <typename T1, typename T2>
+    MAKESHIFT_NODISCARD constexpr std::is_same<T1, T2>
+    operator ==(type_t<T1>, type_t<T2>) noexcept
+{
+    return { };
+}
+template <typename T1, typename T2>
+    MAKESHIFT_NODISCARD constexpr std::negation<std::is_same<T1, T2>>
+    operator !=(type_t<T1>, type_t<T2>) noexcept
+{
+    return { };
+}
+
+
+} // namespace detail
+
+
+inline namespace types
+{
 
 
     //ᅟ
@@ -191,7 +207,7 @@ template <typename T> constexpr bool is_iterable_v = is_iterable<T>::value;
     //ᅟ
     // Retrieves the flag type (i.e. the `struct` which inherits from `define_flags<>` and defines flag values) of a flags enum.
     //
-template <typename T> struct flag_type_of : decltype(flag_type_of_(std::declval<T>(), makeshift::detail::flags_tag{ })) { };
+template <typename T> using flag_type_of = decltype(flag_type_of_(std::declval<T>(), makeshift::detail::unwrap_enum_tag{ }));
 
     //ᅟ
     // Retrieves the flag type (i.e. the `struct` which inherits from `define_flags<>` and defines flag values) of a flags enum.

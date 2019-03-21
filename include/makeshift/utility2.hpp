@@ -6,8 +6,6 @@
 #include <cstddef>     // for ptrdiff_t
 #include <type_traits> // for underlying_type<>
 
-#include <makeshift/type_traits.hpp> // for none
-
 #include <makeshift/detail/utility2.hpp>
 
 
@@ -28,11 +26,6 @@ template <typename EnumT> constexpr EnumT operator ~(EnumT arg) noexcept { retur
 template <typename EnumT> constexpr EnumT operator |=(EnumT& lhs, EnumT rhs) noexcept { lhs = lhs | rhs; return lhs; }
 template <typename EnumT> constexpr EnumT operator &=(EnumT& lhs, EnumT rhs) noexcept { lhs = lhs & rhs; return lhs; }
 template <typename EnumT> constexpr EnumT operator ^=(EnumT& lhs, EnumT rhs) noexcept { lhs = lhs ^ rhs; return lhs; }
-
-template <typename EnumT> constexpr bool operator ==(EnumT lhs, none) noexcept { return lhs == EnumT(0); }
-template <typename EnumT> constexpr bool operator ==(none, EnumT rhs) noexcept { return rhs == EnumT(0); }
-template <typename EnumT> constexpr bool operator !=(EnumT lhs, none) noexcept { return lhs != EnumT(0); }
-template <typename EnumT> constexpr bool operator !=(none, EnumT rhs) noexcept { return rhs != EnumT(0); }
 
 
     //ᅟ
@@ -75,6 +68,48 @@ template <typename FlagsT, typename UnderlyingTypeT = unsigned>
     struct define_flags : makeshift::detail::adl::define_flags_base<FlagsT, UnderlyingTypeT>
 {
 };
+
+
+    //ᅟ
+    // Inherit from `define_type_enum<>` to define a type enumeration:
+    //ᅟ
+    //ᅟ    struct FloatTypes : define_type_enum<FloatTypes, float, double> { using base::base; };
+    //ᅟ
+    //ᅟ    FloatTypes floatType = ...;
+    //ᅟ    switch (floatType)
+    //ᅟ    {
+    //ᅟ    case type_v<float>:  ...; break;
+    //ᅟ    case type_v<double>: ...; break;
+    //ᅟ    }
+    //
+template <typename TypeEnumT, typename... Ts>
+    struct define_type_enum : makeshift::detail::adl::define_type_enum_base<TypeEnumT, Ts...>
+{
+    using _base_base = makeshift::detail::adl::define_type_enum_base<TypeEnumT, Ts...>;
+    using _base_base::_base_base;
+    using base = define_type_enum;
+};
+
+
+    //ᅟ
+    // Anonymous type enumeration.
+    //ᅟ
+    //ᅟ    using FloatTypes = type_enum<float, double>;
+    //ᅟ
+    //ᅟ    FloatTypes floatType = ...;
+    //ᅟ    switch (floatType)
+    //ᅟ    {
+    //ᅟ    case type_v<float>:  ...; break;
+    //ᅟ    case type_v<double>: ...; break;
+    //ᅟ    }
+    //
+template <typename... Ts>
+    class type_enum final : public define_type_enum<type_enum<Ts...>, Ts...>
+{
+    using _base_base = define_type_enum<type_enum<Ts...>, Ts...>;
+    using _base_base::_base_base;
+};
+
 
 
     //ᅟ

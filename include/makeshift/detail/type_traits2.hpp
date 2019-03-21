@@ -29,8 +29,10 @@ template <typename T> using is_iterable_r = decltype(begin(std::declval<T&>()) !
 } // is_iterable_ns
 
 
+struct type_enum_base { };
+
 struct flags_base { };
-struct flags_tag { };
+struct unwrap_enum_tag { };
 
 
 template <typename...> using void_t = void; // ICC doesn't have std::void_t<> yet

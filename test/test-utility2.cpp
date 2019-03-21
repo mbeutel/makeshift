@@ -23,6 +23,10 @@ struct Vegetables : mk::define_flags<Vegetables>
 };
 using Ratatouille = Vegetables::flags;
 
+
+using FloatTypes = mk::type_enum<float, double>;
+
+
 } // anonymous namespace
 
 
@@ -31,5 +35,11 @@ TEST_CASE("utility2", "[flags]")
     SECTION("flags-enum")
     {
         
+    }
+
+    SECTION("type-enum")
+    {
+        FloatTypes floatTypes = mk::type_v<float>;
+        CHECK(floatTypes != mk::type_v<double>);
     }
 }
