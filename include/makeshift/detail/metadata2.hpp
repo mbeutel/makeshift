@@ -7,7 +7,8 @@
 #include <cstddef> // for size_t
 #include <utility> // for move(), integer_sequence<>
 
-#include <makeshift/version.hpp> // for MAKESHIFT_NODISCARD, MAKESHIFT_EMPTY_BASES
+#include <makeshift/type_traits2.hpp> // for type_sequence<>
+#include <makeshift/version.hpp>      // for MAKESHIFT_NODISCARD, MAKESHIFT_CXX17, MAKESHIFT_EMPTY_BASES
 
 #include <makeshift/detail/string_view.hpp>
 
@@ -37,7 +38,7 @@ template <typename T, std::size_t N>
 
 struct no_values_tag { };
 
-    // These are not the best abstractions ever but at least they save us from having to repeat ourselves.
+    // These are not the most thought-out abstractions ever, but at least they save us from having to repeat ourselves.
 template <typename ParamT, typename T = ParamT>
     struct parameter
 {
@@ -54,8 +55,27 @@ template <typename ParamT>
         return std::move(arg);
     }
 };
-template <template <typename, std::size_t> class ParamT, typename T>
+template <template <std::size_t> class ParamT, typename T>
     struct array_parameter
+{
+    MAKESHIFT_NODISCARD constexpr ParamT<0> operator =(no_values_tag) const
+    {
+        return { { } };
+    }
+    template <std::size_t N>
+        MAKESHIFT_NODISCARD constexpr ParamT<N> operator =(T (&&vals)[N]) const
+    {
+        return { makeshift::detail::to_array2(vals) };
+    }
+    template <std::size_t N> 
+        MAKESHIFT_NODISCARD constexpr ParamT<N> operator =(const std::array<T, N>& vals) const
+    {
+        return { vals };
+    }
+};
+
+template <template <typename, std::size_t> class ParamT, typename T>
+    struct array_parameter_of
 {
     MAKESHIFT_NODISCARD constexpr ParamT<T, 0> operator =(no_values_tag) const
     {
@@ -77,7 +97,9 @@ template <template <typename, std::size_t> class ParamT, typename T>
 template <typename... ParamsT>
     struct MAKESHIFT_EMPTY_BASES metadata_t : ParamsT...
 {
-    constexpr metadata_t(ParamsT... params)
+    using parameter_categories = type_sequence2_cat_t<typename ParamsT::parameter_categories...>;
+
+    constexpr metadata_t(const ParamsT&... params)
         : ParamsT(params)...
     {
     }
@@ -92,13 +114,19 @@ private:
     string_view name_;
 
 public:
+    using parameter_categories = type_sequence2<name_tag>;
+    MAKESHIFT_NODISCARD constexpr const name_t& select(name_tag) const noexcept { return *this; }
+
     constexpr name_t(void) noexcept = default;
 
     constexpr name_t(const name_t&) noexcept = default;
     constexpr name_t& operator =(const name_t&) noexcept = default;
 
-    template <std::size_t N>
-        constexpr name_t(const char (&str)[N]) noexcept // permit construction from literals only
+    constexpr name_t(const char* str) noexcept
+        : name_(str)
+    {
+    }
+    constexpr name_t(string_view str) noexcept
         : name_(str)
     {
     }
@@ -106,12 +134,6 @@ public:
     MAKESHIFT_NODISCARD constexpr string_view name(void) const noexcept { return name_; }
 };
 
-template <typename T>
-    struct named_t
-{
-    T value;
-    name_t name;
-};
 
 struct values_tag { };
 
@@ -122,6 +144,9 @@ private:
     std::array<T, N> values_;
 
 public:
+    using parameter_categories = type_sequence2<values_tag>;
+    MAKESHIFT_NODISCARD constexpr const values_t& select(values_tag) const noexcept { return *this; }
+
     constexpr values_t(const std::array<T, N>& _values)
         : values_(_values)
     {
@@ -130,12 +155,39 @@ public:
     MAKESHIFT_NODISCARD constexpr const std::array<T, N>& values(void) const noexcept { return values_; }
 };
 
+
 struct value_names_tag { };
+
+template <std::size_t N>
+    struct value_names_t : value_names_tag
+{
+private:
+    std::array<string_view, N> valueNames_;
+
+public:
+    using parameter_categories = type_sequence2<value_names_tag>;
+    MAKESHIFT_NODISCARD constexpr const value_names_t& select(value_names_tag) const noexcept { return *this; }
+
+    constexpr value_names_t(const std::array<string_view, N>& _valueNames)
+        : valueNames_(_valueNames)
+    {
+    }
+
+    MAKESHIFT_NODISCARD constexpr const std::array<string_view, N>& value_names(void) const noexcept { return valueNames_; }
+};
+
+
+template <typename T>
+    struct named_t
+{
+    T value;
+    string_view name;
+};
 
 template <typename T, std::size_t N>
     struct named_values_t;
 template <typename T, std::size_t N>
-    struct MAKESHIFT_EMPTY_BASES named_values_t<named_t<T>, N> : values_t<T, N>, value_names_tag
+    struct MAKESHIFT_EMPTY_BASES named_values_t<named_t<T>, N> : values_t<T, N>, value_names_t<N>
 {
 private:
     static constexpr std::array<string_view, N> extractNames(const std::array<named_t<T>, N>& _namedValues)
@@ -153,24 +205,15 @@ private:
         return result;
     }
 
-    std::array<string_view, N> valueNames_;
-
 public:
+    using parameter_categories = type_sequence2<values_tag, value_names_tag>;
+
     constexpr named_values_t(const std::array<named_t<T>, N>& _namedValues)
         : values_t<T, N>(extractValues(_namedValues)),
-          valueNames_(extractNames(_namedValues))
+          value_names_t<N>(extractNames(_namedValues))
     {
     }
-
-    MAKESHIFT_NODISCARD constexpr const std::array<string_view, N>& value_names(void) const noexcept { return valueNames_; }
 };
-
-    // TODO: remove
-template <typename T, std::size_t N>
-    MAKESHIFT_NODISCARD constexpr std::array<T, N> to_array(const values_t<T, N>& values)
-{
-    return values.values;
-}
 
 
 } // namespace detail

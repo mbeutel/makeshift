@@ -183,12 +183,13 @@ template <typename T>
     MAKESHIFT_NODISCARD constexpr auto expand2(const T& value)
 {
     auto maybeResult = makeshift::try_expand2(value,
-        makeshift::detail::values_of_retriever<T>{ });
+        makeshift::detail::metadata_values_retriever<T>{ });
     Expects(maybeResult.has_value());
     return *maybeResult;
 }
 
 
+#ifdef MAKESHIFT_CXX17
     //ᅟ
     // Like `std::visit()`, but permits the functor to return different types for different argument types, and returns a variant of the possible results.
     //
@@ -205,6 +206,7 @@ template <typename F, typename... VariantsT,
         },
         std::forward<VariantsT>(variants)...);
 }
+#endif // MAKESHIFT_CXX17
 
 
 } // inline namespace types

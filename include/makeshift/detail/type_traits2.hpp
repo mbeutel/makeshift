@@ -111,6 +111,26 @@ template <template <typename...> class Z, typename SeqT> struct apply_;
 template <template <typename...> class Z, template <typename...> class SeqT, typename... Ts> struct apply_<Z, SeqT<Ts...>> { using type = Z<Ts...>; };
 
 
+template <typename T> struct type_t;
+
+
+template <typename T, typename Ts> struct is_in_;
+template <typename T, template <typename...> class TypeSeqT> struct is_in_<T, TypeSeqT<>> : std::false_type{ };
+template <typename T, template <typename...> class TypeSeqT, typename T0, typename... Ts> struct is_in_<T, TypeSeqT<T0, Ts...>> : is_in_<T, TypeSeqT<Ts...>> { };
+template <typename T, template <typename...> class TypeSeqT, typename... Ts> struct is_in_<T, TypeSeqT<T, Ts...>> : std::true_type { };
+
+template <typename T, typename Ts, bool IsIn> struct add_unique_0_;
+template <typename T, template <typename...> class TypeSeqT, typename... Ts> struct add_unique_0_<T, TypeSeqT<Ts...>, false> { using type = TypeSeqT<T, Ts...>; };
+template <typename T, template <typename...> class TypeSeqT, typename... Ts> struct add_unique_0_<T, TypeSeqT<Ts...>, true> { using type = TypeSeqT<Ts...>; };
+template <typename T, typename Ts> struct add_unique_ : add_unique_0_<T, Ts, is_in_<T, Ts>::value> { };
+
+template <typename Rs, typename Ts> struct unique_sequence_0_;
+template <typename Rs, template <typename...> class TypeSeqT> struct unique_sequence_0_<Rs, TypeSeqT<>> { using type = Rs; };
+template <typename Rs, template <typename...> class TypeSeqT, typename T, typename... Ts> struct unique_sequence_0_<Rs, TypeSeqT<T, Ts...>> : unique_sequence_0_<typename add_unique_<T, Rs>::type, TypeSeqT<Ts...>> { };
+template <typename Ts> struct unique_sequence_;
+template <template <typename...> class TypeSeqT, typename... Ts> struct unique_sequence_<TypeSeqT<Ts...>> : unique_sequence_0_<TypeSeqT<>, TypeSeqT<Ts...>> { };
+
+
 } // namespace detail
 
 } // namespace makeshift

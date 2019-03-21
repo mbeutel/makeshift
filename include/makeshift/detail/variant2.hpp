@@ -6,7 +6,6 @@
 #include <array>
 #include <tuple>
 #include <cstddef>     // for size_t
-#include <variant>
 #include <optional>
 #include <utility>     // for move(), forward<>(), integer_sequence<>
 #include <type_traits> // for decay<>
@@ -15,12 +14,18 @@
 
 #include <makeshift/constexpr.hpp>    // for constexpr_value<>, constexpr_transform()
 #include <makeshift/compound.hpp>     // for compound_hash<>, compound_equal_to<>
-#include <makeshift/reflect2.hpp>     // for values_of()
+#include <makeshift/metadata2.hpp>    // for values<>
+#include <makeshift/reflect2.hpp>     // for metadata_of<>
 #include <makeshift/type_traits2.hpp> // for type_sequence2<>
 #include <makeshift/tuple2.hpp>       // for array_transform2()
-#include <makeshift/version.hpp>      // for MAKESHIFT_NODISCARD
+#include <makeshift/version.hpp>      // for MAKESHIFT_NODISCARD, MAKESHIFT_CXX17
 
 #include <makeshift/detail/workaround.hpp> // for cmul<>()
+#include <makeshift/detail/unit_variant.hpp>
+
+#ifdef MAKESHIFT_CXX17
+ #include <variant>
+#endif // MAKESHIFT_CXX17
 
 
 namespace makeshift
@@ -30,7 +35,7 @@ namespace detail
 {
 
 
-template <typename T> using is_variant_like_r = std::integral_constant<std::size_t, std::variant_size<T>::value>;
+template <typename T> using is_variant_like_r = std::integral_constant<std::size_t, variant_size<T>::value>;
 
 
 template <std::size_t N, typename ClassT, typename... Ts>
@@ -109,7 +114,7 @@ public:
 template <typename ClassT, typename T>
     constexpr auto default_values(const members_t<ClassT, T>& member)
 {
-    auto lvalues = makeshift::values_of(type_v<T>);
+    auto lvalues = metadata_of_v<T>.values();
     constexpr std::size_t n = std::tuple_size<std::decay_t<decltype(lvalues)>>::value;
     return member_values_t<n, ClassT, T>{ member.members(), std::make_tuple(lvalues) };
 }
@@ -330,33 +335,9 @@ template <typename T, typename C, typename Is>
 template <typename T, typename C, std::size_t... Is>
     struct expand_type_<T, C, std::index_sequence<Is...>>
 {
-    using type = std::variant<value_functor<T, C, Is>...>;
-};
-template <typename ExpandTypeT>
-    using expand_type_factory = ExpandTypeT (*)(void);
-
-template <typename ExpandTypeT>
-    struct expand_type_factory_functor
-{
-    template <std::size_t I>
-        static constexpr auto invoke(void)
-    {
-        return ExpandTypeT{ std::in_place_index<I> };
-    }
-    template <std::size_t I>
-        constexpr expand_type_factory<ExpandTypeT> operator ()(std::integral_constant<std::size_t, I>) const
-    {
-        return invoke<I>;
-    }
+    using type = unit_variant<value_functor<T, C, Is>...>;
 };
 
-template <typename ExpandTypeT, std::size_t N>
-    constexpr auto make_expand_factories(void)
-{
-    return makeshift::array_transform2<N>(
-        expand_type_factory_functor<ExpandTypeT>{ },
-        tuple_index);
-}
 template <typename T, typename C, typename HashT, typename EqualToT>
      constexpr auto value_to_variant(const T& value, C valueArrayC, HashT&& /*hash*/, EqualToT&& equal)
 {
@@ -364,11 +345,9 @@ template <typename T, typename C, typename HashT, typename EqualToT>
     constexpr std::size_t numValues = std::tuple_size<decltype(lvalues)>::value;
     using ExpandType = typename expand_type_<T, C, std::make_index_sequence<numValues>>::type;
 
-    constexpr auto factories = make_expand_factories<ExpandType, numValues>();
-
     for (std::size_t i = 0; i != numValues; ++i)
         if (equal(value, lvalues[i]))
-            return std::optional<ExpandType>{ ExpandType{ factories[i]() } };
+            return std::optional<ExpandType>{ ExpandType{ index_value, i } };
     return std::optional<ExpandType>{ std::nullopt };
 }
 
@@ -377,7 +356,7 @@ struct value_array_functor
     template <typename T>
         constexpr auto operator ()(T&& arg) const
     {
-        return std::forward<T>(arg).values;
+        return std::forward<T>(arg).values();
     }
 };
 
@@ -391,11 +370,11 @@ struct to_array_functor
 };
 
 template <typename T>
-    struct values_of_retriever
+    struct metadata_values_retriever
 {
     constexpr auto operator ()(void) const
     {
-        return values_initializer_t<T>{ } = values_of(type_v<T>);
+        return values<T> = metadata_of_v<T>.values();
     }
 };
 
@@ -471,6 +450,7 @@ template <template <typename...> class T, typename... Ts> struct decay_to_args<c
 template <template <typename...> class T, typename... Ts> struct decay_to_args<T<Ts...>&&> { using type = T<Ts&&...>; };
 template <typename T> using decay_to_args_t = typename decay_to_args<T>::type;
 
+#ifdef MAKESHIFT_CXX17
 template <typename F, typename... ArgsT> using call_result_t = decltype(std::declval<F>()(std::declval<ArgsT>()...));
 
 template <typename C, typename F, typename L, typename... Vs> struct visit_many_result_0_;
@@ -485,22 +465,8 @@ template <typename C, typename F, typename... Ls, template <typename...> class V
 {
 };
 
-template <typename T, typename Ts> struct is_in_;
-template <typename T> struct is_in_<T, type_sequence2<>> : std::false_type{ };
-template <typename T, typename T0, typename... Ts> struct is_in_<T, type_sequence2<T0, Ts...>> : is_in_<T, type_sequence2<Ts...>> { };
-template <typename T, typename... Ts> struct is_in_<T, type_sequence2<T, Ts...>> : std::true_type { };
-
-template <typename T, typename Ts, bool IsIn> struct add_unique_0_;
-template <typename T, typename... Ts> struct add_unique_0_<T, type_sequence2<Ts...>, false> { using type = type_sequence2<T, Ts...>; };
-template <typename T, typename... Ts> struct add_unique_0_<T, type_sequence2<Ts...>, true> { using type = type_sequence2<Ts...>; };
-template <typename T, typename Ts> struct add_unique_ : add_unique_0_<T, Ts, is_in_<T, Ts>::value> { };
-
-template <typename Rs, typename Ts> struct unique_sequence_0_;
-template <typename Rs> struct unique_sequence_0_<Rs, type_sequence2<>> { using type = Rs; };
-template <typename Rs, typename T, typename... Ts> struct unique_sequence_0_<Rs, type_sequence2<T, Ts...>> : unique_sequence_0_<typename add_unique_<T, Rs>::type, type_sequence2<Ts...>> { };
-template <typename Ts> struct unique_sequence_ : unique_sequence_0_<type_sequence2<>, Ts> { };
-
 template <typename F, typename... Vs> struct visit_many_result_ : apply_<std::variant, typename unique_sequence_<typename visit_many_result_0_<type_sequence2<>, F, type_sequence2<>, decay_to_args_t<Vs>...>::type>::type> { };
+#endif // MAKESHIFT_CXX17
 
 
 } // namespace detail

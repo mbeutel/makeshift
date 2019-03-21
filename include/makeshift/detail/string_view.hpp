@@ -24,7 +24,7 @@ namespace detail
 using string_view = std::string_view;
 #else // MAKESHIFT_CXX17
     // reduced version of `std::string_view` (C++14 compatibility) for internal use
-struct string_view
+class string_view
 {
 private:
     const char* data_;
