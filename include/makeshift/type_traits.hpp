@@ -218,37 +218,6 @@ template <std::size_t... SelectedIs, std::size_t NextI> struct select_next_index
 template <std::size_t... SelectedIs, std::size_t NextI> struct select_next_index_<std::index_sequence<SelectedIs...>, NextI, false> { using type = std::index_sequence<SelectedIs...>; };
 
 
-    // borrowed from the VC++ STL's variant implementation
-template <typename T, std::size_t I>
-    struct type_with_index
-{
-    static constexpr std::size_t index = I;
-    using type = T;
-};
-template <std::size_t I, typename T>
-    struct value_overload_
-{
-    using type = type_with_index<T, I> (*)(T);
-    operator type(void) const;
-};
-template <typename Is, typename... Ts> struct value_overload_set_;
-template <std::size_t... Is, typename... Ts> struct value_overload_set_<std::index_sequence<Is...>, Ts...> : value_overload_<Is, Ts>... { };
-template <typename... Ts> using value_overload_set = value_overload_set_<std::make_index_sequence<sizeof...(Ts)>, Ts...>;
-
-template <typename EnableT, typename T, typename... Ts> struct value_overload_init_ { };
-template <typename T, typename... Ts>
-    struct value_overload_init_<void_t<decltype(value_overload_set<Ts...>{ }(std::declval<T>()))>, T, Ts...>
-{
-    using type = decltype(value_overload_set<Ts...>{ }(std::declval<T>()));
-};
-
-template <typename T, typename... Ts> struct value_overload_type { using type = typename value_overload_init_<void, T, Ts...>::type::type; };
-template <typename T, typename... Ts> using value_overload_type_t = typename value_overload_init_<void, T, Ts...>::type::type::type;
-
-template <typename T, typename... Ts> struct value_overload_index : std::integral_constant<std::size_t, value_overload_init_<void, T, Ts...>::type::index> { };
-template <typename T, typename... Ts> static constexpr std::size_t value_overload_index_v = value_overload_init_<void, T, Ts...>::type::index;
-
-
 } // namespace detail
 
 
