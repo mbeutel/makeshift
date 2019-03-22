@@ -1,6 +1,7 @@
 
 #include <variant>
 
+#include <makeshift/utility2.hpp>
 #include <makeshift/metadata2.hpp>
 #include <makeshift/variant2.hpp>
 
@@ -41,7 +42,7 @@ struct ExhaustibleParams
     }
 };
 
-using FloatType = std::variant<mk::type<float>, mk::type<double>>;
+using FloatType = mk::type_enum<float, double>;
 
 struct Params
 {
@@ -184,8 +185,8 @@ TEST_CASE("variant2")
             []
             {
                 return mk::values<FloatType> = {
-                    FloatType{ mk::type_v<float> },
-                    FloatType{ mk::type_v<double> }
+                    /*FloatType{*/ mk::type_v<float>  /*}*/,
+                    /*FloatType{*/ mk::type_v<double> /*}*/
                 };
             });
         CHECK(v1VO.has_value());

@@ -194,6 +194,18 @@ template <typename... Ts> using type_sequence2_cat_t = typename type_sequence2_c
 
 
     //ᅟ
+    // Determines whether a type is an instantiation of a particular class template.
+    //
+template <typename T, template <typename...> class U> struct is_instantiation_of : std::false_type { };
+template <template <typename...> class U, typename... Ts> struct is_instantiation_of<U<Ts...>, U> : std::true_type { };
+
+    //ᅟ
+    // Determines whether a type is an instantiation of a particular class template.
+    //
+template <typename T, template <typename...> class U> constexpr bool is_instantiation_of_v = is_instantiation_of<T, U>::value;
+
+
+    //ᅟ
     // Determines whether the given type is iterable, i.e. functions `begin()` and `end()` are well-defined for arguments of type `T`.
     //
 template <typename T> struct is_iterable : can_apply<makeshift::detail::is_iterable_ns::is_iterable_r, T> { };

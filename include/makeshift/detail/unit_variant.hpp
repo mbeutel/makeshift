@@ -9,7 +9,8 @@
 
 #include <gsl/gsl_assert> // for Expects()
 
-#include <makeshift/version.hpp>     // for MAKESHIFT_NODISCARD, MAKESHIFT_CXX17
+#include <makeshift/type_traits2.hpp> // for is_instantiation_of<>
+#include <makeshift/version.hpp>      // for MAKESHIFT_NODISCARD, MAKESHIFT_CXX17
 
 #include <makeshift/detail/workaround.hpp> // for cand()
 
@@ -94,6 +95,10 @@ template <typename T, typename... Ts> struct value_overload_index : std::integra
 template <typename T, typename... Ts> static constexpr std::size_t value_overload_index_v = value_overload_init_<void, T, Ts...>::type::index;
 
 
+template <typename T> struct is_in_place_index : std::false_type { };
+template <std::size_t I> struct is_in_place_index<in_place_index_t<I>> : std::true_type { };
+
+
 struct index_value_t { };
 constexpr inline index_value_t index_value{ };
 
@@ -118,7 +123,10 @@ public:
     }
     constexpr unit_variant(const unit_variant&) noexcept = default;
     constexpr unit_variant& operator =(const unit_variant&) noexcept = default;
-    template <typename T>
+    template <typename T,
+              typename = std::enable_if_t<!std::is_same<std::decay_t<T>, unit_variant>::value
+                                       && !is_instantiation_of_v<std::decay_t<T>, in_place_type_t>
+                                       && !is_in_place_index<std::decay_t<T>>::value>>
         constexpr unit_variant(T&&) noexcept
             : index_(makeshift::detail::value_overload_index_v<T, Ts...>)
     {
@@ -133,7 +141,7 @@ public:
             : index_(I)
     {
     }
-    constexpr explicit unit_variant(index_value_t, std::size_t _index)
+    explicit constexpr unit_variant(index_value_t, std::size_t _index)
         : index_(_index)
     {
         Expects(_index < sizeof...(Ts));

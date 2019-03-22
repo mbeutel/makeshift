@@ -411,7 +411,7 @@ template <typename ResultHandlerT, typename T, typename C, typename HashT, typen
 
     for (std::size_t i = 0; i != numValues; ++i)
         if (equal(value, lvalues[i]))
-            return ResultHandlerT::succeed(ExpandType{ index_value, i });
+            return ResultHandlerT::succeed(ExpandType(index_value, i));
     return ResultHandlerT::template fail<ExpandType>();
 }
 

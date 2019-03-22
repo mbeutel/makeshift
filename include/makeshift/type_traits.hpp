@@ -562,18 +562,6 @@ template <typename T> constexpr bool is_serializer_v = is_serializer<T>::value;
 
 
     //ᅟ
-    // Determines whether a type is an instantiation of a particular class template.
-    //
-template <typename T, template <typename...> class U> struct is_instantiation_of : std::false_type { };
-template <template <typename...> class U, typename... Ts> struct is_instantiation_of<U<Ts...>, U> : std::true_type { };
-
-    //ᅟ
-    // Determines whether a type is an instantiation of a particular class template.
-    //
-template <typename T, template <typename...> class U> constexpr bool is_instantiation_of_v = is_instantiation_of<T, U>::value;
-
-
-    //ᅟ
     // Determines whether two class templates are identical.
     //
 template <template <typename...> class T, template <typename...> class U> struct is_same_template : std::false_type { };

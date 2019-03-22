@@ -82,6 +82,15 @@ public:
     constexpr operator value_t(void) const noexcept { return value_; }
 
     constexpr explicit operator int(void) const noexcept { return int(value_); }
+
+    friend constexpr bool operator ==(define_type_enum_base lhs, define_type_enum_base rhs) noexcept
+    {
+        return lhs.value_ == rhs.value_;
+    }
+    friend constexpr bool operator !=(define_type_enum_base lhs, define_type_enum_base rhs) noexcept
+    {
+        return !(lhs == rhs);
+    }
 };
 
 template <typename TypeEnumT, typename... Ts, typename T,
