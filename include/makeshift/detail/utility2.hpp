@@ -73,7 +73,7 @@ public:
     explicit constexpr define_type_enum_base(int _value)
         : value_(value_t(_value))
     {
-        Expects(_value >= 0 && _value < sizeof...(Ts));
+        Expects(_value >= 0 && _value < int(sizeof...(Ts)));
     }
 
     operator bool(void) const = delete;

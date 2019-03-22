@@ -43,6 +43,7 @@ struct ExhaustibleParams
 };
 
 using FloatType = mk::type_enum<float, double>;
+using FloatTypeVariant = std::variant<mk::type<float>, mk::type<double>>;
 
 struct Params
 {
@@ -180,26 +181,37 @@ TEST_CASE("variant2")
             },
             e2V);
 
-        auto v1 = FloatType{ mk::type_v<double> };
-        auto v1VO = mk::try_expand2(v1,
+        auto te1 = FloatType{ mk::type_v<double> };
+        auto te1VO = mk::try_expand2(te1,
             []
             {
                 return mk::values<FloatType> = {
-                    /*FloatType{*/ mk::type_v<float>  /*}*/,
-                    /*FloatType{*/ mk::type_v<double> /*}*/
+                    FloatType{ mk::type_v<float>  },
+                    FloatType{ mk::type_v<double> }
+                };
+            });
+        CHECK(te1VO.has_value());
+        auto te1V = *te1VO;
+
+        auto te1V2 = mk::expand2(te1);
+        mk::visit(
+            [](auto te1VCV, auto te1V2CV)
+            {
+                CHECK(te1VCV() == te1V2CV());
+            },
+            te1V, te1V2);
+
+        auto v1 = FloatTypeVariant{ mk::type_v<double> };
+        auto v1VO = mk::try_expand2(v1,
+            []
+            {
+                return mk::values<FloatTypeVariant> = {
+                    FloatTypeVariant{ mk::type_v<float>  },
+                    FloatTypeVariant{ mk::type_v<double> }
                 };
             });
         CHECK(v1VO.has_value());
         auto v1V = *v1VO;
-
-        auto v1V2 = mk::expand2(v1);
-        mk::visit(
-            [](auto v1VCV, auto v1V2CV)
-            {
-                CHECK(v1VCV() == v1V2CV());
-            },
-            v1V, v1V2);
-
         mk::visit(
             [](auto v1VCV)
             {
