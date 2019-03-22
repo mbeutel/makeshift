@@ -84,7 +84,7 @@ TEST_CASE("variant2")
     {
         auto p1 = Precision::double_;
         auto p1V = mk::expand2(p1);
-        std::visit(
+        mk::visit(
             [p1](auto p1CV)
             {
                 constexpr Precision p1C = p1CV();
@@ -99,7 +99,7 @@ TEST_CASE("variant2")
                 return mk::values<Precision> = { Precision::single, Precision::double_ };
             });
         CHECK(p2VO.has_value());
-        std::visit(
+        mk::visit(
             [p2](auto p2CV)
             {
                 constexpr Precision p2C = p2CV();
@@ -125,7 +125,7 @@ TEST_CASE("variant2")
                 };
             });
         CHECK(s1VO.has_value());
-        std::visit(
+        mk::visit(
             [s1](auto s1CV)
             {
                 constexpr Params s1C = s1CV();
@@ -142,7 +142,7 @@ TEST_CASE("variant2")
                     * (mk::member_values(&Params::numThreadsX, &Params::numThreadsY) = { { 16, 16 }, { 32, 32 } });
             });
         CHECK(s2VO.has_value());
-        std::visit(
+        mk::visit(
             [s2](auto s2CV)
             {
                 constexpr Params s2C = s2CV();
@@ -156,7 +156,7 @@ TEST_CASE("variant2")
             {
                 return mk::member_values(&ExhaustibleParams::precision);
             });
-        std::visit(
+        mk::visit(
             [e1](auto e1CV)
             {
                 constexpr ExhaustibleParams e1C = e1CV();
@@ -171,7 +171,7 @@ TEST_CASE("variant2")
                 return mk::member_values(&ExhaustibleParams::precision)
                      * mk::member_values(&ExhaustibleParams::transmogrify);
             });
-        std::visit(
+        mk::visit(
             [e2](auto e2CV)
             {
                 constexpr ExhaustibleParams e2C = e2CV();
@@ -192,14 +192,14 @@ TEST_CASE("variant2")
         auto v1V = *v1VO;
 
         auto v1V2 = mk::expand2(v1);
-        std::visit(
+        mk::visit(
             [](auto v1VCV, auto v1V2CV)
             {
                 CHECK(v1VCV() == v1V2CV());
             },
             v1V, v1V2);
 
-        std::visit(
+        mk::visit(
             [](auto v1VCV)
             {
 #ifndef _MSC_VER // bug: https://developercommunity.visualstudio.com/content/problem/483944/vc2017vc2019-stdvariant-stdvisit-constexpr-error-c.html

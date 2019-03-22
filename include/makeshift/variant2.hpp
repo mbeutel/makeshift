@@ -183,6 +183,26 @@ template <typename T>
 }
 
 
+    //ᅟ
+    // Like `std::visit()`, but implicitly expands expandable non-variant arguments.
+    //ᅟ
+    //ᅟ    bool flag = ...;
+    //ᅟ    visit(
+    //ᅟ        [](auto flagC)
+    //ᅟ        {
+    //ᅟ            constexpr bool flag = flagC();
+    //ᅟ            ...
+    //ᅟ        },
+    //ᅟ        flag);
+    //
+template <typename F, typename... Vs>
+    constexpr decltype(auto) visit(F&& func, Vs&&... args)
+{
+    return makeshift::detail::visit_impl_0(std::forward<F>(func), makeshift::detail::maybe_expand(std::forward<Vs>(args))...);
+}
+
+
+
 #ifdef MAKESHIFT_CXX17
     //ᅟ
     // Like `std::visit()`, but permits the functor to return different types for different argument types, and returns a variant of the possible results.
@@ -193,7 +213,7 @@ template <typename F, typename... VariantsT,
     visit_many(F&& func, VariantsT&&... variants)
 {
     using VisitManyResult = typename makeshift::detail::visit_many_result_<F, VariantsT...>::type;
-    return std::visit(
+    return visit(
         [func = std::forward<F>(func)](auto&&... args)
         {
             return VisitManyResult{ func(std::forward<decltype(args)>(args)...) };

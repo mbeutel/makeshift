@@ -523,6 +523,8 @@ template <template <typename...> class T, typename... Ts> struct decay_to_args<T
 template <typename T> using decay_to_args_t = typename decay_to_args<T>::type;
 
 #ifdef MAKESHIFT_CXX17
+// TODO: this should also be extended to support variant-like types and expandable arguments
+
 template <typename F, typename... ArgsT> using call_result_t = decltype(std::declval<F>()(std::declval<ArgsT>()...));
 
 template <typename C, typename F, typename L, typename... Vs> struct visit_many_result_0_;
@@ -539,6 +541,126 @@ template <typename C, typename F, typename... Ls, template <typename...> class V
 
 template <typename F, typename... Vs> struct visit_many_result_ : apply_<std::variant, typename unique_sequence_<typename visit_many_result_0_<type_sequence2<>, F, type_sequence2<>, decay_to_args_t<Vs>...>::type>::type> { };
 #endif // MAKESHIFT_CXX17
+
+
+#ifdef MAKESHIFT_CXX17
+template <typename V>
+    constexpr bool is_valueless_by_exception(const V& variant) noexcept
+{
+    return false;
+}
+template <typename... Ts>
+    bool is_valueless_by_exception(const std::variant<Ts...>& variant)
+{
+    return variant.valueless_by_exception();
+}
+#endif // MAKESHIFT_CXX17
+
+
+template <std::size_t CurStride, typename StridesT, typename ShapeT> struct compute_strides_0_;
+template <std::size_t CurStride, std::size_t... Strides> struct compute_strides_0_<CurStride, std::index_sequence<Strides...>, std::index_sequence<>> { using type = std::index_sequence<Strides...>; };
+template <std::size_t CurStride, std::size_t... Strides, std::size_t NextDim, std::size_t... Dims> struct compute_strides_0_<CurStride, std::index_sequence<Strides...>, std::index_sequence<NextDim, Dims...>>
+    : compute_strides_0_<CurStride * NextDim, std::index_sequence<Strides..., CurStride>, std::index_sequence<Dims...>> { };
+template <typename ShapeT> using compute_strides_ = compute_strides_0_<1, std::index_sequence<>, ShapeT>;
+template <typename ShapeT> using compute_strides_t = typename compute_strides_<ShapeT>::type;
+
+template <std::size_t LinearIndex, std::size_t I, std::size_t Stride, typename TupleT>
+    constexpr decltype(auto) visit_get_element(TupleT&& args)
+{
+    using Variant = std::remove_reference_t<std::tuple_element_t<I, std::decay_t<TupleT>>>;
+    static constexpr std::size_t variantIndex = (LinearIndex / Stride) % variant_size<Variant>::value;
+    return std::get<variantIndex>(std::get<I>(std::forward<TupleT>(args)));
+}
+
+template <std::size_t LinearIndex, std::size_t... Strides, std::size_t... Is, typename F, typename TupleT>
+    constexpr decltype(auto) visitor_impl(std::index_sequence<Strides...>, std::index_sequence<Is...>, F&& func, TupleT&& args)
+{
+    return func(visit_get_element<LinearIndex, Is, Strides>(std::forward<TupleT>(args))...);
+}
+template <std::size_t LinearIndex, typename StridesT, typename F, typename TupleT>
+    constexpr decltype(auto) visitor(F&& func, TupleT&& args)
+{
+    return visitor_impl(StridesT{ }, std::make_index_sequence<StridesT::size()>, std::forward<F>(func), std::forward<TupleT>(args));
+}
+
+template <std::size_t NumOptions, typename StridesT, typename F, typename TupleT>
+    [[noreturn]] constexpr decltype(auto) visit_impl_2_small(std::integral_constant<std::size_t, NumOptions>, std::integral_constant<std::size_t, NumOptions>, StridesT, std::size_t, F&&, TupleT&&)
+{
+    std::terminate();
+}
+template <std::size_t LinearIndex, std::size_t NumOptions, typename StridesT, typename F, typename TupleT>
+    constexpr decltype(auto) visit_impl_2_small(std::integral_constant<std::size_t, LinearIndex>, std::integral_constant<std::size_t, NumOptions>, StridesT, std::size_t linearIndex, F&& func, TupleT&& args)
+{
+    if (linearIndex == LinearIndex)
+        return visitor<LinearIndex, StridesT>(std::forward<F>(func), std::forward<TupleT>(args));
+    else
+        return visit_impl_2_small(std::integral_constant<std::size_t, LinearIndex + 1>, std::integral_constant<std::size_t, NumOptions>{ }, StridesT{ }, linearIndex, std::forward<F>(func), std::forward<TupleT>(args));
+}
+template <std::size_t... LinearIndices, typename StridesT, typename F, typename TupleT>
+    constexpr decltype(auto) visit_impl_2_large(std::index_sequence<LinearIndices...>, StridesT, std::size_t linearIndex, F&& func, TupleT&& args)
+{
+    using Visitor = decltype(&visitor<F, TupleT, 0, StridesT>);
+    static constexpr Visitor visitors[] = {
+        visitor<LinearIndices, StridesT, F, TupleT>...
+    };
+    Expects(linearIndex < sizeof...(LinearIndices));
+    return visitors[linearIndex](std::forward<F>(func), std::forward<TupleT>(args));
+}
+template <std::size_t NumOptions, typename StridesT, typename F, typename TupleT>
+    constexpr decltype(auto) visit_impl_1(std::true_type /*smallNumberOptimization*/, std::size_t linearIndex, F&& func, TupleT&& args)
+{
+    return visit_impl_2_small(std::integral_constant<std::size_t, 0>{ }, std::integral_constant<std::size_t, NumOptions>{ }, StridesT{ }, linearIndex, std::forward<F>(func), std::forward<TupleT>(args));
+}
+template <std::size_t NumOptions, typename StridesT, typename F, typename TupleT>
+    constexpr decltype(auto) visit_impl_1(std::false_type /*smallNumberOptimization*/, std::size_t linearIndex, F&& func, TupleT&& args)
+{
+    return visit_impl_2_large(std::make_index_sequence<NumOptions>{ }, StridesT{ }, linearIndex, std::forward<F>(func), std::forward<TupleT>(args));
+}
+
+template <std::size_t... Strides, std::size_t... Is, typename TupleT>
+    constexpr std::size_t visit_compute_linear_index(std::index_sequence<Strides...>, std::index_sequence<Is...>, const TupleT& args)
+{
+    return makeshift::detail::cadd<std::size_t>((Strides * std::get<Is>(args).index())...);
+}
+
+template <typename F, typename... Vs>
+    constexpr decltype(auto) visit_impl_0(F&& func, Vs&&... args)
+{
+#ifdef MAKESHIFT_CXX17
+    if (makeshift::detail::cor(makeshift::detail::is_valueless_by_exception(args)...))
+        throw std::bad_variant_access();
+#endif // MAKESHIFT_CXX17
+
+    constexpr std::size_t smallNumberLimit = 5;
+
+    using Strides = compute_strides_t<std::index_sequence<variant_size<std::remove_reference_t<Vs>>::value...>>;
+    constexpr std::size_t numOptions = makeshift::detail::cmul<std::size_t>(variant_size<std::remove_reference_t<Vs>>::value...);
+
+    auto argsTuple = std::tuple<Vs&&...>(std::forward<Vs>(args)...);
+    std::size_t linearIndex = maksehift::detail::visit_compute_linear_index(Strides{ }, std::index_sequence_for<Vs...>{ }, argsTuple);
+    visit_impl_1<numOptions, Strides>(std::integral_constant<bool, (numOptions < smallNumberLimit)>{ }, linearIndex, std::forward<F>(func), std::move(argsTuple));
+}
+
+
+template <typename V>
+    constexpr decltype(auto) maybe_expand_impl(std::true_type /*isVariant*/, V&& variant)
+{
+    return std::forward<V>(variant);
+}
+template <typename T>
+    constexpr decltype(auto) maybe_expand_impl(std::false_type /*isVariant*/, T&& expandable)
+{
+    return makeshift::detail::expand2_impl0<result_handler_terminate>(expandable, metadata_values_retriever<T>{ }, hash2<>{ }, std::equal_to<>{ });
+}
+template <typename T>
+    constexpr decltype(auto) maybe_expand(T&& arg)
+{
+    constexpr bool isVariantLike = can_apply_v<is_variant_like_r, std::decay_t<T>>;
+    constexpr bool isExpandable = std::is_base_of<values_tag, metadata_of<std::decay_t<T>>>::value;
+    static_assert(isVariantLike || isExpandable, "arguments of visit() must be either variants or implicitly expandable");
+
+    return maybe_expand_impl(std::integral_constant<bool, isVariantLike>{ }, std::forward<T>(arg));
+}
 
 
 } // namespace detail
