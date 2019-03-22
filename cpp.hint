@@ -1,2 +1,3 @@
 #define MAKESHIFT_DLLFUNC
 #define MAKESHIFT_NODISCARD [[nodiscard]]
+#define MAKESHIFT_EMPTY_BASES

@@ -66,12 +66,12 @@ public:
     template <typename T,
               typename = std::enable_if_t<try_index_of_type_v<T, Ts...> != -1>>
         constexpr define_type_enum_base(type<T>) noexcept
-            : value_(try_index_of_type_v<T, Ts...>)
+            : value_(value_t(int(try_index_of_type_v<T, Ts...>)))
     {
     }
 
     explicit constexpr define_type_enum_base(int _value)
-        : value_(_value)
+        : value_(value_t(_value))
     {
         Expects(_value >= 0 && _value < sizeof...(Ts));
     }
@@ -86,7 +86,7 @@ public:
 
 template <typename TypeEnumT, typename... Ts, typename T,
           typename = std::enable_if_t<try_index_of_type_v<T, Ts...> != -1>>
-    constexpr bool operator ==(define_type_enum_base<TypeEnumT, Ts...> lhs, type<T> rhs) noexcept
+    constexpr bool operator ==(define_type_enum_base<TypeEnumT, Ts...> lhs, type<T>) noexcept
 {
     return int(try_index_of_type_v<T, Ts...>) == int(lhs);
 }

@@ -17,10 +17,12 @@ enum class Precision
 };
 constexpr inline auto reflect(mk::type<Precision>)
 {
-    return mk::values<Precision> = {
-        Precision::single,
-        Precision::double_
-    };
+    return mk::define_metadata(
+        mk::values<Precision> = {
+            Precision::single,
+            Precision::double_
+        }
+    );
 }
 
 struct ExhaustibleParams

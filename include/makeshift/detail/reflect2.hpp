@@ -26,8 +26,8 @@ namespace detail
 {
 
 
-template <typename T> using raw_metadata_of_r = decltype(reflect(type<T>{ }));
-template <typename T> struct have_raw_metadata : can_apply<makeshift::detail::raw_metadata_of_r, T> { };
+template <typename T> using declared_metadata_t = decltype(reflect(type<T>{ }));
+template <typename T> struct declares_metadata : can_apply<makeshift::detail::declared_metadata_t, T> { };
 
 
 template <typename NewMetadataT, typename OldMetadataT>
@@ -173,22 +173,20 @@ template <>
     }
 };
 
+struct metadata_tag { };
+
 template <typename T, bool RawMetadata>
     struct metadata_of_0;
 template <typename T>
-    struct metadata_of_0<T, true> : merge_metadata<raw_metadata_of_r<T>, default_metadata<T>>
+    struct MAKESHIFT_EMPTY_BASES metadata_of_0<T, true> : merge_metadata<declared_metadata_t<T>, default_metadata<T>>, metadata_tag
 {
     constexpr metadata_of_0(void)
-        : merge_metadata<raw_metadata_of_r<T>, default_metadata<T>>(reflect(type<T>{ }), { })
+        : merge_metadata<declared_metadata_t<T>, default_metadata<T>>(reflect(type<T>{ }), { })
     {
     }
 };
 template <typename T>
-    struct metadata_of_0<T, false> : default_metadata<T>
-{
-};
-template <typename T>
-    struct metadata_of : metadata_of_0<T, have_raw_metadata<T>::value>
+    struct MAKESHIFT_EMPTY_BASES metadata_of_0<T, false> : default_metadata<T>, metadata_tag
 {
 };
 

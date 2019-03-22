@@ -18,9 +18,9 @@ inline namespace metadata
 
 
 template <typename T>
-    struct metadata_of : makeshift::detail::metadata_of<T>
+    struct metadata_of : makeshift::detail::metadata_of_0<T, makeshift::detail::declares_metadata<T>::value>
 {
-    using base_ = makeshift::detail::metadata_of<T>;
+    using base_ = makeshift::detail::metadata_of_0<T, makeshift::detail::declares_metadata<T>::value>;
     using base_::base_;
 };
 

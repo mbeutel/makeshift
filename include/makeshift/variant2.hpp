@@ -7,12 +7,11 @@
 #include <functional>  // for equal_to<>
 #include <stdexcept>   // for runtime_error
 
-#include <gsl/gsl_assert> // for Expects()
-
 #include <makeshift/functional2.hpp> // for hash2<>
-#include <makeshift/version.hpp>     // for MAKESHIFT_NODISCARD
+#include <makeshift/version.hpp>     // for MAKESHIFT_CXX17, MAKESHIFT_NODISCARD
 
 #include <makeshift/detail/variant2.hpp>
+#include <makeshift/detail/workaround.hpp> // for cor()
 
 
 namespace makeshift
@@ -46,6 +45,7 @@ public:
 constexpr inline makeshift::detail::member_values_initializer_t member_values = { };
 
 
+#ifdef MAKESHIFT_CXX17
     //ᅟ
     // Given a runtime value, a constexpr value list, a hasher, and an equality comparer, returns an optional variant of known
     // constexpr values. The result is `nullopt` if the runtime value is not among the values listed.
@@ -54,10 +54,10 @@ constexpr inline makeshift::detail::member_values_initializer_t member_values = 
     //ᅟ    auto bitsVO = try_expand(bits, []{ return values<int> = { 16, 32, 64 }; },
     //ᅟ        hash2<>{ }, std::equal_to<>{ });
     //ᅟ
-    //ᅟ    std::visit(
-    //ᅟ        [](auto bitsR)
+    //ᅟ    visit(
+    //ᅟ        [](auto bitsC)
     //ᅟ        {
-    //ᅟ            constexpr int bitsC = bitsR();
+    //ᅟ            constexpr int bits = bitsC();
     //ᅟ            ...
     //ᅟ        },
     //ᅟ        bitsVO.value());
@@ -65,8 +65,9 @@ constexpr inline makeshift::detail::member_values_initializer_t member_values = 
 template <typename T, typename R, typename HashT, typename EqualToT>
     MAKESHIFT_NODISCARD constexpr auto try_expand2(const T& value, const R& valuesR, HashT&& hash, EqualToT&& equal)
 {
-    return makeshift::detail::expand2_impl0(value, valuesR, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
+    return makeshift::detail::expand2_impl0<makeshift::detail::result_handler_optional>(value, valuesR, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
 }
+
 
     //ᅟ
     // Given a runtime value and a constexpr value list, returns an optional variant of known constexpr values. The result is
@@ -75,9 +76,9 @@ template <typename T, typename R, typename HashT, typename EqualToT>
     //ᅟ    int bits = ...;
     //ᅟ    auto bitsVO = try_expand(bits, []{ return values<int> = { 16, 32, 64 }; });
     //ᅟ
-    //ᅟ    std::visit(
-    //ᅟ        [](auto bitsR)
-    //ᅟ            constexpr int bitsC = bitsR();
+    //ᅟ    visit(
+    //ᅟ        [](auto bitsC)
+    //ᅟ            constexpr int bits = bitsC();
     //ᅟ            ...
     //ᅟ        },
     //ᅟ        bitsVO.value());
@@ -87,6 +88,7 @@ template <typename T, typename R>
 {
     return makeshift::try_expand2(value, valuesR, hash2<>{ }, std::equal_to<>{ });
 }
+#endif // MAKESHIFT_CXX17
 
 
     //ᅟ
@@ -97,10 +99,10 @@ template <typename T, typename R>
     //ᅟ    auto bitsV = expand_or_throw(bits, []{ return values<int> = { 16, 32, 64 }; },
     //ᅟ        hash2<>{ }, std::equal_to<>{ });
     //ᅟ
-    //ᅟ    std::visit(
-    //ᅟ        [](auto bitsR)
+    //ᅟ    visit(
+    //ᅟ        [](auto bitsC)
     //ᅟ        {
-    //ᅟ            constexpr int bitsC = bitsR();
+    //ᅟ            constexpr int bits = bitsC();
     //ᅟ            ...
     //ᅟ        },
     //ᅟ        bitsV);
@@ -108,10 +110,7 @@ template <typename T, typename R>
 template <typename T, typename R, typename HashT, typename EqualToT>
     MAKESHIFT_NODISCARD constexpr auto expand2_or_throw(const T& value, const R& valuesR, HashT&& hash, EqualToT&& equal)
 {
-    auto maybeResult = makeshift::try_expand2(value, valuesR, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
-    if (!maybeResult.has_value())
-        throw unsupported_runtime_value("unsupported runtime value");
-    return *maybeResult;
+    return makeshift::detail::expand2_impl0<makeshift::detail::result_handler_throw>(value, valuesR, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
 }
 
     //ᅟ
@@ -121,10 +120,10 @@ template <typename T, typename R, typename HashT, typename EqualToT>
     //ᅟ    int bits = ...;
     //ᅟ    auto bitsV = expand_or_throw(bits, []{ return values<int> = { 16, 32, 64 }; });
     //ᅟ
-    //ᅟ    std::visit(
-    //ᅟ        [](auto bitsR)
+    //ᅟ    visit(
+    //ᅟ        [](auto bitsC)
     //ᅟ        {
-    //ᅟ            constexpr int bitsC = bitsR();
+    //ᅟ            constexpr int bits = bitsC();
     //ᅟ            ...
     //ᅟ        },
     //ᅟ        bitsV);
@@ -144,9 +143,9 @@ template <typename T, typename R>
     //ᅟ    Params params = ...;
     //ᅟ    auto paramsV = expand(params, []{ return member_values(&Params::foo) * member_values(&Params::bar); });
     //ᅟ
-    //ᅟ    std::visit(
-    //ᅟ        [](auto paramsR)
-    //ᅟ            constexpr Params paramsC = paramsR();
+    //ᅟ    visit(
+    //ᅟ        [](auto paramsC)
+    //ᅟ            constexpr Params params = paramsC();
     //ᅟ            ...
     //ᅟ        },
     //ᅟ        paramsV);
@@ -156,9 +155,7 @@ template <typename T, typename R>
 {
     static_assert(makeshift::detail::is_exhaustive_v<R>, "use try_expand() or expand_or_throw() if the list of values is non-exhaustive");
 
-    auto maybeResult = makeshift::try_expand2(value, valuesR);
-    Expects(maybeResult.has_value());
-    return *maybeResult;
+    return makeshift::detail::expand2_impl0<makeshift::detail::result_handler_terminate>(value, valuesR, hash2<>{ }, std::equal_to<>{ });
 }
 
 
@@ -171,10 +168,10 @@ template <typename T, typename R>
     //ᅟ    Precision precision = ...;
     //ᅟ    auto precisionV = expand(precision);
     //ᅟ
-    //ᅟ    std::visit(
-    //ᅟ        [](auto precisionR)
+    //ᅟ    visit(
+    //ᅟ        [](auto precisionC)
     //ᅟ        {
-    //ᅟ            constexpr int precisionC = precisionR();
+    //ᅟ            constexpr int precision = precisionC();
     //ᅟ            ...
     //ᅟ        },
     //ᅟ        precisionV);
@@ -182,10 +179,7 @@ template <typename T, typename R>
 template <typename T>
     MAKESHIFT_NODISCARD constexpr auto expand2(const T& value)
 {
-    auto maybeResult = makeshift::try_expand2(value,
-        makeshift::detail::metadata_values_retriever<T>{ });
-    Expects(maybeResult.has_value());
-    return *maybeResult;
+    return expand2(value, makeshift::detail::metadata_values_retriever<T>{ });
 }
 
 

@@ -6,7 +6,7 @@
 #include <array>
 #include <tuple>
 #include <cstddef>     // for size_t
-#include <optional>
+#include <exception>   // for terminate()
 #include <utility>     // for move(), forward<>(), integer_sequence<>
 #include <type_traits> // for decay<>
 
@@ -24,12 +24,23 @@
 #include <makeshift/detail/unit_variant.hpp>
 
 #ifdef MAKESHIFT_CXX17
+ #include <optional>
  #include <variant>
 #endif // MAKESHIFT_CXX17
 
 
 namespace makeshift
 {
+
+inline namespace types
+{
+
+
+class unsupported_runtime_value;
+
+
+} // inline namespace types
+
 
 namespace detail
 {
@@ -338,7 +349,55 @@ template <typename T, typename C, std::size_t... Is>
     using type = unit_variant<value_functor<T, C, Is>...>;
 };
 
-template <typename T, typename C, typename HashT, typename EqualToT>
+template <typename T, typename D, typename... ArgsT>
+    T make_dependent(ArgsT&&... args) // to defeat first-phase name lookup
+{
+    return T(std::forward<ArgsT>(args)...);
+}
+
+#ifdef MAKESHIFT_CXX17
+struct result_handler_optional
+{
+    template <typename T>
+        static constexpr std::optional<std::decay_t<T>> succeed(T&& value) noexcept
+    {
+        return std::forward<T>(value);
+    }
+    template <typename T>
+        static constexpr std::optional<T> fail(void) noexcept
+    {
+        return std::nullopt;
+    }
+};
+#endif // MAKESHIFT_CXX17
+struct result_handler_terminate
+{
+    template <typename T>
+        static constexpr T&& succeed(T&& value) noexcept
+    {
+        return std::forward<T>(value);
+    }
+    template <typename T>
+        [[noreturn]] static constexpr T fail(void) noexcept
+    {
+        std::terminate();
+    }
+};
+struct result_handler_throw
+{
+    template <typename T>
+        static constexpr T&& succeed(T&& value) noexcept
+    {
+        return std::forward<T>(value);
+    }
+    template <typename T>
+        [[noreturn]] static constexpr T fail(void) noexcept
+    {
+        throw make_dependent<unsupported_runtime_value, T>("unsupported runtime value");
+    }
+};
+
+template <typename ResultHandlerT, typename T, typename C, typename HashT, typename EqualToT>
      constexpr auto value_to_variant(const T& value, C valueArrayC, HashT&& /*hash*/, EqualToT&& equal)
 {
     constexpr auto lvalues = valueArrayC();
@@ -347,8 +406,8 @@ template <typename T, typename C, typename HashT, typename EqualToT>
 
     for (std::size_t i = 0; i != numValues; ++i)
         if (equal(value, lvalues[i]))
-            return std::optional<ExpandType>{ ExpandType{ index_value, i } };
-    return std::optional<ExpandType>{ std::nullopt };
+            return ResultHandlerT::succeed(ExpandType{ index_value, i });
+    return ResultHandlerT::template fail<ExpandType>();
 }
 
 struct value_array_functor
@@ -374,12 +433,12 @@ template <typename T>
 {
     constexpr auto operator ()(void) const
     {
-        return values<T> = metadata_of_v<T>.values();
+        return metadata_of_v<T>;
     }
 };
 
-template <typename T, typename C, typename HashT, typename EqualToT>
-    constexpr auto expand2_impl2(const T& value, C valuesC, HashT&& hash, EqualToT&& equal)
+template <typename ResultHandlerT, typename T, typename C, typename HashT, typename EqualToT>
+    constexpr auto expand2_impl3(const T& value, C valuesC, HashT&& hash, EqualToT&& equal)
 {
     auto valueArrayC = makeshift::constexpr_transform(value_array_functor{ }, valuesC);
     
@@ -388,11 +447,11 @@ template <typename T, typename C, typename HashT, typename EqualToT>
         // (TODO: implement)
         // (TODO: is there an acceptable way of checking for constexpr-ness?)
 
-    return makeshift::detail::value_to_variant(value, valueArrayC, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
+    return makeshift::detail::value_to_variant<ResultHandlerT>(value, valueArrayC, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
 }
 
-template <typename T, typename C, typename HashT, typename EqualToT>
-    constexpr auto expand2_impl2_compound(const T& value, C productC, HashT&& hash, EqualToT&& equal)
+template <typename ResultHandlerT, typename T, typename C, typename HashT, typename EqualToT>
+    constexpr auto expand2_impl3_compound(const T& value, C productC, HashT&& hash, EqualToT&& equal)
 {
     constexpr auto product = productC();
     constexpr auto valueArrayC = makeshift::constexpr_transform(to_array_functor{ }, productC);
@@ -406,41 +465,54 @@ template <typename T, typename C, typename HashT, typename EqualToT>
     auto compoundHash = compound_hash<decltype(memberAccessor), std::decay_t<HashT>>{ std::forward<HashT>(hash), memberAccessor };
     auto compoundEqual = compound_equal_to<decltype(memberAccessor), std::decay_t<EqualToT>>{ std::forward<EqualToT>(equal), memberAccessor };
 
-    return makeshift::detail::value_to_variant(value, valueArrayC, std::move(compoundHash), std::move(compoundEqual));
+    return makeshift::detail::value_to_variant<ResultHandlerT>(value, valueArrayC, std::move(compoundHash), std::move(compoundEqual));
 }
 
-template <bool Exhaustive, typename ClassT, typename... FactorsT, typename C, typename HashT, typename EqualToT>
-    constexpr auto expand2_impl1(type<value_product_t<Exhaustive, ClassT, FactorsT...>>, const ClassT& value, C valuesC, HashT&& hash, EqualToT&& equal)
+template <typename ResultHandlerT, bool Exhaustive, typename ClassT, typename... FactorsT, typename C, typename HashT, typename EqualToT>
+    constexpr auto expand2_impl2(type<value_product_t<Exhaustive, ClassT, FactorsT...>>, const ClassT& value, C valuesC, HashT&& hash, EqualToT&& equal)
 {
-    return expand2_impl2_compound(value, valuesC, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
+    return expand2_impl3_compound<ResultHandlerT>(value, valuesC, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
 }
-template <typename ClassT, std::size_t N, typename... Ts, typename C, typename HashT, typename EqualToT>
-    constexpr auto expand2_impl1(type<member_values_t<N, ClassT, Ts...>>, const ClassT& value, C valuesC, HashT&& hash, EqualToT&& equal)
+template <typename ResultHandlerT, typename ClassT, std::size_t N, typename... Ts, typename C, typename HashT, typename EqualToT>
+    constexpr auto expand2_impl2(type<member_values_t<N, ClassT, Ts...>>, const ClassT& value, C valuesC, HashT&& hash, EqualToT&& equal)
 {
-    return expand2_impl2_compound(value, valuesC, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
+    return expand2_impl3_compound<ResultHandlerT>(value, valuesC, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
 }
-template <typename ClassT, typename T, typename C, typename HashT, typename EqualToT>
-    constexpr auto expand2_impl1(type<members_t<ClassT, T>>, const ClassT& value, C valuesC, HashT&& hash, EqualToT&& equal)
+template <typename ResultHandlerT, typename ClassT, typename T, typename C, typename HashT, typename EqualToT>
+    constexpr auto expand2_impl2(type<members_t<ClassT, T>>, const ClassT& value, C valuesC, HashT&& hash, EqualToT&& equal)
 {
-    return expand2_impl2_compound(value, valuesC, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
+    return expand2_impl3_compound<ResultHandlerT>(value, valuesC, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
 }
-template <typename T, std::size_t N, typename C, typename HashT, typename EqualToT>
-    constexpr auto expand2_impl1(type<values_t<T, N>>, const T& value, C valuesC, HashT&& hash, EqualToT&& equal)
+template <typename ResultHandlerT, typename T, std::size_t N, typename C, typename HashT, typename EqualToT>
+    constexpr auto expand2_impl2(type<values_t<T, N>>, const T& value, C valuesC, HashT&& hash, EqualToT&& equal)
 {
-    return expand2_impl2(value, valuesC, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
+    return expand2_impl3<ResultHandlerT>(value, valuesC, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
 }
 
-template <typename T, typename C, typename HashT, typename EqualToT>
+template <typename ResultHandlerT, typename MetadataT, typename T, typename C, typename HashT, typename EqualToT>
+    constexpr auto expand2_impl1(std::true_type /*isMetadata*/, const T& value, C valuesC, HashT&& hash, EqualToT&& equal)
+{
+    return expand2_impl3<ResultHandlerT>(value, valuesC, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
+}
+template <typename ResultHandlerT, typename MetadataT, typename T, typename C, typename HashT, typename EqualToT>
+    constexpr auto expand2_impl1(std::false_type /*isMetadata*/, const T& value, C valuesC, HashT&& hash, EqualToT&& equal)
+{
+    return expand2_impl2<ResultHandlerT>(type_v<MetadataT>, value, valuesC, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
+}
+
+template <typename ResultHandlerT, typename T, typename C, typename HashT, typename EqualToT>
     constexpr auto expand2_impl0(const T& value, C valuesC, HashT&& hash, EqualToT&& equal)
 {
-    return expand2_impl1(type_v<decltype(valuesC())>, value, valuesC, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
+    using Metadata = decltype(valuesC());
+    return expand2_impl1<ResultHandlerT, Metadata>(std::is_base_of<metadata_tag, Metadata>{ }, value, valuesC, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
 }
 
-template <typename T> struct is_exhaustive_0_;
-template <bool Exhaustive, typename T, typename... FactorsT> struct is_exhaustive_0_<value_product_t<Exhaustive, T, FactorsT...>> : std::integral_constant<bool, Exhaustive> { };
-template <typename T, std::size_t N, typename... Ts> struct is_exhaustive_0_<member_values_t<N, T, Ts...>> : std::false_type { };
-template <typename C, typename T> struct is_exhaustive_0_<members_t<C, T>> : std::true_type { };
-template <typename T, std::size_t N> struct is_exhaustive_0_<values_t<T, N>> : std::false_type { };
+template <typename T> struct is_exhaustive_1_;
+template <bool Exhaustive, typename T, typename... FactorsT> struct is_exhaustive_1_<value_product_t<Exhaustive, T, FactorsT...>> : std::integral_constant<bool, Exhaustive> { };
+template <typename T, std::size_t N, typename... Ts> struct is_exhaustive_1_<member_values_t<N, T, Ts...>> : std::false_type { };
+template <typename C, typename T> struct is_exhaustive_1_<members_t<C, T>> : std::true_type { };
+template <typename T, std::size_t N> struct is_exhaustive_1_<values_t<T, N>> : std::false_type { };
+template <typename T> using is_exhaustive_0_ = std::disjunction<std::is_base_of<metadata_tag, T>, is_exhaustive_1_<T>>;
 template <typename C> constexpr bool is_exhaustive_v = is_exhaustive_0_<decltype(std::declval<C>()())>::value;
 
 template <typename T> struct decay_to_args;
