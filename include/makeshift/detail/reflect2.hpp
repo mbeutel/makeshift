@@ -11,13 +11,8 @@
 #include <makeshift/type_traits2.hpp> // for can_apply<>, type<>
 #include <makeshift/metadata2.hpp>    // for named_t<>
 #include <makeshift/tuple2.hpp>       // for array_transform2()
-#include <makeshift/version.hpp>      // for MAKESHIFT_CXX17, MAKESHIFT_NODISCARD, MAKESHIFT_EMPTY_BASES
+#include <makeshift/version.hpp>      // for MAKESHIFT_EMPTY_BASES
 
-#include <makeshift/detail/unit_variant.hpp>
-
-#ifdef MAKESHIFT_CXX17
- #include <variant>
-#endif // MAKESHIFT_CXX17
 
 namespace makeshift
 {
@@ -104,23 +99,6 @@ template <typename T>
     {
     }
 };
-template <typename... Ts>
-    struct default_metadata<unit_variant<Ts...>>
-        : values_t<unit_variant<Ts...>, sizeof...(Ts)>
-{
-private:
-    template <std::size_t... Is>
-        static constexpr std::array<unit_variant<Ts...>, sizeof...(Ts)> _values_impl(std::index_sequence<Is...>) noexcept
-    {
-        return { unit_variant<Ts...>(index_value, Is)... };
-    }
-
-public:
-    constexpr default_metadata(void)
-        : values_t<unit_variant<Ts...>, sizeof...(Ts)>(_values_impl(std::index_sequence_for<Ts...>{ }))
-    {
-    }
-};
 template <typename TypeEnumT>
     struct default_metadata<TypeEnumT, std::enable_if_t<std::is_base_of<type_enum_base, TypeEnumT>::value>>
         : values_t<TypeEnumT, TypeEnumT::size>
@@ -138,22 +116,6 @@ public:
     {
     }
 };
-#ifdef MAKESHIFT_CXX17
-template <typename... Ts>
-    struct count_variant_values_
-{
-    static constexpr std::size_t value = makeshift::detail::cadd<std::size_t>(std::tuple_size<std::decay_t<decltype(metadata_of<Ts>{ }.values())>>::value...);
-};
-template <typename... Ts>
-    struct default_metadata<std::variant<Ts...>, std::enable_if_t<std::conjunction_v<std::is_base_of<values_tag, metadata_of<Ts>>...>>>
-        : values_t<std::variant<Ts...>, count_variant_values_<Ts...>::value>
-{
-    constexpr default_metadata(void)
-        : values_t<std::variant<Ts...>, count_variant_values_<Ts...>::value>(array_cat<std::variant<Ts...>>(metadata_of<Ts>{ }.values()...)) // TODO: this is a bit simplistic; we may want to use construction with in-place index instead
-    {
-    }
-};
-#endif // MAKESHIFT_CXX17
 template <> struct default_metadata<float> : name_t { constexpr default_metadata(void) : name_t("float") { } };
 template <> struct default_metadata<double> : name_t { constexpr default_metadata(void) : name_t("double") { } };
 template <> struct default_metadata<std::int8_t> : name_t { constexpr default_metadata(void) : name_t("int8") { } };
