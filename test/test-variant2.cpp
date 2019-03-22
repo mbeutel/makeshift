@@ -233,5 +233,13 @@ TEST_CASE("variant2")
 #endif // _MSC_VER
             },
             v1V);
+
+        bool b1 = false;
+        mk::visit(
+            [b1](auto b1C)
+            {
+                CHECK(b1C() == b1);
+            },
+            b1);
     }
 }

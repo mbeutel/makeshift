@@ -673,7 +673,7 @@ template <typename V>
 template <typename T>
     constexpr decltype(auto) maybe_expand_impl(std::false_type /*isVariant*/, T&& expandable)
 {
-    return makeshift::detail::expand2_impl0<result_handler_terminate>(expandable, metadata_values_retriever<T>{ }, hash2<>{ }, std::equal_to<>{ });
+    return makeshift::detail::expand2_impl0<result_handler_terminate>(expandable, metadata_values_retriever<std::decay_t<T>>{ }, hash2<>{ }, std::equal_to<>{ });
 }
 template <typename T>
     constexpr decltype(auto) maybe_expand(T&& arg)
