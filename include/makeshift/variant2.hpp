@@ -179,12 +179,12 @@ template <typename T, typename R>
 template <typename T>
     MAKESHIFT_NODISCARD constexpr auto expand2(const T& value)
 {
-    return expand2(value, makeshift::detail::metadata_values_retriever<T>{ });
+    return makeshift::expand2(value, makeshift::detail::metadata_values_retriever<T>{ });
 }
 
 
     //ᅟ
-    // Like `std::visit()`, but implicitly expands expandable non-variant arguments.
+    // Like `std::visit()`, but supports variant-like types and implicitly expands expandable non-variant arguments.
     //ᅟ
     //ᅟ    bool flag = ...;
     //ᅟ    visit(
@@ -213,7 +213,7 @@ template <typename F, typename... VariantsT,
     visit_many(F&& func, VariantsT&&... variants)
 {
     using VisitManyResult = typename makeshift::detail::visit_many_result_<F, VariantsT...>::type;
-    return visit(
+    return makeshift::visit(
         [func = std::forward<F>(func)](auto&&... args)
         {
             return VisitManyResult{ func(std::forward<decltype(args)>(args)...) };

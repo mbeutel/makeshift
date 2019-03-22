@@ -19,8 +19,7 @@ namespace detail
 {
 
 
-//#ifdef MAKESHIFT_CXX17
-#ifndef MAKESHIFT_CXX17
+#ifdef MAKESHIFT_CXX17
 using string_view = std::string_view;
 #else // MAKESHIFT_CXX17
     // reduced version of `std::string_view` (C++14 compatibility) for internal use

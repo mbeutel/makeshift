@@ -613,19 +613,12 @@ template <std::size_t... LinearIndices, typename StridesT, typename F, typename 
     };
 };
 template <std::size_t... LinearIndices, typename StridesT, typename F, typename TupleT>
-    constexpr typename visitor_table<std::index_sequence<LinearIndices...>, StridesT, F, TupleT>::Visitor visitor_table<std::index_sequence<LinearIndices...>, StridesT, F, TupleT>::visitors[];// = {
-//    visitor<LinearIndices, StridesT, F, TupleT>...
-//};
+    constexpr typename visitor_table<std::index_sequence<LinearIndices...>, StridesT, F, TupleT>::Visitor visitor_table<std::index_sequence<LinearIndices...>, StridesT, F, TupleT>::visitors[];
 
 template <std::size_t... LinearIndices, typename StridesT, typename F, typename TupleT>
     constexpr decltype(auto) visit_impl_2_large(std::index_sequence<LinearIndices...>, StridesT, std::size_t linearIndex, F&& func, TupleT&& args)
 {
-    //using Visitor = decltype(&visitor<F, TupleT, 0, StridesT>);
-    //static constexpr Visitor visitors[] = {
-    //    visitor<LinearIndices, StridesT, F, TupleT>...
-    //};
     Expects(linearIndex < sizeof...(LinearIndices));
-    //return visitors[linearIndex](std::forward<F>(func), std::forward<TupleT>(args));
     return visitor_table<std::index_sequence<LinearIndices...>, StridesT, F, TupleT>::visitors[linearIndex](std::forward<F>(func), std::forward<TupleT>(args));
 }
 template <std::size_t NumOptions, typename StridesT, typename F, typename TupleT>
