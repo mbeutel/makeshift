@@ -31,7 +31,7 @@ template <typename... ParamsT>
     MAKESHIFT_NODISCARD constexpr makeshift::detail::metadata_t<ParamsT...> define_metadata(ParamsT... params)
 {
     return { params... };
-};
+}
 
 
 } // inline namespace metadata

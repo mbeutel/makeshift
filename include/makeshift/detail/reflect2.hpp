@@ -82,9 +82,6 @@ template <typename NewMetadataT, typename OldMetadataT>
 };
 
 
-template <typename T>
-    struct metadata_of;
-
 template <typename T, typename = void>
     struct default_metadata
 {
