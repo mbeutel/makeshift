@@ -15,7 +15,7 @@
 #include <makeshift/constexpr.hpp>    // for constexpr_value<>, constexpr_transform()
 #include <makeshift/compound.hpp>     // for compound_hash<>, compound_equal_to<>
 #include <makeshift/metadata2.hpp>    // for values<>
-#include <makeshift/reflect2.hpp>     // for metadata_of<>
+#include <makeshift/reflect2.hpp>     // for metadata2_of<>
 #include <makeshift/type_traits2.hpp> // for type_sequence2<>
 #include <makeshift/tuple2.hpp>       // for array_transform2()
 #include <makeshift/version.hpp>      // for MAKESHIFT_NODISCARD, MAKESHIFT_CXX17
@@ -126,7 +126,7 @@ public:
 template <typename ClassT, typename T>
     constexpr auto default_values(const members_t<ClassT, T>& member)
 {
-    auto lvalues = metadata_of_v<T>.values();
+    auto lvalues = metadata2_of_v<T>.values();
     constexpr std::size_t n = std::tuple_size<std::decay_t<decltype(lvalues)>>::value;
     return member_values_t<n, ClassT, T>{ member.members(), std::make_tuple(lvalues) };
 }
@@ -438,7 +438,7 @@ template <typename T>
 {
     constexpr auto operator ()(void) const
     {
-        return metadata_of_v<T>;
+        return metadata2_of_v<T>;
     }
 };
 
@@ -466,7 +466,7 @@ template <typename ResultHandlerT, typename T, typename C, typename HashT, typen
         // (TODO: implement)
         // (TODO: is there an acceptable way of checking for constexpr-ness?)
 
-    auto memberAccessor = [members = makeshift::detail::members(product)](type<T>) { return members; };
+    auto memberAccessor = [members = makeshift::detail::members(product)](type_t<T>) { return members; };
     auto compoundHash = compound_hash<decltype(memberAccessor), std::decay_t<HashT>>{ std::forward<HashT>(hash), memberAccessor };
     auto compoundEqual = compound_equal_to<decltype(memberAccessor), std::decay_t<EqualToT>>{ std::forward<EqualToT>(equal), memberAccessor };
 
@@ -474,22 +474,22 @@ template <typename ResultHandlerT, typename T, typename C, typename HashT, typen
 }
 
 template <typename ResultHandlerT, bool Exhaustive, typename ClassT, typename... FactorsT, typename C, typename HashT, typename EqualToT>
-    constexpr auto expand2_impl2(type<value_product_t<Exhaustive, ClassT, FactorsT...>>, const ClassT& value, C valuesC, HashT&& hash, EqualToT&& equal)
+    constexpr auto expand2_impl2(type_t<value_product_t<Exhaustive, ClassT, FactorsT...>>, const ClassT& value, C valuesC, HashT&& hash, EqualToT&& equal)
 {
     return expand2_impl3_compound<ResultHandlerT>(value, valuesC, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
 }
 template <typename ResultHandlerT, typename ClassT, std::size_t N, typename... Ts, typename C, typename HashT, typename EqualToT>
-    constexpr auto expand2_impl2(type<member_values_t<N, ClassT, Ts...>>, const ClassT& value, C valuesC, HashT&& hash, EqualToT&& equal)
+    constexpr auto expand2_impl2(type_t<member_values_t<N, ClassT, Ts...>>, const ClassT& value, C valuesC, HashT&& hash, EqualToT&& equal)
 {
     return expand2_impl3_compound<ResultHandlerT>(value, valuesC, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
 }
 template <typename ResultHandlerT, typename ClassT, typename T, typename C, typename HashT, typename EqualToT>
-    constexpr auto expand2_impl2(type<members_t<ClassT, T>>, const ClassT& value, C valuesC, HashT&& hash, EqualToT&& equal)
+    constexpr auto expand2_impl2(type_t<members_t<ClassT, T>>, const ClassT& value, C valuesC, HashT&& hash, EqualToT&& equal)
 {
     return expand2_impl3_compound<ResultHandlerT>(value, valuesC, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
 }
 template <typename ResultHandlerT, typename T, std::size_t N, typename C, typename HashT, typename EqualToT>
-    constexpr auto expand2_impl2(type<values_t<T, N>>, const T& value, C valuesC, HashT&& hash, EqualToT&& equal)
+    constexpr auto expand2_impl2(type_t<values_t<T, N>>, const T& value, C valuesC, HashT&& hash, EqualToT&& equal)
 {
     return expand2_impl3<ResultHandlerT>(value, valuesC, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
 }
@@ -581,7 +581,7 @@ template <std::size_t LinearIndex, std::size_t I, std::size_t Stride, typename T
 template <std::size_t LinearIndex, std::size_t... Strides, std::size_t... Is, typename F, typename TupleT>
     constexpr decltype(auto) visitor_impl(std::index_sequence<Strides...>, std::index_sequence<Is...>, F&& func, TupleT&& args)
 {
-    return func(visit_get_element<LinearIndex, Is, Strides>(std::forward<TupleT>(args))...);
+    return func(makeshift::detail::visit_get_element<LinearIndex, Is, Strides>(std::forward<TupleT>(args))...);
 }
 template <std::size_t LinearIndex, typename StridesT, typename F, typename TupleT>
     constexpr decltype(auto) visitor(F&& func, TupleT&& args)
@@ -589,18 +589,18 @@ template <std::size_t LinearIndex, typename StridesT, typename F, typename Tuple
     return makeshift::detail::visitor_impl<LinearIndex>(StridesT{ }, std::make_index_sequence<StridesT::size()>{ }, std::forward<F>(func), std::forward<TupleT>(args));
 }
 
-template <std::size_t NumOptions, typename StridesT, typename F, typename TupleT>
-    [[noreturn]] constexpr decltype(auto) visit_impl_2_small(std::integral_constant<std::size_t, NumOptions>, std::integral_constant<std::size_t, NumOptions>, StridesT, std::size_t, F&&, TupleT&&)
+template <std::size_t NumOptionsMinus1, typename StridesT, typename F, typename TupleT>
+    constexpr decltype(auto) visit_impl_2_small(std::integral_constant<std::size_t, NumOptionsMinus1>, std::integral_constant<std::size_t, NumOptionsMinus1>, StridesT, std::size_t, F&& func, TupleT&& args)
 {
-    std::terminate();
+    return makeshift::detail::visitor<NumOptionsMinus1, StridesT>(std::forward<F>(func), std::forward<TupleT>(args));
 }
-template <std::size_t LinearIndex, std::size_t NumOptions, typename StridesT, typename F, typename TupleT>
-    constexpr decltype(auto) visit_impl_2_small(std::integral_constant<std::size_t, LinearIndex>, std::integral_constant<std::size_t, NumOptions>, StridesT, std::size_t linearIndex, F&& func, TupleT&& args)
+template <std::size_t LinearIndex, std::size_t NumOptionsMinus1, typename StridesT, typename F, typename TupleT>
+    constexpr decltype(auto) visit_impl_2_small(std::integral_constant<std::size_t, LinearIndex>, std::integral_constant<std::size_t, NumOptionsMinus1>, StridesT, std::size_t linearIndex, F&& func, TupleT&& args)
 {
     if (linearIndex == LinearIndex)
         return makeshift::detail::visitor<LinearIndex, StridesT>(std::forward<F>(func), std::forward<TupleT>(args));
     else
-        return makeshift::detail::visit_impl_2_small(std::integral_constant<std::size_t, LinearIndex + 1>{ }, std::integral_constant<std::size_t, NumOptions>{ }, StridesT{ }, linearIndex, std::forward<F>(func), std::forward<TupleT>(args));
+        return makeshift::detail::visit_impl_2_small(std::integral_constant<std::size_t, LinearIndex + 1>{ }, std::integral_constant<std::size_t, NumOptionsMinus1>{ }, StridesT{ }, linearIndex, std::forward<F>(func), std::forward<TupleT>(args));
 }
 template <typename LinearIndicesT, typename StridesT, typename F, typename TupleT>
     struct visitor_table;
@@ -618,13 +618,12 @@ template <std::size_t... LinearIndices, typename StridesT, typename F, typename 
 template <std::size_t... LinearIndices, typename StridesT, typename F, typename TupleT>
     constexpr decltype(auto) visit_impl_2_large(std::index_sequence<LinearIndices...>, StridesT, std::size_t linearIndex, F&& func, TupleT&& args)
 {
-    Expects(linearIndex < sizeof...(LinearIndices));
     return visitor_table<std::index_sequence<LinearIndices...>, StridesT, F, TupleT>::visitors[linearIndex](std::forward<F>(func), std::forward<TupleT>(args));
 }
 template <std::size_t NumOptions, typename StridesT, typename F, typename TupleT>
     constexpr decltype(auto) visit_impl_1(std::true_type /*smallNumberOptimization*/, std::size_t linearIndex, F&& func, TupleT&& args)
 {
-    return makeshift::detail::visit_impl_2_small(std::integral_constant<std::size_t, 0>{ }, std::integral_constant<std::size_t, NumOptions>{ }, StridesT{ }, linearIndex, std::forward<F>(func), std::forward<TupleT>(args));
+    return makeshift::detail::visit_impl_2_small(std::integral_constant<std::size_t, 0>{ }, std::integral_constant<std::size_t, NumOptions - 1>{ }, StridesT{ }, linearIndex, std::forward<F>(func), std::forward<TupleT>(args));
 }
 template <std::size_t NumOptions, typename StridesT, typename F, typename TupleT>
     constexpr decltype(auto) visit_impl_1(std::false_type /*smallNumberOptimization*/, std::size_t linearIndex, F&& func, TupleT&& args)
@@ -654,7 +653,7 @@ template <typename F, typename... Vs>
 
     auto argsTuple = std::tuple<Vs&&...>(std::forward<Vs>(args)...);
     std::size_t linearIndex = makeshift::detail::visit_compute_linear_index(Strides{ }, std::index_sequence_for<Vs...>{ }, argsTuple);
-    visit_impl_1<numOptions, Strides>(std::integral_constant<bool, (numOptions < smallNumberLimit)>{ }, linearIndex, std::forward<F>(func), std::move(argsTuple));
+    return makeshift::detail::visit_impl_1<numOptions, Strides>(std::integral_constant<bool, (numOptions < smallNumberLimit)>{ }, linearIndex, std::forward<F>(func), std::move(argsTuple));
 }
 
 
@@ -672,7 +671,7 @@ template <typename T>
     constexpr decltype(auto) maybe_expand(T&& arg)
 {
     constexpr bool isVariantLike = can_apply_v<is_variant_like_r, std::decay_t<T>>;
-    constexpr bool isExpandable = std::is_base_of<values_tag, metadata_of<std::decay_t<T>>>::value;
+    constexpr bool isExpandable = std::is_base_of<values_tag, metadata2_of<std::decay_t<T>>>::value;
     static_assert(isVariantLike || isExpandable, "arguments of visit() must be either variants or implicitly expandable");
 
     return makeshift::detail::maybe_expand_impl(std::integral_constant<bool, isVariantLike>{ }, std::forward<T>(arg));

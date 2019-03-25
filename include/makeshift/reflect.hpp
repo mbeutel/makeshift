@@ -59,11 +59,11 @@ template <typename T, typename MetadataTagT = reflection_tag>
     static_assert(have_metadata_v<T, MetadataTagT>, "no metadata available for given type and tag");
     static_assert(std::is_enum<T>::value, "values from metadata only supported for enum types");
 
-    auto values = metadata_of<T, MetadataTagT>.attributes
+    auto lvalues = metadata_of<T, MetadataTagT>.attributes
         | tuple_filter(template_trait_v<is_instantiation_of, value_metadata>)
         //| tuple_map([](const auto& v) { return c<std::decay_t<decltype(v)>::value>; });
         | tuple_map([](const auto& v) { return typename std::decay_t<decltype(v)>::type{ }; }); // workaround for ICE in VC++
-    using Values = decltype(values); // std::tuple<constant<Cs>...>
+    using Values = decltype(lvalues); // std::tuple<constant<Cs>...>
     return apply_t<type_tuple, Values>{ }; // type_tuple<constant<Cs>...>
 }
 

@@ -21,7 +21,7 @@ namespace detail
 {
 
 
-template <typename T> using declared_metadata_t = decltype(reflect(type<T>{ }));
+template <typename T> using declared_metadata_t = decltype(reflect(type_t<T>{ }));
 template <typename T> struct declares_metadata : can_apply<makeshift::detail::declared_metadata_t, T> { };
 
 
@@ -140,7 +140,7 @@ template <typename T>
     struct MAKESHIFT_EMPTY_BASES metadata_of_0<T, true> : merge_metadata<declared_metadata_t<T>, default_metadata<T>>, metadata_tag
 {
     constexpr metadata_of_0(void)
-        : merge_metadata<declared_metadata_t<T>, default_metadata<T>>(reflect(type<T>{ }), { })
+        : merge_metadata<declared_metadata_t<T>, default_metadata<T>>(reflect(type_t<T>{ }), { })
     {
     }
 };
