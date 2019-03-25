@@ -96,11 +96,11 @@ template <typename TypeMetadataT>
 {
     std::string_view typeName = get_or_default<std::string_view>(enumMetadata.attributes);
     std::string_view typeDesc = get_or_default<caption_metadata>(enumMetadata.attributes).value;
-    auto values = enumMetadata.attributes
+    auto lvalues = enumMetadata.attributes
         | tuple_filter(template_trait_v<is_instantiation_of, value_metadata>)
         | tuple_map([](const auto& v) { return make_enum_value_serialization_data(v); })
         | array_cat<enum_value_serialization_data>();
-    return enum_serialization_data<array_size_v<decltype(values)>> { values, typeName, typeDesc };
+    return enum_serialization_data<array_size_v<decltype(lvalues)>> { lvalues, typeName, typeDesc };
 }
 template <typename EnumT, std::size_t N>
     std::string_view to_string(EnumT value, const enum_serialization_data<N>& sdata, const enum_serialization_options& options)

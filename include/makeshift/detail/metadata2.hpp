@@ -115,7 +115,7 @@ private:
 
 public:
     using parameter_categories = type_sequence2<name_tag>;
-    MAKESHIFT_NODISCARD constexpr const name_t& select(name_tag) const noexcept { return *this; }
+    MAKESHIFT_NODISCARD constexpr friend const name_t& select_parameter(const name_t& self, name_tag) noexcept { return self; }
 
     constexpr name_t(void) noexcept = default;
 
@@ -145,7 +145,7 @@ private:
 
 public:
     using parameter_categories = type_sequence2<values_tag>;
-    MAKESHIFT_NODISCARD constexpr const values_t& select(values_tag) const noexcept { return *this; }
+    MAKESHIFT_NODISCARD constexpr friend const values_t& select_parameter(const values_t& self, values_tag) noexcept { return self; }
 
     constexpr values_t(const std::array<T, N>& _values)
         : values_(_values)
@@ -166,7 +166,7 @@ private:
 
 public:
     using parameter_categories = type_sequence2<value_names_tag>;
-    MAKESHIFT_NODISCARD constexpr const value_names_t& select(value_names_tag) const noexcept { return *this; }
+    MAKESHIFT_NODISCARD constexpr friend const value_names_t& select_parameter(const value_names_t& self, value_names_tag) noexcept { return self; }
 
     constexpr value_names_t(const std::array<string_view, N>& _valueNames)
         : valueNames_(_valueNames)

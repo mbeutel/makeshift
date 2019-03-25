@@ -42,7 +42,7 @@ public:
 };
 
 
-constexpr inline makeshift::detail::member_values_initializer_t member_values = { };
+constexpr inline makeshift::detail::member_values_name member_values = { };
 
 
 #ifdef MAKESHIFT_CXX17
@@ -52,7 +52,7 @@ constexpr inline makeshift::detail::member_values_initializer_t member_values = 
     //ᅟ
     //ᅟ    int bits = ...;
     //ᅟ    auto bitsVO = try_expand(bits, []{ return values<int> = { 16, 32, 64 }; },
-    //ᅟ        hash2<>{ }, std::equal_to<>{ });
+    //ᅟ        hash<>{ }, std::equal_to<>{ });
     //ᅟ
     //ᅟ    visit(
     //ᅟ        [](auto bitsC)
@@ -62,10 +62,10 @@ constexpr inline makeshift::detail::member_values_initializer_t member_values = 
     //ᅟ        },
     //ᅟ        bitsVO.value());
     //
-template <typename T, typename R, typename HashT, typename EqualToT>
-    MAKESHIFT_NODISCARD constexpr auto try_expand2(const T& value, const R& valuesR, HashT&& hash, EqualToT&& equal)
+template <typename T, typename C, typename HashT, typename EqualToT>
+    MAKESHIFT_NODISCARD constexpr auto try_expand2(const T& value, const C& valuesC, HashT&& hash, EqualToT&& equal)
 {
-    return makeshift::detail::expand2_impl0<makeshift::detail::result_handler_optional>(value, valuesR, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
+    return makeshift::detail::expand2_impl0<makeshift::detail::result_handler_optional>(value, valuesC, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
 }
 
 
@@ -83,21 +83,21 @@ template <typename T, typename R, typename HashT, typename EqualToT>
     //ᅟ        },
     //ᅟ        bitsVO.value());
     //
-template <typename T, typename R>
-    MAKESHIFT_NODISCARD constexpr auto try_expand2(const T& value, const R& valuesR)
+template <typename T, typename C>
+    MAKESHIFT_NODISCARD constexpr auto try_expand2(const T& value, const C& valuesC)
 {
-    return makeshift::try_expand2(value, valuesR, hash2<>{ }, std::equal_to<>{ });
+    return makeshift::try_expand2(value, valuesC, hash2<>{ }, std::equal_to<>{ });
 }
 #endif // MAKESHIFT_CXX17
 
 
     //ᅟ
-    // Given a runtime value, a constexpr value list, a hasher, and an equality comparer, returns an optional variant of known
-    // constexpr values. An exception of type `unsupported_runtime_value` is thrown if the runtime value is not among the values listed.
+    // Given a runtime value, a constexpr value list, a hasher, and an equality comparer, returns a variant of known constexpr values.
+    // An exception of type `unsupported_runtime_value` is thrown if the runtime value is not among the values listed.
     //ᅟ
     //ᅟ    int bits = ...;
     //ᅟ    auto bitsV = expand_or_throw(bits, []{ return values<int> = { 16, 32, 64 }; },
-    //ᅟ        hash2<>{ }, std::equal_to<>{ });
+    //ᅟ        hash<>{ }, std::equal_to<>{ });
     //ᅟ
     //ᅟ    visit(
     //ᅟ        [](auto bitsC)
@@ -107,14 +107,14 @@ template <typename T, typename R>
     //ᅟ        },
     //ᅟ        bitsV);
     //
-template <typename T, typename R, typename HashT, typename EqualToT>
-    MAKESHIFT_NODISCARD constexpr auto expand2_or_throw(const T& value, const R& valuesR, HashT&& hash, EqualToT&& equal)
+template <typename T, typename C, typename HashT, typename EqualToT>
+    MAKESHIFT_NODISCARD constexpr auto expand2_or_throw(const T& value, const C& valuesC, HashT&& hash, EqualToT&& equal)
 {
-    return makeshift::detail::expand2_impl0<makeshift::detail::result_handler_throw>(value, valuesR, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
+    return makeshift::detail::expand2_impl0<makeshift::detail::result_handler_throw>(value, valuesC, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
 }
 
     //ᅟ
-    // Given a runtime value and a constexpr value list, returns an optional variant of known constexpr values. An exception
+    // Given a runtime value and a constexpr value list, returns a variant of known constexpr values. An exception
     // of type `unsupported_runtime_value` is thrown if the runtime value is not among the values listed.
     //ᅟ
     //ᅟ    int bits = ...;
@@ -128,10 +128,10 @@ template <typename T, typename R, typename HashT, typename EqualToT>
     //ᅟ        },
     //ᅟ        bitsV);
     //
-template <typename T, typename R>
-    MAKESHIFT_NODISCARD constexpr auto expand2_or_throw(const T& value, const R& valuesR)
+template <typename T, typename C>
+    MAKESHIFT_NODISCARD constexpr auto expand2_or_throw(const T& value, const C& valuesC)
 {
-    return makeshift::expand2_or_throw(value, valuesR, hash2<>{ }, std::equal_to<>{ });
+    return makeshift::expand2_or_throw(value, valuesC, hash2<>{ }, std::equal_to<>{ });
 }
 
 
@@ -150,12 +150,12 @@ template <typename T, typename R>
     //ᅟ        },
     //ᅟ        paramsV);
     //
-template <typename T, typename R>
-    MAKESHIFT_NODISCARD constexpr auto expand2(const T& value, const R& valuesR)
+template <typename T, typename C>
+    MAKESHIFT_NODISCARD constexpr auto expand2(const T& value, const C& valuesC)
 {
-    static_assert(makeshift::detail::is_exhaustive_v<R>, "use try_expand() or expand_or_throw() if the list of values is non-exhaustive");
+    static_assert(makeshift::detail::is_exhaustive_v<C>, "use try_expand() or expand_or_throw() if the list of values is non-exhaustive");
 
-    return makeshift::detail::expand2_impl0<makeshift::detail::result_handler_terminate>(value, valuesR, hash2<>{ }, std::equal_to<>{ });
+    return makeshift::detail::expand2_impl0<makeshift::detail::result_handler_terminate>(value, valuesC, hash2<>{ }, std::equal_to<>{ });
 }
 
 

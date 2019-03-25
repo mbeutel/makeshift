@@ -78,8 +78,7 @@ TEST_CASE("variant2")
         constexpr auto a3 =  mk::member_values(&Params::precision)
                           * (mk::member_values(&Params::gangSize) = { 1, 2, 4 })
                           * (mk::member_values(&Params::numThreadsX, &Params::numThreadsY) = { { 16, 16 }, { 32, 32 } });
-        constexpr auto allValues = to_array(a3);
-        (void) allValues;
+        (void) a3;
     }
     
     SECTION("expand")

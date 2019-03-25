@@ -1,6 +1,6 @@
 ﻿
-#ifndef INCLUDED_MAKESHIFT_COMPOUND_HPP_
-#define INCLUDED_MAKESHIFT_COMPOUND_HPP_
+#ifndef INCLUDED_MAKESHIFT_DETAIL_COMPOUND_HPP_
+#define INCLUDED_MAKESHIFT_DETAIL_COMPOUND_HPP_
 
 
 #include <tuple>       // for tuple_size<>
@@ -12,9 +12,7 @@
 #include <makeshift/reflect2.hpp>    // for compound_members_of()
 #include <makeshift/tuple2.hpp>      // for tuple_all_of(), tuple_reduce()
 #include <makeshift/functional2.hpp> // for hash<>
-#include <makeshift/version.hpp>     // for MAKESHIFT_NODISCARD
-
-#include <makeshift/detail/functional2.hpp> // for adapter_base<>
+#include <makeshift/version.hpp>     // for MAKESHIFT_NODISCARD, MAKESHIFT_EMPTY_BASES
 
 
 namespace makeshift
@@ -24,27 +22,21 @@ namespace detail
 {
 
 
-static constexpr inline std::size_t hash_combine(std::size_t seed, std::size_t newHash) noexcept
+static constexpr inline std::size_t hash_combine2(std::size_t seed, std::size_t newHash) noexcept
 {
-        // taken from boost::hash_combine()
+        // algorithm taken from boost::hash_combine()
     return seed ^ (newHash + 0x9e3779b9 + (seed << 6) + (seed >> 2));
 }
-
-
-} // namespace detail
-
-
-inline namespace metadata
-{
 
 
     //ᅟ
     // Equality comparer for compound types which determines equivalence by comparing members for equality.
     //
 template <typename CompoundMembersT, typename EqualToT = std::equal_to<>>
-    struct compound_equal_to : private makeshift::detail::adapter_base<EqualToT, CompoundMembersT>
+    struct MAKESHIFT_EMPTY_BASES compound2_equal_to : CompoundMembersT, EqualToT
 {
-    using makeshift::detail::adapter_base<EqualToT, CompoundMembersT>::adapter_base;
+    constexpr compound2_equal_to(void) = default;
+    constexpr compound2_equal_to(CompoundMembersT _compoundMembers, EqualToT _equal) : CompoundMembersT(std::move(_compoundMembers)), EqualToT(std::move(_equal)) { }
 
     template <typename T>
         MAKESHIFT_NODISCARD constexpr bool operator ()(const T& lhs, const T& rhs) const noexcept
@@ -65,9 +57,10 @@ template <typename CompoundMembersT, typename EqualToT = std::equal_to<>>
     // Hasher for compound types which computes a hash by combining the hashes of the members.
     //
 template <typename CompoundMembersT, typename HashT = hash2<>>
-    struct compound_hash : private makeshift::detail::adapter_base<HashT, CompoundMembersT>
+    struct MAKESHIFT_EMPTY_BASES compound2_hash : CompoundMembersT, HashT
 {
-    using makeshift::detail::adapter_base<HashT, CompoundMembersT>::adapter_base;
+    constexpr compound2_hash(void) = default;
+    constexpr compound2_hash(CompoundMembersT _compoundMembers, HashT _hash) : CompoundMembersT(std::move(_compoundMembers)), HashT(std::move(_hash)) { }
 
     template <typename T>
         MAKESHIFT_NODISCARD constexpr std::size_t operator ()(const T& obj) const noexcept
@@ -80,7 +73,7 @@ template <typename CompoundMembersT, typename HashT = hash2<>>
             [&hash, &obj](std::size_t seed, auto&& member)
             {
                 std::size_t memberValueHash = hash(member(obj));
-                return makeshift::detail::hash_combine(seed, memberValueHash);
+                return makeshift::detail::hash_combine2(seed, memberValueHash);
             });
     }
 };
@@ -90,9 +83,10 @@ template <typename CompoundMembersT, typename HashT = hash2<>>
     // Ordering comparer for compound types which determines order by lexicographically comparing members.
     //
 template <typename CompoundMembersT, typename LessT = std::less<>>
-    struct compound_less : private makeshift::detail::adapter_base<LessT, CompoundMembersT>
+    struct MAKESHIFT_EMPTY_BASES compound2_less : CompoundMembersT, LessT
 {
-    using makeshift::detail::adapter_base<LessT, CompoundMembersT>::adapter_base;
+    constexpr compound2_less(void) = default;
+    constexpr compound2_less(CompoundMembersT _compoundMembers, LessT _less) : CompoundMembersT(std::move(_compoundMembers)), LessT(std::move(_less)) { }
 
 private:
     template <typename MembersT, typename T>
@@ -123,9 +117,9 @@ public:
 };
 
 
-} // inline namespace types
+} // namespace detail
 
 } // namespace makeshift
 
 
-#endif // INCLUDED_MAKESHIFT_COMPOUND_HPP_
+#endif // INCLUDED_MAKESHIFT_DETAIL_COMPOUND_HPP_

@@ -9,8 +9,6 @@
 
 #include <makeshift/version.hpp>  // for MAKESHIFT_NODISCARD, MAKESHIFT_EMPTY_BASES
 
-#include <makeshift/detail/functional2.hpp> // for hashable_base
-
 
 namespace makeshift
 {
