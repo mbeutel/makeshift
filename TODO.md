@@ -1,4 +1,13 @@
 
+TODO for Christoph:
+
+- support heterogeneous values (in particular for type enums)
+- maybe do away with named-parameter syntax? it's kinda surprising
+- support known_values in metadata
+- support product types in metadata
+- implement partial visitation (maybe in asc/utility?)
+
+
 
 Goals for makeshift 3.x:
 

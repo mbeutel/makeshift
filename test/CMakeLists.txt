@@ -24,7 +24,8 @@ add_executable(test-makeshift
     "test-variant2.cpp"
     "test-utility.cpp"
     "test-utility2.cpp"
-    "test-metadata.cpp")
+    "test-metadata.cpp"
+    "demo.cpp")
 
 # compiler settings
 include(CMakeshift/TargetCompileSettings)

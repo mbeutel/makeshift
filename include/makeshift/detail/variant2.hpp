@@ -348,7 +348,8 @@ template <typename T, typename C, std::size_t I>
     constexpr T operator ()(void) const
     {
         constexpr auto lvalues = makeshift::constexpr_value<C>();
-        return lvalues[I];
+        using std::get;
+        return get<I>(lvalues);
     }
 };
 
