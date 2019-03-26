@@ -1,5 +1,7 @@
 
 #include <variant>
+#include <iostream>
+#include <exception>
 
 #include <makeshift/utility2.hpp>
 #include <makeshift/metadata2.hpp>
@@ -25,6 +27,18 @@ constexpr inline auto reflect(mk::type<Precision>)
         }
     );
 }
+std::ostream& operator <<(std::ostream& stream, Precision precision)
+{
+    switch (precision)
+    {
+    case Precision::single:
+        return stream << "single";
+    case Precision::double_:
+        return stream << "double";
+    default:
+        std::terminate();
+    }
+}
 
 struct ExhaustibleParams
 {
@@ -39,6 +53,10 @@ struct ExhaustibleParams
     friend constexpr bool operator !=(const ExhaustibleParams& lhs, const ExhaustibleParams& rhs) noexcept
     {
         return !(lhs == rhs);
+    }
+    friend std::ostream& operator <<(std::ostream& stream, const ExhaustibleParams& self)
+    {
+        return stream << "{ precision=" << self.precision << ", transmogrify=" << self.transmogrify << " }";
     }
 };
 
@@ -62,6 +80,10 @@ struct Params
     friend constexpr bool operator !=(const Params& lhs, const Params& rhs) noexcept
     {
         return !(lhs == rhs);
+    }
+    friend std::ostream& operator <<(std::ostream& stream, const Params& self)
+    {
+        return stream << "{ precision=" << self.precision << ", gangSize=" << self.gangSize << ", numThreadsX=" << self.numThreadsX << ", numThreadsY=" << self.numThreadsY << " }";
     }
 };
 
