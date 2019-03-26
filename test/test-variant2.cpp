@@ -239,7 +239,7 @@ TEST_CASE("variant2")
 #ifndef _MSC_VER // bug: https://developercommunity.visualstudio.com/content/problem/483944/vc2017vc2019-stdvariant-stdvisit-constexpr-error-c.html
                 constexpr auto v1VC = v1VCV();
                 constexpr auto v1C = std::get<v1VC.index()>(v1VC);
-                CHECK(v1C == mk::type_v<float>);
+                CHECK(v1C == mk::type_v<double>);
                 auto v1CV = mk::constexpr_extend(
                     [](auto _v1CV)
                     {
@@ -248,7 +248,7 @@ TEST_CASE("variant2")
                     },
                     v1VCV);
                 constexpr auto v1C2 = v1CV();
-                CHECK(v1C2 == mk::type_v<float>);
+                CHECK(v1C2 == mk::type_v<double>);
 #else // _MSC_VER
                 (void) v1VCV;
 #endif // _MSC_VER
