@@ -103,24 +103,51 @@ struct index_value_t { };
 constexpr inline index_value_t index_value{ };
 
 
+template <bool HaveMonostate, typename... Ts>
+   class unit_variant_base;
+template <typename... Ts>
+   class unit_variant_base<false, Ts...>
+{
+protected:
+    std::size_t index_;
+
+public:
+    unit_variant_base(void) = delete;
+    explicit constexpr unit_variant_base(index_value_t, std::size_t _index)
+        : index_(_index)
+    {
+        Expects(_index < sizeof...(Ts));
+    }
+};
+template <typename... Ts>
+   class unit_variant_base<true, Ts...>
+{
+protected:
+    std::size_t index_;
+
+public:
+    constexpr unit_variant_base(void) : index_(0) { }
+    explicit constexpr unit_variant_base(index_value_t, std::size_t _index)
+        : index_(_index)
+    {
+        Expects(_index < sizeof...(Ts));
+    }
+};
+
+
     //ᅟ
     // Variant of unit types, i.e. default-constructible types without state.
     //
 template <typename... Ts>
-    struct unit_variant
+    class unit_variant final : private unit_variant_base<std::is_same<nth_type_t<0, Ts...>, monostate>::value, Ts...>
 {
+    using base = unit_variant_base<std::is_same<nth_type_t<0, Ts...>, monostate>::value, Ts...>;
+
     static_assert(sizeof...(Ts) > 0, "a variant with no type arguments is ill-formed");
     static_assert(makeshift::detail::cand(std::is_empty<Ts>::value && std::is_nothrow_default_constructible<Ts>::value...), "unit variant types must be no-throw default-constructible and empty");
 
-private:
-    std::size_t index_;
-
 public:
-    template <typename = std::enable_if_t<std::is_same<nth_type_t<0, Ts...>, monostate>::value>>
-        constexpr unit_variant(void) noexcept
-            : index_(0)
-    {
-    }
+    using base::base;
     constexpr unit_variant(const unit_variant&) noexcept = default;
     constexpr unit_variant& operator =(const unit_variant&) noexcept = default;
     template <typename T,
@@ -128,29 +155,24 @@ public:
                                        && !is_instantiation_of_v<std::decay_t<T>, in_place_type_t>
                                        && !is_in_place_index<std::decay_t<T>>::value>>
         constexpr unit_variant(T&&) noexcept
-            : index_(makeshift::detail::value_overload_index_v<T, Ts...>)
+            : base(index_value, makeshift::detail::value_overload_index_v<T, Ts...>)
     {
     }
     template <typename T>
         explicit constexpr unit_variant(in_place_type_t<T>) noexcept
-            : index_(index_of_type_v<T, Ts...>)
+            : base(index_value, index_of_type_v<T, Ts...>)
     {
     }
     template <std::size_t I>
         explicit constexpr unit_variant(in_place_index_t<I>) noexcept
-            : index_(I)
+            : base(index_value, I)
     {
-    }
-    explicit constexpr unit_variant(index_value_t, std::size_t _index)
-        : index_(_index)
-    {
-        Expects(_index < sizeof...(Ts));
     }
 
         //ᅟ
         // Returns the zero-based index of the alternative that is currently held by the variant.
         //
-    MAKESHIFT_NODISCARD constexpr std::size_t index(void) const noexcept { return index_; }
+    MAKESHIFT_NODISCARD constexpr std::size_t index(void) const noexcept { return this->index_; }
 
         //ᅟ
         // Creates a new value of type `T` in-place in an existing variant object.
@@ -158,7 +180,7 @@ public:
     template <typename T>
         constexpr T emplace(void) noexcept
     {
-        index_ = index_of_type_v<T, Ts...>;
+        this->index_ = index_of_type_v<T, Ts...>;
         return { };
     }
 
@@ -168,7 +190,7 @@ public:
     template <std::size_t I>
         constexpr nth_type_t<I, Ts...> emplace(void) noexcept
     {
-        index_ = I;
+        this->index_ = I;
         return { };
     }
 
@@ -177,7 +199,7 @@ public:
         //
     constexpr void swap(unit_variant& rhs) noexcept
     {
-        std::swap(index_, rhs.index_);
+        std::swap(this->index_, rhs.index_);
     }
 };
 
