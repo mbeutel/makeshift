@@ -252,8 +252,8 @@ template <std::size_t... Is, bool Exhaustive, typename... FactorsT>
     using std::get;
     return std::tuple_cat(get<Is>(product.factors()).members()...);
 }
-template <bool Exhaustive, typename ClassT, typename... FactorsT>
-    constexpr auto members(const value_product_t<Exhaustive, ClassT, FactorsT...>& product) noexcept
+template <bool Exhaustive, typename... FactorsT>
+    constexpr auto members(const value_product_t<Exhaustive, FactorsT...>& product) noexcept
 {
     return makeshift::tuple_transform2(member_transform_functor{ }, makeshift::detail::members_impl(std::index_sequence_for<FactorsT...>{ }, product));
 }
