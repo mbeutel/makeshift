@@ -198,7 +198,9 @@ template <typename T>
 template <typename F, typename... Vs>
     constexpr decltype(auto) visit(F&& func, Vs&&... args)
 {
+#ifndef MAKESHIFT_INTELLISENSE
     return makeshift::detail::visit_impl_0(std::forward<F>(func), makeshift::detail::maybe_expand(std::forward<Vs>(args))...);
+#endif // MAKESHIFT_INTELLISENSE
 }
 
 

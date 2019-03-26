@@ -2,7 +2,7 @@
 TODO for Christoph:
 
 - support heterogeneous values (in particular for type enums)
-- maybe do away with named-parameter syntax? it's kinda surprising
+- maybe do away with named-parameter syntax? it's kinda surprising. <-- yes, use function-call syntax; this has the advantage of being able to support heterogeneous arguments
 - support known_values in metadata
 - support product types in metadata
 - implement partial visitation (maybe in asc/utility?)
