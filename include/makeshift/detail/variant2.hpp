@@ -654,7 +654,7 @@ template <typename F, typename... Vs>
         throw std::bad_variant_access();
 #endif // MAKESHIFT_CXX17
 
-    constexpr std::size_t smallNumberLimit = 5;
+    constexpr std::size_t smallNumberLimit = 64; // Crazy? Maybe. The VC++ 2019 STL is even crazier and uses 128.
 
     using Strides = compute_strides_t<std::index_sequence<variant_size<std::remove_reference_t<Vs>>::value...>>;
     constexpr std::size_t numOptions = makeshift::detail::cmul<std::size_t>(variant_size<std::remove_reference_t<Vs>>::value...);
