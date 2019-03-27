@@ -21,6 +21,12 @@ public:
     using A::A;
 
     template <typename U>
+        struct rebind
+    {
+        using other = default_init_allocator<U, typename std::allocator_traits<A>::template rebind_alloc<U>>;
+    };
+
+    template <typename U>
         void construct(U* ptr)
         noexcept(std::is_nothrow_default_constructible<U>::value)
     {
