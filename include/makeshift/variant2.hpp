@@ -206,6 +206,7 @@ template <typename F, typename... Vs>
 
 
 #ifdef MAKESHIFT_CXX17
+    // TODO: this should be called variant_transform(), and it should not depend on C++17
     //ᅟ
     // Like `std::visit()`, but permits the functor to return different types for different argument types, and returns a variant of the possible results.
     //

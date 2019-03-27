@@ -5,8 +5,8 @@
 
 #include <type_traits> // for invoke_result<>, decay<>, is_empty<>, enable_if<>
 
-#include <makeshift/type_traits.hpp> // for can_apply<>
-#include <makeshift/version.hpp>     // for MAKESHIFT_NODISCARD
+#include <makeshift/type_traits2.hpp> // for can_apply<>
+#include <makeshift/version.hpp>      // for MAKESHIFT_NODISCARD
 
 #include <makeshift/detail/constexpr.hpp>
 #include <makeshift/detail/workaround.hpp> // for cand()
