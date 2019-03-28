@@ -54,7 +54,7 @@ template <typename NewMetadataT, typename OldMetadataT, typename... CategoriesT>
     struct merge_metadata_2_<NewMetadataT, OldMetadataT, type_sequence2<CategoriesT...>>
 {
     using MM1 = merge_metadata_1_<NewMetadataT, OldMetadataT>;
-    using all_parameters = type_sequence2<std::decay_t<decltype(MM1::template select<CategoriesT>(std::declval<const NewMetadataT&>(), std::declval<const OldMetadataT&>()).select(CategoriesT{ }))>...>;
+    using all_parameters = type_sequence2<std::decay_t<decltype(select_parameter(MM1::template select<CategoriesT>(std::declval<const NewMetadataT&>(), std::declval<const OldMetadataT&>()), CategoriesT{ }))>...>;
 };
 
 template <typename NewMetadataT, typename OldMetadataT, typename CategoriesT, typename ParametersT>

@@ -36,89 +36,34 @@ template <typename T, std::size_t N>
 }
 
 
-struct no_values_tag { };
-
-    // These are not the most thought-out abstractions ever, but at least they save us from having to repeat ourselves.
-template <typename ParamT, typename T = ParamT>
-    struct parameter
-{
-    MAKESHIFT_NODISCARD constexpr ParamT operator =(T arg) const
-    {
-        return { arg };
-    }
-};
-template <typename ParamT>
-    struct parameter<ParamT, ParamT>
-{
-    MAKESHIFT_NODISCARD constexpr ParamT operator =(ParamT arg) const
-    {
-        return std::move(arg);
-    }
-};
-template <template <std::size_t> class ParamT, typename T>
-    struct array_parameter
-{
-    MAKESHIFT_NODISCARD constexpr ParamT<0> operator =(no_values_tag) const
-    {
-        return { { } };
-    }
-    template <std::size_t N>
-        MAKESHIFT_NODISCARD constexpr ParamT<N> operator =(T (&&vals)[N]) const
-    {
-        return { makeshift::detail::to_array2(vals) };
-    }
-    template <std::size_t N> 
-        MAKESHIFT_NODISCARD constexpr ParamT<N> operator =(const std::array<T, N>& vals) const
-    {
-        return { vals };
-    }
-};
-
-template <template <typename, std::size_t> class ParamT, typename T>
-    struct array_parameter_of
-{
-    MAKESHIFT_NODISCARD constexpr ParamT<T, 0> operator =(no_values_tag) const
-    {
-        return { { } };
-    }
-    template <std::size_t N>
-        MAKESHIFT_NODISCARD constexpr ParamT<T, N> operator =(T (&&vals)[N]) const
-    {
-        return { makeshift::detail::to_array2(vals) };
-    }
-    template <std::size_t N> 
-        MAKESHIFT_NODISCARD constexpr ParamT<T, N> operator =(const std::array<T, N>& vals) const
-    {
-        return { vals };
-    }
-};
-
-
 template <typename... ParamsT>
-    struct MAKESHIFT_EMPTY_BASES metadata_t : ParamsT...
+    struct MAKESHIFT_EMPTY_BASES parameter_set : ParamsT...
 {
     using parameter_categories = type_sequence2_cat_t<typename ParamsT::parameter_categories...>;
 
-    constexpr metadata_t(const ParamsT&... params)
+    constexpr parameter_set(const ParamsT&... params)
         : ParamsT(params)...
     {
     }
 };
 
 
+template <typename ParamT, typename TagT>
+    struct define_parameter : TagT
+{
+    using parameter_categories = type_sequence2<TagT>;
+    MAKESHIFT_NODISCARD constexpr friend const ParamT& select_parameter(const ParamT& param, TagT) noexcept { return param; }
+};
+
+
 struct name_tag { };
 
-struct name_t : name_tag
+struct name_t : define_parameter<name_t, name_tag>
 {
 private:
     string_view name_;
 
 public:
-    using parameter_categories = type_sequence2<name_tag>;
-    MAKESHIFT_NODISCARD constexpr const name_t& select(name_tag) const noexcept { return *this; }
-
-    constexpr name_t(void) noexcept = default;
-
     constexpr name_t(const name_t&) noexcept = default;
     constexpr name_t& operator =(const name_t&) noexcept = default;
 
@@ -138,15 +83,12 @@ public:
 struct values_tag { };
 
 template <typename T, std::size_t N>
-    struct values_t : values_tag
+    struct values_t : define_parameter<values_t<T, N>, values_tag>
 {
 private:
     std::array<T, N> values_;
 
 public:
-    using parameter_categories = type_sequence2<values_tag>;
-    MAKESHIFT_NODISCARD constexpr const values_t& select(values_tag) const noexcept { return *this; }
-
     constexpr values_t(const std::array<T, N>& _values)
         : values_(_values)
     {
@@ -159,15 +101,12 @@ public:
 struct value_names_tag { };
 
 template <std::size_t N>
-    struct value_names_t : value_names_tag
+    struct value_names_t : define_parameter<value_names_t<N>, value_names_tag>
 {
 private:
     std::array<string_view, N> valueNames_;
 
 public:
-    using parameter_categories = type_sequence2<value_names_tag>;
-    MAKESHIFT_NODISCARD constexpr const value_names_t& select(value_names_tag) const noexcept { return *this; }
-
     constexpr value_names_t(const std::array<string_view, N>& _valueNames)
         : valueNames_(_valueNames)
     {
@@ -184,34 +123,62 @@ template <typename T>
     string_view name;
 };
 
-template <typename T, std::size_t N>
-    struct named_values_t;
-template <typename T, std::size_t N>
-    struct MAKESHIFT_EMPTY_BASES named_values_t<named_t<T>, N> : values_t<T, N>, value_names_t<N>
+
+struct no_values_tag { };
+
+struct name_parameter_name
 {
-private:
-    static constexpr std::array<string_view, N> extractNames(const std::array<named_t<T>, N>& _namedValues)
+    MAKESHIFT_NODISCARD constexpr name_t operator =(std::string_view arg) const
     {
-        auto result = std::array<string_view, N>{ };
-        for (std::size_t i = 0; i < N; ++i)
-            result[i] = _namedValues[i].name;
-        return result;
+        return { arg };
     }
-    static constexpr std::array<T, N> extractValues(const std::array<named_t<T>, N>& _namedValues)
+};
+
+template <typename T>
+    struct values_parameter_name
+{
+    MAKESHIFT_NODISCARD constexpr values_t<T, 0> operator =(no_values_tag) const
     {
-        auto result = std::array<T, N>{ };
-        for (std::size_t i = 0; i < N; ++i)
-            result[i] = _namedValues[i].value;
-        return result;
+        return { { } };
     }
-
-public:
-    using parameter_categories = type_sequence2<values_tag, value_names_tag>;
-
-    constexpr named_values_t(const std::array<named_t<T>, N>& _namedValues)
-        : values_t<T, N>(extractValues(_namedValues)),
-          value_names_t<N>(extractNames(_namedValues))
+    template <std::size_t N>
+        MAKESHIFT_NODISCARD constexpr values_t<T, N> operator =(T (&&vals)[N]) const
     {
+        return { makeshift::detail::to_array2(vals) };
+    }
+};
+
+struct value_names_parameter_name
+{
+    MAKESHIFT_NODISCARD constexpr value_names_t<0> operator =(no_values_tag) const
+    {
+        return { { } };
+    }
+    template <std::size_t N>
+        MAKESHIFT_NODISCARD constexpr value_names_t<N> operator =(std::string_view (&&vals)[N]) const
+    {
+        return { makeshift::detail::to_array2(vals) };
+    }
+};
+
+template <typename T>
+    struct named_values_parameter_name
+{
+    MAKESHIFT_NODISCARD constexpr parameter_set<values_t<T, 0>, value_names_t<0>> operator =(no_values_tag) const
+    {
+        return { { }, { } };
+    }
+    template <std::size_t N>
+        MAKESHIFT_NODISCARD constexpr parameter_set<values_t<T, N>, value_names_t<N>> operator =(T (&&namedValues)[N]) const
+    {
+        auto values = std::array<T, N>{ };
+        auto names = std::array<T, N>{ };
+        for (std::size_t i = 0; i < N; ++i)
+        {
+            values[i] = std::move(namedValues[i]).value;
+            names[i] = namedValues[i].name;
+        }
+        return { std::move(values), names };
     }
 };
 

@@ -14,14 +14,14 @@
 
 #include <makeshift/constexpr.hpp>    // for constexpr_value<>, constexpr_transform()
 #include <makeshift/compound.hpp>     // for compound_hash<>, compound_equal_to<>
-#include <makeshift/metadata2.hpp>    // for values<>
 #include <makeshift/reflect2.hpp>     // for metadata_of<>
 #include <makeshift/type_traits2.hpp> // for type_sequence2<>
 #include <makeshift/tuple2.hpp>       // for array_transform2()
 #include <makeshift/version.hpp>      // for MAKESHIFT_NODISCARD, MAKESHIFT_CXX17
 
-#include <makeshift/detail/workaround.hpp> // for cmul<>()
+#include <makeshift/detail/workaround.hpp>   // for cmul<>()
 #include <makeshift/detail/unit_variant.hpp>
+#include <makeshift/detail/metadata2.hpp>    // for values_t
 
 #ifdef MAKESHIFT_CXX17
  #include <optional>
@@ -403,7 +403,7 @@ struct result_handler_throw
 };
 
 template <typename ResultHandlerT, typename T, typename C, typename HashT, typename EqualToT>
-     constexpr auto value_to_variant(const T& value, C valueArrayC, HashT&& /*hash*/, EqualToT&& equal)
+    constexpr auto value_to_variant(const T& value, C valueArrayC, HashT&& /*hash*/, EqualToT&& equal)
 {
     constexpr auto lvalues = valueArrayC();
     constexpr std::size_t numValues = std::tuple_size<decltype(lvalues)>::value;

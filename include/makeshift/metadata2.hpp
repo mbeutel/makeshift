@@ -18,17 +18,17 @@ inline namespace metadata
 {
 
 
-constexpr makeshift::detail::parameter<makeshift::detail::name_t> name = { };
+constexpr inline makeshift::detail::name_parameter_name name = { };
 
-template <typename T> constexpr inline makeshift::detail::array_parameter_of<makeshift::detail::values_t, T> values = { };
+template <typename T> constexpr inline makeshift::detail::values_parameter_name<T> values = { };
 
-constexpr inline makeshift::detail::array_parameter<makeshift::detail::value_names_t, makeshift::detail::string_view> value_names = { };
+constexpr inline makeshift::detail::value_names_parameter_name value_names = { };
 
-template <typename T> constexpr inline makeshift::detail::array_parameter_of<makeshift::detail::named_values_t, makeshift::detail::named_t<T>> named_values = { };
+template <typename T> constexpr inline makeshift::detail::named_values_parameter_name<T> named_values = { };
 
 
 template <typename... ParamsT>
-    MAKESHIFT_NODISCARD constexpr makeshift::detail::metadata_t<ParamsT...> define_metadata(ParamsT... params)
+    MAKESHIFT_NODISCARD constexpr makeshift::detail::parameter_set<ParamsT...> define_metadata(ParamsT... params)
 {
     return { params... };
 }
