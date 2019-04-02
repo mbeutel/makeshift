@@ -98,11 +98,6 @@ template <std::size_t I, typename T>
     return get<I>(std::forward<T>(arg));
 }
 
-template <typename... Ts> struct equal_types_;
-template <> struct equal_types_<> : std::true_type { };
-template <typename T0> struct equal_types_<T0> : std::true_type { using value_type = T0; };
-template <typename T0, typename T1, typename... Ts> struct equal_types_<T0, T1, Ts...> : std::conditional_t<std::is_same<T0, T1>::value, equal_types_<T1, Ts...>, std::false_type> { };
-
 template <typename F, std::size_t I, typename... Ts> struct result_type_ { using type = decltype(std::declval<F>()(makeshift::detail::get_element<I>(std::declval<Ts>())...)); };
 
 template <typename F, typename Is, typename... Ts>
@@ -137,8 +132,8 @@ template <typename F, typename... Rs, typename... Ts>
     struct check_homogeneous_result_<F, type_sequence2<Rs...>, Ts...>
 {
     using Eq = equal_types_<Rs...>;
-    static_assert(Eq::value, "result types of functor must be identical for all sets of tuple elements");
-    using type = typename Eq::value_type; // exists only if types are identical
+    static_assert(sizeof...(Rs) == 0 || Eq::value, "result types of functor must be identical for all sets of tuple elements");
+    using type = typename Eq::common_type; // exists only if types are identical
 };
 template <std::ptrdiff_t N, typename F, typename... Ts>
     struct homogeneous_result_<N, false, F, Ts...>

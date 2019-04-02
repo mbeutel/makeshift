@@ -350,18 +350,8 @@ template <std::size_t N, typename SeqT> constexpr typename SeqT::value_type nth_
 
 
 
-    //ᅟ
-    // Tag argument type compatible with arguments that inherit from at least one of the given tag types.
-    //
-template <typename... Ts>
-    struct any_tag_of
-{
-    template <typename T,
-              typename = std::enable_if_t<std::disjunction<std::is_convertible<T, Ts>...>::value>>
-        constexpr any_tag_of(const T&) noexcept
-    {
-    }
-};
+using makeshift::detail::any_tag_of;
+
 
     //ᅟ
     // Tag argument type compatible with arguments that inherit from all of the given tag types.

@@ -18,10 +18,10 @@ enum class BoundaryCondition
 constexpr inline auto reflect(mk::type<BoundaryCondition>)
 {
     return mk::define_metadata(
-        mk::named_values<BoundaryCondition> = {
-            { BoundaryCondition::periodic, "periodic" },
-            { BoundaryCondition::dirichlet, "dirichlet" }
-        }
+        mk::values(
+            mk::value(BoundaryCondition::periodic, mk::name("periodic")),
+            mk::value(BoundaryCondition::dirichlet, mk::name("dirichlet"))
+        )
     );
 }
 
@@ -35,15 +35,15 @@ using PartitionFlags = PartitionFlag::flags;
 constexpr inline auto reflect(mk::type<PartitionFlag>)
 {
     return mk::define_metadata(
-        mk::values<PartitionFlags> = {
+        mk::values(
             PartitionFlag::enclosedBoundary,
             PartitionFlag::nodeCut,
             PartitionFlag::threadCut
-        }
+        )
     );
 }
 
 TEST_CASE("reflect2", "[flags]")
 {
-    (void) (mk::values<BoundaryCondition> = { });
+    (void) (mk::values<BoundaryCondition>());
 }
