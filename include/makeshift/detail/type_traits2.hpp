@@ -6,7 +6,7 @@
 #include <cstddef>     // for size_t
 #include <iterator>    // for begin(), end()
 #include <utility>     // for integer_sequence<>
-#include <type_traits> // for declval<>(), integral_constant<>
+#include <type_traits> // for declval<>(), integral_constant<>, disjunction<>, is_convertible<>
 
 
 namespace makeshift
@@ -129,6 +129,27 @@ template <typename Rs, template <typename...> class TypeSeqT> struct unique_sequ
 template <typename Rs, template <typename...> class TypeSeqT, typename T, typename... Ts> struct unique_sequence_0_<Rs, TypeSeqT<T, Ts...>> : unique_sequence_0_<typename add_unique_<T, Rs>::type, TypeSeqT<Ts...>> { };
 template <typename Ts> struct unique_sequence_;
 template <template <typename...> class TypeSeqT, typename... Ts> struct unique_sequence_<TypeSeqT<Ts...>> : unique_sequence_0_<TypeSeqT<>, TypeSeqT<Ts...>> { };
+
+
+    //ᅟ
+    // Tag argument type compatible with arguments that inherit from at least one of the given tag types.
+    //
+template <typename... Ts>
+    struct any_tag_of
+{
+    template <typename T,
+              typename = std::enable_if_t<std::disjunction_v<std::is_convertible<T, Ts>...>>>
+        constexpr any_tag_of(const T&) noexcept
+    {
+    }
+};
+
+
+template <typename... Ts> struct equal_types_;
+template <> struct equal_types_<> : std::false_type { }; // we opt for false because then we don't have to name the common type
+template <typename T> struct equal_types_<T> : std::true_type { using common_type = T; };
+template <typename T0, typename T1, typename... Ts> struct equal_types_<T0, T1, Ts...> : std::false_type { };
+template <typename T01, typename... Ts> struct equal_types_<T01, T01, Ts...> : equal_types_<T01, Ts...> { };
 
 
 } // namespace detail

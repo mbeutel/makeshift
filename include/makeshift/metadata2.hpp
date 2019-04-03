@@ -3,6 +3,7 @@
 #define INCLUDED_MAKESHIFT_METADATA2_HPP_
 
 
+#include <array> // for decay<>
 #include <type_traits> // for decay<>
 
 #include <makeshift/version.hpp> // for MAKESHIFT_NODISCARD
@@ -18,17 +19,25 @@ inline namespace metadata
 {
 
 
-constexpr makeshift::detail::parameter<makeshift::detail::name_t> name = { };
+MAKESHIFT_NODISCARD constexpr inline makeshift::detail::name_t name(std::string_view _name) noexcept
+{
+    return { _name };
+}
 
-template <typename T> constexpr inline makeshift::detail::array_parameter_of<makeshift::detail::values_t, T> values = { };
+template <typename T, typename... ParamsT>
+    MAKESHIFT_NODISCARD constexpr makeshift::detail::value_t<T, ParamsT...> value(T value, ParamsT... params)
+{
+    return { std::move(value), std::move(params)... };
+}
 
-constexpr inline makeshift::detail::array_parameter<makeshift::detail::value_names_t, makeshift::detail::string_view> value_names = { };
-
-template <typename T> constexpr inline makeshift::detail::array_parameter_of<makeshift::detail::named_values_t, makeshift::detail::named_t<T>> named_values = { };
-
+template <typename... Ts>
+    MAKESHIFT_NODISCARD constexpr auto values(Ts... values)
+{
+    return makeshift::detail::values_impl_0<type_sequence2<makeshift::detail::values_tag>>(std::move(values)...);
+}
 
 template <typename... ParamsT>
-    MAKESHIFT_NODISCARD constexpr makeshift::detail::metadata_t<ParamsT...> define_metadata(ParamsT... params)
+    MAKESHIFT_NODISCARD constexpr makeshift::detail::parameter_set<ParamsT...> define_metadata(ParamsT... params)
 {
     return { params... };
 }
