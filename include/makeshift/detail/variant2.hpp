@@ -89,10 +89,10 @@ public:
         : members_{ _members... }
     {
     }
-    MAKESHIFT_NODISCARD constexpr member_values_t<0, ClassT, Ts...> operator =(no_values_tag) const
+    /*MAKESHIFT_NODISCARD constexpr member_values_t<0, ClassT, Ts...> operator =(no_values_tag) const
     {
         return { members_, { } };
-    }
+    }*/
     template <std::size_t N>
         MAKESHIFT_NODISCARD constexpr member_values_t<N, ClassT, Ts...> operator =(std::tuple<Ts...> (&&vals)[N]) const &&
     {
@@ -111,10 +111,10 @@ public:
         : member_{ _member }
     {
     }
-    MAKESHIFT_NODISCARD constexpr member_values_t<0, ClassT, T> operator =(no_values_tag) const
+    /*MAKESHIFT_NODISCARD constexpr member_values_t<0, ClassT, T> operator =(no_values_tag) const
     {
         return { member_, { } };
-    }
+    }*/
     template <std::size_t N> 
         MAKESHIFT_NODISCARD constexpr member_values_t<N, ClassT, T> operator =(T (&&vals)[N]) const &&
     {
@@ -354,8 +354,27 @@ template <typename T, typename C, std::size_t... Is>
     using type = unit_variant<value_functor<T, C, Is>...>;
 };
 
+template <typename C, std::size_t I>
+    struct heterogeneous_value_functor
+{
+    constexpr auto operator ()(void) const
+    {
+        constexpr auto lvalues = makeshift::constexpr_value<C>();
+        using std::get;
+        return get<I>(lvalues);
+    }
+};
+
+template <typename C, typename Is>
+    struct heterogeneous_expand_type_;
+template <typename C, std::size_t... Is>
+    struct heterogeneous_expand_type_<C, std::index_sequence<Is...>>
+{
+    using type = unit_variant<heterogeneous_value_functor<C, Is>...>;
+};
+
 template <typename T, typename D, typename... ArgsT>
-    T make_dependent(ArgsT&&... args) // to defeat first-phase name lookup
+    constexpr T make_dependent(ArgsT&&... args) // to defeat first-phase name lookup
 {
     return T(std::forward<ArgsT>(args)...);
 }
@@ -402,8 +421,41 @@ struct result_handler_throw
     }
 };
 
+template <typename DstT>
+    struct ctr_convert_functor
+{
+    template <typename T>
+        constexpr auto operator ()(T value)
+    {
+        return DstT(std::move(value));
+    }
+};
+template <typename DstT>
+    struct tuple_convert_functor
+{
+    template <typename TupleT>
+        constexpr auto operator ()(TupleT&& tuple)
+    {
+        return makeshift::array_transform2(ctr_convert_functor<DstT>{ }, std::forward<TupleT>(tuple));
+    }
+};
+
 template <typename ResultHandlerT, typename T, typename C, typename HashT, typename EqualToT>
-    constexpr auto value_to_variant(const T& value, C valueArrayC, HashT&& /*hash*/, EqualToT&& equal)
+    constexpr auto value_to_variant(std::true_type /*isHeterogeneous*/, const T& value, C valueArrayC, HashT&& /*hash*/, EqualToT&& equal)
+{
+    constexpr auto lvalues = makeshift::array_transform2(ctr_convert_functor<T>{ }, valueArrayC());
+    //constexpr auto lvaluesC = makeshift::constexpr_transform(tuple_convert_functor<T>{ }, valueArrayC);
+
+    constexpr std::size_t numValues = std::tuple_size<decltype(lvalues)>::value;
+    using ExpandType = typename heterogeneous_expand_type_<C, std::make_index_sequence<numValues>>::type;
+
+    for (std::size_t i = 0; i != numValues; ++i)
+        if (equal(value, lvalues[i]))
+            return ResultHandlerT::succeed(ExpandType(index_value, i));
+    return ResultHandlerT::template fail<ExpandType>();
+}
+template <typename ResultHandlerT, typename T, typename C, typename HashT, typename EqualToT>
+    constexpr auto value_to_variant(std::false_type /*isHeterogeneous*/, const T& value, C valueArrayC, HashT&& /*hash*/, EqualToT&& equal)
 {
     constexpr auto lvalues = valueArrayC();
     constexpr std::size_t numValues = std::tuple_size<decltype(lvalues)>::value;
@@ -415,12 +467,13 @@ template <typename ResultHandlerT, typename T, typename C, typename HashT, typen
     return ResultHandlerT::template fail<ExpandType>();
 }
 
+
 struct value_array_functor
 {
     template <typename T>
         constexpr auto operator ()(T&& arg) const
     {
-        return std::forward<T>(arg).values();
+        return std::forward<T>(arg).values(); // can also be a tuple!
     }
 };
 
@@ -446,13 +499,14 @@ template <typename ResultHandlerT, typename T, typename C, typename HashT, typen
     constexpr auto expand2_impl3(const T& value, C valuesC, HashT&& hash, EqualToT&& equal)
 {
     auto valueArrayC = makeshift::constexpr_transform(value_array_functor{ }, valuesC);
+    using IsHeterogeneous = std::is_base_of<heterogeneous_values_tag, decltype(valuesC())>;
     
         // If hash and equal are empty, we can build a hash table at compile time.
         // We won't bother in the case where they are not because we need to traverse all elements at runtime anyway.
         // (TODO: implement)
         // (TODO: is there an acceptable way of checking for constexpr-ness?)
 
-    return makeshift::detail::value_to_variant<ResultHandlerT>(value, valueArrayC, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
+    return makeshift::detail::value_to_variant<ResultHandlerT>(IsHeterogeneous{ }, value, valueArrayC, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
 }
 
 template <typename ResultHandlerT, typename T, typename C, typename HashT, typename EqualToT>
@@ -470,7 +524,7 @@ template <typename ResultHandlerT, typename T, typename C, typename HashT, typen
     auto compoundHash = compound_hash<decltype(memberAccessor), std::decay_t<HashT>>{ std::forward<HashT>(hash), memberAccessor };
     auto compoundEqual = compound_equal_to<decltype(memberAccessor), std::decay_t<EqualToT>>{ std::forward<EqualToT>(equal), memberAccessor };
 
-    return makeshift::detail::value_to_variant<ResultHandlerT>(value, valueArrayC, std::move(compoundHash), std::move(compoundEqual));
+    return makeshift::detail::value_to_variant<ResultHandlerT>(std::false_type{ }, value, valueArrayC, std::move(compoundHash), std::move(compoundEqual));
 }
 
 template <typename ResultHandlerT, bool Exhaustive, typename ClassT, typename... FactorsT, typename C, typename HashT, typename EqualToT>
@@ -490,6 +544,11 @@ template <typename ResultHandlerT, typename ClassT, typename T, typename C, type
 }
 template <typename ResultHandlerT, typename T, std::size_t N, typename C, typename HashT, typename EqualToT>
     constexpr auto expand2_impl2(type<values_t<T, N>>, const T& value, C valuesC, HashT&& hash, EqualToT&& equal)
+{
+    return expand2_impl3<ResultHandlerT>(value, valuesC, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
+}
+template <typename ResultHandlerT, typename... Ts, typename T, typename C, typename HashT, typename EqualToT>
+    constexpr auto expand2_impl2(type<heterogeneous_values_t<std::tuple<Ts...>>>, const T& value, C valuesC, HashT&& hash, EqualToT&& equal)
 {
     return expand2_impl3<ResultHandlerT>(value, valuesC, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
 }

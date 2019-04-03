@@ -45,5 +45,5 @@ constexpr inline auto reflect(mk::type<PartitionFlag>)
 
 TEST_CASE("reflect2", "[flags]")
 {
-    (void) (mk::values<BoundaryCondition>());
+    //(void) (mk::values());
 }

@@ -24,30 +24,16 @@ MAKESHIFT_NODISCARD constexpr inline makeshift::detail::name_t name(std::string_
     return { _name };
 }
 
-template <typename T, typename... AttributesT>
-    MAKESHIFT_NODISCARD constexpr makeshift::detail::value_t<T, AttributesT...> value(T value, AttributesT... attributes)
+template <typename T, typename... ParamsT>
+    MAKESHIFT_NODISCARD constexpr makeshift::detail::value_t<T, ParamsT...> value(T value, ParamsT... params)
 {
-    return { std::move(value), std::move(attributes)... };
+    return { std::move(value), std::move(params)... };
 }
 
-template <typename T>
-    MAKESHIFT_NODISCARD constexpr makeshift::detail::values_t<T, 0> values(void)
-{
-    return { };
-}
-MAKESHIFT_NODISCARD constexpr inline makeshift::detail::heterogeneous_values_t<std::tuple<>> values(void)
-{
-    return { { } };
-}
 template <typename... Ts>
     MAKESHIFT_NODISCARD constexpr auto values(Ts... values)
 {
-    return makeshift::detail::values_raw_impl(makeshift::detail::equal_types_<Ts...>{ }, std::move(values)...);
-}
-template <typename... Ts, typename... ParamsT>
-    MAKESHIFT_NODISCARD constexpr auto values(makeshift::detail::value_t<Ts, ParamsT...>... values)
-{
-    return makeshift::detail::values_impl(makeshift::detail::equal_types_<Ts...>{ }, std::move(values)...);
+    return makeshift::detail::values_impl_0<type_sequence2<makeshift::detail::values_tag>>(std::move(values)...);
 }
 
 template <typename... ParamsT>

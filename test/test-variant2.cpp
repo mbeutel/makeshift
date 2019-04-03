@@ -19,10 +19,10 @@ enum class Precision
 constexpr inline auto reflect(mk::type<Precision>)
 {
     return mk::define_metadata(
-        mk::values<Precision> = {
+        mk::values(
             Precision::single,
             Precision::double_
-        }
+        )
     );
 }
 
@@ -71,7 +71,7 @@ TEST_CASE("variant2")
     
     SECTION("product")
     {
-        constexpr auto a1 = mk::values<Params> = { { Precision::single, 4, 32, 32 }, { Precision::double_, 2, 32, 32 } };
+        constexpr auto a1 = mk::values(Params{ Precision::single, 4, 32, 32 }, Params{ Precision::double_, 2, 32, 32 });
         (void) a1;
         constexpr auto a2 = mk::member_values(&Params::precision) = { Precision::single, Precision::double_ };
         (void) a2;
@@ -98,7 +98,7 @@ TEST_CASE("variant2")
         auto p2VO = mk::try_expand2(p2,
             []
             {
-                return mk::values<Precision> = { Precision::single, Precision::double_ };
+                return mk::values(Precision::single, Precision::double_);
             });
         CHECK(p2VO.has_value());
         mk::visit(
@@ -113,7 +113,7 @@ TEST_CASE("variant2")
         auto p3VO = mk::try_expand2(p3,
             []
             {
-                return mk::values<Precision> = { Precision::single };
+                return mk::values(Precision::single);
             });
         CHECK_FALSE(p3VO.has_value());
 
@@ -121,10 +121,10 @@ TEST_CASE("variant2")
         auto s1VO = mk::try_expand2(s1,
             []
             {
-                return mk::values<Params> = {
-                    { Precision::single, 4, 32, 32 },
-                    { Precision::double_, 2, 32, 32 }
-                };
+                return mk::values(
+                    Params{ Precision::single, 4, 32, 32 },
+                    Params{ Precision::double_, 2, 32, 32 }
+                );
             });
         CHECK(s1VO.has_value());
         mk::visit(
@@ -185,10 +185,10 @@ TEST_CASE("variant2")
         auto te1VO = mk::try_expand2(te1,
             []
             {
-                return mk::values<FloatType> = {
-                    FloatType{ mk::type_v<float>  },
-                    FloatType{ mk::type_v<double> }
-                };
+                return mk::values(
+                    mk::type_v<float>,
+                    mk::type_v<double>
+                );
             });
         CHECK(te1VO.has_value());
         auto te1V = *te1VO;
@@ -205,10 +205,10 @@ TEST_CASE("variant2")
         auto v1VO = mk::try_expand2(v1,
             []
             {
-                return mk::values<FloatTypeVariant> = {
-                    FloatTypeVariant{ mk::type_v<float>  },
-                    FloatTypeVariant{ mk::type_v<double> }
-                };
+                return mk::values(
+                    mk::type_v<float>,
+                    mk::type_v<double>
+                );
             });
         CHECK(v1VO.has_value());
         auto v1V = *v1VO;

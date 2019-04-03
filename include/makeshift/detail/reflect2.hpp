@@ -98,20 +98,14 @@ template <typename T>
 };
 template <typename TypeEnumT>
     struct default_metadata<TypeEnumT, std::enable_if_t<std::is_base_of<type_enum_base, TypeEnumT>::value>>
-        : heterogeneous_values_t<typename apply_<std::tuple, typename TypeEnumT::types>::type>
+        : heterogeneous_values_t<typename apply_<type_sequence2, typename TypeEnumT::types>::type>
 {
 private:
-    using base = heterogeneous_values_t<typename apply_<std::tuple, typename TypeEnumT::types>::type>;
-
-    template <typename... Ts>
-        static constexpr std::tuple<value_t<Ts>...> _values_impl(type_sequence2<Ts...>) noexcept
-    {
-        return { };
-    }
+    using base = heterogeneous_values_t<typename apply_<type_sequence2, typename TypeEnumT::types>::type>;
 
 public:
     constexpr default_metadata(void)
-        : base(_values_impl(typename TypeEnumT::types{ }))
+        : base(typename TypeEnumT::types{ })
     {
     }
 };
@@ -124,7 +118,7 @@ template <> struct default_metadata<std::int64_t> : name_t { constexpr default_m
 template <>
     struct default_metadata<bool> : name_t, values_t<bool, 2, name_t>
 {
-    using parameter_categories = type_sequence2<name_tag, values_tag, homogeneous_values_tag>;
+    using parameter_categories = type_sequence2<name_tag, values_tag>;
 
     constexpr default_metadata(void)
         : name_t("bool"),

@@ -111,7 +111,7 @@ template <typename TagsT, typename T, std::size_t N, typename... ParamsT>
     struct values_parameter;
 template <typename... TagsT, typename T, std::size_t N, typename... ParamsT>
     struct MAKESHIFT_EMPTY_BASES values_parameter<type_sequence2<TagsT...>, T, N, ParamsT...>
-        : define_parameter<TagsT...>,
+        : define_parameter<values_parameter<type_sequence2<TagsT...>, T, N, ParamsT...>, TagsT...>,
           parameter_array<ParamsT, N>...
 {
 private:
@@ -129,8 +129,10 @@ private:
     std::array<T, N> values_;
 
 public:
+    using value_type = T;
+
     constexpr values_parameter(const std::array<value_t<T, ParamsT...>, N>& _values)
-        : parameter_array<ParamsT, N>(extract_params<ParamsT>(std::make_index_sequence<N>{ }, _values)),
+        : parameter_array<ParamsT, N>(extract_params<ParamsT>(std::make_index_sequence<N>{ }, _values))...,
           values_(extract_values(std::make_index_sequence<N>{ }, _values))
     {
     }
@@ -138,19 +140,13 @@ public:
     MAKESHIFT_NODISCARD constexpr const std::array<T, N>& values(void) const noexcept { return values_; }
 };
 
-struct values_tag { };
+struct heterogeneous_values_tag { };
 
-struct homogeneous_values_tag { };
-
-template <typename T, std::size_t N, typename... ParamsT>
-    using values_t = values_parameter<type_sequence2<values_tag, homogeneous_values_tag>, T, N, ParamsT...>;
-
-
-template <typename ValuesParamT, typename TagsT, typename Ts, typename... ParamsT>
-    struct define_heterogeneous_values_parameter;
-template <typename ValuesParamT, typename... TagsT, typename... Ts, typename... ParamsT>
-    struct MAKESHIFT_EMPTY_BASES define_heterogeneous_values_parameter<ValuesParamT, type_sequence2<TagsT...>, std::tuple<Ts...>, ParamsT...>
-        : define_parameter<ValuesParamT, TagsT...>,
+template <typename TagsT, typename Ts, typename... ParamsT>
+    struct heterogeneous_values_parameter;
+template <typename... TagsT, template <typename...> class TupleT, typename... Ts, typename... ParamsT>
+    struct MAKESHIFT_EMPTY_BASES heterogeneous_values_parameter<type_sequence2<TagsT...>, TupleT<Ts...>, ParamsT...>
+        : define_parameter<heterogeneous_values_parameter<type_sequence2<TagsT...>, TupleT<Ts...>, ParamsT...>, TagsT..., heterogeneous_values_tag>,
           parameter_array<ParamsT, sizeof...(Ts)>...
 {
 private:
@@ -165,45 +161,58 @@ private:
         return { static_cast<const ParamT&>(std::get<Is>(_values).parameters())... };
     }
 
-    std::tuple<Ts...> values_;
+    TupleT<Ts...> values_;
 
 public:
-    constexpr define_heterogeneous_values_parameter(std::tuple<value_t<Ts, ParamsT...>...> _values)
-        : parameter_array<ParamsT, sizeof...(Ts)>(extract_params<ParamsT>(std::make_index_sequence<sizeof...(Ts)>{ }, _values)),
+    constexpr heterogeneous_values_parameter(std::tuple<value_t<Ts, ParamsT...>...> _values)
+        : parameter_array<ParamsT, sizeof...(Ts)>(extract_params<ParamsT>(std::make_index_sequence<sizeof...(Ts)>{ }, _values))...,
           values_(extract_values(std::make_index_sequence<sizeof...(Ts)>{ }, _values))
     {
     }
+    template <typename = std::enable_if_t<sizeof...(ParamsT) == 0>>
+        constexpr heterogeneous_values_parameter(TupleT<Ts...> _values) noexcept
+            : values_(_values)
+    {
+    }
 
-    MAKESHIFT_NODISCARD constexpr const std::tuple<Ts...>& values(void) const noexcept { return values_; }
+    MAKESHIFT_NODISCARD constexpr const TupleT<Ts...>& values(void) const noexcept { return values_; }
 };
+
+
+struct values_tag { };
 
 template <typename T, std::size_t N, typename... ParamsT>
-    struct values_t : define_values_parameter<values_t<T, N, ParamsT...>, type_sequence2<values_tag, homogeneous_values_tag>, T, N, ParamsT...>
-{
-    using base = define_values_parameter<values_t<T, N, ParamsT...>, type_sequence2<values_tag, homogeneous_values_tag>, T, N, ParamsT...>;
-    using base::base;
-};
+    using values_t = values_parameter<type_sequence2<values_tag>, T, N, ParamsT...>;
+
+template <typename Ts, typename... ParamsT>
+    using heterogeneous_values_t = heterogeneous_values_parameter<type_sequence2<values_tag>, Ts, ParamsT...>;
 
 
-template <typename... Ts>
-    constexpr inline values_t<typename equal_types_<Ts...>::common_type, sizeof...(Ts)> values_raw_impl(std::true_type /*equalTypes*/, Ts... values)
+template <typename TagsT, typename... Ts>
+    constexpr inline values_parameter<TagsT, typename equal_types_<Ts...>::common_type, sizeof...(Ts)> values_impl_1(std::true_type /*equalTypes*/, Ts... values)
 {
     return { /*std::array<typename equal_types_<Ts...>::common_type, sizeof...(Ts)>*/{ value_t<Ts>{ std::move(values) }... } };
 }
-template <typename... Ts>
-    constexpr inline heterogeneous_values_t<std::tuple<Ts...>> values_raw_impl(std::false_type /*equalTypes*/, Ts... values)
+template <typename TagsT, typename... Ts>
+    constexpr inline heterogeneous_values_parameter<TagsT, std::tuple<Ts...>> values_impl_1(std::false_type /*equalTypes*/, Ts... values)
 {
-    return { /*std::tuple<Ts...>*/{ value_t<Ts>(std::move(values))... } };
+    return { /*std::tuple<value_t<Ts>...>*/{ value_t<Ts>(std::move(values))... } };
 }
-template <typename... Ts, typename... ParamsT>
-    constexpr inline values_t<typename equal_types_<Ts...>::common_type, sizeof...(Ts), ParamsT...> values_impl(std::true_type /*equalTypes*/, value_t<Ts, ParamsT...>... values)
+template <typename TagsT, typename... Ts, typename... ParamsT>
+    constexpr inline values_parameter<TagsT, typename equal_types_<Ts...>::common_type, sizeof...(Ts), ParamsT...> values_impl_1(std::true_type /*equalTypes*/, value_t<Ts, ParamsT...>... values)
 {
     return { /*std::array<typename equal_types_<Ts...>::common_type, sizeof...(Ts)>*/{ std::move(values)... } };
 }
-template <typename... Ts, typename... ParamsT>
-    constexpr inline heterogeneous_values_t<std::tuple<Ts...>> values_impl(std::false_type /*equalTypes*/, value_t<Ts, ParamsT...>... values)
+template <typename TagsT, typename... Ts, typename... ParamsT>
+    constexpr inline heterogeneous_values_parameter<TagsT, std::tuple<Ts...>, ParamsT...> values_impl_1(std::false_type /*equalTypes*/, value_t<Ts, ParamsT...>... values)
 {
-    return { /*std::tuple<Ts...>*/{ std::move(values)... } };
+    return { /*std::tuple<value_t<Ts, ParamsT...>...>*/{ std::move(values)... } };
+}
+
+template <typename TagsT, typename... Ts>
+    MAKESHIFT_NODISCARD constexpr auto values_impl_0(Ts... values)
+{
+    return makeshift::detail::values_impl_1<TagsT>(makeshift::detail::equal_types_<Ts...>{ }, std::move(values)...);
 }
 
 
