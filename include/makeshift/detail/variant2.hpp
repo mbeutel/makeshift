@@ -556,8 +556,8 @@ template <typename ResultHandlerT, typename T, std::size_t N, typename C, typena
 {
     return expand2_impl3<ResultHandlerT>(value, valuesC, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
 }
-template <typename ResultHandlerT, typename... Ts, typename T, typename C, typename HashT, typename EqualToT>
-    constexpr auto expand2_impl2(type<heterogeneous_values_t<std::tuple<Ts...>>>, const T& value, C valuesC, HashT&& hash, EqualToT&& equal)
+template <typename ResultHandlerT, template <typename...> class TupleT, typename... Ts, typename T, typename C, typename HashT, typename EqualToT>
+    constexpr auto expand2_impl2(type_t<heterogeneous_values_t<TupleT<Ts...>>>, const T& value, C valuesC, HashT&& hash, EqualToT&& equal)
 {
     return expand2_impl3<ResultHandlerT>(value, valuesC, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
 }

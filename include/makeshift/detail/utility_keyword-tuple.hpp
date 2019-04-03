@@ -62,7 +62,7 @@ inline namespace types
     //ᅟ        | get_by_name(name<"width"_k>); // returns 42
     //
 template <makeshift::detail::keyword_crc Name>
-    constexpr makeshift::detail::get_by_key_t<Name> get_by_key(name<Name> = { }) noexcept
+    constexpr makeshift::detail::get_by_key_t<Name> get_by_key(name_<Name> = { }) noexcept
 {
     return { };
 }
@@ -76,7 +76,7 @@ template <makeshift::detail::keyword_crc Name>
     //
 template <makeshift::detail::keyword_crc Name, typename TupleT,
           typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
-    constexpr decltype(auto) get_by_key(TupleT&& tuple, name<Name> = { }) noexcept
+    constexpr decltype(auto) get_by_key(TupleT&& tuple, name_<Name> = { }) noexcept
 {
     return get_by_key<Name>()(std::forward<TupleT>(tuple));
 }

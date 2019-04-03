@@ -259,17 +259,17 @@ template <makeshift::detail::keyword_crc... Scopes> constexpr scope<Scopes...> s
     //ᅟ    name_v<"filename"_k> | scope_v<"src"_k> = "/src/file/path"
     //
 template <makeshift::detail::keyword_crc Name>
-    struct name : makeshift::detail::key<Name>
+    struct name_ : makeshift::detail::key<Name>
 {
     using makeshift::detail::key<Name>::operator =;
     template <makeshift::detail::keyword_crc... RScopes>
-        friend constexpr makeshift::detail::key<Name, RScopes...> operator |(name, scope<RScopes...>) noexcept
+        friend constexpr makeshift::detail::key<Name, RScopes...> operator |(name_, scope<RScopes...>) noexcept
     {
         return { };
     }
     operator makeshift::detail::keyword_crc(void) const noexcept { return Name; }
 };
-template <makeshift::detail::keyword_crc Name> constexpr name<Name> name_v = { };
+template <makeshift::detail::keyword_crc Name> constexpr name_<Name> name_v = { };
 
 
 } // inline namespace types
