@@ -227,8 +227,8 @@ TEST_CASE("variant2")
             []
             {
                 return mk::values(
-                    mk::type_v<float>,
-                    mk::type_v<double>
+                    FloatTypeVariant{ mk::type_v<float> },
+                    FloatTypeVariant{ mk::type_v<double> }
                 );
             });
         CHECK(v1VO.has_value());

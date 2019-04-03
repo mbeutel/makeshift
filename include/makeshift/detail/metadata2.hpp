@@ -129,7 +129,8 @@ private:
     std::array<T, N> values_;
 
 public:
-    using value_type = T;
+    using value_type = T; // TODO: required?
+    static constexpr std::size_t value_count = N; // TODO: required?
 
     constexpr values_parameter(const std::array<value_t<T, ParamsT...>, N>& _values)
         : parameter_array<ParamsT, N>(extract_params<ParamsT>(std::make_index_sequence<N>{ }, _values))...,
@@ -164,6 +165,9 @@ private:
     TupleT<Ts...> values_;
 
 public:
+    using value_types = type_sequence2<Ts...>; // TODO: required?
+    static constexpr std::size_t value_count = sizeof...(Ts); // TODO: required?
+
     constexpr heterogeneous_values_parameter(std::tuple<value_t<Ts, ParamsT...>...> _values)
         : parameter_array<ParamsT, sizeof...(Ts)>(extract_params<ParamsT>(std::make_index_sequence<sizeof...(Ts)>{ }, _values))...,
           values_(extract_values(std::make_index_sequence<sizeof...(Ts)>{ }, _values))
@@ -191,23 +195,34 @@ template <typename Ts, typename... ParamsT>
 template <typename TagsT, typename... Ts>
     constexpr inline values_parameter<TagsT, typename equal_types_<Ts...>::common_type, sizeof...(Ts)> values_impl_1(std::true_type /*equalTypes*/, Ts... values)
 {
-    return { /*std::array<typename equal_types_<Ts...>::common_type, sizeof...(Ts)>*/{ value_t<Ts>{ std::move(values) }... } };
+    return { { value_t<Ts>{ std::move(values) }... } };
 }
 template <typename TagsT, typename... Ts>
     constexpr inline heterogeneous_values_parameter<TagsT, std::tuple<Ts...>> values_impl_1(std::false_type /*equalTypes*/, Ts... values)
 {
-    return { /*std::tuple<value_t<Ts>...>*/{ value_t<Ts>(std::move(values))... } };
+    return { { value_t<Ts>(std::move(values))... } };
 }
 template <typename TagsT, typename... Ts, typename... ParamsT>
     constexpr inline values_parameter<TagsT, typename equal_types_<Ts...>::common_type, sizeof...(Ts), ParamsT...> values_impl_1(std::true_type /*equalTypes*/, value_t<Ts, ParamsT...>... values)
 {
-    return { /*std::array<typename equal_types_<Ts...>::common_type, sizeof...(Ts)>*/{ std::move(values)... } };
+    return { { std::move(values)... } };
 }
 template <typename TagsT, typename... Ts, typename... ParamsT>
     constexpr inline heterogeneous_values_parameter<TagsT, std::tuple<Ts...>, ParamsT...> values_impl_1(std::false_type /*equalTypes*/, value_t<Ts, ParamsT...>... values)
 {
-    return { /*std::tuple<value_t<Ts, ParamsT...>...>*/{ std::move(values)... } };
+    return { { std::move(values)... } };
 }
+
+/*
+
+Thoughts:
+- values() and known_values() should support products
+- should values() support only exhaustive products? probably...
+- we need to be able to generate member accessors from value lists so we can compare objects; perhaps [het'_]values_parameter should already expose a comparer/hasher which is then used by expand()?
+- this vastly simplifies expand() because product-to-values flattening then happens here
+- perhaps get rid of compound_hash usage, as we don't currently need it?
+
+*/
 
 template <typename TagsT, typename... Ts>
     MAKESHIFT_NODISCARD constexpr auto values_impl_0(Ts... values)
