@@ -136,6 +136,37 @@ using stride2 = std::ptrdiff_t;
 using dim2 = std::ptrdiff_t;
 
 
+    //ᅟ
+    // Returns the size of an array, container, or range.
+    //
+template <typename C> 
+    constexpr auto size(const C& c) -> decltype(c.size())
+{
+    return c.size();
+}
+template <typename T, std::size_t N>
+    constexpr std::size_t size(const T (&)[N]) noexcept
+{
+    return N;
+}
+
+
+    //ᅟ
+    // Returns the size of an array, container, or range, as a *signed* value.
+    //
+template <typename C>
+    constexpr auto ssize(const C& c)
+        -> std::common_type_t<std::ptrdiff_t, std::make_signed_t<decltype(c.size())>>
+{
+    using R = std::common_type_t<std::ptrdiff_t, std::make_signed_t<decltype(c.size())>>;
+    return static_cast<R>(c.size());
+}
+template <typename T, std::ptrdiff_t N>
+    constexpr std::ptrdiff_t ssize(const T (&)[N]) noexcept
+{
+    return N;
+}
+
 } // inline namespace types
 
 } // namespace makeshift
