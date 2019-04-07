@@ -6,6 +6,10 @@
 #include <cstddef>     // for ptrdiff_t
 #include <type_traits> // for underlying_type<>
 
+#include <gsl/gsl_assert> // for Expects()
+
+#include <makeshift/version.hpp> // for MAKESHIFT_NODISCARD
+
 #include <makeshift/detail/utility2.hpp>
 
 
@@ -19,10 +23,10 @@ namespace adl
 {
 
 
-template <typename EnumT> constexpr EnumT operator |(EnumT lhs, EnumT rhs) noexcept { return EnumT(std::underlying_type_t<EnumT>(lhs) | std::underlying_type_t<EnumT>(rhs)); }
-template <typename EnumT> constexpr EnumT operator &(EnumT lhs, EnumT rhs) noexcept { return EnumT(std::underlying_type_t<EnumT>(lhs) & std::underlying_type_t<EnumT>(rhs)); }
-template <typename EnumT> constexpr EnumT operator ^(EnumT lhs, EnumT rhs) noexcept { return EnumT(std::underlying_type_t<EnumT>(lhs) ^ std::underlying_type_t<EnumT>(rhs)); }
-template <typename EnumT> constexpr EnumT operator ~(EnumT arg) noexcept { return EnumT(~std::underlying_type_t<EnumT>(arg)); }
+template <typename EnumT> constexpr MAKESHIFT_NODISCARD EnumT operator |(EnumT lhs, EnumT rhs) noexcept { return EnumT(std::underlying_type_t<EnumT>(lhs) | std::underlying_type_t<EnumT>(rhs)); }
+template <typename EnumT> constexpr MAKESHIFT_NODISCARD EnumT operator &(EnumT lhs, EnumT rhs) noexcept { return EnumT(std::underlying_type_t<EnumT>(lhs) & std::underlying_type_t<EnumT>(rhs)); }
+template <typename EnumT> constexpr MAKESHIFT_NODISCARD EnumT operator ^(EnumT lhs, EnumT rhs) noexcept { return EnumT(std::underlying_type_t<EnumT>(lhs) ^ std::underlying_type_t<EnumT>(rhs)); }
+template <typename EnumT> constexpr MAKESHIFT_NODISCARD EnumT operator ~(EnumT arg) noexcept { return EnumT(~std::underlying_type_t<EnumT>(arg)); }
 template <typename EnumT> constexpr EnumT operator |=(EnumT& lhs, EnumT rhs) noexcept { lhs = lhs | rhs; return lhs; }
 template <typename EnumT> constexpr EnumT operator &=(EnumT& lhs, EnumT rhs) noexcept { lhs = lhs & rhs; return lhs; }
 template <typename EnumT> constexpr EnumT operator ^=(EnumT& lhs, EnumT rhs) noexcept { lhs = lhs ^ rhs; return lhs; }
@@ -31,17 +35,17 @@ template <typename EnumT> constexpr EnumT operator ^=(EnumT& lhs, EnumT rhs) noe
     //ᅟ
     // `has_flag(haystack, needle)` determines whether the flags enum `haystack` contains the flag `needle`. Equivalent to `(haystack & needle) != EnumT::none`.
     //
-template <typename EnumT> constexpr bool has_flag(EnumT haystack, EnumT needle) noexcept { return (haystack & needle) != EnumT(0); }
+template <typename EnumT> MAKESHIFT_NODISCARD constexpr bool has_flag(EnumT haystack, EnumT needle) noexcept { return (haystack & needle) != EnumT(0); }
     
     //ᅟ
     // `has_any_of(haystack, needles)` determines whether the flags enum `haystack` contains any of the flags in `needles`. Equivalent to `(haystack & needles) != EnumT::none`.
     //
-template <typename EnumT> constexpr bool has_any_of(EnumT haystack, EnumT needles) noexcept { return (haystack & needles) != EnumT(0); }
+template <typename EnumT> MAKESHIFT_NODISCARD constexpr bool has_any_of(EnumT haystack, EnumT needles) noexcept { return (haystack & needles) != EnumT(0); }
     
     //ᅟ
     // `has_all_of(haystack, needles)` determines whether the flags enum `haystack` contains all of the flags in `needles`. Equivalent to `(haystack & needles) == needles`.
     //
-template <typename EnumT> constexpr bool has_all_of(EnumT haystack, EnumT needles) noexcept { return (haystack & needles) == needles; }
+template <typename EnumT> MAKESHIFT_NODISCARD constexpr bool has_all_of(EnumT haystack, EnumT needles) noexcept { return (haystack & needles) == needles; }
 
 
 } // namespace adl
@@ -140,12 +144,12 @@ using dim2 = std::ptrdiff_t;
     // Returns the size of an array, container, or range.
     //
 template <typename C> 
-    constexpr auto size(const C& c) -> decltype(c.size())
+    MAKESHIFT_NODISCARD constexpr auto size(const C& c) -> decltype(c.size())
 {
     return c.size();
 }
 template <typename T, std::size_t N>
-    constexpr std::size_t size(const T (&)[N]) noexcept
+    MAKESHIFT_NODISCARD constexpr std::size_t size(const T (&)[N]) noexcept
 {
     return N;
 }
@@ -155,14 +159,14 @@ template <typename T, std::size_t N>
     // Returns the size of an array, container, or range, as a *signed* value.
     //
 template <typename C>
-    constexpr auto ssize(const C& c)
+    MAKESHIFT_NODISCARD constexpr auto ssize(const C& c)
         -> std::common_type_t<std::ptrdiff_t, std::make_signed_t<decltype(c.size())>>
 {
     using R = std::common_type_t<std::ptrdiff_t, std::make_signed_t<decltype(c.size())>>;
     return static_cast<R>(c.size());
 }
 template <typename T, std::ptrdiff_t N>
-    constexpr std::ptrdiff_t ssize(const T (&)[N]) noexcept
+    MAKESHIFT_NODISCARD constexpr std::ptrdiff_t ssize(const T (&)[N]) noexcept
 {
     return N;
 }
