@@ -171,6 +171,57 @@ template <typename T, std::ptrdiff_t N>
     return N;
 }
 
+
+template <dim2 Extent>
+    class extent : std::integral_constant<dim2, Extent>
+{
+public:
+    constexpr extent(void) = default;
+    constexpr extent(dim2 _extent)
+        : extent_(_extent)
+    {
+        Expects(_extent == Extent);
+    }
+};
+template <>
+    class extent<-1>
+{
+private:
+    dim2 extent_;
+
+public:
+    using value_type = dim2;
+    using type       = extent;
+
+    constexpr extent(dim2 _extent)
+        : extent_(_extent)
+    {
+        Expects(extent_ >= 0);
+    }
+
+    MAKESHIFT_NODISCARD constexpr operator dim2(void) const noexcept { return extent_; }
+    MAKESHIFT_NODISCARD constexpr dim2 operator ()(void) const noexcept { return extent_; }
+};
+
+
+    //ᅟ
+    // Returns the result of the function applied to the extent's value as an extent.
+    //ᅟ
+    //ᅟ    auto baseIndexR = []{ return 42; };
+    //ᅟ    auto offsetR = []{ return 3; };
+    //ᅟ    auto indexR = constexpr_transform(std::plus<>, baseIndexR, offsetR); // equivalent to `[]{ return 45; }`
+    //
+template <typename F, typename... Rs>
+    MAKESHIFT_NODISCARD constexpr makeshift::detail::constexpr_transform_functor<F, Rs...>
+    constexpr_transform(const F&, const Rs&...) noexcept
+{
+    static_assert(std::is_empty<F>::value, "transformer must be stateless");
+    static_assert(makeshift::detail::cand(is_constexpr_value_v<Rs>...), "arguments must be constexpr values");
+    return { };
+}
+
+
+
 } // inline namespace types
 
 } // namespace makeshift
