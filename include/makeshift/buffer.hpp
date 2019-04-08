@@ -15,16 +15,21 @@ inline namespace types
 {
 
 
-template <typename T, dim2 Extent = -1, dim2 MaxLocalBufferBytes = -1>
-    class buffer
-        : public makeshift::detail::buffer_base<T, Extent, MaxLocalBufferBytes, makeshift::detail::determine_memory_location(sizeof(T), Extent, MaxLocalBufferBytes)>
-{
-private:
-    using _base = makeshift::detail::buffer_base<T, Extent, MaxLocalBufferBytes, makeshift::detail::determine_memory_location(sizeof(T), Extent, MaxLocalBufferBytes)>;
+template <typename T, typename C, dim2 MaxStaticBufferExtent = -1>
+    using buffer = makeshift::detail::buffer<T, makeshift::detail::static_dim<C>(), MaxStaticBufferExtent>;
 
-public:
-    using _base::_base;
-};
+
+template <typename T, typename C>
+    constexpr buffer<T, C> make_buffer(C size)
+{
+    return { size };
+}
+
+template <typename T, dim2 MaxStaticBufferExtent, typename C>
+    constexpr buffer<T, C, MaxStaticBufferExtent> make_buffer(C size)
+{
+    return { size };
+}
 
 
 } // inline namespace types

@@ -10,6 +10,7 @@
 #include <gsl/gsl_assert> // for Expects()
 
 #include <makeshift/utility2.hpp> // for dim2
+#include <makeshift/constval.hpp> // for constval<>
 
 
 namespace makeshift
@@ -35,24 +36,24 @@ public:
     using const_iterator = const T*;
 
 private:
-    T* _data(void) noexcept { return static_cast<DerivedT*>(this)->data(); }
-    const T* _data(void) const noexcept { return static_cast<const DerivedT*>(this)->data(); }
-    std::size_t _size(void) const noexcept { return static_cast<const DerivedT*>(this)->size(); }
+    MAKESHIFT_CONSTEXPR_CXX17 T* _data(void) noexcept { return static_cast<DerivedT*>(this)->data(); }
+    MAKESHIFT_CONSTEXPR_CXX17 const T* _data(void) const noexcept { return static_cast<const DerivedT*>(this)->data(); }
+    MAKESHIFT_CONSTEXPR_CXX17 std::size_t _size(void) const noexcept { return static_cast<const DerivedT*>(this)->size(); }
 
 public:
-    MAKESHIFT_NODISCARD iterator begin(void) noexcept
+    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR_CXX17 iterator begin(void) noexcept
     {
         return _data();
     }
-    MAKESHIFT_NODISCARD const_iterator begin(void) const noexcept
+    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR_CXX17 const_iterator begin(void) const noexcept
     {
         return _data();
     }
-    MAKESHIFT_NODISCARD iterator end(void) noexcept
+    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR_CXX17 iterator end(void) noexcept
     {
         return _data() + _size();
     }
-    MAKESHIFT_NODISCARD const_iterator end(void) const noexcept
+    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR_CXX17 const_iterator end(void) const noexcept
     {
         return _data() + _size();
     }
@@ -62,41 +63,41 @@ public:
         return _size() == 0;
     }
 
-    MAKESHIFT_NODISCARD reference at(size_type i)
+    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR_CXX17 reference at(size_type i)
     {
         Expects(i < _size());
         return _data()[i];
     }
-    MAKESHIFT_NODISCARD constexpr const_reference at(size_type i) const
+    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR_CXX17 const_reference at(size_type i) const
     {
         Expects(i < _size());
         return _data()[i];
     }
-    MAKESHIFT_NODISCARD reference operator [](size_type i)
+    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR_CXX17 reference operator [](size_type i)
     {
         return _data()[i];
     }
-    MAKESHIFT_NODISCARD constexpr const_reference operator [](size_type i) const
+    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR_CXX17 const_reference operator [](size_type i) const
     {
         return _data()[i];
     }
 
-    MAKESHIFT_NODISCARD reference front(void) noexcept
+    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR_CXX17 reference front(void) noexcept
     {
         Expects(!empty());
         return _data()[0];
     }
-    MAKESHIFT_NODISCARD const_reference front(void) const noexcept
+    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR_CXX17 const_reference front(void) const noexcept
     {
         Expects(!empty());
         return _data()[0];
     }
-    MAKESHIFT_NODISCARD reference back(void) noexcept
+    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR_CXX17 reference back(void) noexcept
     {
         Expects(!empty());
         return _data()[_size() - 1];
     }
-    MAKESHIFT_NODISCARD const_reference back(void) const noexcept
+    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR_CXX17 const_reference back(void) const noexcept
     {
         Expects(!empty());
         return _data()[_size() - 1];
@@ -115,33 +116,39 @@ public:
     using iterator = typename std::array<T, Extent>::iterator;
     using const_iterator = typename std::array<T, Extent>::const_iterator;
 
-    MAKESHIFT_NODISCARD iterator begin(void) noexcept
+    constexpr static_buffer_base(std::size_t _size)
+        : data_{ }
+    {
+        Expects(_size == Extent);
+    }
+
+    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR_CXX17 iterator begin(void) noexcept
     {
         return data_.begin();
     }
-    MAKESHIFT_NODISCARD const_iterator begin(void) const noexcept
+    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR_CXX17 const_iterator begin(void) const noexcept
     {
         return data_.begin();
     }
-    MAKESHIFT_NODISCARD iterator end(void) noexcept
+    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR_CXX17 iterator end(void) noexcept
     {
         return data_.end();
     }
-    MAKESHIFT_NODISCARD const_iterator end(void) const noexcept
+    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR_CXX17 const_iterator end(void) const noexcept
     {
         return data_.end();
     }
 
-    MAKESHIFT_NODISCARD constexpr size_type size(void) const noexcept
+    MAKESHIFT_NODISCARD constexpr std::size_t size(void) const noexcept
     {
         return Extent;
     }
 
-    MAKESHIFT_NODISCARD T* data(void) noexcept
+    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR_CXX17 T* data(void) noexcept
     {
         return data_.data();
     }
-    MAKESHIFT_NODISCARD const T* data(void) const noexcept
+    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR_CXX17 const T* data(void) const noexcept
     {
         return data_.data();
     }
@@ -156,21 +163,21 @@ private:
     std::array<T, BufExtent> buf_;
 
 public:
-    dynamic_buffer_base(std::size_t _size)
+    constexpr dynamic_buffer_base(std::size_t _size)
         : size_(_size)
     {
         if (_size <= BufExtent)
             data_ = buf_.data();
         else
-            data_ = new T[_size];
+            data_ = new T[_size]{ };
     }
-    dynamic_buffer_base(const dynamic_buffer_base& rhs)
+    constexpr dynamic_buffer_base(const dynamic_buffer_base& rhs)
         : dynamic_buffer_base(rhs.size_)
     {
         // TODO: we could use non-initializing allocation and unitialized_copy() to optimize this further
         std::copy(rhs.begin(), rhs.end(), data_.get());
     }
-    dynamic_buffer_base& operator =(const dynamic_buffer_base& rhs)
+    constexpr dynamic_buffer_base& operator =(const dynamic_buffer_base& rhs)
     {
         *this = dynamic_buffer_base(rhs); // copy & move for exception safety
         return *this;
@@ -183,16 +190,16 @@ public:
             delete[] data_;
     }
 
-    MAKESHIFT_NODISCARD constexpr size_type size(void) const noexcept
+    MAKESHIFT_NODISCARD constexpr std::size_t size(void) const noexcept
     {
         return size_;
     }
 
-    MAKESHIFT_NODISCARD T* data(void) noexcept
+    MAKESHIFT_NODISCARD constexpr T* data(void) noexcept
     {
         return data_;
     }
-    MAKESHIFT_NODISCARD const T* data(void) const noexcept
+    MAKESHIFT_NODISCARD constexpr const T* data(void) const noexcept
     {
         return data_;
     }
@@ -206,17 +213,17 @@ private:
     std::size_t size_;
 
 public:
-    dynamic_buffer_base(std::size_t _size)
-        : data_ = _size > 0 ? new T[_size] : nullptr, size_(_size)
+    constexpr dynamic_buffer_base(std::size_t _size)
+        : data_(_size > 0 ? new T[_size]{ } : nullptr), size_(_size)
     {
     }
-    dynamic_buffer_base(const dynamic_buffer_base& rhs)
+    constexpr dynamic_buffer_base(const dynamic_buffer_base& rhs)
         : dynamic_buffer_base(rhs.size_)
     {
         // TODO: we could use non-initializing allocation and unitialized_copy() to optimize this further
         std::copy(rhs.begin(), rhs.end(), data_.get());
     }
-    dynamic_buffer_base& operator =(const dynamic_buffer_base& rhs)
+    constexpr dynamic_buffer_base& operator =(const dynamic_buffer_base& rhs)
     {
         *this = dynamic_buffer_base(rhs); // copy & move for exception safety
         return *this;
@@ -228,16 +235,16 @@ public:
         delete[] data_;
     }
 
-    MAKESHIFT_NODISCARD constexpr size_type size(void) const noexcept
+    MAKESHIFT_NODISCARD constexpr std::size_t size(void) const noexcept
     {
         return size_;
     }
 
-    MAKESHIFT_NODISCARD T* data(void) noexcept
+    MAKESHIFT_NODISCARD constexpr T* data(void) noexcept
     {
         return data_;
     }
-    MAKESHIFT_NODISCARD const T* data(void) const noexcept
+    MAKESHIFT_NODISCARD constexpr const T* data(void) const noexcept
     {
         return data_;
     }
@@ -251,53 +258,56 @@ enum class memory_location
     never_on_stack
 };
 
-constexpr memory_location determine_memory_location(dim2 objSize, dim2 bufExtent, dim2 maxLocalBufferBytes) noexcept
+static constexpr memory_location determine_memory_location(dim2 bufExtent, dim2 maxStaticBufferExtent) noexcept
 {
-    if (maxLocalBufferBytes < 0)
+    if (maxStaticBufferExtent < 0)
         return bufExtent < 0 ? memory_location::never_on_stack : memory_location::always_on_stack;
-    if (maxLocalBufferBytes < objSize)
+    if (maxStaticBufferExtent == 0)
         return memory_location::never_on_stack;
     if (bufExtent < 0)
         return memory_location::dynamic;
-    if (objSize * bufExtent <= maxLocalBufferBytes)
+    if (bufExtent <= maxStaticBufferExtent)
         return memory_location::always_on_stack;
     return memory_location::never_on_stack;
 }
 
 
-template <typename T, dim2 Extent, dim2 MaxLocalBufferBytes, memory_location MemoryLocation>
+template <dim2 Extent, typename C>
+    static constexpr void check_buffer_size(std::true_type /*isConstVal*/, const C&)
+{
+    constexpr dim2 size = constval<C>();
+    static_assert(Extent == -1 || size == Extent, "buffer extent does not match");
+}
+template <dim2 Extent, typename C>
+    static constexpr void check_buffer_size(std::false_type /*isConstVal*/, const C&)
+{
+}
+
+
+template <typename T, dim2 Extent, dim2 MaxStaticBufferExtent, memory_location MemoryLocation>
     class buffer_base;
-template <typename T, dim2 Extent, dim2 MaxLocalBufferBytes>
-    class buffer_base<T, Extent, MaxLocalBufferBytes, memory_location::always_on_stack>
+template <typename T, dim2 Extent, dim2 MaxStaticBufferExtent>
+    class buffer_base<T, Extent, MaxStaticBufferExtent, memory_location::always_on_stack>
         : public static_buffer_base<T, Extent>
 {
-    template <typename SizeT, SizeT N>
-        constexpr buffer_base(std::integral_constant<SizeT, N>)
-    {
-        static_assert(N == Extent, "buffer extent does not match");
-    }
-    constexpr buffer_base(std::size_t extent)
-    {
-        Expects(extent == Extent);
-    }
-};
-template <typename T, dim2 Extent, dim2 MaxLocalBufferBytes>
-    class buffer_base<T, Extent, MaxLocalBufferBytes, memory_location::dynamic>
-        : public dynamic_buffer_base<T, MaxLocalBufferBytes / sizeof(T)>
-{
 private:
-    using _base = dynamic_buffer_base<T, MaxLocalBufferBytes / sizeof(T)>;
+    using _base = static_buffer_base<T, Extent>;
 
 public:
     using _base::_base;
-    template <typename SizeT, SizeT N>
-        buffer_base(std::integral_constant<SizeT, N>)
-            : _base(N)
-    {
-    }
 };
-template <typename T, dim2 Extent, dim2 MaxLocalBufferBytes>
-    class buffer_base<T, Extent, MaxLocalBufferBytes, memory_location::never_on_stack>
+template <typename T, dim2 Extent, dim2 MaxStaticBufferExtent>
+    class buffer_base<T, Extent, MaxStaticBufferExtent, memory_location::dynamic>
+        : public dynamic_buffer_base<T, MaxStaticBufferExtent>
+{
+private:
+    using _base = dynamic_buffer_base<T, MaxStaticBufferExtent>;
+
+public:
+    using _base::_base;
+};
+template <typename T, dim2 Extent, dim2 MaxStaticBufferExtent>
+    class buffer_base<T, Extent, MaxStaticBufferExtent, memory_location::never_on_stack>
         : public dynamic_buffer_base<T, 0>
 {
 private:
@@ -305,17 +315,55 @@ private:
 
 public:
     using _base::_base;
-    template <typename SizeT, SizeT N>
-        buffer_base(std::integral_constant<SizeT, N>)
-            : _base(N)
+};
+
+template <typename T, dim2 Extent = -1, dim2 MaxStaticBufferExtent = -1>
+    class buffer
+        : public buffer_base<T, Extent, MaxStaticBufferExtent, makeshift::detail::determine_memory_location(Extent, MaxStaticBufferExtent)>
+{
+private:
+    using _base = buffer_base<T, Extent, MaxStaticBufferExtent, makeshift::detail::determine_memory_location(Extent, MaxStaticBufferExtent)>;
+
+public:
+    template <typename C>
+        constexpr buffer(C _size)
+            : _base(makeshift::constval_extract(_size))
     {
+        makeshift::detail::check_buffer_size<Extent>(is_constval<C>{ }, _size);
     }
 };
+
+template <typename C>
+    constexpr dim2 static_dim_impl(std::true_type /*isConstval*/)
+{
+    return constval<C>();
+}
+template <typename C>
+    constexpr dim2 static_dim_impl(std::false_type /*isConstval*/)
+{
+    return -1;
+}
+template <typename C>
+    constexpr dim2 static_dim(void)
+{
+    return makeshift::detail::static_dim_impl<C>(is_constval<C>{ });
+}
 
 
 } // namespace detail
 
 } // namespace makeshift
+
+
+namespace std
+{
+
+
+template <typename T, makeshift::dim2 Extent, makeshift::dim2 MaxStaticBufferExtent> struct tuple_size<makeshift::detail::buffer<T, Extent, MaxStaticBufferExtent>> : std::integral_constant<std::size_t, Extent> { };
+template <typename T, makeshift::dim2 MaxStaticBufferExtent> struct tuple_size<makeshift::detail::buffer<T, -1, MaxStaticBufferExtent>>; // undefined
+
+
+} // namespace std
 
 
 #endif // INCLUDED_MAKESHIFT_DETAIL_BUFFER_HPP_
