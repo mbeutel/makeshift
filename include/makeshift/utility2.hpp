@@ -202,6 +202,29 @@ template <typename T, std::ptrdiff_t N>
 }
 
 
+    //ᅟ
+    // Represents a pair of iterators.
+    //
+template <typename It, typename EndIt = It>
+    struct range
+{
+    It first;
+    EndIt last;
+
+    MAKESHIFT_NODISCARD constexpr It begin(void) const { return first; }
+    MAKESHIFT_NODISCARD constexpr EndIt end(void) const { return last; }
+};
+
+    //ᅟ
+    // Construct a range from a pair of iterators.
+    //
+template <typename It, typename EndIt>
+    range<It, EndIt> make_range(It first, EndIt last)
+{
+    return { std::move(first), std::move(last) };
+}
+
+
 } // inline namespace types
 
 } // namespace makeshift
