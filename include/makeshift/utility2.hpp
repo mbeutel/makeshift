@@ -4,7 +4,7 @@
 
 
 #include <cstddef>     // for ptrdiff_t
-#include <type_traits> // for underlying_type<>
+#include <type_traits> // for underlying_type<>, integral_constant<>
 
 #include <gsl/gsl_assert> // for Expects()
 
@@ -23,10 +23,10 @@ namespace adl
 {
 
 
-template <typename EnumT> constexpr MAKESHIFT_NODISCARD EnumT operator |(EnumT lhs, EnumT rhs) noexcept { return EnumT(std::underlying_type_t<EnumT>(lhs) | std::underlying_type_t<EnumT>(rhs)); }
-template <typename EnumT> constexpr MAKESHIFT_NODISCARD EnumT operator &(EnumT lhs, EnumT rhs) noexcept { return EnumT(std::underlying_type_t<EnumT>(lhs) & std::underlying_type_t<EnumT>(rhs)); }
-template <typename EnumT> constexpr MAKESHIFT_NODISCARD EnumT operator ^(EnumT lhs, EnumT rhs) noexcept { return EnumT(std::underlying_type_t<EnumT>(lhs) ^ std::underlying_type_t<EnumT>(rhs)); }
-template <typename EnumT> constexpr MAKESHIFT_NODISCARD EnumT operator ~(EnumT arg) noexcept { return EnumT(~std::underlying_type_t<EnumT>(arg)); }
+template <typename EnumT> MAKESHIFT_NODISCARD constexpr EnumT operator |(EnumT lhs, EnumT rhs) noexcept { return EnumT(std::underlying_type_t<EnumT>(lhs) | std::underlying_type_t<EnumT>(rhs)); }
+template <typename EnumT> MAKESHIFT_NODISCARD constexpr EnumT operator &(EnumT lhs, EnumT rhs) noexcept { return EnumT(std::underlying_type_t<EnumT>(lhs) & std::underlying_type_t<EnumT>(rhs)); }
+template <typename EnumT> MAKESHIFT_NODISCARD constexpr EnumT operator ^(EnumT lhs, EnumT rhs) noexcept { return EnumT(std::underlying_type_t<EnumT>(lhs) ^ std::underlying_type_t<EnumT>(rhs)); }
+template <typename EnumT> MAKESHIFT_NODISCARD constexpr EnumT operator ~(EnumT arg) noexcept { return EnumT(~std::underlying_type_t<EnumT>(arg)); }
 template <typename EnumT> constexpr EnumT operator |=(EnumT& lhs, EnumT rhs) noexcept { lhs = lhs | rhs; return lhs; }
 template <typename EnumT> constexpr EnumT operator &=(EnumT& lhs, EnumT rhs) noexcept { lhs = lhs & rhs; return lhs; }
 template <typename EnumT> constexpr EnumT operator ^=(EnumT& lhs, EnumT rhs) noexcept { lhs = lhs ^ rhs; return lhs; }
@@ -141,10 +141,10 @@ using dim2 = std::ptrdiff_t;
 
 
     //ᅟ
-    // Returns the size of an array, container, or range.
+    // Returns the size of an array or container.
     //
-template <typename C> 
-    MAKESHIFT_NODISCARD constexpr auto size(const C& c) -> decltype(c.size())
+template <typename ContainerT> 
+    MAKESHIFT_NODISCARD constexpr auto size(const ContainerT& c) -> decltype(c.size())
 {
     return c.size();
 }
@@ -156,10 +156,10 @@ template <typename T, std::size_t N>
 
 
     //ᅟ
-    // Returns the size of an array, container, or range, as a *signed* value.
+    // Returns the signed size of an array or container.
     //
-template <typename C>
-    MAKESHIFT_NODISCARD constexpr auto ssize(const C& c)
+template <typename ContainerT>
+    MAKESHIFT_NODISCARD constexpr auto ssize(const ContainerT& c)
         -> std::common_type_t<std::ptrdiff_t, std::make_signed_t<decltype(c.size())>>
 {
     using R = std::common_type_t<std::ptrdiff_t, std::make_signed_t<decltype(c.size())>>;
@@ -172,54 +172,34 @@ template <typename T, std::ptrdiff_t N>
 }
 
 
-template <dim2 Extent>
-    class extent : std::integral_constant<dim2, Extent>
-{
-public:
-    constexpr extent(void) = default;
-    constexpr extent(dim2 _extent)
-        : extent_(_extent)
-    {
-        Expects(_extent == Extent);
-    }
-};
-template <>
-    class extent<-1>
-{
-private:
-    dim2 extent_;
-
-public:
-    using value_type = dim2;
-    using type       = extent;
-
-    constexpr extent(dim2 _extent)
-        : extent_(_extent)
-    {
-        Expects(extent_ >= 0);
-    }
-
-    MAKESHIFT_NODISCARD constexpr operator dim2(void) const noexcept { return extent_; }
-    MAKESHIFT_NODISCARD constexpr dim2 operator ()(void) const noexcept { return extent_; }
-};
-
-
     //ᅟ
-    // Returns the result of the function applied to the extent's value as an extent.
-    //ᅟ
-    //ᅟ    auto baseIndexR = []{ return 42; };
-    //ᅟ    auto offsetR = []{ return 3; };
-    //ᅟ    auto indexR = constexpr_transform(std::plus<>, baseIndexR, offsetR); // equivalent to `[]{ return 45; }`
+    // Returns the size of an array or container as a constexpr value if known at compile time, or as a value if not.
     //
-template <typename F, typename... Rs>
-    MAKESHIFT_NODISCARD constexpr makeshift::detail::constexpr_transform_functor<F, Rs...>
-    constexpr_transform(const F&, const Rs&...) noexcept
+template <typename ContainerT>
+    MAKESHIFT_NODISCARD constexpr auto csize(const ContainerT& c)
 {
-    static_assert(std::is_empty<F>::value, "transformer must be stateless");
-    static_assert(makeshift::detail::cand(is_constexpr_value_v<Rs>...), "arguments must be constexpr values");
+    return csize_impl(can_apply<makeshift::detail::has_constval_size_r, ContainerT>{ }, c);
+}
+template <typename T, std::size_t N>
+    MAKESHIFT_NODISCARD constexpr std::integral_constant<std::size_t, N> csize(const T (&)[N]) noexcept
+{
     return { };
 }
 
+
+    //ᅟ
+    // Returns the signed size of an array or container as a constexpr value if known at compile time, or as a value if not.
+    //
+template <typename ContainerT>
+    MAKESHIFT_NODISCARD constexpr auto cssize(const ContainerT& c)
+{
+    return cssize_impl(can_apply<makeshift::detail::has_constval_size_r, ContainerT>{ }, c);
+}
+template <typename T, std::ptrdiff_t N>
+    MAKESHIFT_NODISCARD constexpr std::integral_constant<std::ptrdiff_t, N> cssize(const T (&)[N]) noexcept
+{
+    return { };
+}
 
 
 } // inline namespace types

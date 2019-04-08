@@ -3,6 +3,10 @@
 #define INCLUDED_MAKESHIFT_DETAIL_UTILITY2_HPP_
 
 
+#include <cstddef>     // for size_t, ptrdiff_t
+#include <utility>     // for tuple_size<>
+#include <type_traits> // for integral_constant<>, make_signed<>, make_unsigned<>, common_type<>
+
 #include <gsl/gsl_assert> // for Expects()
 
 #include <makeshift/type_traits.hpp>  // for tag<>
@@ -122,6 +126,33 @@ template <typename TypeEnumT, typename... Ts, typename T,
 
 
 } // namespace adl
+
+
+template <typename T> using has_constval_size_r = decltype(std::tuple_size<T>::value);
+
+template <typename ContainerT>
+    std::tuple_size<ContainerT> csize_impl(std::true_type /*isConstval*/, const ContainerT&)
+{
+}
+template <typename ContainerT>
+    auto csize_impl(std::false_type /*isConstval*/, const ContainerT& c)
+        -> decltype(c.size())
+{
+    return c.size();
+}
+
+template <typename ContainerT>
+    std::integral_constant<std::ptrdiff_t, std::tuple_size<ContainerT>::value> cssize_impl(std::true_type /*isConstval*/, const ContainerT&)
+{
+}
+template <typename ContainerT>
+    auto cssize_impl(std::false_type /*isConstval*/, const ContainerT& c)
+        -> std::common_type_t<std::ptrdiff_t, std::make_signed_t<decltype(c.size())>>
+{
+    using R = std::common_type_t<std::ptrdiff_t, std::make_signed_t<decltype(c.size())>>;
+    return static_cast<R>(c.size());
+}
+
 
 } // namespace detail
 
