@@ -117,10 +117,10 @@ TEST_CASE("variant2")
 
         auto p2 = Precision::double_;
         auto p2VO = mk::try_expand2(p2,
-            []
+            mk::make_constval([]
             {
                 return mk::values(Precision::single, Precision::double_);
-            });
+            }));
         CHECK(p2VO.has_value());
         mk::visit(
             [p2](auto p2CV)
@@ -132,21 +132,21 @@ TEST_CASE("variant2")
 
         auto p3 = Precision::double_;
         auto p3VO = mk::try_expand2(p3,
-            []
+            mk::make_constval([]
             {
                 return mk::values(Precision::single);
-            });
+            }));
         CHECK_FALSE(p3VO.has_value());
 
         auto s1 = Params{ Precision::double_, 2, 32, 32 };
         auto s1VO = mk::try_expand2(s1,
-            []
+            mk::make_constval([]
             {
                 return mk::values(
                     Params{ Precision::single, 4, 32, 32 },
                     Params{ Precision::double_, 2, 32, 32 }
                 );
-            });
+            }));
         CHECK(s1VO.has_value());
         mk::visit(
             [s1](auto s1CV)
@@ -158,12 +158,12 @@ TEST_CASE("variant2")
 
         auto s2 = Params{ Precision::double_, 2, 32, 32 };
         auto s2VO = mk::try_expand2(s2,
-            []
+            mk::make_constval([]
             {
                 return mk::member_values(&Params::precision)
                     * (mk::member_values(&Params::gangSize) = { 1, 2, 4 })
                     * (mk::member_values(&Params::numThreadsX, &Params::numThreadsY) = { { 16, 16 }, { 32, 32 } });
-            });
+            }));
         CHECK(s2VO.has_value());
         mk::visit(
             [s2](auto s2CV)
@@ -175,10 +175,10 @@ TEST_CASE("variant2")
 
         auto e1 = ExhaustibleParams{ Precision::single, false };
         auto e1V = mk::expand2(e1,
-            []
+            mk::make_constval([]
             {
                 return mk::member_values(&ExhaustibleParams::precision);
-            });
+            }));
         mk::visit(
             [e1](auto e1CV)
             {
@@ -189,11 +189,11 @@ TEST_CASE("variant2")
 
         auto e2 = ExhaustibleParams{ Precision::single, true };
         auto e2V = mk::expand2(e2,
-            []
+            mk::make_constval([]
             {
                 return mk::member_values(&ExhaustibleParams::precision)
                      * mk::member_values(&ExhaustibleParams::transmogrify);
-            });
+            }));
         mk::visit(
             [e2](auto e2CV)
             {
@@ -204,13 +204,13 @@ TEST_CASE("variant2")
 
         auto te1 = FloatType{ mk::type_v<double> };
         auto te1VO = mk::try_expand2(te1,
-            []
+            mk::make_constval([]
             {
                 return mk::values(
                     mk::type_v<float>,
                     mk::type_v<double>
                 );
-            });
+            }));
         CHECK(te1VO.has_value());
         auto te1V = *te1VO;
 
@@ -224,13 +224,13 @@ TEST_CASE("variant2")
 
         auto v1 = FloatTypeVariant{ mk::type_v<double> };
         auto v1VO = mk::try_expand2(v1,
-            []
+            mk::make_constval([]
             {
                 return mk::values(
                     FloatTypeVariant{ mk::type_v<float> },
                     FloatTypeVariant{ mk::type_v<double> }
                 );
-            });
+            }));
         CHECK(v1VO.has_value());
         auto v1V = *v1VO;
         mk::visit(
@@ -240,7 +240,7 @@ TEST_CASE("variant2")
                 constexpr auto v1VC = v1VCV();
                 constexpr auto v1C = std::get<v1VC.index()>(v1VC);
                 CHECK(v1C == mk::type_v<double>);
-                auto v1CV = mk::constexpr_extend(
+                auto v1CV = mk::constval_extend(
                     [](auto _v1CV)
                     {
                         constexpr auto v1 = _v1CV();

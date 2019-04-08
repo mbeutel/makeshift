@@ -15,7 +15,7 @@ find_package(MS-GSL REQUIRED)
 add_executable(test-makeshift
     "main.cpp"
     "test-arithmetic.cpp"
-    "test-constexpr.cpp"
+    "test-constval.cpp"
     "test-quantity.cpp"
     "test-tuple.cpp"
     "test-tuple2.cpp"

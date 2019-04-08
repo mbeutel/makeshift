@@ -12,7 +12,7 @@
 
 #include <gsl/gsl_assert> // for Expects()
 
-#include <makeshift/constexpr.hpp>    // for constexpr_value<>, constexpr_transform()
+#include <makeshift/constval.hpp>     // for constval<>, constval_transform()
 #include <makeshift/metadata2.hpp>    // for values<>
 #include <makeshift/reflect2.hpp>     // for metadata2_of<>
 #include <makeshift/type_traits2.hpp> // for type_sequence2<>
@@ -344,11 +344,11 @@ template <typename ClassT, typename MemberT>
 
 
 template <typename T, typename C, std::size_t I>
-    struct value_functor
+    struct value_functor : constval_tag
 {
     constexpr T operator ()(void) const
     {
-        constexpr auto lvalues = makeshift::constexpr_value<C>();
+        constexpr auto lvalues = makeshift::constval<C>();
         using std::get;
         return get<I>(lvalues);
     }
@@ -363,11 +363,11 @@ template <typename T, typename C, std::size_t... Is>
 };
 
 template <typename C, std::size_t I>
-    struct heterogeneous_value_functor
+    struct heterogeneous_value_functor : constval_tag
 {
     constexpr auto operator ()(void) const
     {
-        constexpr auto lvalues = makeshift::constexpr_value<C>();
+        constexpr auto lvalues = makeshift::constval<C>();
         using std::get;
         return get<I>(lvalues);
     }
@@ -438,21 +438,11 @@ template <typename DstT>
         return DstT(std::move(value));
     }
 };
-template <typename DstT>
-    struct tuple_convert_functor
-{
-    template <typename TupleT>
-        constexpr auto operator ()(TupleT&& tuple)
-    {
-        return makeshift::array_transform2(ctr_convert_functor<DstT>{ }, std::forward<TupleT>(tuple));
-    }
-};
 
 template <typename ResultHandlerT, typename T, typename C, typename HashT, typename EqualToT>
     constexpr auto value_to_variant(std::true_type /*isHeterogeneous*/, const T& value, C valueArrayC, HashT&& /*hash*/, EqualToT&& equal)
 {
     constexpr auto lvalues = makeshift::array_transform2(ctr_convert_functor<T>{ }, valueArrayC());
-    //constexpr auto lvaluesC = makeshift::constexpr_transform(tuple_convert_functor<T>{ }, valueArrayC);
 
     constexpr std::size_t numValues = std::tuple_size<decltype(lvalues)>::value;
     using ExpandType = typename heterogeneous_expand_type_<C, std::make_index_sequence<numValues>>::type;
@@ -496,7 +486,7 @@ template <typename ClassT>
 };
 
 template <typename T>
-    struct metadata_values_retriever
+    struct metadata_values_retriever : constval_tag
 {
     constexpr auto operator ()(void) const
     {
@@ -507,7 +497,7 @@ template <typename T>
 template <typename ResultHandlerT, typename T, typename C, typename HashT, typename EqualToT>
     constexpr auto expand2_impl3(const T& value, C valuesC, HashT&& hash, EqualToT&& equal)
 {
-    auto valueArrayC = makeshift::constexpr_transform(value_array_functor{ }, valuesC);
+    auto valueArrayC = makeshift::constval_transform(value_array_functor{ }, valuesC);
     using IsHeterogeneous = std::is_base_of<heterogeneous_values_tag, decltype(valuesC())>;
     
         // If hash and equal are empty, we can build a hash table at compile time.
@@ -522,7 +512,7 @@ template <typename ResultHandlerT, typename T, typename C, typename HashT, typen
     constexpr auto expand2_impl3_compound(const T& value, C productC, HashT&& hash, EqualToT&& equal)
 {
     constexpr auto product = productC();
-    constexpr auto valueArrayC = makeshift::constexpr_transform(to_array_functor<T>{ }, productC);
+    constexpr auto valueArrayC = makeshift::constval_transform(to_array_functor<T>{ }, productC);
 
         // If hash and equal are empty, we can build a hash table at compile time.
         // We won't bother in the case where they are not because we need to traverse all elements at runtime anyway.

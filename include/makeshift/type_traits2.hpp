@@ -238,6 +238,12 @@ template <typename T> struct is_flags_enum : std::conjunction<std::is_enum<T>, c
 template <typename T> constexpr bool is_flags_enum_v = is_flags_enum<T>::value;
 
 
+    //ᅟ
+    // Tag class to identify user-defined constexpr values. Inherit from `constval_tag` to declare your function object a constexpr value.
+    //
+struct constval_tag { };
+
+
 } // inline namespace types
 
 } // namespace makeshift
