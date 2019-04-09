@@ -133,6 +133,7 @@ template <typename T> using has_constval_size_r = decltype(std::tuple_size<T>::v
 template <typename ContainerT>
     std::tuple_size<ContainerT> csize_impl(std::true_type /*isConstval*/, const ContainerT&)
 {
+    return { };
 }
 template <typename ContainerT>
     auto csize_impl(std::false_type /*isConstval*/, const ContainerT& c)
@@ -144,6 +145,7 @@ template <typename ContainerT>
 template <typename ContainerT>
     std::integral_constant<std::ptrdiff_t, std::tuple_size<ContainerT>::value> cssize_impl(std::true_type /*isConstval*/, const ContainerT&)
 {
+    return { };
 }
 template <typename ContainerT>
     auto cssize_impl(std::false_type /*isConstval*/, const ContainerT& c)

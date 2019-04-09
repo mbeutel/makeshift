@@ -125,7 +125,7 @@ using index2 = std::ptrdiff_t;
     //ᅟ
     // Represents a difference value.
     //
-using diff2 = std::ptrdiff_t;
+using diff2 = std::ptrdiff_t; // TODO: remove?
 
 
     //ᅟ
@@ -138,6 +138,18 @@ using stride2 = std::ptrdiff_t;
     // Represents a dimension value.
     //
 using dim2 = std::ptrdiff_t;
+
+
+    //ᅟ
+    // Represents an index value.
+    //
+template <index2 Value> using index2_c = std::integral_constant<index2, Value>;
+
+
+    //ᅟ
+    // Represents a dimension value.
+    //
+template <dim2 Value> using dim2_c = std::integral_constant<dim2, Value>;
 
 
     //ᅟ
