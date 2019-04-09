@@ -4,6 +4,7 @@
 
 
 #include <cstddef>     // for ptrdiff_t
+#include <utility>     // for move()
 #include <type_traits> // for underlying_type<>, integral_constant<>
 
 #include <gsl/gsl_assert> // for Expects()
@@ -218,13 +219,21 @@ template <typename T, std::ptrdiff_t N>
     // Represents a pair of iterators.
     //
 template <typename It, typename EndIt = It>
-    struct range
+    struct range : makeshift::detail::range_base_<range<It, EndIt>>::type
 {
+    using iterator = It;
+    using end_iterator = EndIt;
+
     It first;
     EndIt last;
 
-    MAKESHIFT_NODISCARD constexpr It begin(void) const { return first; }
-    MAKESHIFT_NODISCARD constexpr EndIt end(void) const { return last; }
+    constexpr range(It _first, EndIt _last)
+        : first(std::move(_first)), last(std::move(_last))
+    {
+    }
+
+    MAKESHIFT_NODISCARD constexpr const It& begin(void) const noexcept { return first; }
+    MAKESHIFT_NODISCARD constexpr const EndIt& end(void) const noexcept { return last; }
 };
 
     //ᅟ

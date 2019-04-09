@@ -5,12 +5,14 @@
 
 #include <cstddef>     // for size_t, ptrdiff_t
 #include <utility>     // for tuple_size<>
+#include <iterator>    // for iterator_traits<>, bidirectional_iterator_tag
 #include <type_traits> // for integral_constant<>, make_signed<>, make_unsigned<>, common_type<>
 
 #include <gsl/gsl_assert> // for Expects()
 
 #include <makeshift/type_traits.hpp>  // for tag<>
 #include <makeshift/type_traits2.hpp> // for flags_base, unwrap_enum_tag, type<>, type_sequence<>
+#include <makeshift/version.hpp>      // for MAKESHIFT_NODISCARD
 
 
 namespace makeshift
@@ -156,6 +158,29 @@ template <typename ContainerT>
 }
 
 
+struct range_base { };
+
+template <typename RangeT>
+    struct bidi_range_base : range_base
+{
+private:
+    constexpr const RangeT& self(void) const noexcept { return static_cast<const RangeT&>(*this); }
+
+public:
+    MAKESHIFT_NODISCARD std::size_t size(void) const noexcept
+    {
+        return self().end() - self().begin();
+    }
+    MAKESHIFT_NODISCARD decltype(auto) operator [](std::ptrdiff_t i) const noexcept
+    {
+        return self().begin()[i];
+    }
+};
+
+template <typename RangeT, bool IsBidiIterator> struct range_base_0_;
+template <typename RangeT> struct range_base_0_<RangeT, false> { using type = range_base; };
+template <typename RangeT> struct range_base_0_<RangeT, true> { using type = bidi_range_base<RangeT>; };
+template <typename RangeT> struct range_base_ : range_base_0_<RangeT, std::is_base_of<std::bidirectional_iterator_tag, typename std::iterator_traits<typename RangeT::iterator>::iterator_category>::value> { };
 } // namespace detail
 
 } // namespace makeshift
