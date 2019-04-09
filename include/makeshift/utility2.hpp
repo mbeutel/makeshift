@@ -142,15 +142,27 @@ using dim2 = std::ptrdiff_t;
 
 
     //ᅟ
-    // Represents an index value.
+    // Represents an index constexpr value.
     //
 template <index2 Value> using index2_c = std::integral_constant<index2, Value>;
 
 
     //ᅟ
-    // Represents a dimension value.
+    // Represents a dimension constexpr value.
     //
 template <dim2 Value> using dim2_c = std::integral_constant<dim2, Value>;
+
+
+    //ᅟ
+    // Represents an index constexpr value.
+    //
+template <index2 Value> constexpr std::integral_constant<index2, Value> index2_v{ };
+
+
+    //ᅟ
+    // Represents a dimension constexpr value.
+    //
+template <dim2 Value> constexpr std::integral_constant<dim2, Value> dim2_v{ };
 
 
     //ᅟ
