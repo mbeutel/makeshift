@@ -268,6 +268,52 @@ template <typename ContainerT>
 
 } // inline namespace types
 
+
+inline namespace literals
+{
+
+
+    //ᅟ
+    // Encodes an integer value given as numeric literal in the type of the expression using `integral_constant<>`.
+    //ᅟ
+    //ᅟ    auto i = 42_int; // decltype(i) is integral_constant<int, 42>
+    //
+template <char... Cs>
+    constexpr inline std::integral_constant<int, makeshift::detail::make_constant<int, Cs...>::value>
+    operator "" _int(void) noexcept
+{
+    return { };
+}
+
+
+    //ᅟ
+    // Encodes an index value given as numeric literal in the type of the expression using `integral_constant<>`.
+    //ᅟ
+    //ᅟ    auto i = 42_idx; // decltype(i) is integral_constant<index, 42>
+    //
+template <char... Cs>
+    constexpr inline std::integral_constant<index2, makeshift::detail::make_constant<index2, Cs...>::value>
+    operator "" _idx2(void) noexcept
+{
+    return { };
+}
+
+
+    //ᅟ
+    // Encodes a dimension value given as numeric literal in the type of the expression using `integral_constant<>`.
+    //ᅟ
+    //ᅟ    auto d = 3_dim; // decltype(i) is integral_constant<dim, 3>
+    //
+template <char... Cs>
+    constexpr inline std::integral_constant<dim2, makeshift::detail::make_constant<dim2, Cs...>::value>
+    operator "" _dim2(void) noexcept
+{
+    return { };
+}
+
+
+} // inline namespace literals
+
 } // namespace makeshift
 
 
