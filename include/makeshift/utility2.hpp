@@ -239,10 +239,30 @@ template <typename It, typename EndIt = It>
     //ᅟ
     // Construct a range from a pair of iterators.
     //
-template <typename It, typename EndIt>
+template <typename It, typename EndIt,
+          typename = std::enable_if_t<!std::is_integral<EndIt>::value>>
     range<It, EndIt> make_range(It first, EndIt last)
 {
     return { std::move(first), std::move(last) };
+}
+
+    //ᅟ
+    // Construct a range from an iterator and an extent.
+    //
+template <typename It>
+    range<It, It> make_range(It start, dim2 extent)
+{
+    return { start, start + extent };
+}
+
+    //ᅟ
+    // Construct a range from another range (e.g. a container).
+    // TODO: why would we want to do that? to take range args by value?
+    //
+template <typename ContainerT>
+    auto make_range(ContainerT&& container)
+{
+    return makeshift::make_range(std::forward<ContainerT>(container).begin(), std::forward<ContainerT>(container).end());
 }
 
 
