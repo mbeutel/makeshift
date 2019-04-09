@@ -5,6 +5,7 @@
 
 #include <array>
 #include <cstddef>     // for size_t
+#include <iterator>    // for move_iterator<>
 #include <type_traits> // for integral_constant<>
 
 #include <gsl/gsl_assert> // for Expects()
@@ -330,6 +331,21 @@ public:
             : _base(makeshift::constval_extract(_size))
     {
         makeshift::detail::check_buffer_size<Extent>(is_constval<C>{ }, _size);
+    }
+    template <dim2 RExtent>
+        constexpr buffer(T (&&array)[RExtent])
+            : _base(RExtent)
+    {
+        static_assert(Extent == -1 || RExtent == Extent, "array extent does not match");
+        std::copy(std::make_move_iterator(array), std::make_move_iterator(array + RExtent), this->begin());
+    }
+    template <dim2 RExtent>
+        buffer& operator =(T (&&array)[RExtent])
+    {
+        static_assert(Extent == -1 || RExtent == Extent, "array extent does not match");
+        Expects(RExtent == this->size());
+        std::copy(std::make_move_iterator(array), std::make_move_iterator(array + RExtent), this->begin());
+        return *this;
     }
 };
 
