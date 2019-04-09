@@ -5,6 +5,8 @@
 
 #include <type_traits> // for is_empty<>, conjunction<>
 
+#include <gsl/gsl_assert> // for Expects()
+
 #include <makeshift/type_traits2.hpp> // for can_apply<>
 #include <makeshift/version.hpp>      // for MAKESHIFT_NODISCARD
 
@@ -103,6 +105,19 @@ template <typename CF, typename... Cs>
 {
     static_assert(std::is_empty<CF>::value, "extender must be stateless");
     return makeshift::detail::constval_extend_impl<CF>(std::conjunction<is_constval<Cs>...>{ }, args...);
+}
+
+
+    //ᅟ
+    // Generates an assertion for the given condition value which is checked at compile time for constexpr values, or at runtime for non-constexpr values.
+    //ᅟ
+    //ᅟ    constval_assert(constval_transform([](index idx) { return idx >= 0; }, idxC));
+    //
+template <typename BoolC>
+    constexpr void
+    constval_assert(const BoolC& arg)
+{
+    return makeshift::detail::constval_assert_impl(is_constval<BoolC>{ }, arg);
 }
 
 

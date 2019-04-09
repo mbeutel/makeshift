@@ -137,6 +137,17 @@ template <typename C>
 }
 
 
+template <typename BoolC>
+    constexpr void constval_assert_impl(std::true_type /*isConstval*/, BoolC arg) noexcept
+{
+    static_assert(arg(), "constval assertion failed");
+}
+static constexpr void constval_assert_impl(std::true_type /*isConstval*/, bool arg)
+{
+    Expects(arg);
+}
+
+
 } // namespace detail
 
 } // namespace makeshift
