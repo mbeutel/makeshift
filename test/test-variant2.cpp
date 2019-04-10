@@ -40,6 +40,7 @@ std::ostream& operator <<(std::ostream& stream, Precision precision)
     }
 }
 
+
 struct ExhaustibleParams
 {
     Precision precision = Precision::single;

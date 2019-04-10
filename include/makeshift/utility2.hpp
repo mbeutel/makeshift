@@ -72,6 +72,10 @@ inline namespace types
 template <typename FlagsT, typename UnderlyingTypeT = unsigned>
     struct define_flags : makeshift::detail::adl::define_flags_base<FlagsT, UnderlyingTypeT>
 {
+        // make sure no objects of the flag type itself can be created
+    define_flags(void) = delete;
+    define_flags(const define_flags&) = delete;
+    define_flags& operator =(const define_flags&) = delete;
 };
 
 
@@ -156,13 +160,13 @@ template <dim2 Value> using dim2_c = std::integral_constant<dim2, Value>;
     //ᅟ
     // Represents an index constexpr value.
     //
-template <index2 Value> constexpr std::integral_constant<index2, Value> index2_v{ };
+template <index2 Value> constexpr index2_c<Value> index2_v{ };
 
 
     //ᅟ
     // Represents a dimension constexpr value.
     //
-template <dim2 Value> constexpr std::integral_constant<dim2, Value> dim2_v{ };
+template <dim2 Value> constexpr dim2_c<Value> dim2_v{ };
 
 
     //ᅟ
