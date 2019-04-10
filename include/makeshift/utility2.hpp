@@ -34,19 +34,19 @@ template <typename EnumT> constexpr EnumT operator ^=(EnumT& lhs, EnumT rhs) noe
 
 
     //ᅟ
-    // `has_flag(haystack, needle)` determines whether the flags enum `haystack` contains the flag `needle`. Equivalent to `(haystack & needle) != EnumT::none`.
+    // `has_flag(haystack, needle)` determines whether the flags enum `haystack` contains the flag `needle`. Equivalent to `(haystack & needle) != needle`.
     //
-template <typename EnumT> MAKESHIFT_NODISCARD constexpr bool has_flag(EnumT haystack, EnumT needle) noexcept { return (haystack & needle) != EnumT(0); }
+template <typename EnumT> MAKESHIFT_NODISCARD constexpr bool has_flag(EnumT haystack, EnumT needle) noexcept { return (haystack & needle) == needle; }
     
     //ᅟ
-    // `has_any_of(haystack, needles)` determines whether the flags enum `haystack` contains any of the flags in `needles`. Equivalent to `(haystack & needles) != EnumT::none`.
+    // `has_any_flag_of(haystack, needles)` determines whether the flags enum `haystack` contains any of the flags in `needles`. Equivalent to `(haystack & needles) != EnumT::none`.
     //
-template <typename EnumT> MAKESHIFT_NODISCARD constexpr bool has_any_of(EnumT haystack, EnumT needles) noexcept { return (haystack & needles) != EnumT(0); }
+template <typename EnumT> MAKESHIFT_NODISCARD constexpr bool has_any_flag_of(EnumT haystack, EnumT needles) noexcept { return (haystack & needles) != EnumT(0); }
     
     //ᅟ
-    // `has_all_of(haystack, needles)` determines whether the flags enum `haystack` contains all of the flags in `needles`. Equivalent to `(haystack & needles) == needles`.
+    // `has_all_flags_of(haystack, needles)` determines whether the flags enum `haystack` contains all of the flags in `needles`. Equivalent to `(haystack & needles) == needles`.
     //
-template <typename EnumT> MAKESHIFT_NODISCARD constexpr bool has_all_of(EnumT haystack, EnumT needles) noexcept { return (haystack & needles) == needles; }
+template <typename EnumT> MAKESHIFT_NODISCARD constexpr bool has_all_flags_of(EnumT haystack, EnumT needles) noexcept { return (haystack & needles) == needles; }
 
 
 } // namespace adl
