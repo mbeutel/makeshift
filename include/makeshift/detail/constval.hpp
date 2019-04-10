@@ -142,7 +142,7 @@ template <typename BoolC>
 {
     static_assert(arg(), "constval assertion failed");
 }
-static constexpr void constval_assert_impl(std::true_type /*isConstval*/, bool arg)
+static constexpr void constval_assert_impl(std::false_type /*isConstval*/, bool arg)
 {
     Expects(arg);
 }

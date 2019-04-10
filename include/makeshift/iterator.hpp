@@ -70,7 +70,7 @@ template <typename FuncT>
 template <typename FuncT>
     constexpr callback_iterator<std::decay_t<FuncT>> make_callback_iterator(FuncT&& func)
 {
-	return { std::forward<FuncT>(func); }
+	return { std::forward<FuncT>(func) };
 }
 
 
