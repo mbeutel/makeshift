@@ -32,6 +32,23 @@ template <typename T, dim2 MaxStaticBufferExtent, typename C>
 }
 
 
+template <typename T, typename C, dim2 MaxBufferExtent>
+    using fixed_buffer = makeshift::detail::fixed_buffer<T, makeshift::detail::static_dim<C>(), MaxBufferExtent>;
+
+
+template <typename T, typename C>
+    constexpr fixed_buffer<T, C, constval<C>()> make_fixed_buffer(C size)
+{
+    return { size };
+}
+
+template <typename T, dim2 MaxBufferExtent, typename C>
+    constexpr fixed_buffer<T, C, MaxBufferExtent> make_fixed_buffer(C size)
+{
+    return { size };
+}
+
+
 } // inline namespace types
 
 } // namespace makeshift

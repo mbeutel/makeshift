@@ -105,8 +105,8 @@ public:
     }
 };
 
-template <typename T, dim2 Extent>
-    class static_buffer_base : public buffer_interface_mixin<T, static_buffer_base<T, Extent>>
+template <typename T, dim2 Extent, dim2 MaxExtent = -1>
+    class static_buffer_base : public buffer_interface_mixin<T, static_buffer_base<T, Extent, MaxExtent>>
 {
     static_assert(Extent >= 0, "buffer extent must be non-negative");
 
@@ -117,10 +117,9 @@ public:
     using iterator = typename std::array<T, Extent>::iterator;
     using const_iterator = typename std::array<T, Extent>::const_iterator;
 
-    constexpr static_buffer_base(std::size_t _size)
+    constexpr static_buffer_base(std::size_t)
         : data_{ }
     {
-        Expects(_size == Extent);
     }
 
     MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR_CXX17 iterator begin(void) noexcept
@@ -154,9 +153,36 @@ public:
         return data_.data();
     }
 };
+template <typename T, dim2 MaxExtent>
+    class static_buffer_base<T, -1, MaxExtent> : public buffer_interface_mixin<T, static_buffer_base<T, -1, MaxExtent>>
+{
+private:
+    std::array<T, MaxExtent> data_;
+    std::size_t size_;
+
+public:
+    constexpr static_buffer_base(std::size_t _size)
+        : data_{ }, size_(_size)
+    {
+    }
+
+    MAKESHIFT_NODISCARD constexpr std::size_t size(void) const noexcept
+    {
+        return size_;
+    }
+
+    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR_CXX17 T* data(void) noexcept
+    {
+        return data_.data();
+    }
+    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR_CXX17 const T* data(void) const noexcept
+    {
+        return data_.data();
+    }
+};
 
 template <typename T, dim2 BufExtent>
-    class dynamic_buffer_base : buffer_interface_mixin<T, dynamic_buffer_base<T, BufExtent>>
+    class dynamic_buffer_base : public buffer_interface_mixin<T, dynamic_buffer_base<T, BufExtent>>
 {
 private:
     T* data_;
@@ -207,7 +233,7 @@ public:
 };
 
 template <typename T>
-    class dynamic_buffer_base<T, 0> : buffer_interface_mixin<T, dynamic_buffer_base<T, 0>>
+    class dynamic_buffer_base<T, 0> : public buffer_interface_mixin<T, dynamic_buffer_base<T, 0>>
 {
 private:
     T* data_;
@@ -273,18 +299,6 @@ static constexpr memory_location determine_memory_location(dim2 bufExtent, dim2 
 }
 
 
-template <dim2 Extent, typename C>
-    static constexpr void check_buffer_size(std::true_type /*isConstVal*/, const C&)
-{
-    constexpr dim2 size = constval<C>();
-    static_assert(Extent == -1 || size == Extent, "buffer extent does not match");
-}
-template <dim2 Extent, typename C>
-    static constexpr void check_buffer_size(std::false_type /*isConstVal*/, const C&)
-{
-}
-
-
 template <typename T, dim2 Extent, dim2 MaxStaticBufferExtent, memory_location MemoryLocation>
     class buffer_base;
 template <typename T, dim2 Extent, dim2 MaxStaticBufferExtent>
@@ -330,7 +344,7 @@ public:
         constexpr buffer(C _size)
             : _base(makeshift::constval_extract(_size))
     {
-        makeshift::detail::check_buffer_size<Extent>(is_constval<C>{ }, _size);
+        makeshift::constval_assert(makeshift::constval_transform([](dim2 size) { return Extent == -1 || size == Extent; }, _size));
     }
     template <dim2 RExtent>
         constexpr buffer(T (&&array)[RExtent])
@@ -341,6 +355,40 @@ public:
     }
     template <dim2 RExtent>
         buffer& operator =(T (&&array)[RExtent])
+    {
+        static_assert(Extent == -1 || RExtent == Extent, "array extent does not match");
+        Expects(RExtent == this->size());
+        std::copy(std::make_move_iterator(array), std::make_move_iterator(array + RExtent), this->begin());
+        return *this;
+    }
+};
+
+template <typename T, dim2 Extent, dim2 MaxBufferExtent>
+    class fixed_buffer
+        : public static_buffer_base<T, Extent, MaxBufferExtent>
+{
+    static_assert(MaxBufferExtent >= 0, "invalid maximal buffer extent");
+    static_assert(Extent <= MaxBufferExtent, "size exceeds buffer extent");
+
+private:
+    using _base = static_buffer_base<T, Extent, MaxBufferExtent>;
+
+public:
+    template <typename C>
+        constexpr fixed_buffer(C _size)
+            : _base(makeshift::constval_extract(_size))
+    {
+        makeshift::constval_assert(makeshift::constval_transform([](dim2 size) { return (Extent == -1 || size == Extent) && size <= MaxBufferExtent; }, _size));
+    }
+    template <dim2 RExtent>
+        constexpr fixed_buffer(T (&&array)[RExtent])
+            : _base(RExtent)
+    {
+        static_assert(Extent == -1 || RExtent == Extent, "array extent does not match");
+        std::copy(std::make_move_iterator(array), std::make_move_iterator(array + RExtent), this->begin());
+    }
+    template <dim2 RExtent>
+        fixed_buffer& operator =(T (&&array)[RExtent])
     {
         static_assert(Extent == -1 || RExtent == Extent, "array extent does not match");
         Expects(RExtent == this->size());
@@ -377,6 +425,9 @@ namespace std
 
 template <typename T, makeshift::dim2 Extent, makeshift::dim2 MaxStaticBufferExtent> struct tuple_size<makeshift::detail::buffer<T, Extent, MaxStaticBufferExtent>> : std::integral_constant<std::size_t, Extent> { };
 template <typename T, makeshift::dim2 MaxStaticBufferExtent> struct tuple_size<makeshift::detail::buffer<T, -1, MaxStaticBufferExtent>>; // undefined
+
+template <typename T, makeshift::dim2 Extent, makeshift::dim2 MaxBufferExtent> struct tuple_size<makeshift::detail::fixed_buffer<T, Extent, MaxBufferExtent>> : std::integral_constant<std::size_t, Extent> { };
+template <typename T, makeshift::dim2 MaxBufferExtent> struct tuple_size<makeshift::detail::fixed_buffer<T, -1, MaxBufferExtent>>; // undefined
 
 
 } // namespace std
