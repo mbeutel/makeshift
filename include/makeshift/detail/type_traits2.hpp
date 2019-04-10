@@ -111,7 +111,11 @@ template <template <typename...> class Z, typename SeqT> struct apply_;
 template <template <typename...> class Z, template <typename...> class SeqT, typename... Ts> struct apply_<Z, SeqT<Ts...>> { using type = Z<Ts...>; };
 
 
-template <typename T> struct type_t;
+struct type_tag { };
+
+
+template <typename T, typename TypeSeqT> struct try_index_of_type_in;
+template <typename T, template <typename...> class TypeSeqT, typename... Ts> struct try_index_of_type_in<T, TypeSeqT<Ts...>> : std::integral_constant<std::size_t, makeshift::detail::try_type_pack_index_<T, Ts...>::value> { };
 
 
 template <typename T, typename Ts> struct is_in_;

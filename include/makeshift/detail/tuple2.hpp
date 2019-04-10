@@ -113,11 +113,6 @@ template <typename R, typename T> struct transfer_ref_<R&, T> { using type = T&;
 template <typename R, typename T> struct transfer_ref_<const R&, T> { using type = const T&; };
 template <typename R, typename T> struct transfer_ref_<R&&, T> { using type = T; };
 
-template <typename T> struct wrap_type_ { using type = makeshift::types::type<T>; };
-template <typename T> struct wrap_type_<makeshift::types::type<T>> : wrap_type_<T> { };
-template <typename T> struct unwrap_type_ { using type = T; };
-template <typename T> struct unwrap_type_<makeshift::types::type<T>> : unwrap_type_<T> { };
-
 template <std::ptrdiff_t N, bool HomogeneousArgs, typename F, typename... Ts>
     struct homogeneous_result_;
 template <std::ptrdiff_t N, typename F, typename... Ts>
@@ -166,7 +161,7 @@ template <std::size_t... Is, typename F, typename... Ts>
     tuple_transform_impl1(std::integral_constant<transform_target, transform_target::type_sequence>, std::index_sequence<Is...>, F&& func, Ts&&... args)
 {
     (void) func;
-    return type_sequence2<typename unwrap_type_<decltype(makeshift::detail::tuple_transform_impl2<Is>(func, std::forward<Ts>(args)...))>::type...>{ };
+    return type_sequence2<typename decltype(makeshift::detail::tuple_transform_impl2<Is>(func, std::forward<Ts>(args)...))::type...>{ };
 }
 template <std::size_t... Is, typename F, typename... Ts>
     constexpr auto

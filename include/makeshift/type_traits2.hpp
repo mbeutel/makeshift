@@ -20,17 +20,16 @@ inline namespace types
 
 
     //ᅟ
-    // `type<>` is a generic type tag.
+    // `basic_type<>` is a generic type tag. Use `basic_type<>` instead of `type<>` if argument deduction is desired:
     //ᅟ
-    // Use `type_v<T>` as a value representation of `T`.
+    //     template <typename T>
+    //         std::is_integral<T> is_integral_f(basic_type<T>);
     //
-template <typename T> using type = makeshift::detail::type_t<T>;
-
-
-    //ᅟ
-    // Use `type_v<T>` as a value representation of `T` for tag dispatching.
-    //
-template <typename T> constexpr inline makeshift::detail::type_t<T> type_v { };
+template <typename T>
+    struct basic_type : makeshift::detail::type_tag
+{
+    using type = T;
+};
 
 
     //ᅟ
@@ -84,7 +83,7 @@ template <typename... Ts>
     struct type_sequence2
 {
     constexpr type_sequence2(void) noexcept = default;
-    constexpr type_sequence2(makeshift::detail::type_t<Ts>...) noexcept { }
+    constexpr type_sequence2(basic_type<Ts>...) noexcept { }
 };
 template <>
     struct type_sequence2<>
@@ -98,16 +97,6 @@ template <>
 template <typename... Ts> constexpr inline type_sequence2<Ts...> type_sequence2_v { };
 
 
-    //ᅟ
-    // Return a type sequence that represents the types of the given values.
-    //
-template <typename... Ts>
-    constexpr type_sequence2<Ts...> make_type_sequence2(type<Ts>...) noexcept
-{
-    return { };
-}
-
-
 } // inline namespace types
 
 
@@ -115,42 +104,45 @@ namespace detail
 {
 
 
-template <typename T, typename TypeSeqT> struct try_index_of_type_in;
-template <typename T, template <typename...> class TypeSeqT, typename... Ts> struct try_index_of_type_in<T, TypeSeqT<Ts...>> : try_index_of_type<T, Ts...> { };
-
-
-    //ᅟ
-    // `type<>` is a generic type tag.
-    //ᅟ
-    // Use `type_v<T>` as a value representation of `T`.
-    //
 template <typename T>
-    struct type_t
+    struct type_
 {
-    using type = T;
-
-        // This conversion exists so expressions of type `type<>` can be used as case labels of switch statements over type enums.
-    template <typename EnumT,
-              typename TypeEnumTypeT = decltype(type_enum_type_of_(EnumT{ }, makeshift::detail::unwrap_enum_tag{ })),
-              typename = std::enable_if_t<try_index_of_type_in<T, typename TypeEnumTypeT::type::types>::value != -1>>
-        constexpr operator EnumT(void) const noexcept
+        //ᅟ
+        // `type<>` is a generic type tag.
+        //ᅟ
+        // `type<>` is defined as a dependent type, hence the type argument cannot be deduced, and no argument-dependent lookups relating to the type argument take place.
+        // `type<T>` inherits from `basic_type<T>`. Declare function arguments with type `basic_type<T>` to permit deduction of `T`.
+        // `type<T>` also has the subclass `adl_type<T>`. Pass arguments of type `adl_type<T>` to enable argument-dependent lookup related to `T`.
+        //
+    struct _ : basic_type<T>
     {
-        return EnumT(int(try_index_of_type_in<T, typename TypeEnumTypeT::types>::value));
-    }
-};
+         // We hide the actual definition here to suppress ADL (cf. https://quuxplusone.github.io/blog/2019/04/09/adl-insanity-round-2/).
 
-template <typename T1, typename T2>
-    MAKESHIFT_NODISCARD constexpr std::is_same<T1, T2>
-    operator ==(type_t<T1>, type_t<T2>) noexcept
-{
-    return { };
-}
-template <typename T1, typename T2>
-    MAKESHIFT_NODISCARD constexpr std::negation<std::is_same<T1, T2>>
-    operator !=(type_t<T1>, type_t<T2>) noexcept
-{
-    return { };
-}
+            // This conversion exists so expressions of type `type<>` can be used as case labels of switch statements over type enums.
+        template <typename EnumT,
+                  typename TypeEnumTypeT = decltype(type_enum_type_of_(EnumT{ }, makeshift::detail::unwrap_enum_tag{ })),
+                  typename = std::enable_if_t<try_index_of_type_in<T, typename TypeEnumTypeT::type::types>::value != -1>>
+            constexpr operator EnumT(void) const noexcept
+        {
+            return EnumT(int(try_index_of_type_in<T, typename TypeEnumTypeT::types>::value));
+        }
+
+        template <typename Type2T,
+                  typename = std::enable_if_t<std::is_base_of<type_tag, Type2T>::value>>
+            MAKESHIFT_NODISCARD constexpr std::is_same<T, typename Type2T::type>
+            operator ==(Type2T) const noexcept
+        {
+            return { };
+        }
+        template <typename Type2T,
+                  typename = std::enable_if_t<std::is_base_of<type_tag, Type2T>::value>>
+            MAKESHIFT_NODISCARD constexpr std::negation<std::is_same<T, typename Type2T::type>>
+            operator !=(Type2T) const noexcept
+        {
+            return { };
+        }
+    };
+};
 
 
 } // namespace detail
@@ -158,6 +150,49 @@ template <typename T1, typename T2>
 
 inline namespace types
 {
+
+
+    //ᅟ
+    // `type<>` is a generic type tag.
+    //ᅟ
+    // `type<>` is defined as a dependent type, hence the type argument cannot be deduced, and no argument-dependent lookups relating to the type argument take place.
+    // `type<T>` inherits from `basic_type<T>`. Declare function arguments with type `basic_type<T>` to permit deduction of `T`.
+    // `type<T>` also has the subclass `adl_type<T>`. Pass arguments of type `adl_type<T>` to enable argument-dependent lookup related to `T`.
+    //
+template <typename T> using type = typename makeshift::detail::type_<T>::_;
+
+    //ᅟ
+    // `type<>` is a generic type tag.
+    //ᅟ
+    // `type<>` is defined as a dependent type, hence no argument-dependent lookups relating to the type argument take place.
+    // `type<T>` also has the subclass `adl_type<T>`. Pass arguments of type `adl_type<T>` to enable argument-dependent lookup related to `T`.
+    //
+template <typename T> constexpr inline type<T> type_v { };
+
+
+    //ᅟ
+    // `adl_type<>` is a generic type tag. Use `adl_type<>` instead of `type<>` if argument-dependent lookup is desired:
+    //ᅟ
+    //     auto rawMetadata = reflect(adl_type_v<MyType>); // search for `reflect()` in associated namespaces and classes of `MyType`
+    //
+template <typename T> struct adl_type : type<T> { };
+
+    //ᅟ
+    // `adl_type<>` is a generic type tag. Use `adl_type<>` instead of `type<>` if argument-dependent lookup is desired:
+    //ᅟ
+    //     auto rawMetadata = reflect(adl_type_v<MyType>); // search for `reflect()` in associated namespaces and classes of `MyType`
+    //
+template <typename T> constexpr inline adl_type<T> adl_type_v { };
+
+
+    //ᅟ
+    // Return a type sequence that represents the types of the given values.
+    //
+template <typename... Ts>
+    constexpr type_sequence2<Ts...> make_type_sequence2(basic_type<Ts>...) noexcept
+{
+    return { };
+}
 
 
     //ᅟ

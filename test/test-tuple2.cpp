@@ -40,7 +40,7 @@ TEST_CASE("tuple2", "[flags]")
     }
     SECTION("type-seq-transform")
     {
-        constexpr auto moreNumbers = std::tuple{ 4.0, 9 };
+        constexpr auto moreNumbers = std::tuple{ mk::type_v<float>, mk::type_v<double> };
         constexpr auto sum = mk::type_sequence_transform2(
             [](auto x, auto y) { return x + y; },
             numbers, moreNumbers);
