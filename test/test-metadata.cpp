@@ -27,10 +27,10 @@ enum class MyEnum
 constexpr inline auto reflect(mk::tag<MyEnum>, mk::any_tag_of<mk::reflection_tag, mk::serialization_tag>)
 {
     using namespace makeshift::metadata;
-    return type<MyEnum>(
+    return type1<MyEnum>(
         "MyEnum", // optional for serialization (may yield better error messages)
-        value<MyEnum::foo>("foo"),
-        value<MyEnum::bar>("bar")
+        value1<MyEnum::foo>("foo"),
+        value1<MyEnum::bar>("bar")
     );
 }
 
@@ -55,23 +55,23 @@ using Ratatouille = Vegetables::flags;
 constexpr inline auto reflect(mk::tag<Vegetables>, mk::any_tag_of<mk::reflection_tag, mk::serialization_tag>) // note: we reflect on Vegetables which is our own type, not on Ratatouille which is just an alias!
 {
     using namespace makeshift::metadata;
-    return type<Vegetables>(
+    return type1<Vegetables>(
         "Vegetables", // not required for serialization
         flags( // not required for serialization
-            type<Ratatouille>("Ratatouille") // optional for serialization (may yield better error messages)
+            type1<Ratatouille>("Ratatouille") // optional for serialization (may yield better error messages)
         ),
         caption("foo"), // optional for serialization (may yield even better error messages)
-        value<Vegetables::potato>("potato"),
-        value<Vegetables::tomato>("tomato"),
-        value<Vegetables::garlic>("garlic"),
-        value<Vegetables::onion>("onion"),
-        value<Vegetables::chili>("chili", "chili pepper"),
-        value<Vegetables::bean>("bean"),
-        value<Vegetables::lentil>("lentil"),
-        value<Vegetables::legume>("legume"),
-        value<Vegetables::spicy>("spicy"),
-        value<Vegetables::nightshade>("nightshade"),
-        value<Vegetables::something_weird>("something-weird")
+        value1<Vegetables::potato>("potato"),
+        value1<Vegetables::tomato>("tomato"),
+        value1<Vegetables::garlic>("garlic"),
+        value1<Vegetables::onion>("onion"),
+        value1<Vegetables::chili>("chili", "chili pepper"),
+        value1<Vegetables::bean>("bean"),
+        value1<Vegetables::lentil>("lentil"),
+        value1<Vegetables::legume>("legume"),
+        value1<Vegetables::spicy>("spicy"),
+        value1<Vegetables::nightshade>("nightshade"),
+        value1<Vegetables::something_weird>("something-weird")
     );
 }
 
@@ -83,10 +83,10 @@ struct COOIndex
 constexpr inline auto reflect(mk::tag<COOIndex>, mk::any_tag_of<mk::reflection_tag, mk::serialization_tag>)
 {
     using namespace makeshift::metadata;
-    return type<COOIndex>(
+    return type1<COOIndex>(
         constant<type_flag::value | type_flag::compound>{ },
-        member<&COOIndex::i>("i"),
-        member<&COOIndex::j>("j")
+        member1<&COOIndex::i>("i"),
+        member1<&COOIndex::j>("j")
     );
 }
 
@@ -98,10 +98,10 @@ struct COOValue
 constexpr inline auto reflect(mk::tag<COOValue>, mk::any_tag_of<mk::reflection_tag, mk::serialization_tag>)
 {
     using namespace makeshift::metadata;
-    return type<COOValue>(
+    return type1<COOValue>(
         constant<type_flag::compound>{ },
-        member<&COOValue::index>("index"),
-        member<&COOValue::value>("the value")
+        member1<&COOValue::index>("index"),
+        member1<&COOValue::value>("the value")
     );
 }
 

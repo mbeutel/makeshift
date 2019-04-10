@@ -90,7 +90,7 @@ template <typename T, typename... AttributesT>
     //
 template <typename T, typename... AttrT>
     constexpr type_metadata<T, std::tuple<literal_decay_t<AttrT>...>>
-    type(AttrT&&... attributes)
+    type1(AttrT&&... attributes)
 {
     return { std::tuple<literal_decay_t<AttrT>...>(std::forward<AttrT>(attributes)...) };
 }
@@ -114,7 +114,7 @@ template <typename ValT, ValT Val, typename AttributesT>
     //
 template <auto Val, typename... AttrT, typename = decltype(Val)>
     constexpr value_metadata<constant<Val>, std::tuple<literal_decay_t<AttrT>...>>
-    value(AttrT&&... attributes)
+    value1(AttrT&&... attributes)
 {
     return { std::tuple<literal_decay_t<AttrT>...>(std::forward<AttrT>(attributes)...) };
 }
@@ -138,7 +138,7 @@ template <typename AccessorsC, typename AttributesT>
     //
 template <auto... Accessors, typename... AttrT, typename = type_sequence<decltype(Accessors)...>>
     constexpr member_metadata<type_sequence<constant<Accessors>...>, std::tuple<literal_decay_t<AttrT>...>>
-    member(AttrT&&... attributes)
+    member1(AttrT&&... attributes)
 {
     return { std::tuple<literal_decay_t<AttrT>...>(std::forward<AttrT>(attributes)...) };
 }
