@@ -519,7 +519,7 @@ template <typename ResultHandlerT, typename T, typename C, typename HashT, typen
         // (TODO: implement)
         // (TODO: is there an acceptable way of checking for constexpr-ness?)
 
-    auto memberAccessor = [members = makeshift::detail::members(product)](type<T>) { return members; };
+    auto memberAccessor = [members = makeshift::detail::members(product)](type_t<T>) { return members; };
     auto compoundHash = compound2_hash<decltype(memberAccessor), std::decay_t<HashT>>{ memberAccessor, std::forward<HashT>(hash) };
     auto compoundEqual = compound2_equal_to<decltype(memberAccessor), std::decay_t<EqualToT>>{ memberAccessor, std::forward<EqualToT>(equal) };
 
@@ -527,27 +527,27 @@ template <typename ResultHandlerT, typename T, typename C, typename HashT, typen
 }
 
 template <typename ResultHandlerT, bool Exhaustive, typename ClassT, typename... FactorsT, typename C, typename HashT, typename EqualToT>
-    constexpr auto expand2_impl2(basic_type<value_product_t<Exhaustive, FactorsT...>>, const ClassT& value, C valuesC, HashT&& hash, EqualToT&& equal)
+    constexpr auto expand2_impl2(type_t<value_product_t<Exhaustive, FactorsT...>>, const ClassT& value, C valuesC, HashT&& hash, EqualToT&& equal)
 {
     return expand2_impl3_compound<ResultHandlerT>(value, valuesC, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
 }
 template <typename ResultHandlerT, typename ClassT, std::size_t N, typename... MembersT, typename C, typename HashT, typename EqualToT>
-    constexpr auto expand2_impl2(basic_type<member_values_t<N, MembersT...>>, const ClassT& value, C valuesC, HashT&& hash, EqualToT&& equal)
+    constexpr auto expand2_impl2(type_t<member_values_t<N, MembersT...>>, const ClassT& value, C valuesC, HashT&& hash, EqualToT&& equal)
 {
     return expand2_impl3_compound<ResultHandlerT>(value, valuesC, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
 }
 template <typename ResultHandlerT, typename ClassT, typename MemberT, typename C, typename HashT, typename EqualToT>
-    constexpr auto expand2_impl2(basic_type<members_t<MemberT>>, const ClassT& value, C valuesC, HashT&& hash, EqualToT&& equal)
+    constexpr auto expand2_impl2(type_t<members_t<MemberT>>, const ClassT& value, C valuesC, HashT&& hash, EqualToT&& equal)
 {
     return expand2_impl3_compound<ResultHandlerT>(value, valuesC, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
 }
 template <typename ResultHandlerT, typename T, std::size_t N, typename C, typename HashT, typename EqualToT>
-    constexpr auto expand2_impl2(basic_type<values_t<T, N>>, const T& value, C valuesC, HashT&& hash, EqualToT&& equal)
+    constexpr auto expand2_impl2(type_t<values_t<T, N>>, const T& value, C valuesC, HashT&& hash, EqualToT&& equal)
 {
     return expand2_impl3<ResultHandlerT>(value, valuesC, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
 }
 template <typename ResultHandlerT, template <typename...> class TupleT, typename... Ts, typename T, typename C, typename HashT, typename EqualToT>
-    constexpr auto expand2_impl2(basic_type<heterogeneous_values_t<TupleT<Ts...>>>, const T& value, C valuesC, HashT&& hash, EqualToT&& equal)
+    constexpr auto expand2_impl2(type_t<heterogeneous_values_t<TupleT<Ts...>>>, const T& value, C valuesC, HashT&& hash, EqualToT&& equal)
 {
     return expand2_impl3<ResultHandlerT>(value, valuesC, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
 }

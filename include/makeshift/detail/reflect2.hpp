@@ -21,7 +21,7 @@ namespace detail
 {
 
 
-template <typename T> using declared_metadata_t = decltype(reflect(adl_type<T>{ }));
+template <typename T> using declared_metadata_t = decltype(reflect(type_t<T>{ }));
 template <typename T> struct declares_metadata : can_apply<makeshift::detail::declared_metadata_t, T> { };
 
 
@@ -87,12 +87,12 @@ template <typename T, typename = void>
 {
     using parameter_categories = type_sequence2<>;
 };
-template <typename TypeT>
-    struct default_metadata<TypeT, std::enable_if_t<std::is_base_of<type_tag, TypeT>::value>>
-        : values_t<TypeT, 1>
+template <typename T>
+    struct default_metadata<type_t<T>>
+        : values_t<type_t<T>, 1>
 {
     constexpr default_metadata(void)
-        : values_t<TypeT, 1>({ { } })
+        : values_t<type_t<T>, 1>({ { } })
     {
     }
 };
@@ -135,7 +135,7 @@ template <typename T>
     struct MAKESHIFT_EMPTY_BASES metadata_of_0<T, true> : override_params<declared_metadata_t<T>, default_metadata<T>>, metadata_tag
 {
     constexpr metadata_of_0(void)
-        : override_params<declared_metadata_t<T>, default_metadata<T>>(reflect(adl_type<T>{ }), { })
+        : override_params<declared_metadata_t<T>, default_metadata<T>>(reflect(type_t<T>{ }), { })
     {
     }
 };
