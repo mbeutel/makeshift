@@ -53,7 +53,7 @@ template <typename T, typename SerializerT>
 {
     using MetadataTag = metadata_tag_of_serializer_t<std::decay_t<SerializerT>>;
     constexpr auto members = members_of<T, MetadataTag>();
-    constexpr bool isCompoundValue = has_flag(type_flag::value, type_flags_of_v<T, MetadataTag>);
+    constexpr bool isCompoundValue = has_flag(type_flags_of_v<T, MetadataTag>, type_flag::value);
     const auto& options = isCompoundValue ? compoundOptions.compound_value : compoundOptions.compound;
 
     std::ostringstream sstr;
