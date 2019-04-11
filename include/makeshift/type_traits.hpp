@@ -3,6 +3,7 @@
 #define INCLUDED_MAKESHIFT_TYPE_TRAITS_HPP_
 
 
+#include <array>
 #include <cstddef>     // for size_t
 #include <type_traits> // for integral_constant<>, declval<>(), is_aggregate<>, is_scalar<>, is_same<>, is_base_of<>, enable_if<>, is_convertible<>, decay<>, declval<>(), negation<>, conjunction<>, disjunction<>
 #include <utility>     // for integer_sequence<>, move(), forward<>()
@@ -390,7 +391,7 @@ template <auto V, typename = decltype(V)> constexpr constant<V> c{ };
     // Encodes a sequence of constants in a type.
     //
 template <typename T, T... Vs>
-    struct sequence
+    struct sequence : constval_tag
 {
     using value_type = T;
 
@@ -403,9 +404,14 @@ template <typename T, T... Vs>
     {
     }
     constexpr sequence(std::integral_constant<T, Vs>...) noexcept { }
+
+    MAKESHIFT_NODISCARD constexpr std::array<T, sizeof...(Vs)> operator ()(void) const noexcept
+    {
+        return { Vs... };
+    }
 };
 template <typename T>
-    struct sequence<T>
+    struct sequence<T> : constval_tag
 {
     using value_type = T;
 
@@ -416,6 +422,11 @@ template <typename T>
               typename = std::enable_if_t<std::is_same<T, U>::value>>
         constexpr sequence(std::integer_sequence<U>) noexcept
     {
+    }
+
+    MAKESHIFT_NODISCARD constexpr std::array<T, 0> operator ()(void) const noexcept
+    {
+        return { };
     }
 };
 template <typename T, T... Vs>
