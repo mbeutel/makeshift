@@ -33,6 +33,7 @@ template <typename F>
     static_assert(std::is_empty<F>::value, "lambda must be empty");
 
 private:
+#ifdef MAKESHIFT_CXX17
     union impl
     {
         F obj;
@@ -40,12 +41,17 @@ private:
 
         constexpr impl(void) noexcept : dummy(0) { }
     };
+#endif // MAKESHIFT_CXX17
 
 public:
     template <typename... Ts>
         constexpr decltype(auto) operator()(Ts&&... args) const
     {
+#ifdef MAKESHIFT_CXX17
         return impl{ }.obj(std::forward<Ts>(args)...); // we can legally use `obj` even if it wasn't initialized because it is empty
+#else // MAKESHIFT_CXX17
+        return F{ }.obj(std::forward<Ts>(args)...); // C++14 doesn't support this trick, which is one of the reasons why lambdas cannot be used here (the other reason being that they cannot be constexpr)
+#endif // MAKESHIFT_CXX17
     }
 };
 template <typename F, bool IsDefaultConstructible> struct stateless_functor_0_;
@@ -62,6 +68,7 @@ template <typename F>
     static_assert(std::is_empty<F>::value, "lambda must be empty");
 
 private:
+#ifdef MAKESHIFT_CXX17
     union impl
     {
         F obj;
@@ -69,18 +76,24 @@ private:
 
         constexpr impl(void) noexcept : dummy(0) { }
     };
+#endif // MAKESHIFT_CXX17
 
 public:
     using value_type = decltype(std::declval<F>()());
     MAKESHIFT_NODISCARD constexpr value_type operator()(void) const
     {
+#ifdef MAKESHIFT_CXX17
         return impl{ }.obj(); // we can legally use `obj` even if it wasn't initialized because it is empty
+#else // MAKESHIFT_CXX17
+        return F{ }.obj(); // C++14 doesn't support this trick, which is one of the reasons why lambdas cannot be used here (the other reason being that they cannot be constexpr)
+#endif // MAKESHIFT_CXX17
     }
     MAKESHIFT_NODISCARD constexpr operator auto(void) const -> value_type // workaround for VC++ bug, cf. https://developercommunity.visualstudio.com/content/problem/149701/c2833-with-operator-decltype.html#reply-152822
     {
         return (*this)();
     }
 };
+
 template <typename C, bool IsConstval> struct constval_functor_0_;
 template <typename C> struct constval_functor_0_<C, true> { using type = C; };
 template <typename C> struct constval_functor_0_<C, false> { using type = constval_functor_wrapper<C>; };
