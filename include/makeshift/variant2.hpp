@@ -179,7 +179,7 @@ template <typename T, typename C>
 template <typename T>
     MAKESHIFT_NODISCARD constexpr auto expand2(const T& value)
 {
-    return makeshift::expand2(value, makeshift::detail::metadata_values_retriever<T>{ });
+    return makeshift::expand2(value, constval<makeshift::detail::metadata_values_retriever<T>>);
 }
 
 

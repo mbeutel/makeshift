@@ -152,6 +152,9 @@ template <typename T0, typename T1, typename... Ts> struct equal_types_<T0, T1, 
 template <typename T01, typename... Ts> struct equal_types_<T01, T01, Ts...> : equal_types_<T01, Ts...> { };
 
 
+struct constval_tag { };
+
+
 } // namespace detail
 
 } // namespace makeshift

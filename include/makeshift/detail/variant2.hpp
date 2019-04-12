@@ -344,7 +344,7 @@ template <typename ClassT, typename MemberT>
 
 
 template <typename T, typename C, std::size_t I>
-    struct value_functor : constval_tag
+    struct value_functor
 {
     constexpr T operator ()(void) const
     {
@@ -359,11 +359,11 @@ template <typename T, typename C, typename Is>
 template <typename T, typename C, std::size_t... Is>
     struct expand_type_<T, C, std::index_sequence<Is...>>
 {
-    using type = unit_variant<value_functor<T, C, Is>...>;
+    using type = unit_variant<make_constval_t<value_functor<T, C, Is>>...>;
 };
 
 template <typename C, std::size_t I>
-    struct heterogeneous_value_functor : constval_tag
+    struct heterogeneous_value_functor
 {
     constexpr auto operator ()(void) const
     {
@@ -378,7 +378,7 @@ template <typename C, typename Is>
 template <typename C, std::size_t... Is>
     struct heterogeneous_expand_type_<C, std::index_sequence<Is...>>
 {
-    using type = unit_variant<heterogeneous_value_functor<C, Is>...>;
+    using type = unit_variant<make_constval_t<heterogeneous_value_functor<C, Is>>...>;
 };
 
 template <typename T, typename D, typename... ArgsT>
@@ -486,7 +486,7 @@ template <typename ClassT>
 };
 
 template <typename T>
-    struct metadata_values_retriever : constval_tag
+    struct metadata_values_retriever
 {
     constexpr auto operator ()(void) const
     {
@@ -723,7 +723,7 @@ template <typename V>
 template <typename T>
     constexpr decltype(auto) maybe_expand_impl(std::false_type /*isVariant*/, T&& expandable)
 {
-    return makeshift::detail::expand2_impl0<result_handler_terminate>(expandable, metadata_values_retriever<std::decay_t<T>>{ }, hash2<>{ }, std::equal_to<>{ });
+    return makeshift::detail::expand2_impl0<result_handler_terminate>(expandable, constval<metadata_values_retriever<std::decay_t<T>>>, hash2<>{ }, std::equal_to<>{ });
 }
 template <typename T>
     constexpr decltype(auto) maybe_expand(T&& arg)

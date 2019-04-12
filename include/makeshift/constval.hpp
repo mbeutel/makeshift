@@ -37,18 +37,24 @@ template <typename T> constexpr bool is_constval_v = is_constval<T>::value;
 
     //ᅟ
     // A constexpr value type representing the given constexpr function object type.
+    //ᅟ
+    // If the value type of the constexpr value is valid as a non-type template parameter, the result type is guaranteed to be an instantiation of `std::integral_constant<>`.
     //
-template <typename C> using constval_t = makeshift::detail::as_constval_t<C>;
+template <typename C> using constval_t = makeshift::detail::make_constval_t<C>;
 
 
     //ᅟ
     // A constexpr value representing the given constexpr function object type.
+    //ᅟ
+    // If the value type of the constexpr value is valid as a non-type template parameter, the result type is guaranteed to be an instantiation of `std::integral_constant<>`.
     //
 template <typename C> constexpr constval_t<C> constval = { };
 
 
     //ᅟ
-    // Returns a constexpr value representing the given constexpr function object type.
+    // Returns a constexpr value representing the given nullary constexpr function object type.
+    //ᅟ
+    // If the value type of the constexpr function object is valid as a non-type template parameter, the result type is guaranteed to be an instantiation of `std::integral_constant<>`.
     //
 template <typename C>
     constexpr constval_t<C> make_constval(const C&) noexcept
@@ -73,9 +79,9 @@ template <typename C>
     //ᅟ
     // Returns the result of the function applied to the values of the given constexpr values as a constexpr value, or the result value itself if one of the arguments is not a constexpr value.
     //ᅟ
-    //ᅟ    auto baseIndexR = make_constval([]{ return 42; });
-    //ᅟ    auto offsetR = make_constval([]{ return 3; });
-    //ᅟ    auto indexR = constval_transform(std::plus<>, baseIndexR, offsetR); // equivalent to `make_constval([]{ return 45; })`
+    //ᅟ    auto baseIndexR = make_constval([]{ return 42; }); // returns `std::integral_constant<int, 42>`
+    //ᅟ    auto offsetR = make_constval([]{ return 3; }); // returns `std::integral_constant<int, 3>`
+    //ᅟ    auto indexR = constval_transform(std::plus<>, baseIndexR, offsetR); // returns `std::integral_constant<int, 45>`
     //
 template <typename F, typename... Cs>
     MAKESHIFT_NODISCARD constexpr auto

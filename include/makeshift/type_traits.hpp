@@ -391,9 +391,9 @@ template <auto V, typename = decltype(V)> constexpr constant<V> c{ };
     // Encodes a sequence of constants in a type.
     //
 template <typename T, T... Vs>
-    struct sequence : constval_tag
+    struct sequence : makeshift::detail::constval_tag
 {
-    using value_type = T;
+    using value_type = T; // TODO: this is a mismatch compared to other constvals!!
 
     static constexpr std::size_t size(void) noexcept { return sizeof...(Vs); }
 
@@ -409,11 +409,15 @@ template <typename T, T... Vs>
     {
         return { Vs... };
     }
+    MAKESHIFT_NODISCARD constexpr operator std::array<T, sizeof...(Vs)>(void) const noexcept
+    {
+        return (*this)();
+    }
 };
 template <typename T>
-    struct sequence<T> : constval_tag
+    struct sequence<T> : makeshift::detail::constval_tag
 {
-    using value_type = T;
+    using value_type = T; // TODO: this is a mismatch compared to other constvals!!
 
     static constexpr std::size_t size(void) noexcept { return 0; }
 
@@ -427,6 +431,10 @@ template <typename T>
     MAKESHIFT_NODISCARD constexpr std::array<T, 0> operator ()(void) const noexcept
     {
         return { };
+    }
+    MAKESHIFT_NODISCARD constexpr operator std::array<T, 0>(void) const noexcept
+    {
+        return (*this)();
     }
 };
 template <typename T, T... Vs>
