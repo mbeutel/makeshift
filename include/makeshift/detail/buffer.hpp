@@ -6,7 +6,7 @@
 #include <array>
 #include <cstddef>     // for size_t
 #include <iterator>    // for move_iterator<>
-#include <type_traits> // for integral_constant<>
+#include <type_traits> // for integral_constant<>, is_convertible<>
 
 #include <gsl/gsl_assert> // for Expects()
 
@@ -355,17 +355,19 @@ public:
     {
         makeshift::constval_assert(makeshift::constval_transform(check_size_functor{ }, _size));
     }
-    template <dim2 RExtent>
-        constexpr buffer(T (&&array)[RExtent])
+    template <dim2 RExtent, typename U>
+        constexpr buffer(U (&&array)[RExtent])
             : _base(RExtent)
     {
         static_assert(Extent == -1 || RExtent == Extent, "array extent does not match");
+        static_assert(std::is_convertible<U, T>::value, "incompatible array element types");
         std::copy(std::make_move_iterator(array), std::make_move_iterator(array + RExtent), this->begin());
     }
-    template <dim2 RExtent>
-        constexpr buffer& operator =(T (&&array)[RExtent])
+    template <dim2 RExtent, typename U>
+        constexpr buffer& operator =(U (&&array)[RExtent])
     {
         static_assert(Extent == -1 || RExtent == Extent, "array extent does not match");
+        static_assert(std::is_convertible<U, T>::value, "incompatible array element types");
         Expects(RExtent == this->size());
         std::copy(std::make_move_iterator(array), std::make_move_iterator(array + RExtent), this->begin());
         return *this;
@@ -399,17 +401,19 @@ public:
     {
         makeshift::constval_assert(makeshift::constval_transform(check_size_functor{ }, _size));
     }
-    template <dim2 RExtent>
-        constexpr fixed_buffer(T (&&array)[RExtent])
+    template <dim2 RExtent, typename U>
+        constexpr fixed_buffer(U (&&array)[RExtent])
             : _base(RExtent)
     {
         static_assert(Extent == -1 || RExtent == Extent, "array extent does not match");
+        static_assert(std::is_convertible<U, T>::value, "incompatible array element types");
         std::copy(std::make_move_iterator(array), std::make_move_iterator(array + RExtent), this->begin());
     }
-    template <dim2 RExtent>
-        constexpr fixed_buffer& operator =(T (&&array)[RExtent])
+    template <dim2 RExtent, typename U>
+        constexpr fixed_buffer& operator =(U (&&array)[RExtent])
     {
         static_assert(Extent == -1 || RExtent == Extent, "array extent does not match");
+        static_assert(std::is_convertible<U, T>::value, "incompatible array element types");
         Expects(RExtent == this->size());
         std::copy(std::make_move_iterator(array), std::make_move_iterator(array + RExtent), this->begin());
         return *this;
