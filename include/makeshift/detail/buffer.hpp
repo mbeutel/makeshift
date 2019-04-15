@@ -363,7 +363,7 @@ public:
         std::copy(std::make_move_iterator(array), std::make_move_iterator(array + RExtent), this->begin());
     }
     template <dim2 RExtent>
-        buffer& operator =(T (&&array)[RExtent])
+        constexpr buffer& operator =(T (&&array)[RExtent])
     {
         static_assert(Extent == -1 || RExtent == Extent, "array extent does not match");
         Expects(RExtent == this->size());
@@ -407,7 +407,7 @@ public:
         std::copy(std::make_move_iterator(array), std::make_move_iterator(array + RExtent), this->begin());
     }
     template <dim2 RExtent>
-        fixed_buffer& operator =(T (&&array)[RExtent])
+        constexpr fixed_buffer& operator =(T (&&array)[RExtent])
     {
         static_assert(Extent == -1 || RExtent == Extent, "array extent does not match");
         Expects(RExtent == this->size());

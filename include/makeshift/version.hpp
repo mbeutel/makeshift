@@ -59,7 +59,7 @@
 #define MAKESHIFT_NODISCARD [[nodiscard]]
 #define MAKESHIFT_MAYBE_UNUSED [[maybe_unused]]
 
-#define MAKESHIFT_CONSTEXPR_CXX17
+#define MAKESHIFT_CONSTEXPR_CXX17 constexpr
 #define MAKESHIFT_CONSTEXPR_CXX20
 
 #define MAKESHIFT_CXX17
