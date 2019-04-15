@@ -3,17 +3,18 @@
 #define INCLUDED_MAKESHIFT_ITERATOR_HPP_
 
 
-#include <iterator>    // for output_iterator_tag
+#include <iterator>    // for input_iterator_tag, output_iterator_tag
 #include <utility>     // for forward<>()
-#include <type_traits> // for decay<>
+#include <type_traits> // for decay<>, declval<>()
 
+#include <makeshift/version.hpp>  // for MAKESHIFT_NODISCARD
 
 namespace makeshift
 {
 
 
 template <typename FuncT>
-    class callback_iterator
+    class callback_output_iterator
 {
 public:
     using difference_type = void;
@@ -21,12 +22,12 @@ public:
     using pointer = void;
     class reference
     {
-        friend callback_iterator<FuncT>;
+        friend callback_output_iterator<FuncT>;
 
     private:
-        callback_iterator& self_;
+        callback_output_iterator& self_;
 
-        constexpr reference(callback_iterator& _self)
+        constexpr reference(callback_output_iterator& _self)
             : self_{ _self }
         {
         }
@@ -44,7 +45,7 @@ private:
     FuncT func_;
 
 public:
-    constexpr explicit callback_iterator(FuncT _func)
+    constexpr explicit callback_output_iterator(FuncT _func)
         : func_{ std::move(_func) }
     {
     }
@@ -55,20 +56,20 @@ public:
     }
 
         // We don't bother to check if dereference--assign statements and increment statements are sequenced alternatingly as required.
-    constexpr callback_iterator& operator ++(void)
+    constexpr callback_output_iterator& operator ++(void)
     {
         return *this;
     }
-    constexpr callback_iterator& operator ++(int)
+    constexpr callback_output_iterator& operator ++(int)
     {
         return *this;
     }
 };
 template <typename FuncT>
-    callback_iterator(FuncT&&) -> callback_iterator<std::decay_t<FuncT>>;
+    callback_output_iterator(FuncT&&) -> callback_output_iterator<std::decay_t<FuncT>>;
 
 template <typename FuncT>
-    constexpr callback_iterator<std::decay_t<FuncT>> make_callback_iterator(FuncT&& func)
+    MAKESHIFT_NODISCARD constexpr callback_output_iterator<std::decay_t<FuncT>> make_callback_output_iterator(FuncT&& func)
 {
 	return { std::forward<FuncT>(func) };
 }
