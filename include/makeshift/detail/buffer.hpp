@@ -339,12 +339,21 @@ template <typename T, dim2 Extent = -1, dim2 MaxStaticBufferExtent = -1>
 private:
     using _base = buffer_base<T, Extent, MaxStaticBufferExtent, makeshift::detail::determine_memory_location(Extent, MaxStaticBufferExtent)>;
 
+    struct check_size_functor
+    {
+        constexpr bool operator ()(dim2 size) const noexcept
+        {
+            return size >= 0
+                && (Extent == -1 || size == Extent);
+        }
+    };
+
 public:
     template <typename C>
         constexpr buffer(C _size)
             : _base(makeshift::constval_extract(_size))
     {
-        makeshift::constval_assert(makeshift::constval_transform([](dim2 size) { return Extent == -1 || size == Extent; }, _size));
+        makeshift::constval_assert(makeshift::constval_transform(check_size_functor{ }, _size));
     }
     template <dim2 RExtent>
         constexpr buffer(T (&&array)[RExtent])
@@ -373,12 +382,22 @@ template <typename T, dim2 Extent, dim2 MaxBufferExtent>
 private:
     using _base = static_buffer_base<T, Extent, MaxBufferExtent>;
 
+    struct check_size_functor
+    {
+        constexpr bool operator ()(dim2 size) const noexcept
+        {
+            return size >= 0
+                && (Extent == -1 || size == Extent)
+                && size <= MaxBufferExtent;
+        }
+    };
+
 public:
     template <typename C>
         constexpr fixed_buffer(C _size)
             : _base(makeshift::constval_extract(_size))
     {
-        makeshift::constval_assert(makeshift::constval_transform([](dim2 size) { return (Extent == -1 || size == Extent) && size <= MaxBufferExtent; }, _size));
+        makeshift::constval_assert(makeshift::constval_transform(check_size_functor{ }, _size));
     }
     template <dim2 RExtent>
         constexpr fixed_buffer(T (&&array)[RExtent])
