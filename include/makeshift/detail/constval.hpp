@@ -114,7 +114,7 @@ template <typename C> struct make_constval_0_<C, true>
     using type = std::integral_constant<T, C{ }()>;
 };
 template <typename C> struct make_constval_0_<C, false> { using type = C; };
-template <typename C> struct make_constval_ : make_constval_0_<constval_functor_t<C>, is_valid_nttp_<C>::value> { };
+template <typename C> struct make_constval_ : make_constval_0_<constval_functor_t<C>, is_valid_nttp_<decltype(std::declval<C>()())>::value> { };
 template <typename T, T V> struct make_constval_<std::integral_constant<T, V>> { using type = std::integral_constant<T, V>; }; // shortcut
 template <typename C> using make_constval_t = typename make_constval_<C>::type;
 
