@@ -231,57 +231,6 @@ template <typename T, std::ptrdiff_t N>
 }
 
 
-    //ᅟ
-    // Represents a pair of iterators.
-    //
-template <typename It, typename EndIt = It>
-    struct range : makeshift::detail::range_base_<range<It, EndIt>>::type
-{
-    using iterator = It;
-    using end_iterator = EndIt;
-
-    It first;
-    EndIt last;
-
-    constexpr range(It _first, EndIt _last)
-        : first(std::move(_first)), last(std::move(_last))
-    {
-    }
-
-    MAKESHIFT_NODISCARD constexpr const It& begin(void) const noexcept { return first; }
-    MAKESHIFT_NODISCARD constexpr const EndIt& end(void) const noexcept { return last; }
-};
-
-    //ᅟ
-    // Construct a range from a pair of iterators.
-    //
-template <typename It, typename EndIt,
-          typename = std::enable_if_t<!std::is_integral<EndIt>::value>>
-    range<It, EndIt> make_range(It first, EndIt last)
-{
-    return { std::move(first), std::move(last) };
-}
-
-    //ᅟ
-    // Construct a range from an iterator and an extent.
-    //
-template <typename It>
-    range<It, It> make_range(It start, dim2 extent)
-{
-    return { start, start + extent };
-}
-
-    //ᅟ
-    // Construct a range from another range (e.g. a container).
-    // TODO: why would we want to do that? to take range args by value?
-    //
-template <typename ContainerT>
-    auto make_range(ContainerT&& container)
-{
-    return makeshift::make_range(std::forward<ContainerT>(container).begin(), std::forward<ContainerT>(container).end());
-}
-
-
 } // inline namespace types
 
 

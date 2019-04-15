@@ -161,31 +161,6 @@ template <typename ContainerT>
 }
 
 
-struct range_base { };
-
-template <typename RangeT>
-    struct bidi_range_base : range_base
-{
-private:
-    constexpr const RangeT& self(void) const noexcept { return static_cast<const RangeT&>(*this); }
-
-public:
-    MAKESHIFT_NODISCARD std::size_t size(void) const noexcept
-    {
-        return self().end() - self().begin();
-    }
-    MAKESHIFT_NODISCARD decltype(auto) operator [](std::ptrdiff_t i) const noexcept
-    {
-        return self().begin()[i];
-    }
-};
-
-template <typename RangeT, bool IsBidiIterator> struct range_base_0_;
-template <typename RangeT> struct range_base_0_<RangeT, false> { using type = range_base; };
-template <typename RangeT> struct range_base_0_<RangeT, true> { using type = bidi_range_base<RangeT>; };
-template <typename RangeT> struct range_base_ : range_base_0_<RangeT, std::is_base_of<std::bidirectional_iterator_tag, typename std::iterator_traits<typename RangeT::iterator>::iterator_category>::value> { };
-
-
 constexpr inline std::ptrdiff_t cpow(int B, int I, int N) noexcept
 {
     std::ptrdiff_t result = 1;
