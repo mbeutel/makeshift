@@ -155,9 +155,9 @@ template <typename F, typename... Cs>
 };
 
 template <typename F, typename... Cs>
-    constexpr make_constval_t<constval_transform_functor<F, Cs...>> constval_transform_impl(std::true_type /*constvalArgs*/, const Cs&...) noexcept
+    constexpr auto constval_transform_impl(std::true_type /*constvalArgs*/, const Cs&...) noexcept
 {
-    return { };
+    return make_constval_t<constval_transform_functor<F, Cs...>>{ };
 }
 template <typename F, typename... Cs>
     constexpr auto constval_transform_impl(std::false_type /*constvalArgs*/, const Cs&... args)
@@ -176,9 +176,9 @@ template <typename CF, typename... Cs>
 };
 
 template <typename CF, typename... Cs>
-    constexpr make_constval_t<constval_extend_functor<CF, Cs...>> constval_extend_impl(std::true_type /*constvalArgs*/, const Cs&...) noexcept
+    constexpr auto constval_extend_impl(std::true_type /*constvalArgs*/, const Cs&...) noexcept
 {
-    return { };
+    return make_constval_t<constval_extend_functor<CF, Cs...>>{ };
 }
 template <typename CF, typename... Cs>
     constexpr auto constval_extend_impl(std::false_type /*constvalArgs*/, const Cs&... args)
