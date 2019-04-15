@@ -69,6 +69,7 @@ template <typename T, typename... Ts> constexpr std::size_t index_of_type_v = in
     //ᅟ
     // Determines whether the template instantiation `Z<Ts...>` would be valid. Useful for expression SFINAE.
     //
+    // TODO: rename to can_specialize?
 template <template <typename...> class Z, typename... Ts> struct can_apply : makeshift::detail::can_apply_1_<Z, void, Ts...> { };
 
     //ᅟ

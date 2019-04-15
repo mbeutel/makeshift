@@ -57,7 +57,7 @@ template <typename C> constexpr constval_t<C> constval = { };
     // If the value type of the constexpr function object is valid as a non-type template parameter, the result type is guaranteed to be an instantiation of `std::integral_constant<>`.
     //
 template <typename C>
-    constexpr constval_t<C> make_constval(const C&) noexcept
+    constexpr constval_t<C> make_constval(const C&)
 {
     static_assert(std::is_empty<C>::value, "argument must be stateless");
     static_assert(can_apply_v<makeshift::detail::is_constexpr_functor_r, C>, "argument must be constexpr function object");
@@ -70,7 +70,7 @@ template <typename C>
     // Returns the value of a constexpr value, or passes through the argument if it is not a constexpr value.
     //
 template <typename C>
-    constexpr auto constval_extract(const C& value) noexcept
+    constexpr auto constval_extract(const C& value)
 {
     return makeshift::detail::constval_extract_impl(is_constval<C>{ }, value);
 }
@@ -85,7 +85,7 @@ template <typename C>
     //
 template <typename F, typename... Cs>
     MAKESHIFT_NODISCARD constexpr auto
-    constval_transform(const F&, const Cs&... args) noexcept
+    constval_transform(const F&, const Cs&... args)
 {
     static_assert(std::is_empty<F>::value, "transformer must be stateless");
     return makeshift::detail::constval_transform_impl<F>(std::conjunction<is_constval<Cs>...>{ }, args...);
@@ -107,7 +107,7 @@ template <typename F, typename... Cs>
     //
 template <typename CF, typename... Cs>
     MAKESHIFT_NODISCARD constexpr auto
-    constval_extend(const CF&, const Cs&... args) noexcept
+    constval_extend(const CF&, const Cs&... args)
 {
     static_assert(std::is_empty<CF>::value, "extender must be stateless");
     return makeshift::detail::constval_extend_impl<CF>(std::conjunction<is_constval<Cs>...>{ }, args...);

@@ -45,12 +45,12 @@ private:
 
 public:
     template <typename... Ts>
-        constexpr decltype(auto) operator()(Ts&&... args) const
+        constexpr decltype(auto) operator ()(Ts&&... args) const
     {
 #ifdef MAKESHIFT_CXX17
         return impl{ }.obj(std::forward<Ts>(args)...); // we can legally use `obj` even if it wasn't initialized because it is empty
 #else // MAKESHIFT_CXX17
-        return F{ }.obj(std::forward<Ts>(args)...); // C++14 doesn't support this trick, which is one of the reasons why lambdas cannot be used here (the other reason being that they cannot be constexpr)
+        return F{ }.obj(std::forward<Ts>(args)...); // C++14 doesn't support this trick, which is one of the reasons why lambdas cannot be used to make constexpr values (the other reason being that they cannot be constexpr)
 #endif // MAKESHIFT_CXX17
     }
 };
@@ -80,15 +80,19 @@ private:
 
 public:
     using value_type = decltype(std::declval<F>()());
-    MAKESHIFT_NODISCARD constexpr value_type operator()(void) const
+    MAKESHIFT_NODISCARD constexpr value_type operator ()(void) const
     {
 #ifdef MAKESHIFT_CXX17
         return impl{ }.obj(); // we can legally use `obj` even if it wasn't initialized because it is empty
 #else // MAKESHIFT_CXX17
-        return F{ }.obj(); // C++14 doesn't support this trick, which is one of the reasons why lambdas cannot be used here (the other reason being that they cannot be constexpr)
+        return F{ }.obj(); // C++14 doesn't support this trick, which is one of the reasons why lambdas cannot be used to make constexpr values (the other reason being that they cannot be constexpr)
 #endif // MAKESHIFT_CXX17
     }
+#if defined(_MSC_VER ) && !defined(__INTELLISENSE__)
     MAKESHIFT_NODISCARD constexpr operator auto(void) const -> value_type // workaround for VC++ bug, cf. https://developercommunity.visualstudio.com/content/problem/149701/c2833-with-operator-decltype.html#reply-152822
+#else // defined(_MSC_VER ) && !defined(__INTELLISENSE__)
+    MAKESHIFT_NODISCARD constexpr operator value_type(void) const
+#endif // defined(_MSC_VER ) && !defined(__INTELLISENSE__)
     {
         return (*this)();
     }
@@ -189,7 +193,7 @@ template <typename C>
     return eval_constval_v<C>;
 }
 template <typename C>
-    constexpr C constval_extract_impl(std::false_type /*isConstval*/, const C& value) noexcept
+    constexpr C constval_extract_impl(std::false_type /*isConstval*/, const C& value)
 {
     return value;
 }
