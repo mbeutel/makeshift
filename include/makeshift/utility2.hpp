@@ -11,6 +11,7 @@
 
 #include <makeshift/version.hpp> // for MAKESHIFT_NODISCARD
 
+#include <makeshift/detail/type_traits2.hpp> // for constval_tag
 #include <makeshift/detail/utility2.hpp>
 
 
@@ -120,7 +121,6 @@ template <typename... Ts>
 };
 
 
-
     //ᅟ
     // Represents an index value.
     //
@@ -227,6 +227,41 @@ template <typename ContainerT>
 template <typename T, std::ptrdiff_t N>
     MAKESHIFT_NODISCARD constexpr std::integral_constant<std::ptrdiff_t, N> cssize(const T (&)[N]) noexcept
 {
+    return { };
+}
+
+
+template <typename T, T... Vs>
+    struct array_constant : makeshift::detail::constval_tag
+{
+    using value_type = std::array<T, sizeof...(Vs)>;
+    using element_type = T;
+
+    static constexpr std::size_t size(void) noexcept { return sizeof...(Vs); }
+
+    constexpr array_constant(void) noexcept { }
+
+    MAKESHIFT_NODISCARD constexpr std::array<T, sizeof...(Vs)> operator ()(void) const noexcept
+    {
+        return { Vs... };
+    }
+    MAKESHIFT_NODISCARD constexpr operator std::array<T, sizeof...(Vs)>(void) const noexcept
+    {
+        return (*this)();
+    }
+};
+
+
+template <typename T, T... Vs>
+    MAKESHIFT_NODISCARD constexpr array_constant<T,Vs...> make_array_constant(std::integer_sequence<T, Vs...>) noexcept
+{
+    return { };
+}
+
+template <typename T, T... Vs>
+    MAKESHIFT_NODISCARD constexpr array_constant<T,Vs...> make_array_constant(std::integral_constant<T, Vs>...) noexcept
+{
+        // This permits conversion from any sequence of constvals because of constval normalization.
     return { };
 }
 

@@ -3,6 +3,7 @@
 #include <type_traits> // for integral_constant<>, is_same<>
 #include <functional>  // for plus<>
 
+#include <makeshift/utility2.hpp>
 #include <makeshift/constval.hpp>
 
 #include <catch2/catch.hpp>
@@ -20,6 +21,16 @@ static auto getTupleElement = [](auto indexR)
 {
     return std::get<indexR()>(getTuple());
 };
+
+template <typename T, T V>
+    void expect_constval_normalization(std::integral_constant<T, V>)
+{
+}
+
+template <typename T, T... Vs>
+    void expect_array_constval_normalization(mk::array_constant<T, Vs...>)
+{
+}
 
 
 TEST_CASE("constexpr")
@@ -39,4 +50,8 @@ TEST_CASE("constexpr")
     auto c42R = mk::constval_transform(std::plus<>{ }, c1, c42);
     static_assert(std::is_same<decltype(c42R), int>::value, "wrong type");
     CHECK(c42R == 43);
+
+    auto cA = mk::make_constval([]{ return std::array{ 4, 2 }; });
+    expect_constval_normalization(c5);
+    expect_array_constval_normalization(cA);
 }

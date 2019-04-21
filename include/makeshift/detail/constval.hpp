@@ -3,10 +3,12 @@
 #define INCLUDED_MAKESHIFT_DETAIL_CONSTVAL_HPP_
 
 
+#include <array>
 #include <utility>     // for forward<>()
 #include <type_traits> // for is_empty<>, is_default_constructible<>, integral_constant<>, declval<>(), is_base_of<>, disjunction<>
 
 #include <makeshift/type_traits2.hpp> // for constval_tag
+#include <makeshift/utility2.hpp>     // for array_constant<> // TODO: shouldn't we avoid pulling in the entire header?
 #include <makeshift/version.hpp>      // for MAKESHIFT_NODISCARD
 
 
@@ -103,9 +105,33 @@ template <typename C> struct constval_functor_0_<C, true> { using type = C; };
 template <typename C> struct constval_functor_0_<C, false> { using type = constval_functor_wrapper<C>; };
 template <typename C> using constval_functor_t = typename constval_functor_0_<C, is_constval_<C>::value>::type;
 
-    // determines if a given type makes a valid non-type template parameter
+    // determines if a given type makes a valid C++14 non-type template parameter
 template <typename T> struct is_valid_nttp_ : std::disjunction<std::is_integral<T>, std::is_enum<T>, std::is_member_pointer<T>, std::is_null_pointer<T>> { };
 
+template <typename T> struct is_valid_nttp_array_ : std::false_type { };
+template <typename T, std::size_t N> struct is_valid_nttp_array_<std::array<T, N>> : is_valid_nttp_<T> { };
+
+template <std::size_t... Is, typename C>
+    constexpr auto normalize_array_constant_impl(std::index_sequence<Is...>, C c)
+{
+    constexpr auto array = c();
+    using T = typename decltype(array)::value_type;
+    using std::get;
+    return array_constant<T, get<Is>(array)...>{ };
+}
+template <typename C>
+    constexpr auto normalize_array_constant(C c)
+{
+    return makeshift::detail::normalize_array_constant_impl(std::make_index_sequence<std::tuple_size<decltype(c())>::value>{ }, c);
+}
+
+template <typename C, bool IsValidNTTPArray> struct make_constval_1_;
+template <typename C> struct make_constval_1_<C, true>
+{
+        // T is an array with an element type that makes a valid non-type template parameter; substitute the constval type with `array_constant<>`
+    using type = decltype(makeshift::detail::normalize_array_constant(std::declval<C>()));
+};
+template <typename C> struct make_constval_1_<C, false> { using type = C; };
 template <typename C, bool IsValidNTTP> struct make_constval_0_;
 template <typename C> struct make_constval_0_<C, true>
 {
@@ -113,7 +139,7 @@ template <typename C> struct make_constval_0_<C, true>
     using T = decltype(C{ }());
     using type = std::integral_constant<T, C{ }()>;
 };
-template <typename C> struct make_constval_0_<C, false> { using type = C; };
+template <typename C> struct make_constval_0_<C, false> : make_constval_1_<C, is_valid_nttp_array_<decltype(std::declval<C>()())>::value> { };
 template <typename C> struct make_constval_ : make_constval_0_<constval_functor_t<C>, is_valid_nttp_<decltype(std::declval<C>()())>::value> { };
 template <typename T, T V> struct make_constval_<std::integral_constant<T, V>> { using type = std::integral_constant<T, V>; }; // shortcut
 template <typename C> using make_constval_t = typename make_constval_<C>::type;
