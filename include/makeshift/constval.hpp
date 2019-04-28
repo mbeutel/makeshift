@@ -52,7 +52,7 @@ template <typename C> constexpr constval_t<C> constval = { };
 
 
     //ᅟ
-    // Returns a constexpr value representing the given nullary constexpr function object type.
+    // Returns a constexpr value representing the given nullary constexpr function object type. Applies normlization if applicable.
     //ᅟ
     // If the value type of the constexpr function object is valid as a non-type template parameter, the result type is guaranteed to be an instantiation of `std::integral_constant<>`.
     //

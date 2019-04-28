@@ -21,9 +21,6 @@ namespace detail
 
 template <typename T> using type_member_r = typename T::type;
 
-template <typename C> struct is_integral_constant_ : std::false_type { };
-template <typename T, T V> struct is_integral_constant_<std::integral_constant<T, V>> : std::true_type { };
-
 
     // Workaround for non-default-constructible lambdas in C++17.
     // Does not rely on UB (as far as I can tell). Works with GCC 8.2, Clang 7.0, MSVC 19.20, and ICC 19.0 (also `constexpr` evaluation).
@@ -61,8 +58,6 @@ template <typename F> struct stateless_functor_0_<F, true> { using type = F; };
 template <typename F> struct stateless_functor_0_<F, false> { using type = stateless_functor_wrapper<F>; };
 template <typename F> using stateless_functor_t = typename stateless_functor_0_<F, std::is_default_constructible<F>::value>::type;
 template <typename F> constexpr stateless_functor_t<F> stateless_functor_v = { };
-
-template <typename T> struct is_constval_ : std::disjunction<std::is_base_of<constval_tag, T>, is_integral_constant_<T>> { };
 
 template <typename F>
     struct constval_functor_wrapper : constval_tag

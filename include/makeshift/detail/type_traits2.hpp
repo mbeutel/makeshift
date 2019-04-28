@@ -154,6 +154,11 @@ template <typename T01, typename... Ts> struct equal_types_<T01, T01, Ts...> : e
 
 struct constval_tag { };
 
+template <typename C> struct is_integral_constant_ : std::false_type { };
+template <typename T, T V> struct is_integral_constant_<std::integral_constant<T, V>> : std::true_type { };
+
+template <typename T> struct is_constval_ : std::disjunction<std::is_base_of<constval_tag, T>, is_integral_constant_<T>> { };
+
 
 } // namespace detail
 

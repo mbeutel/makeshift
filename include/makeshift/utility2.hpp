@@ -3,6 +3,7 @@
 #define INCLUDED_MAKESHIFT_UTILITY2_HPP_
 
 
+#include <array>
 #include <cstddef>     // for ptrdiff_t
 #include <utility>     // for move()
 #include <type_traits> // for underlying_type<>, integral_constant<>
@@ -239,18 +240,15 @@ template <typename T, T... Vs>
 
     static constexpr std::size_t size(void) noexcept { return sizeof...(Vs); }
 
-    constexpr array_constant(void) noexcept { }
-
-    MAKESHIFT_NODISCARD constexpr std::array<T, sizeof...(Vs)> operator ()(void) const noexcept
+    MAKESHIFT_NODISCARD constexpr value_type operator ()(void) const noexcept
     {
         return { Vs... };
     }
-    MAKESHIFT_NODISCARD constexpr operator std::array<T, sizeof...(Vs)>(void) const noexcept
+    MAKESHIFT_NODISCARD constexpr operator value_type(void) const noexcept
     {
         return (*this)();
     }
 };
-
 
 template <typename T, T... Vs>
     MAKESHIFT_NODISCARD constexpr array_constant<T,Vs...> make_array_constant(std::integer_sequence<T, Vs...>) noexcept
