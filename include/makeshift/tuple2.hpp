@@ -58,7 +58,7 @@ template <std::size_t N, typename F, typename... Ts>
     tuple_foreach2(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
-    makeshift::detail::tuple_transform_impl0<N, makeshift::detail::transform_target::nothing, void>(std::forward<F>(func), std::forward<Ts>(args)...);
+    makeshift::detail::tuple_transform_impl0<N, makeshift::detail::foreach_tag>(std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
 
@@ -75,7 +75,7 @@ template <typename F, typename... Ts>
     tuple_foreach2(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
-    makeshift::detail::tuple_transform_impl0<-1, makeshift::detail::transform_target::nothing, void>(std::forward<F>(func), std::forward<Ts>(args)...);
+    makeshift::detail::tuple_transform_impl0<-1, makeshift::detail::foreach_tag>(std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
 
@@ -92,7 +92,7 @@ template <std::size_t N, typename F, typename... Ts>
     tuple_transform2(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
-    return makeshift::detail::tuple_transform_impl0<N, makeshift::detail::transform_target::tuple, void>(std::forward<F>(func), std::forward<Ts>(args)...);
+    return makeshift::detail::tuple_transform_impl0<N, makeshift::detail::transform_to_tuple_tag>(std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
 
@@ -109,7 +109,7 @@ template <typename F, typename... Ts>
     tuple_transform2(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
-    return makeshift::detail::tuple_transform_impl0<-1, makeshift::detail::transform_target::tuple, void>(std::forward<F>(func), std::forward<Ts>(args)...);
+    return makeshift::detail::tuple_transform_impl0<-1, makeshift::detail::transform_to_tuple_tag>(std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
 
@@ -126,7 +126,7 @@ template <std::size_t N, typename F, typename... Ts>
     array_transform2(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
-    return makeshift::detail::tuple_transform_impl0<N, makeshift::detail::transform_target::array, void>(std::forward<F>(func), std::forward<Ts>(args)...);
+    return makeshift::detail::tuple_transform_impl0<N, makeshift::detail::transform_to_array_tag>(std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
 
@@ -143,7 +143,7 @@ template <typename T, std::size_t N, typename F, typename... Ts>
     array_transform2(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
-    return makeshift::detail::tuple_transform_impl0<N, makeshift::detail::transform_target::target_typed_array, T>(std::forward<F>(func), std::forward<Ts>(args)...);
+    return makeshift::detail::tuple_transform_impl0<N, makeshift::detail::transform_to_array_of_tag<T>>(std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
 
@@ -160,7 +160,7 @@ template <typename F, typename... Ts>
     array_transform2(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
-    return makeshift::detail::tuple_transform_impl0<-1, makeshift::detail::transform_target::array, void>(std::forward<F>(func), std::forward<Ts>(args)...);
+    return makeshift::detail::tuple_transform_impl0<-1, makeshift::detail::transform_to_array_tag>(std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
 
@@ -177,7 +177,7 @@ template <typename T, typename F, typename... Ts>
     array_transform2(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
-    return makeshift::detail::tuple_transform_impl0<-1, makeshift::detail::transform_target::target_typed_array, T>(std::forward<F>(func), std::forward<Ts>(args)...);
+    return makeshift::detail::tuple_transform_impl0<-1, makeshift::detail::transform_to_array_of_tag<T>>(std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
 
