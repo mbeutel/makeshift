@@ -1,5 +1,6 @@
 
 #include <makeshift/tuple2.hpp>
+#include <makeshift/utility2.hpp> // for index2
 
 #include <catch2/catch.hpp>
 
@@ -38,14 +39,6 @@ TEST_CASE("tuple2", "[flags]")
         auto square = mk::array_transform2([](auto x) { return int(x*x); }, numbers);
         CHECK(square == std::array{ 4, 9 });
     }
-    SECTION("type-seq-transform")
-    {
-        constexpr auto moreNumbers = std::tuple{ 4.0, 9 };
-        constexpr auto sum = mk::type_sequence_transform2(
-            [](auto x, auto y) { return x + y; },
-            numbers, moreNumbers);
-        CHECK(std::is_same<std::remove_const_t<decltype(sum)>, mk::type_sequence2<double, unsigned>>::value);
-    }
     SECTION("fold")
     {
         int sum = mk::tuple_reduce(numbers, 0, std::plus<int>{ });
@@ -72,5 +65,15 @@ TEST_CASE("tuple2", "[flags]")
         auto moreNumbers = std::array{ 6, 8 };
         auto allNumbers = mk::array_cat<int>(homogeneousNumbers, moreNumbers);
         CHECK(allNumbers == std::array{ 2, 3, 6, 8 });
+
+        std::array<double, 2> intSquares = mk::array_transform2<double>(
+            [](auto x) { return x*x; },
+            std::make_tuple(2.0, 3.0f));
+        CHECK(intSquares == std::array{ 4.0, 9.0 });
+
+        std::array<double, 3> gridCoords = mk::array_transform2<double, 3>(
+            [dx=1.0](mk::index2 i) { return i*dx; },
+            mk::tuple_index);
+        CHECK(gridCoords == std::array{ 0.0, 1.0, 2.0 });
     }
 }
