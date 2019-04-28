@@ -9,7 +9,7 @@
 #include <utility>     // for move(), forward<>(), get<>
 #include <type_traits> // for enable_if<>, decay<>, integral_constant<>, index_sequence<>
 
-#include <makeshift/type_traits.hpp> // for can_apply<>
+#include <makeshift/type_traits.hpp> // for can_instantiate<>
 #include <makeshift/tuple.hpp>       // for is_tuple_like<>
 #include <makeshift/variant2.hpp>    // for is_variant_like<>
 

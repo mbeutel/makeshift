@@ -6,7 +6,7 @@
 #include <functional>  // for invoke()
 #include <type_traits> // for declval<>(), decay<>, is_member_object_pointer<>
 
-#include <makeshift/type_traits.hpp> // for can_apply<>
+#include <makeshift/type_traits.hpp> // for can_instantiate<>
 #include <makeshift/functional.hpp>  // for is_callable<>
 #include <makeshift/utility.hpp>     // for define_flags<>
 #include <makeshift/tuple.hpp>

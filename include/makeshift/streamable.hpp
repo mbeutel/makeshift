@@ -124,8 +124,8 @@ template <typename T, typename SerializerT>
     //ᅟ
     // Determines whether the given type can be written to a `std::ostream` with the given serializer type.
     //
-template <typename T, typename SerializerT = void> struct is_ostreamable : can_apply<makeshift::detail::is_ostreamable_r, T, SerializerT> { };
-template <typename T> struct is_ostreamable<T, void> : can_apply<makeshift::detail::have_ostream_operator_r, T> { };
+template <typename T, typename SerializerT = void> struct is_ostreamable : can_instantiate<makeshift::detail::is_ostreamable_r, T, SerializerT> { };
+template <typename T> struct is_ostreamable<T, void> : can_instantiate<makeshift::detail::have_ostream_operator_r, T> { };
 
     //ᅟ
     // Determines whether the given type can be written to a `std::ostream` with the given serializer type.
@@ -135,8 +135,8 @@ template <typename T, typename SerializerT = void> constexpr bool is_ostreamable
     //ᅟ
     // Determines whether the given type can be read from a `std::istream` with the given serializer type.
     //
-template <typename T, typename SerializerT = void> struct is_istreamable : can_apply<makeshift::detail::is_istreamable_r, T, SerializerT>{ };
-template <typename T> struct is_istreamable<T, void> : can_apply<makeshift::detail::have_istream_operator_r, T>{ };
+template <typename T, typename SerializerT = void> struct is_istreamable : can_instantiate<makeshift::detail::is_istreamable_r, T, SerializerT>{ };
+template <typename T> struct is_istreamable<T, void> : can_instantiate<makeshift::detail::have_istream_operator_r, T>{ };
 
     //ᅟ
     // Determines whether the given type can be read from a `std::istream` with the given serializer type.

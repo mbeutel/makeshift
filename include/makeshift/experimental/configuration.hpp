@@ -83,7 +83,7 @@ public:
 
 
 template <typename T> using can_call_r = decltype(&T::operator ());
-template <typename T> using can_call = can_apply<can_call_r, T>;
+template <typename T> using can_call = can_instantiate<can_call_r, T>;
 template <typename T> constexpr bool can_call_v = can_call<T>::value;
 
 template <typename F> struct call_sig_0_;

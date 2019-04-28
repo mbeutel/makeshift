@@ -7,7 +7,7 @@
 #include <functional>  // for hash<>
 #include <type_traits> // for is_default_constructible<>
 
-#include <makeshift/type_traits.hpp> // for can_apply<>
+#include <makeshift/type_traits.hpp> // for can_instantiate<>
 
 #include <makeshift/detail/utility_chainable.hpp> // for define_chainable<>
 #include <makeshift/detail/metadata.hpp>          // for have_metadata<>
@@ -49,7 +49,7 @@ template <typename MetadataTagT = reflection_tag> constexpr metadata_tag_for_com
     // Retrieves the metadata tag to be used for metadata-based comparers.
     // Defaults to `reflection_tag` if the user did not override the tag by chaining with a `metadata_tag_of_comparer<>`.
     //
-template <typename ComparerT> struct metadata_tag_of_comparer : std::conditional_t<can_apply_v<makeshift::detail::metadata_tag_rt, ComparerT>, makeshift::detail::metadata_tag_r<ComparerT>, tag<reflection_tag>> { };
+template <typename ComparerT> struct metadata_tag_of_comparer : std::conditional_t<can_instantiate_v<makeshift::detail::metadata_tag_rt, ComparerT>, makeshift::detail::metadata_tag_r<ComparerT>, tag<reflection_tag>> { };
 
     //ᅟ
     // Retrieves the metadata tag to be used for metadata-based comparers.

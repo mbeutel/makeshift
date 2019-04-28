@@ -27,7 +27,7 @@ template <typename T, typename MetadataTagT> using metadata_of_t = decltype(refl
     //ᅟ
     // Determines whether there is metadata for the given type and the given tag.
     //
-template <typename T, typename MetadataTagT> struct have_metadata : can_apply<metadata_of_t, T, MetadataTagT> { };
+template <typename T, typename MetadataTagT> struct have_metadata : can_instantiate<metadata_of_t, T, MetadataTagT> { };
 
     //ᅟ
     // Determines whether there is metadata for the given type and the given tag.

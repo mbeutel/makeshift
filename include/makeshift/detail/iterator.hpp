@@ -11,7 +11,7 @@
 #include <gsl/gsl_assert> // for Expects()
 
 #include <makeshift/constval.hpp>     // for is_constval<>
-#include <makeshift/type_traits2.hpp> // for can_apply<>
+#include <makeshift/type_traits2.hpp> // for can_instantiate<>
 #include <makeshift/version.hpp>      // for MAKESHIFT_NODISCARD
 
 
@@ -88,7 +88,7 @@ template <typename ContainerT, template <typename, typename> class RangeT>
     using It = decltype(std::declval<ContainerT>().begin());
     using type = fixed_random_access_range<It, std::tuple_size<ContainerT>::value>;
 };
-template <typename ContainerT, template <typename, typename> class RangeT> struct range_by_container_ : range_by_container_0_<ContainerT, RangeT, can_apply_v<has_static_size_r, ContainerT>> { };
+template <typename ContainerT, template <typename, typename> class RangeT> struct range_by_container_ : range_by_container_0_<ContainerT, RangeT, can_instantiate_v<has_static_size_r, ContainerT>> { };
 
 template <typename It, typename ExtentC, template <typename, typename> class RangeT, bool IsConstval> struct range_by_extent_0_;
 template <typename It, typename ExtentC, template <typename, typename> class RangeT> struct range_by_extent_0_<It, ExtentC, RangeT, false> { using type = RangeT<It, It>; };

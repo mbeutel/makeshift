@@ -9,7 +9,7 @@
 #include <cstddef>     // for size_t
 #include <tuple>
 
-#include <makeshift/type_traits.hpp> // for tag<>, can_apply<>, is_flags_enum<>, type_flags
+#include <makeshift/type_traits.hpp> // for tag<>, can_instantiate<>, is_flags_enum<>, type_flags
 
 #include <makeshift/detail/metadata.hpp>
 

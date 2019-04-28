@@ -149,25 +149,13 @@ using dim2 = std::ptrdiff_t;
     //ᅟ
     // Represents an index constexpr value.
     //
-template <index2 Value> using index2_c = std::integral_constant<index2, Value>;
+template <index2 Value> using index2_constant = std::integral_constant<index2, Value>;
 
 
     //ᅟ
     // Represents a dimension constexpr value.
     //
-template <dim2 Value> using dim2_c = std::integral_constant<dim2, Value>;
-
-
-    //ᅟ
-    // Represents an index constexpr value.
-    //
-template <index2 Value> constexpr index2_c<Value> index2_v{ };
-
-
-    //ᅟ
-    // Represents a dimension constexpr value.
-    //
-template <dim2 Value> constexpr dim2_c<Value> dim2_v{ };
+template <dim2 Value> using dim2_constant = std::integral_constant<dim2, Value>;
 
 
     //ᅟ
@@ -208,7 +196,7 @@ template <typename T, std::ptrdiff_t N>
 template <typename ContainerT>
     MAKESHIFT_NODISCARD constexpr auto csize(const ContainerT& c)
 {
-    return csize_impl(can_apply<makeshift::detail::has_constval_size_r, ContainerT>{ }, c);
+    return csize_impl(can_instantiate<makeshift::detail::has_constval_size_r, ContainerT>{ }, c);
 }
 template <typename T, std::size_t N>
     MAKESHIFT_NODISCARD constexpr std::integral_constant<std::size_t, N> csize(const T (&)[N]) noexcept
@@ -223,7 +211,7 @@ template <typename T, std::size_t N>
 template <typename ContainerT>
     MAKESHIFT_NODISCARD constexpr auto cssize(const ContainerT& c)
 {
-    return cssize_impl(can_apply<makeshift::detail::has_constval_size_r, ContainerT>{ }, c);
+    return cssize_impl(can_instantiate<makeshift::detail::has_constval_size_r, ContainerT>{ }, c);
 }
 template <typename T, std::ptrdiff_t N>
     MAKESHIFT_NODISCARD constexpr std::integral_constant<std::ptrdiff_t, N> cssize(const T (&)[N]) noexcept

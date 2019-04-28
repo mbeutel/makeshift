@@ -9,7 +9,7 @@
 #include <utility>     // for move(), forward<>(), integer_sequence<>, tuple_element<>, tuple_size<>, get<>()
 #include <type_traits> // for decay<>, integral_constant<>, conjunction<>, disjunction<>
 
-#include <makeshift/type_traits2.hpp> // for can_apply<>, type<>, type_sequence2<>
+#include <makeshift/type_traits2.hpp> // for can_instantiate<>, type<>, type_sequence2<>
 
 #include <makeshift/detail/workaround.hpp> // for cand<>()
 
@@ -50,7 +50,7 @@ namespace detail
 {
 
 
-template <typename T> struct is_tuple_arg : std::disjunction<std::is_same<std::decay_t<T>, tuple_index_t>, can_apply<is_tuple_like_r, std::decay_t<T>>> { };
+template <typename T> struct is_tuple_arg : std::disjunction<std::is_same<std::decay_t<T>, tuple_index_t>, can_instantiate<is_tuple_like_r, std::decay_t<T>>> { };
 template <typename T> constexpr bool is_tuple_arg_v = is_tuple_arg<T>::value;
 
 template <typename... Ts> struct are_tuple_args : std::conjunction<is_tuple_arg<Ts>...> { };

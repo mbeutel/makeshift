@@ -137,7 +137,7 @@ template <typename MetadataTagT = serialization_tag> constexpr metadata_tag_for_
     // Retrieves the metadata tag to be used for metadata-based serializers.
     // Defaults to `serialization_tag` if the user did not override the tag by chaining with a `metadata_tag_for_serializer<>`.
     //
-template <typename SerializerT> struct metadata_tag_of_serializer : std::conditional_t<can_apply_v<makeshift::detail::metadata_tag_rt, SerializerT>, makeshift::detail::metadata_tag_r<SerializerT>, tag<serialization_tag>> { };
+template <typename SerializerT> struct metadata_tag_of_serializer : std::conditional_t<can_instantiate_v<makeshift::detail::metadata_tag_rt, SerializerT>, makeshift::detail::metadata_tag_r<SerializerT>, tag<serialization_tag>> { };
 
     //ᅟ
     // Retrieves the metadata tag to be used for metadata-based serializers.

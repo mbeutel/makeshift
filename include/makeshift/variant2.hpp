@@ -24,7 +24,7 @@ inline namespace types
     //ᅟ
     // Determines whether a type has a variant-like interface (i.e. whether `std::variant_size<T>::value` is well-formed).
     //
-template <typename T> struct is_variant_like : can_apply<makeshift::detail::is_variant_like_r, T> { };
+template <typename T> struct is_variant_like : can_instantiate<makeshift::detail::is_variant_like_r, T> { };
 
     //ᅟ
     // Determines whether a type has a variant-like interface (i.e. whether `std::variant_size<T>::value` is well-formed).

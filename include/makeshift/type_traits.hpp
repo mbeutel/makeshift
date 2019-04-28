@@ -375,12 +375,6 @@ struct any_tag
     template <typename T> constexpr any_tag(const T&) noexcept { }
 };
 
-
-    //ᅟ
-    // Encodes a value in a type.
-    //
-template <auto V, typename = decltype(V)> using constant = std::integral_constant<decltype(V), V>;
-
     //ᅟ
     // Encodes a value in the type of the expression.
     //

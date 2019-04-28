@@ -11,7 +11,7 @@
 #include <gsl/gsl_assert> // for Expects(), Ensures()
 #include <gsl/pointers>   // for not_null<>
 
-#include <makeshift/type_traits.hpp> // for can_apply<>
+#include <makeshift/type_traits.hpp> // for can_instantiate<>
 
 
 
@@ -228,7 +228,7 @@ namespace detail
 
     // SFINAE helpers for polymorphic_cast<>()
 template <typename DstT, typename SrcT> using can_static_cast_r = decltype(static_cast<DstT>(std::declval<SrcT>()));
-template <typename DstT, typename SrcT> using can_static_cast = can_apply<can_static_cast_r, DstT, SrcT>;
+template <typename DstT, typename SrcT> using can_static_cast = can_instantiate<can_static_cast_r, DstT, SrcT>;
 template <typename DstT, typename SrcT> constexpr bool can_static_cast_v = can_static_cast<DstT, SrcT>::value;
 
 template <typename DstT, typename SrcT>

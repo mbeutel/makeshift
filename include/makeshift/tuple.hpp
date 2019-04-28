@@ -9,7 +9,7 @@
 #include <utility>     // for move(), forward<>(), tuple_element<>, tuple_size<>, get<>
 #include <type_traits> // for decay<>, integral_constant<>, index_sequence<>, is_nothrow_default_constructible<>
 
-#include <makeshift/type_traits.hpp> // for can_apply<>, none
+#include <makeshift/type_traits.hpp> // for can_instantiate<>, none
 #include <makeshift/tuple2.hpp>      // for is_tuple_like<>, tuple_index
 
 #include <makeshift/detail/workaround.hpp> // for cand()

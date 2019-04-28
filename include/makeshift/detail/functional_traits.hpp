@@ -6,7 +6,7 @@
 #include <utility>     // for forward<>()
 #include <type_traits> // for is_function<>, is_member_function_pointer<>, is_member_object_pointer<>, integral_constant<>
 
-#include <makeshift/type_traits.hpp> // for can_apply<>
+#include <makeshift/type_traits.hpp> // for can_instantiate<>
 
 
 namespace makeshift
@@ -42,7 +42,7 @@ inline namespace types
     //ᅟ
     // Determines whether the given type is a functor (i.e. a class with non-ambiguous `operator ()`).
     //
-template <typename F> struct is_functor : can_apply<makeshift::detail::is_functor_r, F> { };
+template <typename F> struct is_functor : can_instantiate<makeshift::detail::is_functor_r, F> { };
 
     //ᅟ
     // Determines whether the given type is a functor (i.e. a class with non-ambiguous `operator ()`).

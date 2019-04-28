@@ -7,7 +7,7 @@
 
 #include <gsl/gsl_assert> // for Expects()
 
-#include <makeshift/type_traits2.hpp> // for can_apply<>
+#include <makeshift/type_traits2.hpp> // for can_instantiate<>
 #include <makeshift/version.hpp>      // for MAKESHIFT_NODISCARD
 
 #include <makeshift/detail/constval.hpp>
@@ -60,7 +60,7 @@ template <typename C>
     constexpr constval_t<C> make_constval(const C&)
 {
     static_assert(std::is_empty<C>::value, "argument must be stateless");
-    static_assert(can_apply_v<makeshift::detail::is_constexpr_functor_r, C>, "argument must be constexpr function object");
+    static_assert(can_instantiate_v<makeshift::detail::is_constexpr_functor_r, C>, "argument must be constexpr function object");
 
     return { };
 }

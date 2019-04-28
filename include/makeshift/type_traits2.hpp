@@ -69,13 +69,12 @@ template <typename T, typename... Ts> constexpr std::size_t index_of_type_v = in
     //ᅟ
     // Determines whether the template instantiation `Z<Ts...>` would be valid. Useful for expression SFINAE.
     //
-    // TODO: rename to can_specialize?
-template <template <typename...> class Z, typename... Ts> struct can_apply : makeshift::detail::can_apply_1_<Z, void, Ts...> { };
+template <template <typename...> class Z, typename... Ts> struct can_instantiate : makeshift::detail::can_instantiate_<Z, void, Ts...> { };
 
     //ᅟ
     // Determines whether the template instantiation `Z<Ts...>` would be valid. Useful for expression SFINAE.
     //
-template <template <typename...> class Z, typename... Ts> constexpr bool can_apply_v = can_apply<Z, Ts...>::value;
+template <template <typename...> class Z, typename... Ts> constexpr bool can_instantiate_v = can_instantiate<Z, Ts...>::value;
 
 
     //ᅟ
@@ -107,6 +106,12 @@ template <typename... Ts>
 {
     return { };
 }
+
+
+    //ᅟ
+    // Encodes a value in a type.
+    //
+template <auto V> using constant = std::integral_constant<decltype(V), V>;
 
 
 } // inline namespace types
@@ -209,7 +214,7 @@ template <typename T, template <typename...> class U> constexpr bool is_instanti
     //ᅟ
     // Determines whether the given type is iterable, i.e. functions `begin()` and `end()` are well-defined for arguments of type `T`.
     //
-template <typename T> struct is_iterable : can_apply<makeshift::detail::is_iterable_ns::is_iterable_r, T> { };
+template <typename T> struct is_iterable : can_instantiate<makeshift::detail::is_iterable_ns::is_iterable_r, T> { };
 
     //ᅟ
     // Determines whether the given type is iterable, i.e. functions `begin()` and `end()` are well-defined for arguments of type `T`.
@@ -231,7 +236,7 @@ template <typename T> using flag_type_of_t = typename flag_type_of<T>::type;
     //ᅟ
     // Determines whether the given type is a flags enum.
     //
-template <typename T> struct is_flags_enum : std::conjunction<std::is_enum<T>, can_apply<flag_type_of, T>> { };
+template <typename T> struct is_flags_enum : std::conjunction<std::is_enum<T>, can_instantiate<flag_type_of, T>> { };
 
     //ᅟ
     // Determines whether the given type is a flags enum.

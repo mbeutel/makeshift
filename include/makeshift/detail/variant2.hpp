@@ -728,7 +728,7 @@ template <typename T>
 template <typename T>
     constexpr decltype(auto) maybe_expand(T&& arg)
 {
-    constexpr bool isVariantLike = can_apply_v<is_variant_like_r, std::decay_t<T>>;
+    constexpr bool isVariantLike = can_instantiate_v<is_variant_like_r, std::decay_t<T>>;
     constexpr bool isExpandable = std::is_base_of<values_tag, metadata2_of<std::decay_t<T>>>::value;
     static_assert(isVariantLike || isExpandable, "arguments of visit() must be either variants or implicitly expandable");
 

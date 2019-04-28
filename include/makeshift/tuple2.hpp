@@ -9,7 +9,7 @@
 #include <utility>     // for forward<>()
 #include <type_traits> // for decay<>
 
-#include <makeshift/type_traits2.hpp> // for can_apply<>
+#include <makeshift/type_traits2.hpp> // for can_instantiate<>
 #include <makeshift/version.hpp>      // for MAKESHIFT_NODISCARD
 
 #include <makeshift/detail/tuple2.hpp>
@@ -25,7 +25,7 @@ inline namespace types
     //ᅟ
     // Determines whether a type has a tuple-like interface (i.e. whether `std::tuple_size<T>::value` is well-formed).
     //
-template <typename T> struct is_tuple_like : can_apply<makeshift::detail::is_tuple_like_r, T> { };
+template <typename T> struct is_tuple_like : can_instantiate<makeshift::detail::is_tuple_like_r, T> { };
 
     //ᅟ
     // Determines whether a type has a tuple-like interface (i.e. whether `std::tuple_size<T>::value` is well-formed).

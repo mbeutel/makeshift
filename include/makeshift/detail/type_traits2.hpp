@@ -36,8 +36,8 @@ struct unwrap_enum_tag { };
 
 
 template <typename...> using void_t = void; // ICC doesn't have std::void_t<> yet
-template <template <typename...> class, typename, typename...> struct can_apply_1_ : std::false_type { };
-template <template <typename...> class Z, typename... Ts> struct can_apply_1_<Z, void_t<Z<Ts...>>, Ts...> : std::true_type { };
+template <template <typename...> class, typename, typename...> struct can_instantiate_ : std::false_type { };
+template <template <typename...> class Z, typename... Ts> struct can_instantiate_<Z, void_t<Z<Ts...>>, Ts...> : std::true_type { };
 
 
     // taken from http://ldionne.com/2015/11/29/efficient-parameter-pack-indexing/

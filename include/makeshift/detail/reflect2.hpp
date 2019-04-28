@@ -8,7 +8,7 @@
 #include <cstdint>     // for [u]int[8|16|32|64]_t
 #include <type_traits> // for is_base_of<>, integral_constant<>, conjunction<>, disjunction<>
 
-#include <makeshift/type_traits2.hpp> // for can_apply<>, type<>
+#include <makeshift/type_traits2.hpp> // for can_instantiate<>, type<>
 #include <makeshift/metadata2.hpp>    // for named_t<>
 #include <makeshift/tuple2.hpp>       // for array_transform2()
 #include <makeshift/version.hpp>      // for MAKESHIFT_EMPTY_BASES
@@ -22,7 +22,7 @@ namespace detail
 
 
 template <typename T> using declared_metadata_t = decltype(reflect(type_t<T>{ }));
-template <typename T> struct declares_metadata : can_apply<makeshift::detail::declared_metadata_t, T> { };
+template <typename T> struct declares_metadata : can_instantiate<makeshift::detail::declared_metadata_t, T> { };
 
 
 template <typename NewParamsT, typename OldParamsT>
