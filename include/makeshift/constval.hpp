@@ -36,6 +36,17 @@ template <typename T> constexpr bool is_constval_v = is_constval<T>::value;
 
 
     //ᅟ
+    // Determines whether the given type `T` is a constexpr value returning the type `R`.
+    //
+template <typename T, typename R> struct is_constval_of_type : makeshift::detail::is_constval_of_type_<T, R> { };
+
+    //ᅟ
+    // Determines whether the given type `T` is a constexpr value returning the type `R`.
+    //
+template <typename T, typename R> constexpr bool is_constval_of_type_v = is_constval_of_type<T, R>::value;
+
+
+    //ᅟ
     // A constexpr value type representing the given constexpr function object type.
     //ᅟ
     // If the value type of the constexpr value is valid as a non-type template parameter, the result type is guaranteed to be an instantiation of `std::integral_constant<>`.

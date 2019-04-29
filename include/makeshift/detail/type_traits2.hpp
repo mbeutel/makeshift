@@ -159,6 +159,9 @@ template <typename T, T V> struct is_integral_constant_<std::integral_constant<T
 
 template <typename T> struct is_constval_ : std::disjunction<std::is_base_of<constval_tag, T>, is_integral_constant_<T>> { };
 
+template <typename C, typename R> struct is_nullary_functor_of_type_ : std::is_same<R, decltype(std::declval<C>()())> { };
+template <typename T, typename R> struct is_constval_of_type_ : std::conjunction<is_constval_<T>, is_nullary_functor_of_type_<T, R>> { };
+
 
 } // namespace detail
 
