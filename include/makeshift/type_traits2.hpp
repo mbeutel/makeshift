@@ -7,7 +7,7 @@
 #include <utility>     // for tuple_size<>, tuple_element<>
 #include <type_traits> // for integral_constant<>, declval<>(), conjunction<>, is_enum<>, is_same<>
 
-#include <makeshift/version.hpp> // for MAKESHIFT_NODISCARD
+#include <makeshift/version.hpp> // for MAKESHIFT_NODISCARD, MAKESHIFT_CXX17
 
 #include <makeshift/detail/type_traits2.hpp>
 
@@ -81,13 +81,13 @@ template <template <typename...> class Z, typename... Ts> constexpr bool can_ins
     // Type sequence, i.e. tuple without runtime value representation.
     //
 template <typename... Ts>
-    struct type_sequence2
+    struct type_sequence
 {
-    constexpr type_sequence2(void) noexcept = default;
-    constexpr type_sequence2(makeshift::detail::type_t<Ts>...) noexcept { }
+    constexpr type_sequence(void) noexcept = default;
+    constexpr type_sequence(makeshift::detail::type_t<Ts>...) noexcept { }
 };
 template <>
-    struct type_sequence2<>
+    struct type_sequence<>
 {
 };
 
@@ -95,23 +95,30 @@ template <>
     //ᅟ
     // Type sequence, i.e. tuple without runtime value representation.
     //
-template <typename... Ts> constexpr inline type_sequence2<Ts...> type_sequence2_v { };
+template <typename... Ts> constexpr inline type_sequence<Ts...> type_sequence_v { };
 
 
     //ᅟ
     // Return a type sequence that represents the types of the given values.
     //
 template <typename... Ts>
-    constexpr type_sequence2<Ts...> make_type_sequence2(type<Ts>...) noexcept
+    constexpr type_sequence<Ts...> make_type_sequence(type<Ts>...) noexcept
 {
     return { };
 }
 
 
+#ifdef MAKESHIFT_CXX17
     //ᅟ
     // Encodes a value in a type.
     //
 template <auto V> using constant = std::integral_constant<decltype(V), V>;
+
+    //ᅟ
+    // Encodes a value in a type.
+    //
+template <auto V> constexpr constant<V> c{ };
+#endif // MAKESHIFT_CXX17
 
 
 } // inline namespace types
@@ -170,7 +177,7 @@ inline namespace types
     // Returns the `I`-th element in the type sequence.
     //
 template <std::size_t I, typename... Ts>
-    constexpr type<nth_type_t<I, Ts...>> get(const type_sequence2<Ts...>&) noexcept
+    constexpr type<nth_type_t<I, Ts...>> get(const type_sequence<Ts...>&) noexcept
 {
     static_assert(I < sizeof...(Ts), "tuple index out of range");
     return { };
@@ -180,7 +187,7 @@ template <std::size_t I, typename... Ts>
     // Returns the type sequence element of type `T`.
     //
 template <typename T, typename... Ts>
-    constexpr type<T> get(const type_sequence2<Ts...>&) noexcept
+    constexpr type<T> get(const type_sequence<Ts...>&) noexcept
 {
 	constexpr std::size_t index = try_index_of_type_v<T, Ts...>;
     static_assert(index != std::size_t(-1), "type T does not appear in type sequence");
@@ -191,12 +198,12 @@ template <typename T, typename... Ts>
     //ᅟ
     // Concatenates a sequence of type sequences.
     //
-template <typename... Ts> struct type_sequence2_cat : makeshift::detail::type_sequence_cat_<type_sequence2<>, Ts...> { };
+template <typename... Ts> struct type_sequence_cat : makeshift::detail::type_sequence_cat_<type_sequence<>, Ts...> { };
 
     //ᅟ
     // Concatenates a sequence of type sequences.
     //
-template <typename... Ts> using type_sequence2_cat_t = typename type_sequence2_cat<Ts...>::type;
+template <typename... Ts> using type_sequence_cat_t = typename type_sequence_cat<Ts...>::type;
 
 
     //ᅟ
@@ -254,8 +261,8 @@ namespace std
 
 
     // Specialize `tuple_size<>` and `tuple_element<>` for `type_sequence<>`.
-template <typename... Ts> class tuple_size<makeshift::type_sequence2<Ts...>> : public std::integral_constant<std::size_t, sizeof...(Ts)> { };
-template <std::size_t I, typename... Ts> class tuple_element<I, makeshift::type_sequence2<Ts...>> { using type = makeshift::type<makeshift::nth_type_t<I, Ts...>>; };
+template <typename... Ts> class tuple_size<makeshift::type_sequence<Ts...>> : public std::integral_constant<std::size_t, sizeof...(Ts)> { };
+template <std::size_t I, typename... Ts> class tuple_element<I, makeshift::type_sequence<Ts...>> { using type = makeshift::type<makeshift::nth_type_t<I, Ts...>>; };
 
 
 } // namespace std

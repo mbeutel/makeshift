@@ -29,7 +29,7 @@ template <typename NewParamsT, typename OldParamsT>
     struct override_params_1_
 {
     using new_categories = typename NewParamsT::parameter_categories;
-    using all_categories = typename unique_sequence_<type_sequence2_cat_t<typename NewParamsT::parameter_categories, typename OldParamsT::parameter_categories>>::type;
+    using all_categories = typename unique_sequence_<type_sequence_cat_t<typename NewParamsT::parameter_categories, typename OldParamsT::parameter_categories>>::type;
 
     template <typename CategoryT>
         constexpr static const NewParamsT& select_impl(std::true_type /*fromNew*/, const NewParamsT& newMetadata, const OldParamsT&)
@@ -51,16 +51,16 @@ template <typename NewParamsT, typename OldParamsT>
 template <typename NewParamsT, typename OldParamsT, typename CategoriesT>
     struct override_params_2_;
 template <typename NewParamsT, typename OldParamsT, typename... CategoriesT>
-    struct override_params_2_<NewParamsT, OldParamsT, type_sequence2<CategoriesT...>>
+    struct override_params_2_<NewParamsT, OldParamsT, type_sequence<CategoriesT...>>
 {
     using OP1 = override_params_1_<NewParamsT, OldParamsT>;
-    using all_parameters = type_sequence2<std::decay_t<decltype(select_parameter(OP1::template select<CategoriesT>(std::declval<const NewParamsT&>(), std::declval<const OldParamsT&>()), CategoriesT{ }))>...>;
+    using all_parameters = type_sequence<std::decay_t<decltype(select_parameter(OP1::template select<CategoriesT>(std::declval<const NewParamsT&>(), std::declval<const OldParamsT&>()), CategoriesT{ }))>...>;
 };
 
 template <typename NewParamsT, typename OldParamsT, typename CategoriesT, typename ParametersT>
     struct override_params_0_;
 template <typename NewParamsT, typename OldParamsT, typename... CategoriesT, typename... ParametersT>
-    struct MAKESHIFT_EMPTY_BASES override_params_0_<NewParamsT, OldParamsT, type_sequence2<CategoriesT...>, type_sequence2<ParametersT...>>
+    struct MAKESHIFT_EMPTY_BASES override_params_0_<NewParamsT, OldParamsT, type_sequence<CategoriesT...>, type_sequence<ParametersT...>>
         : ParametersT...
 {
     constexpr override_params_0_(const NewParamsT& newMetadata, const OldParamsT& oldMetadata)
@@ -85,7 +85,7 @@ template <typename NewParamsT, typename OldParamsT>
 template <typename T, typename = void>
     struct default_metadata
 {
-    using parameter_categories = type_sequence2<>;
+    using parameter_categories = type_sequence<>;
 };
 template <typename T>
     struct default_metadata<type_t<T>>
@@ -98,10 +98,10 @@ template <typename T>
 };
 template <typename TypeEnumT>
     struct default_metadata<TypeEnumT, std::enable_if_t<std::is_base_of<type_enum_base, TypeEnumT>::value>>
-        : heterogeneous_values_t<typename apply_<type_sequence2, typename TypeEnumT::types>::type>
+        : heterogeneous_values_t<typename apply_<type_sequence, typename TypeEnumT::types>::type>
 {
 private:
-    using base = heterogeneous_values_t<typename apply_<type_sequence2, typename TypeEnumT::types>::type>;
+    using base = heterogeneous_values_t<typename apply_<type_sequence, typename TypeEnumT::types>::type>;
 
 public:
     constexpr default_metadata(void)
@@ -118,7 +118,7 @@ template <> struct default_metadata<std::int64_t> : name_t { constexpr default_m
 template <>
     struct default_metadata<bool> : name_t, values_t<bool, 2, name_t>
 {
-    using parameter_categories = type_sequence2<name_tag, values_tag>;
+    using parameter_categories = type_sequence<name_tag, values_tag>;
 
     constexpr default_metadata(void)
         : name_t("bool"),

@@ -10,7 +10,7 @@
 
 #include <gsl/gsl_assert> // for Expects()
 
-#include <makeshift/utility2.hpp> // for dim2
+#include <makeshift/utility2.hpp> // for dim
 #include <makeshift/constval.hpp> // for constval<>
 
 
@@ -105,7 +105,7 @@ public:
     }
 };
 
-template <typename T, dim2 Extent, dim2 MaxExtent = -1>
+template <typename T, dim Extent, dim MaxExtent = -1>
     class static_buffer_base : public buffer_interface_mixin<T, static_buffer_base<T, Extent, MaxExtent>>
 {
     static_assert(Extent >= 0, "buffer extent must be non-negative");
@@ -153,7 +153,7 @@ public:
         return data_.data();
     }
 };
-template <typename T, dim2 MaxExtent>
+template <typename T, dim MaxExtent>
     class static_buffer_base<T, -1, MaxExtent> : public buffer_interface_mixin<T, static_buffer_base<T, -1, MaxExtent>>
 {
 private:
@@ -181,7 +181,7 @@ public:
     }
 };
 
-template <typename T, dim2 BufExtent>
+template <typename T, dim BufExtent>
     class dynamic_buffer_base : public buffer_interface_mixin<T, dynamic_buffer_base<T, BufExtent>>
 {
 private:
@@ -285,7 +285,7 @@ enum class memory_location
     never_on_stack
 };
 
-static constexpr memory_location determine_memory_location(dim2 bufExtent, dim2 maxStaticBufferExtent) noexcept
+static constexpr memory_location determine_memory_location(dim bufExtent, dim maxStaticBufferExtent) noexcept
 {
     if (maxStaticBufferExtent < 0)
         return bufExtent < 0 ? memory_location::never_on_stack : memory_location::always_on_stack;
@@ -299,9 +299,9 @@ static constexpr memory_location determine_memory_location(dim2 bufExtent, dim2 
 }
 
 
-template <typename T, dim2 Extent, dim2 MaxStaticBufferExtent, memory_location MemoryLocation>
+template <typename T, dim Extent, dim MaxStaticBufferExtent, memory_location MemoryLocation>
     class buffer_base;
-template <typename T, dim2 Extent, dim2 MaxStaticBufferExtent>
+template <typename T, dim Extent, dim MaxStaticBufferExtent>
     class buffer_base<T, Extent, MaxStaticBufferExtent, memory_location::always_on_stack>
         : public static_buffer_base<T, Extent>
 {
@@ -311,7 +311,7 @@ private:
 public:
     using _base::_base;
 };
-template <typename T, dim2 Extent, dim2 MaxStaticBufferExtent>
+template <typename T, dim Extent, dim MaxStaticBufferExtent>
     class buffer_base<T, Extent, MaxStaticBufferExtent, memory_location::dynamic>
         : public dynamic_buffer_base<T, MaxStaticBufferExtent>
 {
@@ -321,7 +321,7 @@ private:
 public:
     using _base::_base;
 };
-template <typename T, dim2 Extent, dim2 MaxStaticBufferExtent>
+template <typename T, dim Extent, dim MaxStaticBufferExtent>
     class buffer_base<T, Extent, MaxStaticBufferExtent, memory_location::never_on_stack>
         : public dynamic_buffer_base<T, 0>
 {
@@ -332,7 +332,7 @@ public:
     using _base::_base;
 };
 
-template <typename T, dim2 Extent = -1, dim2 MaxStaticBufferExtent = -1>
+template <typename T, dim Extent = -1, dim MaxStaticBufferExtent = -1>
     class buffer
         : public buffer_base<T, Extent, MaxStaticBufferExtent, makeshift::detail::determine_memory_location(Extent, MaxStaticBufferExtent)>
 {
@@ -341,7 +341,7 @@ private:
 
     struct check_size_functor
     {
-        constexpr bool operator ()(dim2 size) const noexcept
+        constexpr bool operator ()(dim size) const noexcept
         {
             return size >= 0
                 && (Extent == -1 || size == Extent);
@@ -355,7 +355,7 @@ public:
     {
         makeshift::constval_assert(makeshift::constval_transform(check_size_functor{ }, _size));
     }
-    template <dim2 RExtent, typename U>
+    template <dim RExtent, typename U>
         constexpr buffer(U (&&array)[RExtent])
             : _base(RExtent)
     {
@@ -363,7 +363,7 @@ public:
         static_assert(std::is_convertible<U, T>::value, "incompatible array element types");
         std::copy(std::make_move_iterator(array), std::make_move_iterator(array + RExtent), this->begin());
     }
-    template <dim2 RExtent, typename U>
+    template <dim RExtent, typename U>
         constexpr buffer& operator =(U (&&array)[RExtent])
     {
         static_assert(Extent == -1 || RExtent == Extent, "array extent does not match");
@@ -374,7 +374,7 @@ public:
     }
 };
 
-template <typename T, dim2 Extent, dim2 MaxBufferExtent>
+template <typename T, dim Extent, dim MaxBufferExtent>
     class fixed_buffer
         : public static_buffer_base<T, Extent, MaxBufferExtent>
 {
@@ -386,7 +386,7 @@ private:
 
     struct check_size_functor
     {
-        constexpr bool operator ()(dim2 size) const noexcept
+        constexpr bool operator ()(dim size) const noexcept
         {
             return size >= 0
                 && (Extent == -1 || size == Extent)
@@ -401,7 +401,7 @@ public:
     {
         makeshift::constval_assert(makeshift::constval_transform(check_size_functor{ }, _size));
     }
-    template <dim2 RExtent, typename U>
+    template <dim RExtent, typename U>
         constexpr fixed_buffer(U (&&array)[RExtent])
             : _base(RExtent)
     {
@@ -409,7 +409,7 @@ public:
         static_assert(std::is_convertible<U, T>::value, "incompatible array element types");
         std::copy(std::make_move_iterator(array), std::make_move_iterator(array + RExtent), this->begin());
     }
-    template <dim2 RExtent, typename U>
+    template <dim RExtent, typename U>
         constexpr fixed_buffer& operator =(U (&&array)[RExtent])
     {
         static_assert(Extent == -1 || RExtent == Extent, "array extent does not match");
@@ -421,17 +421,17 @@ public:
 };
 
 template <typename C>
-    constexpr dim2 static_dim_impl(std::true_type /*isConstval*/)
+    constexpr dim static_dim_impl(std::true_type /*isConstval*/)
 {
     return constval<C>();
 }
 template <typename C>
-    constexpr dim2 static_dim_impl(std::false_type /*isConstval*/)
+    constexpr dim static_dim_impl(std::false_type /*isConstval*/)
 {
     return -1;
 }
 template <typename C>
-    constexpr dim2 static_dim(void)
+    constexpr dim static_dim(void)
 {
     return makeshift::detail::static_dim_impl<C>(is_constval<C>{ });
 }
@@ -446,11 +446,11 @@ namespace std
 {
 
 
-template <typename T, makeshift::dim2 Extent, makeshift::dim2 MaxStaticBufferExtent> struct tuple_size<makeshift::detail::buffer<T, Extent, MaxStaticBufferExtent>> : std::integral_constant<std::size_t, Extent> { };
-template <typename T, makeshift::dim2 MaxStaticBufferExtent> struct tuple_size<makeshift::detail::buffer<T, -1, MaxStaticBufferExtent>>; // undefined
+template <typename T, makeshift::dim Extent, makeshift::dim MaxStaticBufferExtent> struct tuple_size<makeshift::detail::buffer<T, Extent, MaxStaticBufferExtent>> : std::integral_constant<std::size_t, Extent> { };
+template <typename T, makeshift::dim MaxStaticBufferExtent> struct tuple_size<makeshift::detail::buffer<T, -1, MaxStaticBufferExtent>>; // undefined
 
-template <typename T, makeshift::dim2 Extent, makeshift::dim2 MaxBufferExtent> struct tuple_size<makeshift::detail::fixed_buffer<T, Extent, MaxBufferExtent>> : std::integral_constant<std::size_t, Extent> { };
-template <typename T, makeshift::dim2 MaxBufferExtent> struct tuple_size<makeshift::detail::fixed_buffer<T, -1, MaxBufferExtent>>; // undefined
+template <typename T, makeshift::dim Extent, makeshift::dim MaxBufferExtent> struct tuple_size<makeshift::detail::fixed_buffer<T, Extent, MaxBufferExtent>> : std::integral_constant<std::size_t, Extent> { };
+template <typename T, makeshift::dim MaxBufferExtent> struct tuple_size<makeshift::detail::fixed_buffer<T, -1, MaxBufferExtent>>; // undefined
 
 
 } // namespace std

@@ -40,7 +40,7 @@ template <typename T, std::size_t N>
 template <typename... ParamsT>
     struct MAKESHIFT_EMPTY_BASES parameter_set : ParamsT...
 {
-    using parameter_categories = type_sequence2_cat_t<typename ParamsT::parameter_categories...>;
+    using parameter_categories = type_sequence_cat_t<typename ParamsT::parameter_categories...>;
 
     constexpr parameter_set(ParamsT... params)
         : ParamsT(std::move(params))...
@@ -52,7 +52,7 @@ template <typename... ParamsT>
 template <typename ParamT, typename... TagsT>
     struct define_parameter : TagsT...
 {
-    using parameter_categories = type_sequence2<TagsT...>;
+    using parameter_categories = type_sequence<TagsT...>;
     MAKESHIFT_NODISCARD constexpr friend const ParamT& select_parameter(const ParamT& param, any_tag_of<TagsT...>) noexcept { return param; }
 };
 
@@ -110,8 +110,8 @@ public:
 template <typename TagsT, typename T, std::size_t N, typename... ParamsT>
     struct values_parameter;
 template <typename... TagsT, typename T, std::size_t N, typename... ParamsT>
-    struct MAKESHIFT_EMPTY_BASES values_parameter<type_sequence2<TagsT...>, T, N, ParamsT...>
-        : define_parameter<values_parameter<type_sequence2<TagsT...>, T, N, ParamsT...>, TagsT...>,
+    struct MAKESHIFT_EMPTY_BASES values_parameter<type_sequence<TagsT...>, T, N, ParamsT...>
+        : define_parameter<values_parameter<type_sequence<TagsT...>, T, N, ParamsT...>, TagsT...>,
           parameter_array<ParamsT, N>...
 {
 private:
@@ -146,8 +146,8 @@ struct heterogeneous_values_tag { };
 template <typename TagsT, typename Ts, typename... ParamsT>
     struct heterogeneous_values_parameter;
 template <typename... TagsT, template <typename...> class TupleT, typename... Ts, typename... ParamsT>
-    struct MAKESHIFT_EMPTY_BASES heterogeneous_values_parameter<type_sequence2<TagsT...>, TupleT<Ts...>, ParamsT...>
-        : define_parameter<heterogeneous_values_parameter<type_sequence2<TagsT...>, TupleT<Ts...>, ParamsT...>, TagsT..., heterogeneous_values_tag>,
+    struct MAKESHIFT_EMPTY_BASES heterogeneous_values_parameter<type_sequence<TagsT...>, TupleT<Ts...>, ParamsT...>
+        : define_parameter<heterogeneous_values_parameter<type_sequence<TagsT...>, TupleT<Ts...>, ParamsT...>, TagsT..., heterogeneous_values_tag>,
           parameter_array<ParamsT, sizeof...(Ts)>...
 {
 private:
@@ -165,7 +165,7 @@ private:
     TupleT<Ts...> values_;
 
 public:
-    using value_types = type_sequence2<Ts...>; // TODO: required?
+    using value_types = type_sequence<Ts...>; // TODO: required?
     static constexpr std::size_t value_count = sizeof...(Ts); // TODO: required?
 
     constexpr heterogeneous_values_parameter(std::tuple<value_t<Ts, ParamsT...>...> _values)
@@ -186,10 +186,10 @@ public:
 struct values_tag { };
 
 template <typename T, std::size_t N, typename... ParamsT>
-    using values_t = values_parameter<type_sequence2<values_tag>, T, N, ParamsT...>;
+    using values_t = values_parameter<type_sequence<values_tag>, T, N, ParamsT...>;
 
 template <typename Ts, typename... ParamsT>
-    using heterogeneous_values_t = heterogeneous_values_parameter<type_sequence2<values_tag>, Ts, ParamsT...>;
+    using heterogeneous_values_t = heterogeneous_values_parameter<type_sequence<values_tag>, Ts, ParamsT...>;
 
 
 template <typename TagsT, typename... Ts>

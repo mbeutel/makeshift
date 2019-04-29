@@ -9,7 +9,7 @@
 #include <utility>     // for move(), forward<>(), integer_sequence<>, tuple_element<>, tuple_size<>, get<>()
 #include <type_traits> // for decay<>, integral_constant<>, conjunction<>, disjunction<>
 
-#include <makeshift/type_traits2.hpp> // for can_instantiate<>, type<>, type_sequence2<>
+#include <makeshift/type_traits2.hpp> // for can_instantiate<>, type<>, type_sequence<>
 
 #include <makeshift/detail/workaround.hpp> // for cand<>()
 
@@ -105,7 +105,7 @@ template <typename F, typename Is, typename... Ts>
 template <typename F, std::size_t... Is, typename... Ts>
     struct result_types_<F, std::index_sequence<Is...>, Ts...>
 {
-    using type = type_sequence2<typename result_type_<F, Is, Ts...>::type...>;
+    using type = type_sequence<typename result_type_<F, Is, Ts...>::type...>;
 };
 
 template <typename R, typename T> struct transfer_ref_ { using type = T; };
@@ -124,7 +124,7 @@ template <std::ptrdiff_t N, typename F, typename... Ts>
 template <typename F, typename Rs, typename... Ts>
     struct check_homogeneous_result_;
 template <typename F, typename... Rs, typename... Ts>
-    struct check_homogeneous_result_<F, type_sequence2<Rs...>, Ts...>
+    struct check_homogeneous_result_<F, type_sequence<Rs...>, Ts...>
 {
     using Eq = equal_types_<Rs...>;
     static_assert(sizeof...(Rs) == 0 || Eq::value, "result types of functor must be identical for all sets of tuple elements");

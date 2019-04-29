@@ -9,7 +9,7 @@
 
 #include <gsl/gsl_assert> // for Expects()
 
-#include <makeshift/utility2.hpp> // for dim2
+#include <makeshift/utility2.hpp> // for dim
 #include <makeshift/version.hpp> // for MAKESHIFT_FORCEINLINE
 
 
@@ -22,7 +22,7 @@ inline namespace arithmetic
 
 template <typename V>
     struct factor;
-template <typename V, dim2 NumFactors>
+template <typename V, dim NumFactors>
     struct factorization;
 
 

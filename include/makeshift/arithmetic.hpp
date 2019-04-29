@@ -7,7 +7,7 @@
 #include <iosfwd>    // for ostream
 #include <stdexcept> // for runtime_error
 
-#include <makeshift/utility2.hpp> // for dim2
+#include <makeshift/utility2.hpp> // for dim
 #include <makeshift/version.hpp>  // for MAKESHIFT_NODISCARD, MAKESHIFT_CONSTEXPR_CXX20
 
 #include <makeshift/detail/arithmetic.hpp>
@@ -44,7 +44,7 @@ template <typename V>
     }
 };
 
-template <typename V, dim2 NumFactors>
+template <typename V, dim NumFactors>
     struct factorization
 {
     V remainder;

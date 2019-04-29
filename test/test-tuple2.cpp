@@ -1,6 +1,6 @@
 
 #include <makeshift/tuple2.hpp>
-#include <makeshift/utility2.hpp> // for index2
+#include <makeshift/utility2.hpp> // for index
 
 #include <catch2/catch.hpp>
 
@@ -72,7 +72,7 @@ TEST_CASE("tuple2", "[flags]")
         CHECK(intSquares == std::array{ 4.0, 9.0 });
 
         std::array<double, 3> gridCoords = mk::array_transform2<double, 3>(
-            [dx=1.0](mk::index2 i) { return i*dx; },
+            [dx=1.0](mk::index i) { return i*dx; },
             mk::tuple_index);
         CHECK(gridCoords == std::array{ 0.0, 1.0, 2.0 });
     }

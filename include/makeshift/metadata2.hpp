@@ -33,7 +33,7 @@ template <typename T, typename... ParamsT>
 template <typename... Ts>
     MAKESHIFT_NODISCARD constexpr auto values(Ts... values)
 {
-    return makeshift::detail::values_impl_0<type_sequence2<makeshift::detail::values_tag>>(std::move(values)...);
+    return makeshift::detail::values_impl_0<type_sequence<makeshift::detail::values_tag>>(std::move(values)...);
 }
 
 template <typename... ParamsT>

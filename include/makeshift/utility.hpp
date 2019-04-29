@@ -5,7 +5,6 @@
 
 #include <makeshift/detail/utility_combine.hpp>
 #include <makeshift/detail/utility_chainable.hpp>
-#include <makeshift/detail/utility_types.hpp>
 #include <makeshift/detail/utility_keyword.hpp>
 
 #include <makeshift/utility2.hpp>

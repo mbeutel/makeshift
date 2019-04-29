@@ -262,33 +262,6 @@ template <template <typename...> class Z, typename SeqT> using apply_t = typenam
 
 
     //ᅟ
-    // Type sequence (strictly for compile-time purposes).
-    //
-template <typename... Ts> struct type_sequence { };
-
-
-    //ᅟ
-    // Return a type sequence that represents the types of the given values.
-    //
-template <typename... Ts>
-    constexpr type_sequence<std::decay_t<Ts>...> make_type_sequence(Ts&&...) noexcept
-{
-    return { };
-}
-
-
-    //ᅟ
-    // Concatenates a sequence of type sequences.
-    //
-template <typename... Ts> struct type_sequence_cat : makeshift::detail::type_sequence_cat_<type_sequence<>, Ts...> { };
-
-    //ᅟ
-    // Concatenates a sequence of type sequences.
-    //
-template <typename... Ts> using type_sequence_cat_t = typename type_sequence_cat<Ts...>::type;
-
-
-    //ᅟ
     // Determines the `N`-th value in the variadic sequence.
     //
 template <std::size_t N, auto... Vs> struct nth_value : nth_type_t<N, std::integral_constant<decltype(Vs), Vs>...> { };
@@ -374,11 +347,6 @@ struct any_tag
 {
     template <typename T> constexpr any_tag(const T&) noexcept { }
 };
-
-    //ᅟ
-    // Encodes a value in the type of the expression.
-    //
-template <auto V, typename = decltype(V)> constexpr constant<V> c{ };
 
 
     //ᅟ
@@ -775,18 +743,6 @@ struct serialization_tag { };
 } // inline namespace metadata
 
 } // namespace makeshift
-
-
-namespace std
-{
-
-
-    // Specialize `tuple_size<>` and `tuple_element<>` for `type_sequence<>`.
-template <typename... Ts> class tuple_size<makeshift::type_sequence<Ts...>> : public std::integral_constant<std::size_t, sizeof...(Ts)> { };
-template <std::size_t I, typename... Ts> class tuple_element<I, makeshift::type_sequence<Ts...>> : public makeshift::detail::nth_type_<I, Ts...> { };
-
-
-} // namespace std
 
 
 #endif // INCLUDED_MAKESHIFT_TYPE_TRAITS_HPP_

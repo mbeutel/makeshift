@@ -82,7 +82,7 @@ template <typename FlagsT, typename UnderlyingTypeT = unsigned>
 
 
     //ᅟ
-    // Inherit from `define_type_enum<>` to define a type enumeration:
+    // Inherit from `define_type_enum<>` to define a named type enumeration:
     //ᅟ
     //ᅟ    struct FloatTypes : define_type_enum<FloatTypes, float, double> { using base::base; };
     //ᅟ
@@ -125,37 +125,101 @@ template <typename... Ts>
     //ᅟ
     // Represents an index value.
     //
-using index2 = std::ptrdiff_t;
+using index = std::ptrdiff_t;
 
 
     //ᅟ
     // Represents a difference value.
     //
-using diff2 = std::ptrdiff_t; // TODO: remove?
-
-
-    //ᅟ
-    // Represents an array stride.
-    //
-using stride2 = std::ptrdiff_t;
+using diff = std::ptrdiff_t;
 
 
     //ᅟ
     // Represents a dimension value.
     //
-using dim2 = std::ptrdiff_t;
+using dim = std::ptrdiff_t;
+
+
+    //ᅟ
+    // Represents an array stride.
+    //
+using stride = std::ptrdiff_t;
+
+
+    //ᅟ
+    // Represents an integer constexpr value.
+    //
+template <int Value> using int_constant = std::integral_constant<int, Value>;
+
+    //ᅟ
+    // Represents an integer constexpr value.
+    //
+template <int Value> constexpr int_constant<Value> int_c{ };
+
+
+    //ᅟ
+    // Represents a boolean constexpr value.
+    //
+template <bool Value> using bool_constant = std::integral_constant<bool, Value>; // superseded by `std::bool_constant<>` in C++17
+
+    //ᅟ
+    // Represents a boolean constexpr value.
+    //
+template <bool Value> constexpr bool_constant<Value> bool_c{ };
+
+    //ᅟ
+    // Represents the constexpr value `false`.
+    //
+constexpr inline bool_constant<false> false_c{ };
+
+    //ᅟ
+    // Represents the constexpr value `true`.
+    //
+constexpr inline bool_constant<true> true_c{ };
 
 
     //ᅟ
     // Represents an index constexpr value.
     //
-template <index2 Value> using index2_constant = std::integral_constant<index2, Value>;
+template <index Value> using index_constant = std::integral_constant<index, Value>;
+
+    //ᅟ
+    // Represents an index constexpr value.
+    //
+template <index Value> constexpr index_constant<Value> index_c{ };
+
+
+    //ᅟ
+    // Represents a difference constexpr value.
+    //
+template <diff Value> using diff_constant = std::integral_constant<diff, Value>;
+
+    //ᅟ
+    // Represents a difference constexpr value.
+    //
+template <diff Value> constexpr diff_constant<Value> diff_c{ };
 
 
     //ᅟ
     // Represents a dimension constexpr value.
     //
-template <dim2 Value> using dim2_constant = std::integral_constant<dim2, Value>;
+template <dim Value> using dim_constant = std::integral_constant<dim, Value>;
+
+    //ᅟ
+    // Represents an dimension constexpr value.
+    //
+template <dim Value> constexpr dim_constant<Value> dim_c{ };
+
+
+    //ᅟ
+    // Represents an array stride constexpr value.
+    //
+template <stride Value> using stride_constant = std::integral_constant<stride, Value>;
+
+    //ᅟ
+    // Represents an array stride constexpr value.
+    //
+template <stride Value> constexpr stride_constant<Value> stride_c{ };
 
 
     //ᅟ
@@ -164,11 +228,13 @@ template <dim2 Value> using dim2_constant = std::integral_constant<dim2, Value>;
 template <typename ContainerT> 
     MAKESHIFT_NODISCARD constexpr auto size(const ContainerT& c) -> decltype(c.size())
 {
+    // superseded by `std::size()` in C++17
     return c.size();
 }
 template <typename T, std::size_t N>
     MAKESHIFT_NODISCARD constexpr std::size_t size(const T (&)[N]) noexcept
 {
+    // superseded by `std::size()` in C++17
     return N;
 }
 
@@ -180,12 +246,14 @@ template <typename ContainerT>
     MAKESHIFT_NODISCARD constexpr auto ssize(const ContainerT& c)
         -> std::common_type_t<std::ptrdiff_t, std::make_signed_t<decltype(c.size())>>
 {
+    // superseded by `std::ssize()` in C++2a
     using R = std::common_type_t<std::ptrdiff_t, std::make_signed_t<decltype(c.size())>>;
     return static_cast<R>(c.size());
 }
 template <typename T, std::ptrdiff_t N>
     MAKESHIFT_NODISCARD constexpr std::ptrdiff_t ssize(const T (&)[N]) noexcept
 {
+    // superseded by `std::ssize()` in C++2a
     return N;
 }
 
@@ -260,12 +328,12 @@ inline namespace literals
 
 
     //ᅟ
-    // Encodes an integer value given as numeric literal in the type of the expression using `integral_constant<>`.
+    // Encodes an integer value given as numeric literal in the type of the expression using `int_constant<>`.
     //ᅟ
     //ᅟ    auto i = 42_int; // decltype(i) is integral_constant<int, 42>
     //
 template <char... Cs>
-    constexpr inline std::integral_constant<int, makeshift::detail::make_constant<int, Cs...>::value>
+    constexpr inline int_constant<makeshift::detail::make_constant<int, Cs...>::value>
     operator "" _int(void) noexcept
 {
     return { };
@@ -273,26 +341,52 @@ template <char... Cs>
 
 
     //ᅟ
-    // Encodes an index value given as numeric literal in the type of the expression using `integral_constant<>`.
+    // Encodes an index value given as numeric literal in the type of the expression using `index_constant<>`.
     //ᅟ
     //ᅟ    auto i = 42_idx; // decltype(i) is integral_constant<index, 42>
     //
 template <char... Cs>
-    constexpr inline std::integral_constant<index2, makeshift::detail::make_constant<index2, Cs...>::value>
-    operator "" _idx2(void) noexcept
+    constexpr inline index_constant<makeshift::detail::make_constant<index, Cs...>::value>
+    operator "" _idx(void) noexcept
 {
     return { };
 }
 
 
     //ᅟ
-    // Encodes a dimension value given as numeric literal in the type of the expression using `integral_constant<>`.
+    // Encodes an index value given as numeric literal in the type of the expression using `diff_constant<>`.
+    //ᅟ
+    //ᅟ    auto i = 42_diff; // decltype(i) is integral_constant<diff, 42>
+    //
+template <char... Cs>
+    constexpr inline diff_constant<makeshift::detail::make_constant<diff, Cs...>::value>
+    operator "" _diff(void) noexcept
+{
+    return { };
+}
+
+
+    //ᅟ
+    // Encodes an index value given as numeric literal in the type of the expression using `stride_constant<>`.
+    //ᅟ
+    //ᅟ    auto i = 42_stride; // decltype(i) is integral_constant<stride, 42>
+    //
+template <char... Cs>
+    constexpr inline stride_constant<makeshift::detail::make_constant<stride, Cs...>::value>
+    operator "" _stride(void) noexcept
+{
+    return { };
+}
+
+
+    //ᅟ
+    // Encodes a dimension value given as numeric literal in the type of the expression using `dim_constant<>`.
     //ᅟ
     //ᅟ    auto d = 3_dim; // decltype(i) is integral_constant<dim, 3>
     //
 template <char... Cs>
-    constexpr inline std::integral_constant<dim2, makeshift::detail::make_constant<dim2, Cs...>::value>
-    operator "" _dim2(void) noexcept
+    constexpr inline dim_constant<makeshift::detail::make_constant<dim, Cs...>::value>
+    operator "" _dim(void) noexcept
 {
     return { };
 }

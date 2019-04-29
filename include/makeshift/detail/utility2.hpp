@@ -68,7 +68,7 @@ private:
 public:
     friend constexpr type<TypeEnumT> type_enum_type_of_(value_t, makeshift::detail::unwrap_enum_tag) { return { }; }
 
-    using types = type_sequence2<Ts...>;
+    using types = type_sequence<Ts...>;
     static constexpr std::size_t size = sizeof...(Ts);
 
     constexpr define_type_enum_base(const define_type_enum_base&) = default;

@@ -15,7 +15,7 @@
 #include <makeshift/constval.hpp>     // for constval<>, constval_transform()
 #include <makeshift/metadata2.hpp>    // for values<>
 #include <makeshift/reflect2.hpp>     // for metadata2_of<>
-#include <makeshift/type_traits2.hpp> // for type_sequence2<>
+#include <makeshift/type_traits2.hpp> // for type_sequence<>
 #include <makeshift/tuple2.hpp>       // for array_transform2()
 #include <makeshift/version.hpp>      // for MAKESHIFT_NODISCARD, MAKESHIFT_CXX17
 
@@ -592,17 +592,17 @@ template <typename F, typename... ArgsT> using call_result_t = decltype(std::dec
 
 template <typename C, typename F, typename L, typename... Vs> struct visit_many_result_0_;
 template <typename C, typename F, typename... Ls>
-    struct visit_many_result_0_<C, F, type_sequence2<Ls...>>
+    struct visit_many_result_0_<C, F, type_sequence<Ls...>>
 {
-    using type = type_sequence2<call_result_t<F, Ls...>>;
+    using type = type_sequence<call_result_t<F, Ls...>>;
 };
 template <typename C, typename F, typename... Ls, template <typename...> class V, typename... V0s, typename... Vs>
-    struct visit_many_result_0_<C, F, type_sequence2<Ls...>, V<V0s...>, Vs...>
-        : type_sequence2_cat<typename visit_many_result_0_<C, F, type_sequence2<Ls..., V0s>, Vs...>::type...>
+    struct visit_many_result_0_<C, F, type_sequence<Ls...>, V<V0s...>, Vs...>
+        : type_sequence_cat<typename visit_many_result_0_<C, F, type_sequence<Ls..., V0s>, Vs...>::type...>
 {
 };
 
-template <typename F, typename... Vs> struct visit_many_result_ : apply_<std::variant, typename unique_sequence_<typename visit_many_result_0_<type_sequence2<>, F, type_sequence2<>, decay_to_args_t<Vs>...>::type>::type> { };
+template <typename F, typename... Vs> struct visit_many_result_ : apply_<std::variant, typename unique_sequence_<typename visit_many_result_0_<type_sequence<>, F, type_sequence<>, decay_to_args_t<Vs>...>::type>::type> { };
 #endif // MAKESHIFT_CXX17
 
 
