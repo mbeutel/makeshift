@@ -11,7 +11,8 @@
 #include <gsl/gsl_assert> // for Expects()
 
 #include <makeshift/utility2.hpp> // for dim
-#include <makeshift/constval.hpp> // for constval<>
+
+#include <makeshift/detail/constval.hpp> // for constval_value<>
 
 
 namespace makeshift
@@ -423,7 +424,7 @@ public:
 template <typename C>
     constexpr dim static_dim_impl(std::true_type /*isConstval*/)
 {
-    return constval<C>();
+    return constval_value<C>;
 }
 template <typename C>
     constexpr dim static_dim_impl(std::false_type /*isConstval*/)
@@ -433,7 +434,7 @@ template <typename C>
 template <typename C>
     constexpr dim static_dim(void)
 {
-    return makeshift::detail::static_dim_impl<C>(is_constval<C>{ });
+    return makeshift::detail::static_dim_impl<C>(makeshift::detail::is_constval_<C>{ });
 }
 
 

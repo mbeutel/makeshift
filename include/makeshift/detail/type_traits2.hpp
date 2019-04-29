@@ -163,6 +163,9 @@ template <typename C, typename R> struct is_nullary_functor_of_type_ : std::is_s
 template <typename T, typename R> struct is_constval_of_type_ : std::conjunction<is_constval_<T>, is_nullary_functor_of_type_<T, R>> { };
 
 
+template <typename T> struct as_dependent_type_ { using type = T; };
+
+
 } // namespace detail
 
 } // namespace makeshift

@@ -37,7 +37,7 @@ template <typename T, typename C, dim MaxBufferExtent>
 
 
 template <typename T, typename C>
-    constexpr fixed_buffer<T, C, constval<C>()> make_fixed_buffer(C size)
+    constexpr fixed_buffer<T, C, makeshift::detail::constval_value<C>> make_fixed_buffer(C size)
 {
     return { size };
 }

@@ -92,7 +92,7 @@ template <typename ContainerT, template <typename, typename> class RangeT> struc
 
 template <typename It, typename ExtentC, template <typename, typename> class RangeT, bool IsConstval> struct range_by_extent_0_;
 template <typename It, typename ExtentC, template <typename, typename> class RangeT> struct range_by_extent_0_<It, ExtentC, RangeT, false> { using type = RangeT<It, It>; };
-template <typename It, typename ExtentC, template <typename, typename> class RangeT> struct range_by_extent_0_<It, ExtentC, RangeT, true> { using type = fixed_random_access_range<It, constval<ExtentC>()>; };
+template <typename It, typename ExtentC, template <typename, typename> class RangeT> struct range_by_extent_0_<It, ExtentC, RangeT, true> { using type = fixed_random_access_range<It, constval_value<ExtentC>>; };
 template <typename It, typename ExtentC, template <typename, typename> class RangeT> struct range_by_extent_ : range_by_extent_0_<It, ExtentC, RangeT, is_constval_v<ExtentC>> { };
 
 

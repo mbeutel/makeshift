@@ -251,6 +251,12 @@ template <typename T> struct is_flags_enum : std::conjunction<std::is_enum<T>, c
 template <typename T> constexpr bool is_flags_enum_v = is_flags_enum<T>::value;
 
 
+    //ᅟ
+    // Retrieves the given type as a dependent type. This can be useful to suppress type inference.
+    //
+template <typename T> using as_dependent_type = typename makeshift::detail::as_dependent_type_<T>::type;
+
+
 } // inline namespace types
 
 } // namespace makeshift

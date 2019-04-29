@@ -51,7 +51,7 @@ template <typename T, typename R> constexpr bool is_constval_of_type_v = is_cons
     //ᅟ
     // If the value type of the constexpr value is valid as a non-type template parameter, the result type is guaranteed to be an instantiation of `std::integral_constant<>`.
     //
-template <typename C> using constval_t = makeshift::detail::make_constval_t<C>;
+template <typename C> using make_constval_t = makeshift::detail::make_constval_t<C>;
 
 
     //ᅟ
@@ -59,7 +59,7 @@ template <typename C> using constval_t = makeshift::detail::make_constval_t<C>;
     //ᅟ
     // If the value type of the constexpr value is valid as a non-type template parameter, the result type is guaranteed to be an instantiation of `std::integral_constant<>`.
     //
-template <typename C> constexpr constval_t<C> constval = { };
+template <typename C> constexpr make_constval_t<C> make_constval_v = { };
 
 
     //ᅟ
@@ -68,7 +68,7 @@ template <typename C> constexpr constval_t<C> constval = { };
     // If the value type of the constexpr function object is valid as a non-type template parameter, the result type is guaranteed to be an instantiation of `std::integral_constant<>`.
     //
 template <typename C>
-    constexpr constval_t<C> make_constval(const C&)
+    constexpr make_constval_t<C> make_constval(const C&)
 {
     static_assert(std::is_empty<C>::value, "argument must be stateless");
     static_assert(can_instantiate_v<makeshift::detail::is_constexpr_functor_r, C>, "argument must be constexpr function object");

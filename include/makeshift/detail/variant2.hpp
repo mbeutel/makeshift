@@ -19,6 +19,7 @@
 #include <makeshift/tuple2.hpp>       // for array_transform2()
 #include <makeshift/version.hpp>      // for MAKESHIFT_NODISCARD, MAKESHIFT_CXX17
 
+#include <makeshift/detail/constval.hpp>     // for constval_value<>
 #include <makeshift/detail/compound.hpp>     // for compound_hash<>, compound_equal_to<>
 #include <makeshift/detail/workaround.hpp>   // for cmul<>()
 #include <makeshift/detail/unit_variant.hpp>
@@ -348,7 +349,7 @@ template <typename T, typename C, std::size_t I>
 {
     constexpr T operator ()(void) const
     {
-        constexpr auto lvalues = makeshift::constval<C>();
+        constexpr auto lvalues = constval_value<C>;
         using std::get;
         return get<I>(lvalues);
     }
@@ -367,7 +368,7 @@ template <typename C, std::size_t I>
 {
     constexpr auto operator ()(void) const
     {
-        constexpr auto lvalues = makeshift::constval<C>();
+        constexpr auto lvalues = constval_value<C>;
         using std::get;
         return get<I>(lvalues);
     }
@@ -723,7 +724,7 @@ template <typename V>
 template <typename T>
     constexpr decltype(auto) maybe_expand_impl(std::false_type /*isVariant*/, T&& expandable)
 {
-    return makeshift::detail::expand2_impl0<result_handler_terminate>(expandable, constval<metadata_values_retriever<std::decay_t<T>>>, hash2<>{ }, std::equal_to<>{ });
+    return makeshift::detail::expand2_impl0<result_handler_terminate>(expandable, make_constval_t<metadata_values_retriever<std::decay_t<T>>>{ }, hash2<>{ }, std::equal_to<>{ });
 }
 template <typename T>
     constexpr decltype(auto) maybe_expand(T&& arg)

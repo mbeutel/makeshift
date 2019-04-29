@@ -139,7 +139,8 @@ template <typename C> struct make_constval_ : make_constval_0_<constval_functor_
 template <typename T, T V> struct make_constval_<std::integral_constant<T, V>> { using type = std::integral_constant<T, V>; }; // shortcut
 template <typename C> using make_constval_t = typename make_constval_<C>::type;
 
-template <typename C> constexpr auto eval_constval_v = C{ }();
+
+template <typename C> constexpr auto constval_value = C{ }(); // workaround for EDG
 
 
     // idea taken from Ben Deane & Jason Turner, "constexpr ALL the things!", C++Now 2017
@@ -152,7 +153,7 @@ template <typename F> using is_constexpr_functor_r = decltype(std::declval<F>()(
 template <typename C>
     constexpr auto get_hvalue_impl(std::true_type /*constvalArg*/, const C&)
 {
-    return eval_constval_v<C>;
+    return constval_value<C>;
 }
 template <typename V>
     constexpr V get_hvalue_impl(std::false_type /*constvalArg*/, const V& arg)
@@ -171,7 +172,7 @@ template <typename F, typename... Cs>
 {
     constexpr auto operator ()(void) const
     {
-        return stateless_functor_v<F>(eval_constval_v<Cs>...);
+        return stateless_functor_v<F>(constval_value<Cs>...);
     }
 };
 
@@ -211,7 +212,7 @@ template <typename CF, typename... Cs>
 template <typename C>
     constexpr auto constval_extract_impl(std::true_type /*isConstval*/, const C&) noexcept
 {
-    return eval_constval_v<C>;
+    return constval_value<C>;
 }
 template <typename C>
     constexpr C constval_extract_impl(std::false_type /*isConstval*/, const C& value)
