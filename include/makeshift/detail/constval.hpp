@@ -103,39 +103,57 @@ template <typename C> using constval_functor_t = typename constval_functor_0_<C,
     // determines if a given type makes a valid C++14 non-type template parameter
 template <typename T> struct is_valid_nttp_ : std::disjunction<std::is_integral<T>, std::is_enum<T>, std::is_member_pointer<T>, std::is_null_pointer<T>> { };
 
-template <typename T> struct is_valid_nttp_array_ : std::false_type { };
-template <typename T, std::size_t N> struct is_valid_nttp_array_<std::array<T, N>> : is_valid_nttp_<T> { };
+template <typename T> struct can_normalize_constval_ : is_valid_nttp_<T> { };
+template <typename T, std::size_t N> struct can_normalize_constval_<std::array<T, N>> : can_normalize_constval_<T> { };
+template <typename... Ts> struct can_normalize_constval_<std::tuple<Ts...>> : std::conjunction<can_normalize_constval_<Ts>...> { };
 
-template <std::size_t... Is, typename C>
-    constexpr auto normalize_array_constant_impl(std::index_sequence<Is...>, C c)
-{
-    constexpr auto array = c();
-    using T = typename decltype(array)::value_type;
-    using std::get;
-    return array_constant<T, get<Is>(array)...>{ };
-}
-template <typename C>
-    constexpr auto normalize_array_constant(C c)
-{
-    return makeshift::detail::normalize_array_constant_impl(std::make_index_sequence<std::tuple_size<decltype(c())>::value>{ }, c);
-}
+template <typename T>
+    struct normalize_constval_;
 
-template <typename C, bool IsValidNTTPArray> struct make_constval_1_;
-template <typename C> struct make_constval_1_<C, true>
+template <typename C, std::size_t I>
+    struct array_accessor_functor
 {
-        // T is an array with an element type that makes a valid non-type template parameter; substitute the constval type with `array_constant<>`
-    using type = decltype(makeshift::detail::normalize_array_constant(std::declval<C>()));
+    constexpr auto operator ()(void) const
+    {
+        return C{ }()[I];
+    }
 };
-template <typename C> struct make_constval_1_<C, false> { using type = C; };
-template <typename C, bool IsValidNTTP> struct make_constval_0_;
-template <typename C> struct make_constval_0_<C, true>
+template <typename C, std::size_t I>
+    struct tuple_accessor_functor
 {
-        // T makes a valid non-type template parameter; substitute the constval type with `std::integral_constant<>`
-    using T = decltype(C{ }());
-    using type = std::integral_constant<T, C{ }()>;
+    constexpr auto operator ()(void) const
+    {
+        return std::get<I>(C{ }());
+    }
 };
-template <typename C> struct make_constval_0_<C, false> : make_constval_1_<C, is_valid_nttp_array_<decltype(std::declval<C>()())>::value> { };
-template <typename C> struct make_constval_ : make_constval_0_<constval_functor_t<C>, is_valid_nttp_<decltype(std::declval<C>()())>::value> { };
+
+template <typename T, typename C, typename Is> struct make_constval_array_;
+template <typename T, typename C, std::size_t... Is> struct make_constval_array_<T, C, std::index_sequence<Is...>> { using type = constval_array<T, typename normalize_constval_<T>::template type<array_accessor_functor<C, Is>>...>; };
+
+template <typename C, typename Is, typename... Ts> struct make_constval_tuple_;
+template <typename C, std::size_t... Is, typename... Ts> struct make_constval_tuple_<C, std::index_sequence<Is...>, Ts...> { using type = constval_tuple<typename normalize_constval_<Ts>::template type<tuple_accessor_functor<C, Is>>...>; };
+
+template <typename T>
+    struct normalize_constval_
+{
+    template <typename C> using type = std::integral_constant<decltype(std::declval<C>()()), C{ }()>;
+};
+template <typename T, std::size_t N>
+    struct normalize_constval_<std::array<T, N>>
+{
+    template <typename C> using type = typename make_constval_array_<T, C, std::make_index_sequence<N>>::type;
+};
+template <typename... Ts>
+    struct normalize_constval_<std::tuple<Ts...>>
+{
+    template <typename C> using type = typename make_constval_tuple_<C, std::make_index_sequence<sizeof...(Ts)>, Ts...>::type;
+};
+
+template <bool CanNormalize, typename T, typename C> struct make_constval_1_;
+template <typename T, typename C> struct make_constval_1_<true, T, C> { using type = typename normalize_constval_<T>::template type<C>; };
+template <typename T, typename C> struct make_constval_1_<false, T, C> { using type = C; };
+template <typename T, typename C> struct make_constval_0_ : make_constval_1_<can_normalize_constval_<T>::value, T, constval_functor_t<C>> { };
+template <typename C> struct make_constval_ : make_constval_0_<decltype(std::declval<C>()()), C> { };
 template <typename T, T V> struct make_constval_<std::integral_constant<T, V>> { using type = std::integral_constant<T, V>; }; // shortcut
 template <typename C> using make_constval_t = typename make_constval_<C>::type;
 

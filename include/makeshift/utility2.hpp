@@ -4,6 +4,7 @@
 
 
 #include <array>
+#include <tuple>
 #include <cstddef>     // for ptrdiff_t
 #include <utility>     // for move()
 #include <type_traits> // for underlying_type<>, integral_constant<>
@@ -12,6 +13,7 @@
 
 #include <makeshift/version.hpp> // for MAKESHIFT_NODISCARD
 
+#include <makeshift/detail/workaround.hpp>   // for cand()
 #include <makeshift/detail/type_traits2.hpp> // for constval_tag
 #include <makeshift/detail/utility2.hpp>
 
@@ -288,9 +290,14 @@ template <typename T, std::ptrdiff_t N>
 }
 
 
-template <typename T, T... Vs>
-    struct array_constant : makeshift::detail::constval_tag
+    //ᅟ
+    // Represents a constexpr value of type `std::array<>` with the given element type and values.
+    //
+template <typename T, typename... Vs>
+    struct constval_array : makeshift::detail::constval_tag
 {
+    static_assert(makeshift::detail::cand(makeshift::detail::is_constval_of_type_<Vs, T>::value...), "arguments must be constexpr values of type T");
+
     using value_type = std::array<T, sizeof...(Vs)>;
     using element_type = T;
 
@@ -298,7 +305,7 @@ template <typename T, T... Vs>
 
     MAKESHIFT_NODISCARD constexpr value_type operator ()(void) const noexcept
     {
-        return { Vs... };
+        return { Vs{ }()... };
     }
     MAKESHIFT_NODISCARD constexpr operator value_type(void) const noexcept
     {
@@ -306,12 +313,54 @@ template <typename T, T... Vs>
     }
 };
 
+
+    //ᅟ
+    // Represents a constexpr value of type `std::tuple<>` with the given element type and values.
+    //
+template <typename... Vs>
+    struct constval_tuple : makeshift::detail::constval_tag
+{
+    static_assert(makeshift::detail::cand(makeshift::detail::is_constval_<Vs>::value...), "arguments must be constexpr values");
+
+    using value_type = std::tuple<decltype(std::declval<Vs>()())...>;
+
+    static constexpr std::size_t size(void) noexcept { return sizeof...(Vs); }
+
+    MAKESHIFT_NODISCARD constexpr value_type operator ()(void) const noexcept
+    {
+        return { Vs{ }()... };
+    }
+    MAKESHIFT_NODISCARD constexpr operator value_type(void) const noexcept
+    {
+        return (*this)();
+    }
+};
+
+
+    //ᅟ
+    // Represents a constexpr value of type `std::array<>` with the given element type and values.
+    // `array_constant<T, Vs...>` is a shorthand for `constval_array<T, constant<Vs>...>` for cases where `decltype(Vs)...` are valid non-type template parameters.
+    //
+template <typename T, T... Vs> using array_constant = constval_array<T, std::integral_constant<T, Vs>...>;
+
+    //ᅟ
+    // Represents a constexpr value of type `std::array<>` with the given element type and values.
+    //
+template <typename T, T... Vs> constexpr array_constant<T, Vs...> array_c{ };
+
+
+    //ᅟ
+    // Converts a `std::integer_sequence<>` to a constexpr value of type `std::array<>`.
+    //
 template <typename T, T... Vs>
     MAKESHIFT_NODISCARD constexpr array_constant<T,Vs...> make_array_constant(std::integer_sequence<T, Vs...>) noexcept
 {
     return { };
 }
 
+    //ᅟ
+    // Converts a sequence of homogeneously typed constexpr values to a constexpr value of type `std::array<>`.
+    //
 template <typename T, T... Vs>
     MAKESHIFT_NODISCARD constexpr array_constant<T,Vs...> make_array_constant(std::integral_constant<T, Vs>...) noexcept
 {
