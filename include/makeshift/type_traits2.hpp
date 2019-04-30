@@ -81,14 +81,25 @@ template <template <typename...> class Z, typename... Ts> constexpr bool can_ins
     // Type sequence, i.e. tuple without runtime value representation.
     //
 template <typename... Ts>
-    struct type_sequence
+    struct type_sequence : makeshift::detail::constval_tag
 {
-    constexpr type_sequence(void) noexcept = default;
+    constexpr type_sequence(void) noexcept { }
     constexpr type_sequence(makeshift::detail::type_t<Ts>...) noexcept { }
+
+    constexpr type_sequence operator ()(void) const noexcept
+    {
+        return *this;
+    }
 };
 template <>
-    struct type_sequence<>
+    struct type_sequence<> : makeshift::detail::constval_tag
 {
+    constexpr type_sequence(void) noexcept { }
+
+    constexpr type_sequence operator ()(void) const noexcept
+    {
+        return *this;
+    }
 };
 
 
@@ -138,9 +149,14 @@ template <typename T, template <typename...> class TypeSeqT, typename... Ts> str
     // Use `type_v<T>` as a value representation of `T`.
     //
 template <typename T>
-    struct type_t
+    struct type_t : constval_tag
 {
     using type = T;
+
+    constexpr type_t operator ()(void) const noexcept
+    {
+        return *this;
+    }
 
         // This conversion exists so expressions of type `type<>` can be used as case labels of switch statements over type enums.
     template <typename EnumT,

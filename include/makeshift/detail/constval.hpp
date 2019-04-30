@@ -103,7 +103,10 @@ template <typename C> using constval_functor_t = typename constval_functor_0_<C,
     // determines if a given type makes a valid C++14 non-type template parameter
 template <typename T> struct is_valid_nttp_ : std::disjunction<std::is_integral<T>, std::is_enum<T>, std::is_member_pointer<T>, std::is_null_pointer<T>> { };
 
-template <typename T> struct can_normalize_constval_ : is_valid_nttp_<T> { };
+template <typename T> struct is_tag_type_ : std::integral_constant<bool, std::is_empty<T>::value && std::is_default_constructible<T>::value> { };
+template <typename T> struct is_constval_tag_type_ : std::conjunction<is_tag_type_<T>, std::is_base_of<constval_tag, T>> { };
+
+template <typename T> struct can_normalize_constval_ : std::disjunction<is_valid_nttp_<T>, is_constval_tag_type_<T>> { };
 template <typename T, std::size_t N> struct can_normalize_constval_<std::array<T, N>> : can_normalize_constval_<T> { };
 template <typename... Ts> struct can_normalize_constval_<std::tuple<Ts...>> : std::conjunction<can_normalize_constval_<Ts>...> { };
 
@@ -133,10 +136,21 @@ template <typename T, typename C, std::size_t... Is> struct make_constval_array_
 template <typename C, typename Is, typename... Ts> struct make_constval_tuple_;
 template <typename C, std::size_t... Is, typename... Ts> struct make_constval_tuple_<C, std::index_sequence<Is...>, Ts...> { using type = constval_tuple<typename normalize_constval_<Ts>::template type<tuple_accessor_functor<C, Is>>...>; };
 
+template <typename T, bool IsConstvalTagType>
+    struct normalize_constval_0_;
 template <typename T>
-    struct normalize_constval_
+    struct normalize_constval_0_<T, false>
 {
     template <typename C> using type = std::integral_constant<decltype(std::declval<C>()()), C{ }()>;
+};
+template <typename T>
+    struct normalize_constval_0_<T, true>
+{
+    template <typename C> using type = T;
+};
+template <typename T>
+    struct normalize_constval_ : normalize_constval_0_<T, is_constval_tag_type_<T>::value>
+{
 };
 template <typename T, std::size_t N>
     struct normalize_constval_<std::array<T, N>>
