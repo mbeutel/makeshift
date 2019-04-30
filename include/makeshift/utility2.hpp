@@ -339,13 +339,13 @@ template <typename... Vs>
 
     //ᅟ
     // Represents a constexpr value of type `std::array<>` with the given element type and values.
-    // `array_constant<T[], Vs...>` is a shorthand for `constval_array<T[], constant<Vs>...>` for cases where `decltype(Vs)...` are valid non-type template parameters.
+    // `array_constant<T[], Vs...>` is a shorthand for `constval_array<T[], constant<Vs>...>` for cases where `decltype(Vs)` is a valid non-type template parameter.
     //
 template <typename ArrayT, typename makeshift::detail::array_element_type_<ArrayT>::type... Vs> using array_constant = constval_array<ArrayT, std::integral_constant<typename makeshift::detail::array_element_type_<ArrayT>::type, Vs>...>;
 
     //ᅟ
     // Represents a constexpr value of type `std::array<>` with the given element type and values.
-    // `array_c<T[], Vs...>` is a shorthand for `constval_array<T[], constant<Vs>...>{ }` for cases where `decltype(Vs)...` are valid non-type template parameters.
+    // `array_c<T[], Vs...>` is a shorthand for `constval_array<T[], constant<Vs>...>{ }` for cases where `decltype(Vs)` is a valid non-type template parameter.
     //
 template <typename ArrayT, typename makeshift::detail::array_element_type_<ArrayT>::type... Vs> constexpr array_constant<ArrayT, Vs...> array_c{ };
 
