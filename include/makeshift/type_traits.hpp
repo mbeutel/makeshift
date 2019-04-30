@@ -689,41 +689,6 @@ constexpr value_type_transform value_type_transform_v { };
 } // inline namespace types
 
 
-namespace detail
-{
-
-
-template <std::size_t... Is, typename C>
-    constexpr auto sequence_from_constval_array_impl(std::index_sequence<Is...>, C c)
-{
-    constexpr auto array = c();
-    using T = typename decltype(array)::value_type;
-    using std::get;
-    return sequence<T, get<Is>(array)...>{ };
-}
-
-
-
-} // namespace detail
-
-
-inline namespace types
-{
-
-
-template <typename C>
-    constexpr auto sequence_from_constval_array(C c)
-{
-    return makeshift::detail::sequence_from_constval_array_impl(std::make_index_sequence<std::tuple_size<decltype(c())>::value>{ }, c);
-}
-
-template <typename C> using sequence_from_constval_array_t = decltype(makeshift::sequence_from_constval_array(std::declval<C>()));
-
-
-
-} // inline namespace types
-
-
 inline namespace metadata
 {
 
