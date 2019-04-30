@@ -11,34 +11,6 @@
 namespace makeshift
 {
 
-namespace detail
-{
-
-
-template <typename T> struct array_0_ { using type = T; };
-template <typename T, std::size_t N> struct array_0_<T[N]> { using type = std::array<typename array_0_<T>::type, N>; };
-template <typename ArrayT> struct array_;
-template <typename T, std::size_t N> struct array_<T[N]> : array_0_<T[N]> { };
-
-template <typename ArrayT>
-    struct array_type_;
-template <typename T, std::size_t N>
-    struct array_type_<T[N]>
-{
-    static constexpr std::ptrdiff_t size = ptrdiff_t(N);
-    using element_type = T;
-};
-template <typename T>
-    struct array_type_<T[]>
-{
-    static constexpr std::ptrdiff_t size = -1;
-    using element_type = T;
-};
-
-
-} // namespace detail
-
-
 inline namespace types
 {
 
@@ -59,7 +31,7 @@ template <typename ArrayT> using array = typename makeshift::detail::array_<Arra
     //
 template <std::size_t N, typename F, typename... Ts>
     MAKESHIFT_NODISCARD constexpr auto
-    array_transform2(F&& func, Ts&&... args)
+    array_transform(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
     return makeshift::detail::tuple_transform_impl0<N, makeshift::detail::transform_to_array_tag>(std::forward<F>(func), std::forward<Ts>(args)...);
@@ -81,7 +53,7 @@ template <std::size_t N, typename F, typename... Ts>
     //
 template <typename ArrayT, typename F, typename... Ts>
     MAKESHIFT_NODISCARD constexpr auto
-    array_transform2(F&& func, Ts&&... args)
+    array_transform(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
     return makeshift::detail::tuple_transform_impl0<makeshift::detail::array_type_<ArrayT>::size, makeshift::detail::transform_to_array_of_tag<typename makeshift::detail::array_type_<ArrayT>::element_type>>(
@@ -99,7 +71,7 @@ template <typename ArrayT, typename F, typename... Ts>
     //
 template <typename F, typename... Ts>
     MAKESHIFT_NODISCARD constexpr auto
-    array_transform2(F&& func, Ts&&... args)
+    array_transform(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
     return makeshift::detail::tuple_transform_impl0<-1, makeshift::detail::transform_to_array_tag>(std::forward<F>(func), std::forward<Ts>(args)...);

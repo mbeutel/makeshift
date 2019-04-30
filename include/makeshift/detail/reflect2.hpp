@@ -10,7 +10,7 @@
 
 #include <makeshift/type_traits2.hpp> // for can_instantiate<>, type<>
 #include <makeshift/metadata2.hpp>    // for named_t<>
-#include <makeshift/array2.hpp>       // for array_transform2()
+#include <makeshift/array2.hpp>       // for array_transform()
 #include <makeshift/version.hpp>      // for MAKESHIFT_EMPTY_BASES
 
 

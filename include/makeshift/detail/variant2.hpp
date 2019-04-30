@@ -16,7 +16,7 @@
 #include <makeshift/metadata2.hpp>    // for values<>
 #include <makeshift/reflect2.hpp>     // for metadata2_of<>
 #include <makeshift/type_traits2.hpp> // for type_sequence<>
-#include <makeshift/array2.hpp>       // for array_transform2()
+#include <makeshift/array2.hpp>       // for array_transform()
 #include <makeshift/version.hpp>      // for MAKESHIFT_NODISCARD, MAKESHIFT_CXX17
 
 #include <makeshift/detail/constval.hpp>     // for constval_value<>
@@ -328,7 +328,7 @@ template <typename ClassT, bool Exhaustive, typename... FactorsT>
 {
     std::array<std::size_t, sizeof...(FactorsT)> strides = makeshift::detail::shape_to_strides(std::array{ FactorsT::num_values... });
     constexpr std::size_t numValues = cmul<std::size_t>(FactorsT::num_values...);
-    return makeshift::array_transform2<numValues>(
+    return makeshift::array_transform<numValues>(
         make_value_functor<Exhaustive, ClassT, FactorsT...>{ product, strides },
         tuple_index);
 }
@@ -443,7 +443,7 @@ template <typename DstT>
 template <typename ResultHandlerT, typename T, typename C, typename HashT, typename EqualToT>
     constexpr auto value_to_variant(std::true_type /*isHeterogeneous*/, const T& value, C valueArrayC, HashT&& /*hash*/, EqualToT&& equal)
 {
-    constexpr auto lvalues = makeshift::array_transform2(ctr_convert_functor<T>{ }, valueArrayC());
+    constexpr auto lvalues = makeshift::array_transform(ctr_convert_functor<T>{ }, valueArrayC());
 
     constexpr std::size_t numValues = std::tuple_size<decltype(lvalues)>::value;
     using ExpandType = typename heterogeneous_expand_type_<C, std::make_index_sequence<numValues>>::type;
