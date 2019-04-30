@@ -206,20 +206,26 @@ template <typename F, typename... Vs>
 
 #ifdef MAKESHIFT_CXX17
     //ᅟ
-    // Like `std::visit()`, but permits the functor to return different types for different argument types, and returns a variant of the possible results.
+    // Similar to `std::visit()`, but permits the functor to map different argument types to different result types and returns a variant of the possible results.
+    // `variant_transform()` merges identical result types, i.e. every distinct result type appears only once in the resulting variant type.
     //
 template <typename F, typename... VariantsT,
           typename = std::enable_if_t<std::conjunction<is_variant_like<std::decay_t<VariantsT>>...>::value>>
     MAKESHIFT_NODISCARD constexpr typename makeshift::detail::variant_transform_result_<F, VariantsT...>::type
     variant_transform(F&& func, VariantsT&&... variants)
 {
+    // Currently we merge identical results, i.e. if two functor invocations both return the same type, the type appears only once in the result variant.
+    // Although `std::variant<>` is explicitly designed to permit multiple alternatives of identical type, it seems reasonable to merge identically typed alternatives here because identically typed alternatives
+    // cannot be distinguished by the visitor functor anyway, and because the choice of identically typed alternatives depends on the strides of the specialization table built by `visit()` (which is an implementation
+    // detail) and hence cannot be reliably predicted by the caller.
+
     // TODO: should this have a C++17 dependency? How about custom variant-like types? Could we possibly infer them? Keeping it this way is cleaner and more in line with `array_transform()` and `tuple_transform()`.
 
-    using VisitManyResult = typename makeshift::detail::variant_transform_result_<F, VariantsT...>::type;
+    using Result = typename makeshift::detail::variant_transform_result_<F, VariantsT...>::type;
     return makeshift::visit(
         [func = std::forward<F>(func)](auto&&... args)
         {
-            return VisitManyResult{ func(std::forward<decltype(args)>(args)...) };
+            return Result{ func(std::forward<decltype(args)>(args)...) };
         },
         std::forward<VariantsT>(variants)...);
 }
