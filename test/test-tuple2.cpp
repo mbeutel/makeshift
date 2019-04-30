@@ -1,4 +1,6 @@
 
+#include <tuple>
+
 #include <makeshift/tuple2.hpp>
 #include <makeshift/utility2.hpp> // for index
 
@@ -28,16 +30,11 @@ TEST_CASE("tuple2", "[flags]")
         auto result_tuple = std::tuple{ 0, 0, 0 };
         auto lhs_tuple = std::tuple{ 10, 20, 30 };
         auto rhs_scalar = 1;
-        mk::tuple_foreach2([offset, rhs = rhs_scalar](auto& result, auto lhs, std::size_t index)
+        mk::tuple_foreach2([offset, rhs = rhs_scalar](auto& result, auto lhs, mk::index index)
         {
             result = lhs + rhs + int(index*offset);
         }, result_tuple, lhs_tuple, mk::tuple_index);
         CHECK(result_tuple == std::tuple{ 11, 121, 231 });
-    }
-    SECTION("array-transform")
-    {
-        auto square = mk::array_transform2([](auto x) { return int(x*x); }, numbers);
-        CHECK(square == std::array{ 4, 9 });
     }
     SECTION("fold")
     {
@@ -58,22 +55,5 @@ TEST_CASE("tuple2", "[flags]")
         CHECK_FALSE(noneGreaterThan2);
         bool noneGreaterThan4 = mk::tuple_none_of(numbers, [](auto x) { return x > 4; });
         CHECK(noneGreaterThan4);
-    }
-    SECTION("array")
-    {
-        constexpr auto homogeneousNumbers = std::tuple{ 2, 3 };
-        auto moreNumbers = std::array{ 6, 8 };
-        auto allNumbers = mk::array_cat<int>(homogeneousNumbers, moreNumbers);
-        CHECK(allNumbers == std::array{ 2, 3, 6, 8 });
-
-        std::array<double, 2> intSquares = mk::array_transform2<double>(
-            [](auto x) { return x*x; },
-            std::make_tuple(2.0, 3.0f));
-        CHECK(intSquares == std::array{ 4.0, 9.0 });
-
-        std::array<double, 3> gridCoords = mk::array_transform2<double, 3>(
-            [dx=1.0](mk::index i) { return i*dx; },
-            mk::tuple_index);
-        CHECK(gridCoords == std::array{ 0.0, 1.0, 2.0 });
     }
 }

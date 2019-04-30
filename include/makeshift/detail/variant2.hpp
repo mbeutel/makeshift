@@ -16,7 +16,7 @@
 #include <makeshift/metadata2.hpp>    // for values<>
 #include <makeshift/reflect2.hpp>     // for metadata2_of<>
 #include <makeshift/type_traits2.hpp> // for type_sequence<>
-#include <makeshift/tuple2.hpp>       // for array_transform2()
+#include <makeshift/array2.hpp>       // for array_transform2()
 #include <makeshift/version.hpp>      // for MAKESHIFT_NODISCARD, MAKESHIFT_CXX17
 
 #include <makeshift/detail/constval.hpp>     // for constval_value<>
