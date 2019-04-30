@@ -293,13 +293,13 @@ template <typename T, std::ptrdiff_t N>
     //ᅟ
     // Represents a constexpr value of type `std::array<>` with the given element type and values.
     //
-template <typename T, typename... Vs>
+template <typename ArrayT, typename... Vs>
     struct constval_array : makeshift::detail::constval_tag
 {
-    static_assert(makeshift::detail::cand(makeshift::detail::is_constval_of_type_<Vs, T>::value...), "arguments must be constexpr values of type T");
+    using element_type = typename makeshift::detail::array_element_type_<ArrayT>::type;
+    using value_type = std::array<element_type, sizeof...(Vs)>;
 
-    using value_type = std::array<T, sizeof...(Vs)>;
-    using element_type = T;
+    static_assert(makeshift::detail::cand(makeshift::detail::is_constval_of_type_<Vs, element_type>::value...), "arguments must be constexpr values of type element_type");
 
     static constexpr std::size_t size(void) noexcept { return sizeof...(Vs); }
 
@@ -339,14 +339,15 @@ template <typename... Vs>
 
     //ᅟ
     // Represents a constexpr value of type `std::array<>` with the given element type and values.
-    // `array_constant<T, Vs...>` is a shorthand for `constval_array<T, constant<Vs>...>` for cases where `decltype(Vs)...` are valid non-type template parameters.
+    // `array_constant<T[], Vs...>` is a shorthand for `constval_array<T[], constant<Vs>...>` for cases where `decltype(Vs)...` are valid non-type template parameters.
     //
-template <typename T, T... Vs> using array_constant = constval_array<T, std::integral_constant<T, Vs>...>;
+template <typename ArrayT, typename makeshift::detail::array_element_type_<ArrayT>::type... Vs> using array_constant = constval_array<ArrayT, std::integral_constant<typename makeshift::detail::array_element_type_<ArrayT>::type, Vs>...>;
 
     //ᅟ
     // Represents a constexpr value of type `std::array<>` with the given element type and values.
+    // `array_c<T[], Vs...>` is a shorthand for `constval_array<T[], constant<Vs>...>{ }` for cases where `decltype(Vs)...` are valid non-type template parameters.
     //
-template <typename T, T... Vs> constexpr array_constant<T, Vs...> array_c{ };
+template <typename ArrayT, typename makeshift::detail::array_element_type_<ArrayT>::type... Vs> constexpr array_constant<ArrayT, Vs...> array_c{ };
 
 
     //ᅟ

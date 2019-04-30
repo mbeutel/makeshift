@@ -131,7 +131,7 @@ template <typename C, std::size_t I>
 };
 
 template <typename T, typename C, typename Is> struct make_constval_array_;
-template <typename T, typename C, std::size_t... Is> struct make_constval_array_<T, C, std::index_sequence<Is...>> { using type = constval_array<T, typename normalize_constval_<T>::template type<array_accessor_functor<C, Is>>...>; };
+template <typename T, typename C, std::size_t... Is> struct make_constval_array_<T, C, std::index_sequence<Is...>> { using type = constval_array<T[], typename normalize_constval_<T>::template type<array_accessor_functor<C, Is>>...>; };
 
 template <typename C, typename Is, typename... Ts> struct make_constval_tuple_;
 template <typename C, std::size_t... Is, typename... Ts> struct make_constval_tuple_<C, std::index_sequence<Is...>, Ts...> { using type = constval_tuple<typename normalize_constval_<Ts>::template type<tuple_accessor_functor<C, Is>>...>; };
