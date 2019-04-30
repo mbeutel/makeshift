@@ -591,19 +591,19 @@ template <typename T> using decay_to_args_t = typename decay_to_args<T>::type;
 
 template <typename F, typename... ArgsT> using call_result_t = decltype(std::declval<F>()(std::declval<ArgsT>()...));
 
-template <typename C, typename F, typename L, typename... Vs> struct visit_many_result_0_;
+template <typename C, typename F, typename L, typename... Vs> struct variant_transform_result_0_;
 template <typename C, typename F, typename... Ls>
-    struct visit_many_result_0_<C, F, type_sequence<Ls...>>
+    struct variant_transform_result_0_<C, F, type_sequence<Ls...>>
 {
     using type = type_sequence<call_result_t<F, Ls...>>;
 };
 template <typename C, typename F, typename... Ls, template <typename...> class V, typename... V0s, typename... Vs>
-    struct visit_many_result_0_<C, F, type_sequence<Ls...>, V<V0s...>, Vs...>
-        : type_sequence_cat<typename visit_many_result_0_<C, F, type_sequence<Ls..., V0s>, Vs...>::type...>
+    struct variant_transform_result_0_<C, F, type_sequence<Ls...>, V<V0s...>, Vs...>
+        : type_sequence_cat<typename variant_transform_result_0_<C, F, type_sequence<Ls..., V0s>, Vs...>::type...>
 {
 };
 
-template <typename F, typename... Vs> struct visit_many_result_ : apply_<std::variant, typename unique_sequence_<typename visit_many_result_0_<type_sequence<>, F, type_sequence<>, decay_to_args_t<Vs>...>::type>::type> { };
+template <typename F, typename... Vs> struct variant_transform_result_ : apply_<std::variant, typename unique_sequence_<typename variant_transform_result_0_<type_sequence<>, F, type_sequence<>, decay_to_args_t<Vs>...>::type>::type> { };
 #endif // MAKESHIFT_CXX17
 
 

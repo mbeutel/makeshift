@@ -204,18 +204,18 @@ template <typename F, typename... Vs>
 }
 
 
-
 #ifdef MAKESHIFT_CXX17
-    // TODO: this should be called variant_transform(), and it should not depend on C++17
     //ᅟ
     // Like `std::visit()`, but permits the functor to return different types for different argument types, and returns a variant of the possible results.
     //
 template <typename F, typename... VariantsT,
           typename = std::enable_if_t<std::conjunction<is_variant_like<std::decay_t<VariantsT>>...>::value>>
-    MAKESHIFT_NODISCARD constexpr typename makeshift::detail::visit_many_result_<F, VariantsT...>::type
-    visit_many(F&& func, VariantsT&&... variants)
+    MAKESHIFT_NODISCARD constexpr typename makeshift::detail::variant_transform_result_<F, VariantsT...>::type
+    variant_transform(F&& func, VariantsT&&... variants)
 {
-    using VisitManyResult = typename makeshift::detail::visit_many_result_<F, VariantsT...>::type;
+    // TODO: should this have a C++17 dependency? How about custom variant-like types? Could we possibly infer them? Keeping it this way is cleaner and more in line with `array_transform()` and `tuple_transform()`.
+
+    using VisitManyResult = typename makeshift::detail::variant_transform_result_<F, VariantsT...>::type;
     return makeshift::visit(
         [func = std::forward<F>(func)](auto&&... args)
         {
