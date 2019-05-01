@@ -176,7 +176,8 @@ constexpr inline int hex2num(char hex) noexcept
         return hex - 'A';
     else if (hex >= 'a' && hex <= 'f')
         return hex - 'a';
-    std::terminate(); // should not happen
+    else
+        std::terminate(); // should not happen
 }
 template <typename T, typename Is, char... Cs> struct make_constant_1_;
 template <typename T, std::size_t... Is, char... Cs>

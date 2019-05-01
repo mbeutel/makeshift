@@ -69,7 +69,7 @@ public:
     {
     }
 
-    MAKESHIFT_NODISCARD constexpr friend const std::array<ParamT, N>& select_parameters(const parameter_array& self, typename apply_<any_tag_of, typename ParamT::parameter_categories>::type) noexcept { return parameters_; }
+    MAKESHIFT_NODISCARD constexpr friend const std::array<ParamT, N>& select_parameters(const parameter_array& self, typename apply_<any_tag_of, typename ParamT::parameter_categories>::type) noexcept { return self.parameters_; }
 };
 
 
@@ -81,7 +81,7 @@ private:
 
 public:
     constexpr value_t(T _value, ParamsT... params)
-        : parameter_set<ParamsT...>(std::move(params))..., value_(std::move(_value))
+        : parameter_set<ParamsT...>(std::move(params)...), value_(std::move(_value))
     {
     }
 
@@ -192,23 +192,24 @@ template <typename Ts, typename... ParamsT>
     using heterogeneous_values_t = heterogeneous_values_parameter<type_sequence<values_tag>, Ts, ParamsT...>;
 
 
-template <typename TagsT, typename... Ts>
-    constexpr inline values_parameter<TagsT, typename equal_types_<Ts...>::common_type, sizeof...(Ts)> values_impl_1(std::true_type /*equalTypes*/, Ts... values)
+template <typename T>
+    constexpr value_t<T> wrap_value(T value)
 {
-    return { { value_t<Ts>{ std::move(values) }... } };
+    return { std::move(value) };
 }
-template <typename TagsT, typename... Ts>
-    constexpr inline heterogeneous_values_parameter<TagsT, std::tuple<Ts...>> values_impl_1(std::false_type /*equalTypes*/, Ts... values)
+template <typename T, typename... ParamsT>
+    constexpr value_t<T, ParamsT...> wrap_value(value_t<T, ParamsT...> value)
 {
-    return { { value_t<Ts>(std::move(values))... } };
+    return std::move(value);
 }
+
 template <typename TagsT, typename... Ts, typename... ParamsT>
-    constexpr inline values_parameter<TagsT, typename equal_types_<Ts...>::common_type, sizeof...(Ts), ParamsT...> values_impl_1(std::true_type /*equalTypes*/, value_t<Ts, ParamsT...>... values)
+    constexpr inline values_parameter<TagsT, typename equal_types_<Ts...>::common_type, sizeof...(Ts), ParamsT...> values_impl_2(std::true_type /*equalTypes*/, value_t<Ts, ParamsT...>&&... values)
 {
     return { { std::move(values)... } };
 }
 template <typename TagsT, typename... Ts, typename... ParamsT>
-    constexpr inline heterogeneous_values_parameter<TagsT, std::tuple<Ts...>, ParamsT...> values_impl_1(std::false_type /*equalTypes*/, value_t<Ts, ParamsT...>... values)
+    constexpr inline heterogeneous_values_parameter<TagsT, std::tuple<Ts...>, ParamsT...> values_impl_2(std::false_type /*equalTypes*/, value_t<Ts, ParamsT...>&&... values)
 {
     return { { std::move(values)... } };
 }
@@ -224,10 +225,15 @@ Thoughts:
 
 */
 
-template <typename TagsT, typename... Ts>
-    MAKESHIFT_NODISCARD constexpr auto values_impl_0(Ts... values)
+template <typename TagsT, typename... Ts, typename... ParamsT>
+    MAKESHIFT_NODISCARD constexpr auto values_impl_1(value_t<Ts, ParamsT...>&&... values)
 {
-    return makeshift::detail::values_impl_1<TagsT>(makeshift::detail::equal_types_<Ts...>{ }, std::move(values)...);
+    return makeshift::detail::values_impl_2<TagsT>(equal_types_<Ts...>{ }, std::move(values)...);
+}
+template <typename TagsT, typename... Ts>
+    MAKESHIFT_NODISCARD constexpr auto values_impl_0(Ts&&... values)
+{
+    return makeshift::detail::values_impl_1<TagsT>(makeshift::detail::wrap_value(std::forward<Ts>(values))...);
 }
 
 

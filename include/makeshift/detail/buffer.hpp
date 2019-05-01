@@ -11,8 +11,7 @@
 #include <gsl/gsl_assert> // for Expects()
 
 #include <makeshift/utility2.hpp> // for dim
-
-#include <makeshift/detail/constval.hpp> // for constval_value<>
+#include <makeshift/constval.hpp> // for constval_extract(), constval_assert(), constval_transform()
 
 
 namespace makeshift
