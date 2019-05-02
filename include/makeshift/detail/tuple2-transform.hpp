@@ -20,13 +20,6 @@ namespace detail
 template <typename T> using is_tuple_like_r = std::integral_constant<std::size_t, std::tuple_size<T>::value>;
 
 
-} // namespace detail
-
-
-inline namespace types
-{
-
-
     //ᅟ
     // Pass `tuple_index` to `tuple_foreach()` or `tuple_transform()` to have the tuple element index passed as a functor argument.
     // The argument is of type `integral_constant<std::size_t, I>` and implicitly converts to `std::size_t`.
@@ -37,25 +30,6 @@ inline namespace types
     //ᅟ    // prints "0: 42\n1: 1.41421"
     //
 struct tuple_index_t { };
-
-
-    //ᅟ
-    // Pass `tuple_index` to `tuple_foreach()` or `tuple_transform()` to have the tuple element index passed as a functor argument.
-    // The argument is of type `integral_constant<std::size_t, I>` and implicitly converts to `std::size_t`.
-    //ᅟ
-    //ᅟ    tuple_foreach(
-    //ᅟ        [](auto element, std::size_t idx) { std::cout << idx << ": " << element << '\n'; },
-    //ᅟ        std::make_tuple(42, 1.41421), tuple_index);
-    //ᅟ    // prints "0: 42\n1: 1.41421"
-    //
-constexpr tuple_index_t tuple_index{ };
-
-
-} // inline namespace types
-
-
-namespace detail
-{
 
 
 template <typename T> struct is_tuple_arg : std::disjunction<std::is_same<std::decay_t<T>, tuple_index_t>, can_instantiate<is_tuple_like_r, std::decay_t<T>>> { };

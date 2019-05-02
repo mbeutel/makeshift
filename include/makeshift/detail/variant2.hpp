@@ -330,7 +330,7 @@ template <typename ClassT, bool Exhaustive, typename... FactorsT>
     constexpr std::size_t numValues = cmul<std::size_t>(FactorsT::num_values...);
     return makeshift::array_transform<numValues>(
         make_value_functor<Exhaustive, ClassT, FactorsT...>{ product, strides },
-        tuple_index);
+        array_index);
 }
 template <typename ClassT, std::size_t N, typename... MembersT>
     constexpr auto to_array_of(const member_values_t<N, MembersT...>& memberValues) noexcept

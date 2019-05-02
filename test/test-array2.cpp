@@ -32,7 +32,7 @@ TEST_CASE("array2", "[flags]")
 
         mk::array<double, 3> gridCoords = mk::array_transform<double, 3>(
             [dx=1.0](mk::index i) { return i*dx; },
-            mk::tuple_index);
+            mk::array_index);
         CHECK(gridCoords == std::array{ 0.0, 1.0, 2.0 });
     }
 }

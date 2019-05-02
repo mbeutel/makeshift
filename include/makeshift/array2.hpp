@@ -16,6 +16,33 @@ inline namespace types
 
 
     //ᅟ
+    // Pass `array_index` to `array_transform()` to have the tuple element index passed as a functor argument.
+    // The argument is of type `integral_constant<std::size_t, I>` and implicitly converts to `std::size_t`.
+    // Note that `tuple_index_t` and `array_index_t` are aliases to the same type.
+    //ᅟ
+    //ᅟ    auto indices = array_transform<3>(
+    //ᅟ        [](std::size_t i) { return i; },
+    //ᅟ        array_index);
+    //ᅟ    // returns std::array{ 0, 1, 2 }
+    //
+using array_index_t = makeshift::detail::tuple_index_t;
+
+
+    //ᅟ
+    // Pass `array_index` to `array_transform()` to have the tuple element index passed as a functor argument.
+    // The argument is of type `integral_constant<std::size_t, I>` and implicitly converts to `std::size_t`.
+    // Note that `tuple_index_t` and `array_index_t` are aliases to the same type.
+    //ᅟ
+    //ᅟ    auto indices = array_transform<3>(
+    //ᅟ        [](std::size_t i) { return i; },
+    //ᅟ        array_index);
+    //ᅟ    // returns std::array{ 0, 1, 2 }
+    //
+constexpr array_index_t array_index{ };
+
+
+
+    //ᅟ
     // `array<T, N1, ..., Nd>` is an alias for `std::array<...std::array<T, Nd>..., N1>`, i.e. the modern equivalent of `T[N1]...[Nd]`.
     // Note that `array<>` is defined such that the type arguments of `array<>` cannot be deduced.
     //
@@ -27,7 +54,7 @@ template <typename T, std::size_t... Dims> using array = typename makeshift::det
     //ᅟ
     //ᅟ    auto indices = array_transform<3>(
     //ᅟ        [](std::size_t i) { return i; },
-    //ᅟ        tuple_index);
+    //ᅟ        array_index);
     //ᅟ    // returns std::array{ 0, 1, 2 }
     //
 template <std::size_t N, typename F, typename... Ts>
@@ -61,7 +88,7 @@ template <typename T, typename F, typename... Ts>
     //ᅟ
     //ᅟ    auto gridCoords = array_transform<double, 3>(
     //ᅟ        [dx = 1.0](mk::index i) { return i*dx; },
-    //ᅟ        tuple_index);
+    //ᅟ        array_index);
     //ᅟ    // returns std::array{ 0.0, 1.0, 2.0 }
     //
 template <typename T, std::size_t N, typename F, typename... Ts>
