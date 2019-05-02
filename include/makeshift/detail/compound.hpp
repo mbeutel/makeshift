@@ -44,7 +44,7 @@ template <typename CompoundMembersT, typename EqualToT = std::equal_to<>>
         const EqualToT& equal = *this;
         const CompoundMembersT& compoundMembers = *this;
         return makeshift::tuple_all_of(
-            compoundMembers(type_v<T>),
+            compoundMembers(type_c<T>),
             [&equal, &lhs, &rhs](auto&& member)
             {
                 return equal(member(lhs), member(rhs));
@@ -68,7 +68,7 @@ template <typename CompoundMembersT, typename HashT = hash2<>>
         const HashT& hash = *this;
         const CompoundMembersT& compoundMembers = *this;
         return makeshift::tuple_reduce(
-            compoundMembers(type_v<T>),
+            compoundMembers(type_c<T>),
             std::size_t(0),
             [&hash, &obj](std::size_t seed, auto&& member)
             {
@@ -110,7 +110,7 @@ public:
         MAKESHIFT_NODISCARD constexpr bool operator ()(const T& lhs, const T& rhs) const noexcept
     {
         const CompoundMembersT& compoundMembers = *this;
-        auto members = compoundMembers(type_v<T>);
+        auto members = compoundMembers(type_c<T>);
         return invoke_(std::make_index_sequence<std::tuple_size<std::decay_t<decltype(members)>>::value>{ },
             members, lhs, rhs);
     }

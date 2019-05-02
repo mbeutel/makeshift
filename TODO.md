@@ -75,7 +75,7 @@ struct Domain
 };
 
 	// type must contain the types of all properties!
-auto domainM = model(type_v<Domain>, // <-- optional if any compound-typed properties are listed
+auto domainM = model(type_c<Domain>, // <-- optional if any compound-typed properties are listed
 	property(&Domain::x, name="x"),
 	property(&Domain::y, name="y"),
 	property(&Domain::z, name="z")
@@ -110,7 +110,7 @@ auto domainP = property(&Params::domain,
 	model=domainM
 );
 
-auto paramsM = model(type_v<Params>,
+auto paramsM = model(type_c<Params>,
 	caption("Measurement parameters"),
 	operationP,
 	precisionP,

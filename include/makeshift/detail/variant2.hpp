@@ -571,7 +571,7 @@ template <typename ResultHandlerT, typename MetadataT, typename T, typename C, t
 template <typename ResultHandlerT, typename MetadataT, typename T, typename C, typename HashT, typename EqualToT>
     constexpr auto expand2_impl1(std::false_type /*isMetadata*/, const T& value, C valuesC, HashT&& hash, EqualToT&& equal)
 {
-    return expand2_impl2<ResultHandlerT>(type_v<MetadataT>, value, valuesC, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
+    return expand2_impl2<ResultHandlerT>(type_c<MetadataT>, value, valuesC, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
 }
 
 template <typename ResultHandlerT, typename T, typename C, typename HashT, typename EqualToT>

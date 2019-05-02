@@ -91,8 +91,8 @@ template <typename FlagsT, typename UnderlyingTypeT = unsigned>
     //ᅟ    FloatTypes floatType = ...;
     //ᅟ    switch (floatType)
     //ᅟ    {
-    //ᅟ    case type_v<float>:  ...; break;
-    //ᅟ    case type_v<double>: ...; break;
+    //ᅟ    case type_c<float>:  ...; break;
+    //ᅟ    case type_c<double>: ...; break;
     //ᅟ    }
     //
 template <typename TypeEnumT, typename... Ts>
@@ -112,8 +112,8 @@ template <typename TypeEnumT, typename... Ts>
     //ᅟ    FloatTypes floatType = ...;
     //ᅟ    switch (floatType)
     //ᅟ    {
-    //ᅟ    case type_v<float>:  ...; break;
-    //ᅟ    case type_v<double>: ...; break;
+    //ᅟ    case type_c<float>:  ...; break;
+    //ᅟ    case type_c<double>: ...; break;
     //ᅟ    }
     //
 template <typename... Ts>

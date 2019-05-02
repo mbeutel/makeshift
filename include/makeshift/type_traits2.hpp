@@ -22,15 +22,15 @@ inline namespace types
     //ᅟ
     // `type<>` is a generic type tag.
     //ᅟ
-    // Use `type_v<T>` as a value representation of `T`.
+    // Use `type_c<T>` as a value representation of `T`.
     //
 template <typename T> using type = makeshift::detail::type_t<T>;
 
 
     //ᅟ
-    // Use `type_v<T>` as a value representation of `T` for tag dispatching.
+    // Use `type_c<T>` as a value representation of `T` for tag dispatching.
     //
-template <typename T> constexpr inline makeshift::detail::type_t<T> type_v { };
+template <typename T> constexpr inline makeshift::detail::type_t<T> type_c { };
 
 
     //ᅟ
@@ -106,7 +106,7 @@ template <>
     //ᅟ
     // Type sequence, i.e. type list and tuple of `type<>` arguments.
     //
-template <typename... Ts> constexpr inline type_sequence<Ts...> type_sequence_v { };
+template <typename... Ts> constexpr inline type_sequence<Ts...> type_sequence_c { };
 
 
     //ᅟ
@@ -146,7 +146,7 @@ template <typename T, template <typename...> class TypeSeqT, typename... Ts> str
     //ᅟ
     // `type<>` is a generic type tag.
     //ᅟ
-    // Use `type_v<T>` as a value representation of `T`.
+    // Use `type_c<T>` as a value representation of `T`.
     //
 template <typename T>
     struct type_t : constval_tag

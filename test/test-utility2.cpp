@@ -39,7 +39,7 @@ TEST_CASE("utility2", "[flags]")
 
     SECTION("type-enum")
     {
-        FloatTypes floatTypes = mk::type_v<float>;
-        CHECK(floatTypes != mk::type_v<double>);
+        FloatTypes floatTypes = mk::type_c<float>;
+        CHECK(floatTypes != mk::type_c<double>);
     }
 }

@@ -87,15 +87,15 @@ TEST_CASE("constexpr")
     expect_array_tuple_constval_normalization(cTA);
     std::tuple<std::array<int, 1>, std::array<int, 2>> ncTA = cTA;
 
-    auto cT1 = mk::make_constval([]{ return mk::type_v<int>; });
+    auto cT1 = mk::make_constval([]{ return mk::type_c<int>; });
     expect_type_tag<int>(cT1);
 
-    auto cT2 = mk::type_v<float>;
+    auto cT2 = mk::type_c<float>;
     expect_type_tag<float>(cT2);
 
-    auto cTS1 = mk::make_constval([]{ return mk::type_sequence_v<int, float>; });
+    auto cTS1 = mk::make_constval([]{ return mk::type_sequence<int, float>{ }; });
     expect_type_sequence_tag<int, float>(cTS1);
 
-    auto cTS2 = mk::type_sequence_v<float, int>;
+    auto cTS2 = mk::type_sequence<float, int>{ };
     expect_type_sequence_tag<float, int>(cTS2);
 }

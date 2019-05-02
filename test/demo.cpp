@@ -37,7 +37,7 @@ void demo(void)
     bool log = false;
     int logLevel = 1;
     Operation operation = Operation::copy;
-    FloatType floatType = mk::type_v<float>;
+    FloatType floatType = mk::type_c<float>;
 
     auto logLevelCV = mk::expand2_or_throw(logLevel, [] { return mk::values<int> = { 1, 2, 3 }; });
     auto floatTypeCV = mk::expand2(floatType);
