@@ -590,33 +590,6 @@ template <typename T, std::size_t N> struct is_exhaustive_1_<std::array<T, N>> :
 template <typename T> using is_exhaustive_0_ = std::disjunction<std::is_base_of<metadata_tag, T>, is_exhaustive_1_<T>>;
 template <typename C> constexpr bool is_exhaustive_v = is_exhaustive_0_<decltype(std::declval<C>()())>::value;
 
-template <typename T> struct decay_to_args;
-template <template <typename...> class T, typename... Ts> struct decay_to_args<T<Ts...>> { using type = T<Ts...>; };
-template <template <typename...> class T, typename... Ts> struct decay_to_args<T<Ts...>&> { using type = T<Ts&...>; };
-template <template <typename...> class T, typename... Ts> struct decay_to_args<const T<Ts...>&> { using type = T<const Ts&...>; };
-template <template <typename...> class T, typename... Ts> struct decay_to_args<T<Ts...>&&> { using type = T<Ts&&...>; };
-template <typename T> using decay_to_args_t = typename decay_to_args<T>::type;
-
-#ifdef MAKESHIFT_CXX17
-// TODO: this should also be extended to support variant-like types and expandable arguments
-
-template <typename F, typename... ArgsT> using call_result_t = decltype(std::declval<F>()(std::declval<ArgsT>()...));
-
-template <typename C, typename F, typename L, typename... Vs> struct variant_transform_result_0_;
-template <typename C, typename F, typename... Ls>
-    struct variant_transform_result_0_<C, F, type_sequence<Ls...>>
-{
-    using type = type_sequence<call_result_t<F, Ls...>>;
-};
-template <typename C, typename F, typename... Ls, template <typename...> class V, typename... V0s, typename... Vs>
-    struct variant_transform_result_0_<C, F, type_sequence<Ls...>, V<V0s...>, Vs...>
-        : type_sequence_cat<typename variant_transform_result_0_<C, F, type_sequence<Ls..., V0s>, Vs...>::type...>
-{
-};
-
-template <typename F, typename... Vs> struct variant_transform_result_ : apply_<std::variant, typename unique_sequence_<typename variant_transform_result_0_<type_sequence<>, F, type_sequence<>, decay_to_args_t<Vs>...>::type>::type> { };
-#endif // MAKESHIFT_CXX17
-
 
 #ifdef MAKESHIFT_CXX17
 template <typename V>
@@ -724,6 +697,37 @@ template <typename F, typename... Vs>
     auto argsTuple = std::tuple<Vs&&...>(std::forward<Vs>(args)...);
     std::size_t linearIndex = makeshift::detail::visit_compute_linear_index(Strides{ }, std::index_sequence_for<Vs...>{ }, argsTuple);
     return makeshift::detail::visit_impl_1<numOptions, Strides>(std::integral_constant<bool, (numOptions < smallNumberLimit)>{ }, linearIndex, std::forward<F>(func), std::move(argsTuple));
+}
+
+
+template <std::size_t... LinearIndices, typename StridesT, typename F, typename TupleT>
+    constexpr auto variant_transform_result_2(std::index_sequence<LinearIndices...>, StridesT, F&& func, TupleT&& args)
+        -> type_sequence<decltype(visitor<LinearIndices, StridesT, F, TupleT>(std::forward<F>(func), std::forward<TupleT>(args)))...>
+{
+    return { };
+}
+template <std::size_t NumOptions, typename StridesT, typename F, typename TupleT>
+    constexpr auto variant_transform_result_1(F&& func, TupleT&& args)
+        -> decltype(makeshift::detail::variant_transform_result_2(std::make_index_sequence<NumOptions>{ }, StridesT{ }, std::forward<F>(func), std::forward<TupleT>(args)))
+{
+    return { };
+}
+
+template <typename F, typename... Vs>
+    constexpr decltype(auto) variant_transform_impl_0(F&& func, Vs&&... args)
+{
+    using Strides = compute_strides_t<std::index_sequence<variant_size<std::remove_reference_t<Vs>>::value...>>;
+    constexpr std::size_t numOptions = makeshift::detail::cmul<std::size_t>(variant_size<std::remove_reference_t<Vs>>::value...);
+    using ResultSeq = decltype(variant_transform_result_1<numOptions, Strides>(std::forward<F>(func), std::declval<std::tuple<Vs&&...>>()));
+    using UniqueResultSeq = typename unique_sequence_<ResultSeq>::type;
+    using Result = typename apply_<std::variant, UniqueResultSeq>::type;
+
+    return makeshift::detail::visit_impl_0(
+        [func = std::forward<F>(func)](auto&&... args)
+        {
+            return Result{ func(std::forward<decltype(args)>(args)...) };
+        },
+        std::forward<Vs>(args)...);
 }
 
 

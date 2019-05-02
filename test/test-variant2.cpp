@@ -264,4 +264,16 @@ TEST_CASE("variant2")
             },
             b1);
     }
+
+    SECTION("variant_transform")
+    {
+        auto v1 = mk::variant_transform(
+            [](auto lC, auto rC)
+            {
+                return mk::constval<lC() + rC()>;
+            },
+            mk::expand2_or_throw(1, mk::array_c<int[], 1, 2, 3>),
+            mk::expand2_or_throw(1, mk::array_c<int[], 2, 3>));
+        static_assert(std::is_same_v<decltype(v1), std::variant<mk::constant<3>, mk::constant<4>, mk::constant<5>, mk::constant<6>>>);
+    }
 }

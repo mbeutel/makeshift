@@ -114,21 +114,22 @@ template <template <typename...> class Z, template <typename...> class SeqT, typ
 template <typename T> struct type_t;
 
 
-template <typename T, typename Ts> struct is_in_;
-template <typename T, template <typename...> class TypeSeqT> struct is_in_<T, TypeSeqT<>> : std::false_type{ };
-template <typename T, template <typename...> class TypeSeqT, typename T0, typename... Ts> struct is_in_<T, TypeSeqT<T0, Ts...>> : is_in_<T, TypeSeqT<Ts...>> { };
-template <typename T, template <typename...> class TypeSeqT, typename... Ts> struct is_in_<T, TypeSeqT<T, Ts...>> : std::true_type { };
-
-template <typename T, typename Ts, bool IsIn> struct add_unique_0_;
-template <typename T, template <typename...> class TypeSeqT, typename... Ts> struct add_unique_0_<T, TypeSeqT<Ts...>, false> { using type = TypeSeqT<T, Ts...>; };
-template <typename T, template <typename...> class TypeSeqT, typename... Ts> struct add_unique_0_<T, TypeSeqT<Ts...>, true> { using type = TypeSeqT<Ts...>; };
-template <typename T, typename Ts> struct add_unique_ : add_unique_0_<T, Ts, is_in_<T, Ts>::value> { };
+template <typename T> struct type_set_leaf_ { };
+template <typename T, std::size_t I> struct type_set_indexed_leaf_ : type_set_leaf_<T> { };
+template <typename Is, typename... Ts> struct type_set_0_;
+template <std::size_t... Is, typename... Ts> struct type_set_0_<std::index_sequence<Is...>, Ts...> : type_set_indexed_leaf_<Ts, Is>... { };
+template <typename... Ts> struct type_set_ : type_set_0_<std::index_sequence_for<Ts...>, Ts...> { };
+template <typename T, typename... Ts> struct is_in_ : std::is_base_of<type_set_leaf_<T>, type_set_<Ts...>> { };
 
 template <typename Rs, typename Ts> struct unique_sequence_0_;
-template <typename Rs, template <typename...> class TypeSeqT> struct unique_sequence_0_<Rs, TypeSeqT<>> { using type = Rs; };
-template <typename Rs, template <typename...> class TypeSeqT, typename T, typename... Ts> struct unique_sequence_0_<Rs, TypeSeqT<T, Ts...>> : unique_sequence_0_<typename add_unique_<T, Rs>::type, TypeSeqT<Ts...>> { };
+template <typename Rs> struct unique_sequence_0_<Rs, type_set_<>> { using type = Rs; };
+template <typename Rs, bool IsIn, typename T0, typename Ts> struct unique_sequence_1_;
+template <typename Rs, typename T0, typename Ts> struct unique_sequence_1_<Rs, true, T0, Ts> : unique_sequence_0_<Rs, Ts> { };
+template <template <typename...> class TypeSeqT, typename... Rs, typename T0, typename Ts> struct unique_sequence_1_<TypeSeqT<Rs...>, false, T0, Ts> : unique_sequence_0_<TypeSeqT<Rs..., T0>, Ts> { };
+template <typename Rs, typename T0, typename... Ts> struct unique_sequence_0_<Rs, type_set_<T0, Ts...>> : unique_sequence_1_<Rs, is_in_<T0, Ts...>::value, T0, type_set_<Ts...>> { };
+
 template <typename Ts> struct unique_sequence_;
-template <template <typename...> class TypeSeqT, typename... Ts> struct unique_sequence_<TypeSeqT<Ts...>> : unique_sequence_0_<TypeSeqT<>, TypeSeqT<Ts...>> { };
+template <template <typename...> class TypeSeqT, typename... Ts> struct unique_sequence_<TypeSeqT<Ts...>> : unique_sequence_0_<TypeSeqT<>, type_set_<Ts...>> { };
 
 
     //ᅟ
