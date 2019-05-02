@@ -16,9 +16,10 @@ inline namespace types
 
 
     //ᅟ
-    // `array<T[N]>` is an alias for `std::array<T, N>`.
+    // `array<T, N1, ..., Nd>` is an alias for `std::array<...std::array<T, Nd>..., N1>`, i.e. the modern equivalent of `T[N1]...[Nd]`.
+    // Note that `array<>` is defined such that the type arguments of `array<>` cannot be deduced.
     //
-template <typename ArrayT> using array = typename makeshift::detail::array_<ArrayT>::type;
+template <typename T, std::size_t... Dims> using array = typename makeshift::detail::array_<T, Dims...>::type;
 
 
     //ᅟ
@@ -41,23 +42,34 @@ template <std::size_t N, typename F, typename... Ts>
     //ᅟ
     // Takes a scalar function (i.e. a function of non-tuple arguments) and returns an array of the results of the function applied to the tuple elements.
     //ᅟ
-    //ᅟ    auto gridCoords = array_transform<double[3]>(
-    //ᅟ        [dx = 1.0](mk::index i) { return i*dx; },
-    //ᅟ        tuple_index);
-    //ᅟ    // returns std::array{ 0.0, 1.0, 2.0 }
-    //ᅟ
-    //ᅟ    auto intSquares = array_transform<double[]>(
+    //ᅟ    auto intSquares = array_transform<double>(
     //ᅟ        [](auto x) { return x*x; },
     //ᅟ        std::make_tuple(2.0, 3.0f));
     //ᅟ    // returns std::array{ 4.0, 9.0 }
     //
-template <typename ArrayT, typename F, typename... Ts>
+template <typename T, typename F, typename... Ts>
     MAKESHIFT_NODISCARD constexpr auto
     array_transform(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
-    return makeshift::detail::tuple_transform_impl0<makeshift::detail::array_type_<ArrayT>::size, makeshift::detail::transform_to_array_of_tag<typename makeshift::detail::array_type_<ArrayT>::element_type>>(
-        std::forward<F>(func), std::forward<Ts>(args)...);
+    return makeshift::detail::tuple_transform_impl0<-1, makeshift::detail::transform_to_array_of_tag<T>>(std::forward<F>(func), std::forward<Ts>(args)...);
+}
+
+
+    //ᅟ
+    // Takes a scalar function (i.e. a function of non-tuple arguments) and returns an array of the results of the function applied to the tuple elements.
+    //ᅟ
+    //ᅟ    auto gridCoords = array_transform<double, 3>(
+    //ᅟ        [dx = 1.0](mk::index i) { return i*dx; },
+    //ᅟ        tuple_index);
+    //ᅟ    // returns std::array{ 0.0, 1.0, 2.0 }
+    //
+template <typename T, std::size_t N, typename F, typename... Ts>
+    MAKESHIFT_NODISCARD constexpr auto
+    array_transform(F&& func, Ts&&... args)
+{
+    static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
+    return makeshift::detail::tuple_transform_impl0<N, makeshift::detail::transform_to_array_of_tag<T>>(std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
 

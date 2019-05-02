@@ -117,25 +117,9 @@ template <typename T, std::size_t... Is, typename IndicesT, typename... Ts>
 }
 
 
-template <typename T> struct array_0_ { using type = T; };
-template <typename T, std::size_t N> struct array_0_<T[N]> { using type = std::array<typename array_0_<T>::type, N>; };
-template <typename ArrayT> struct array_;
-template <typename T, std::size_t N> struct array_<T[N]> : array_0_<T[N]> { };
-
-template <typename ArrayT>
-    struct array_type_;
-template <typename T, std::size_t N>
-    struct array_type_<T[N]>
-{
-    static constexpr std::ptrdiff_t size = ptrdiff_t(N);
-    using element_type = T;
-};
-template <typename T>
-    struct array_type_<T[]>
-{
-    static constexpr std::ptrdiff_t size = -1;
-    using element_type = T;
-};
+template <typename T, std::size_t... Dims> struct array_;
+template <typename T> struct array_<T> { using type = T; };
+template <typename T, std::size_t Dim0, std::size_t... Dims> struct array_<T, Dim0, Dims...> { using type = std::array<typename array_<T, Dims...>::type, Dim0>; };
 
 
 } // namespace detail
