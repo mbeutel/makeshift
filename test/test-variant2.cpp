@@ -120,7 +120,7 @@ TEST_CASE("variant2")
         auto p2VO = mk::try_expand2(p2,
             mk::make_constval([]
             {
-                return mk::values(Precision::single, Precision::double_);
+                return std::array{ Precision::single, Precision::double_ };
             }));
         CHECK(p2VO.has_value());
         mk::visit(

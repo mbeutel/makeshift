@@ -506,6 +506,12 @@ template <typename T>
 };
 
 template <typename ResultHandlerT, typename T, typename C, typename HashT, typename EqualToT>
+    constexpr auto expand2_impl3_array(const T& value, C valueArrayC, HashT&& hash, EqualToT&& equal)
+{
+    return makeshift::detail::value_to_variant<ResultHandlerT>(std::false_type{ }, value, valueArrayC, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
+}
+
+template <typename ResultHandlerT, typename T, typename C, typename HashT, typename EqualToT>
     constexpr auto expand2_impl3(const T& value, C valuesC, HashT&& hash, EqualToT&& equal)
 {
     auto valueArrayC = makeshift::constval_transform(value_array_functor{ }, valuesC);
@@ -546,6 +552,11 @@ template <typename ResultHandlerT, typename T, std::size_t N, typename C, typena
 {
     return expand2_impl3<ResultHandlerT>(value, valuesC, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
 }
+template <typename ResultHandlerT, typename T, std::size_t N, typename C, typename HashT, typename EqualToT>
+    constexpr auto expand2_impl2(type_t<std::array<T, N>>, const T& value, C valuesC, HashT&& hash, EqualToT&& equal)
+{
+    return expand2_impl3_array<ResultHandlerT>(value, valuesC, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
+}
 template <typename ResultHandlerT, template <typename...> class TupleT, typename... Ts, typename T, typename C, typename HashT, typename EqualToT>
     constexpr auto expand2_impl2(type_t<heterogeneous_values_t<TupleT<Ts...>>>, const T& value, C valuesC, HashT&& hash, EqualToT&& equal)
 {
@@ -575,6 +586,7 @@ template <bool Exhaustive, typename... FactorsT> struct is_exhaustive_1_<value_p
 template <std::size_t N, typename... MembersT> struct is_exhaustive_1_<member_values_t<N, MembersT...>> : std::false_type { };
 template <typename MemberT> struct is_exhaustive_1_<members_t<MemberT>> : std::true_type { };
 template <typename T, std::size_t N> struct is_exhaustive_1_<values_t<T, N>> : std::false_type { };
+template <typename T, std::size_t N> struct is_exhaustive_1_<std::array<T, N>> : std::false_type { };
 template <typename T> using is_exhaustive_0_ = std::disjunction<std::is_base_of<metadata_tag, T>, is_exhaustive_1_<T>>;
 template <typename C> constexpr bool is_exhaustive_v = is_exhaustive_0_<decltype(std::declval<C>()())>::value;
 
