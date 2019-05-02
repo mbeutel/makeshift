@@ -243,6 +243,28 @@ template <typename T, std::size_t N>
 };
 
 
+namespace non_adl
+{
+
+
+template <typename T>
+    constexpr T makeshift_nttp_unwrap(T arg)
+{
+    return arg;
+}
+
+
+} // namespace non_adl
+
+
+template <typename T>
+    constexpr auto nttp_unwrap(T arg)
+{
+    using makeshift::detail::non_adl::makeshift_nttp_unwrap;
+    return makeshift_nttp_unwrap(arg);
+}
+
+
 } // namespace detail
 
 } // namespace makeshift

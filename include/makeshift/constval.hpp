@@ -77,6 +77,18 @@ template <typename C>
 }
 
 
+template <typename T, T V> using constval14_t = typename makeshift::detail::unwrap_constval_<T, V>::type;
+
+template <typename T, T V> constval14_t<T, V> constval14{ };
+
+
+#ifdef MAKESHIFT_CXX17
+template <auto V> using constval_t = typename makeshift::detail::unwrap_constval_<decltype(V), V>::type;
+
+template <auto V> constval_t<V> constval{ };
+#endif // MAKESHIFT_CXX17
+
+
     //ᅟ
     // Returns the value of a constexpr value, or passes through the argument if it is not a constexpr value.
     //

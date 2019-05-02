@@ -293,19 +293,17 @@ template <typename T, std::ptrdiff_t N>
     //ᅟ
     // Represents a constexpr value of type `std::array<>` with the given element type and values.
     //
-template <typename ArrayT, typename... Vs>
-    struct constval_array : makeshift::detail::constval_tag
+template <typename ArrayT, typename makeshift::detail::array_element_type_<ArrayT>::type... Vs>
+    struct array_constant : makeshift::detail::constval_tag
 {
-    using element_type = typename makeshift::detail::array_element_type_<ArrayT>::type;
+    using element_type = decltype(makeshift::detail::nttp_unwrap(std::declval<typename makeshift::detail::array_element_type_<ArrayT>::type>()));
     using value_type = std::array<element_type, sizeof...(Vs)>;
 
-    static_assert(makeshift::detail::cand(makeshift::detail::is_constval_of_type_<Vs, element_type>::value...), "arguments must be constexpr values of type element_type");
-
     static constexpr std::size_t size(void) noexcept { return sizeof...(Vs); }
 
     MAKESHIFT_NODISCARD constexpr value_type operator ()(void) const noexcept
     {
-        return { Vs{ }()... };
+        return { makeshift::detail::nttp_unwrap(Vs)... };
     }
     MAKESHIFT_NODISCARD constexpr operator value_type(void) const noexcept
     {
@@ -313,45 +311,15 @@ template <typename ArrayT, typename... Vs>
     }
 };
 
-
-    //ᅟ
-    // Represents a constexpr value of type `std::tuple<>` with the given element type and values.
-    //
-template <typename... Vs>
-    struct constval_tuple : makeshift::detail::constval_tag
-{
-    static_assert(makeshift::detail::cand(makeshift::detail::is_constval_<Vs>::value...), "arguments must be constexpr values");
-
-    using value_type = std::tuple<decltype(std::declval<Vs>()())...>;
-
-    static constexpr std::size_t size(void) noexcept { return sizeof...(Vs); }
-
-    MAKESHIFT_NODISCARD constexpr value_type operator ()(void) const noexcept
-    {
-        return { Vs{ }()... };
-    }
-    MAKESHIFT_NODISCARD constexpr operator value_type(void) const noexcept
-    {
-        return (*this)();
-    }
-};
-
-
     //ᅟ
     // Represents a constexpr value of type `std::array<>` with the given element type and values.
-    // `array_constant<T[], Vs...>` is a shorthand for `constval_array<T[], constant<Vs>...>` for cases where `decltype(Vs)` is a valid non-type template parameter.
-    //
-template <typename ArrayT, typename makeshift::detail::array_element_type_<ArrayT>::type... Vs> using array_constant = constval_array<ArrayT, std::integral_constant<typename makeshift::detail::array_element_type_<ArrayT>::type, Vs>...>;
-
-    //ᅟ
-    // Represents a constexpr value of type `std::array<>` with the given element type and values.
-    // `array_c<T[], Vs...>` is a shorthand for `constval_array<T[], constant<Vs>...>{ }` for cases where `decltype(Vs)` is a valid non-type template parameter.
     //
 template <typename ArrayT, typename makeshift::detail::array_element_type_<ArrayT>::type... Vs> constexpr array_constant<ArrayT, Vs...> array_c{ };
 
 
     //ᅟ
     // Converts a `std::integer_sequence<>` to a constexpr value of type `std::array<>`.
+    // TODO: remove?
     //
 template <typename T, T... Vs>
     MAKESHIFT_NODISCARD constexpr array_constant<T,Vs...> make_array_constant(std::integer_sequence<T, Vs...>) noexcept
@@ -361,6 +329,7 @@ template <typename T, T... Vs>
 
     //ᅟ
     // Converts a sequence of homogeneously typed constexpr values to a constexpr value of type `std::array<>`.
+    // TODO: remove?
     //
 template <typename T, T... Vs>
     MAKESHIFT_NODISCARD constexpr array_constant<T,Vs...> make_array_constant(std::integral_constant<T, Vs>...) noexcept
@@ -368,6 +337,34 @@ template <typename T, T... Vs>
         // This permits conversion from any sequence of constvals because of constval normalization.
     return { };
 }
+
+
+#ifdef MAKESHIFT_CXX17
+    //ᅟ
+    // Represents a constexpr value of type `std::tuple<>` with the given values.
+    //
+template <auto... Vs>
+    struct tuple_constant : makeshift::detail::constval_tag
+{
+    using value_type = std::tuple<decltype(makeshift::detail::nttp_unwrap(Vs))...>;
+
+    static constexpr std::size_t size(void) noexcept { return sizeof...(Vs); }
+
+    MAKESHIFT_NODISCARD constexpr value_type operator ()(void) const noexcept
+    {
+        return { makeshift::detail::nttp_unwrap(Vs)... };
+    }
+    MAKESHIFT_NODISCARD constexpr operator value_type(void) const noexcept
+    {
+        return (*this)();
+    }
+};
+
+    //ᅟ
+    // Represents a constexpr value of type `std::tuple<>` with the given values.
+    //
+template <auto... Vs> constexpr tuple_constant<Vs...> tuple_c{ };
+#endif // MAKESHIFT_CXX17
 
 
 } // inline namespace types

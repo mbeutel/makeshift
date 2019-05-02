@@ -33,16 +33,16 @@ template <typename T, T... Vs>
 {
 }
 
-template <typename T, typename... Vs>
-    void expect_nested_array_constval_normalization(mk::constval_array<T[], Vs...>)
+template <typename T, T... Vs>
+    void expect_nested_array_constval_normalization(mk::array_constant<T[], Vs...>)
 {
-    (expect_array_constval_normalization(Vs{ }), ...);
+    (expect_array_constval_normalization(mk::constval<Vs>), ...);
 }
 
-template <typename... Vs>
-    void expect_array_tuple_constval_normalization(mk::constval_tuple<Vs...>)
+template <auto... Vs>
+    void expect_array_tuple_constval_normalization(mk::tuple_constant<Vs...>)
 {
-    (expect_array_constval_normalization(Vs{ }), ...);
+    (expect_array_constval_normalization(mk::constval<Vs>), ...);
 }
 
 template <typename T>
@@ -77,12 +77,15 @@ TEST_CASE("constexpr")
 
     auto cA = mk::make_constval([]{ return std::array{ 4, 2 }; });
     expect_array_constval_normalization<int, 4, 2>(cA);
+    mk::array<int, 2> ncA = cA;
 
     auto cAA = mk::make_constval([]{ return std::array{ std::array{ 4 }, std::array{ 2 } }; });
-    expect_nested_array_constval_normalization<mk::array<int, 1>, mk::array_constant<int[], 4>, mk::array_constant<int[], 2>>(cAA);
+    expect_nested_array_constval_normalization(cAA);
+    mk::array<int, 2, 1> ncAA = cAA;
 
     auto cTA = mk::make_constval([]{ return std::tuple{ std::array{ 3 }, std::array{ 1, 4 } }; });
-    expect_array_tuple_constval_normalization<mk::array_constant<int[], 3>, mk::array_constant<int[], 1, 4>>(cTA);
+    expect_array_tuple_constval_normalization(cTA);
+    std::tuple<std::array<int, 1>, std::array<int, 2>> ncTA = cTA;
 
     auto cT1 = mk::make_constval([]{ return mk::type_v<int>; });
     expect_type_tag<int>(cT1);
