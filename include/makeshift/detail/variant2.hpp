@@ -448,6 +448,11 @@ template <typename ResultHandlerT, typename T, typename C, typename HashT, typen
     constexpr std::size_t numValues = std::tuple_size<decltype(lvalues)>::value;
     using ExpandType = typename heterogeneous_expand_type_<C, std::make_index_sequence<numValues>>::type;
 
+        // If hash and equal are empty, we can build a hash table at compile time.
+        // We won't bother in the case where they are not because we need to traverse all elements at runtime anyway.
+        // (TODO: implement)
+        // (TODO: is there an acceptable way of checking for constexpr-ness?)
+
     for (std::size_t i = 0; i != numValues; ++i)
         if (equal(value, lvalues[i]))
             return ResultHandlerT::succeed(ExpandType(index_value, i));
@@ -459,6 +464,11 @@ template <typename ResultHandlerT, typename T, typename C, typename HashT, typen
     constexpr auto lvalues = valueArrayC();
     constexpr std::size_t numValues = std::tuple_size<decltype(lvalues)>::value;
     using ExpandType = typename expand_type_<T, C, std::make_index_sequence<numValues>>::type;
+
+        // If hash and equal are empty, we can build a hash table at compile time.
+        // We won't bother in the case where they are not because we need to traverse all elements at runtime anyway.
+        // (TODO: implement)
+        // (TODO: is there an acceptable way of checking for constexpr-ness?)
 
     for (std::size_t i = 0; i != numValues; ++i)
         if (equal(value, lvalues[i]))
@@ -500,12 +510,6 @@ template <typename ResultHandlerT, typename T, typename C, typename HashT, typen
 {
     auto valueArrayC = makeshift::constval_transform(value_array_functor{ }, valuesC);
     using IsHeterogeneous = std::is_base_of<heterogeneous_values_tag, decltype(valuesC())>;
-    
-        // If hash and equal are empty, we can build a hash table at compile time.
-        // We won't bother in the case where they are not because we need to traverse all elements at runtime anyway.
-        // (TODO: implement)
-        // (TODO: is there an acceptable way of checking for constexpr-ness?)
-
     return makeshift::detail::value_to_variant<ResultHandlerT>(IsHeterogeneous{ }, value, valueArrayC, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
 }
 
@@ -514,11 +518,6 @@ template <typename ResultHandlerT, typename T, typename C, typename HashT, typen
 {
     constexpr auto product = productC();
     constexpr auto valueArrayC = makeshift::constval_transform(to_array_functor<T>{ }, productC);
-
-        // If hash and equal are empty, we can build a hash table at compile time.
-        // We won't bother in the case where they are not because we need to traverse all elements at runtime anyway.
-        // (TODO: implement)
-        // (TODO: is there an acceptable way of checking for constexpr-ness?)
 
     auto memberAccessor = [members = makeshift::detail::members(product)](type_t<T>) { return members; };
     auto compoundHash = compound2_hash<decltype(memberAccessor), std::decay_t<HashT>>{ memberAccessor, std::forward<HashT>(hash) };

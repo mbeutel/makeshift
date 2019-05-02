@@ -209,10 +209,9 @@ template <typename F, typename... Vs>
     // Similar to `std::visit()`, but permits the functor to map different argument types to different result types and returns a variant of the possible results.
     // `variant_transform()` merges identical result types, i.e. every distinct result type appears only once in the resulting variant type.
     //
-template <typename F, typename... VariantsT,
-          typename = std::enable_if_t<std::conjunction<is_variant_like<std::decay_t<VariantsT>>...>::value>>
-    MAKESHIFT_NODISCARD constexpr typename makeshift::detail::variant_transform_result_<F, VariantsT...>::type
-    variant_transform(F&& func, VariantsT&&... variants)
+template <typename F, typename... Vs>
+    MAKESHIFT_NODISCARD constexpr typename makeshift::detail::variant_transform_result_<F, Vs...>::type
+    variant_transform(F&& func, Vs&&... args)
 {
     // Currently we merge identical results, i.e. if two functor invocations both return the same type, the type appears only once in the result variant.
     // Although `std::variant<>` is explicitly designed to permit multiple alternatives of identical type, it seems reasonable to merge identically typed alternatives here because identically typed alternatives
@@ -221,13 +220,13 @@ template <typename F, typename... VariantsT,
 
     // TODO: should this have a C++17 dependency? How about custom variant-like types? Could we possibly infer them? Keeping it this way is cleaner and more in line with `array_transform()` and `tuple_transform()`.
 
-    using Result = typename makeshift::detail::variant_transform_result_<F, VariantsT...>::type;
+    using Result = typename makeshift::detail::variant_transform_result_<F, Vs...>::type;
     return makeshift::visit(
         [func = std::forward<F>(func)](auto&&... args)
         {
             return Result{ func(std::forward<decltype(args)>(args)...) };
         },
-        std::forward<VariantsT>(variants)...);
+        std::forward<Vs>(args)...);
 }
 #endif // MAKESHIFT_CXX17
 

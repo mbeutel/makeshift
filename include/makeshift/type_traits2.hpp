@@ -78,7 +78,7 @@ template <template <typename...> class Z, typename... Ts> constexpr bool can_ins
 
 
     //ᅟ
-    // Type sequence, i.e. tuple without runtime value representation.
+    // Type sequence, i.e. type list and tuple of `type<>` arguments.
     //
 template <typename... Ts>
     struct type_sequence : makeshift::detail::constval_tag
@@ -104,7 +104,7 @@ template <>
 
 
     //ᅟ
-    // Type sequence, i.e. tuple without runtime value representation.
+    // Type sequence, i.e. type list and tuple of `type<>` arguments.
     //
 template <typename... Ts> constexpr inline type_sequence<Ts...> type_sequence_v { };
 
