@@ -283,8 +283,8 @@ namespace std
 
 
     // Specialize `tuple_size<>` and `tuple_element<>` for `type_sequence<>`.
-template <typename... Ts> class tuple_size<makeshift::type_sequence<Ts...>> : public std::integral_constant<std::size_t, sizeof...(Ts)> { };
-template <std::size_t I, typename... Ts> class tuple_element<I, makeshift::type_sequence<Ts...>> { using type = makeshift::type<makeshift::nth_type_t<I, Ts...>>; };
+template <typename... Ts> struct tuple_size<makeshift::type_sequence<Ts...>> : public std::integral_constant<std::size_t, sizeof...(Ts)> { };
+template <std::size_t I, typename... Ts> struct tuple_element<I, makeshift::type_sequence<Ts...>> { using type = makeshift::type<makeshift::nth_type_t<I, Ts...>>; };
 
 
 } // namespace std

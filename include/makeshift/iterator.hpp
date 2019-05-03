@@ -165,7 +165,7 @@ template <typename It, typename EndIt,
 template <typename It, typename ExtentC>
     MAKESHIFT_NODISCARD auto make_range(It start, ExtentC extentC)
 {
-    return makeshift::detail::range_by_extent_<It, ExtentC, range>::type{ start, start + makeshift::constval_extract(extentC) };
+    return typename makeshift::detail::range_by_extent_<It, ExtentC, range>::type{ start, start + makeshift::constval_extract(extentC) };
 }
 
     //ᅟ

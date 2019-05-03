@@ -89,11 +89,11 @@ public:
         return F{ }.obj(); // C++14 doesn't support this trick, which is one of the reasons why lambdas cannot be used to make constexpr values (the other reason being that they cannot be constexpr)
 #endif // MAKESHIFT_CXX17
     }
-#if defined(_MSC_VER ) && !defined(__INTELLISENSE__)
+#if defined(_MSC_VER) && !defined(__clang__) && !defined(__INTELLISENSE__)
     MAKESHIFT_NODISCARD constexpr operator auto(void) const -> value_type // workaround for VC++ bug, cf. https://developercommunity.visualstudio.com/content/problem/149701/c2833-with-operator-decltype.html#reply-152822
-#else // defined(_MSC_VER ) && !defined(__INTELLISENSE__)
+#else // defined(_MSC_VER) && !defined(__clang__) && !defined(__INTELLISENSE__)
     MAKESHIFT_NODISCARD constexpr operator value_type(void) const
-#endif // defined(_MSC_VER ) && !defined(__INTELLISENSE__)
+#endif // defined(_MSC_VER) && !defined(__clang__) && !defined(__INTELLISENSE__)
     {
         return (*this)();
     }

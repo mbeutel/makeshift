@@ -202,7 +202,7 @@ public:
         : dynamic_buffer_base(rhs.size_)
     {
         // TODO: we could use non-initializing allocation and unitialized_copy() to optimize this further
-        std::copy(rhs.begin(), rhs.end(), data_.get());
+        std::copy(rhs.begin(), rhs.end(), data_);
     }
     constexpr dynamic_buffer_base& operator =(const dynamic_buffer_base& rhs)
     {
@@ -248,7 +248,7 @@ public:
         : dynamic_buffer_base(rhs.size_)
     {
         // TODO: we could use non-initializing allocation and unitialized_copy() to optimize this further
-        std::copy(rhs.begin(), rhs.end(), data_.get());
+        std::copy(rhs.begin(), rhs.end(), data_);
     }
     constexpr dynamic_buffer_base& operator =(const dynamic_buffer_base& rhs)
     {

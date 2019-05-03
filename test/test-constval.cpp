@@ -18,10 +18,10 @@ constexpr std::tuple<int, int> getTuple(void)
     return { 4, 2 };
 }
 
-static auto getTupleElement = [](auto indexR)
+/*static auto getTupleElement = [](auto indexR)
 {
     return std::get<indexR()>(getTuple());
-};
+};*/
 
 template <typename T, T V>
     void expect_constval_normalization(std::integral_constant<T, V>)
@@ -78,14 +78,17 @@ TEST_CASE("constexpr")
     auto cA = mk::make_constval([]{ return std::array{ 4, 2 }; });
     expect_array_constval_normalization<int, 4, 2>(cA);
     mk::array<int, 2> ncA = cA;
+    (void) ncA;
 
     auto cAA = mk::make_constval([]{ return std::array{ std::array{ 4 }, std::array{ 2 } }; });
     expect_nested_array_constval_normalization(cAA);
     mk::array<int, 2, 1> ncAA = cAA;
+    (void) ncAA;
 
     auto cTA = mk::make_constval([]{ return std::tuple{ std::array{ 3 }, std::array{ 1, 4 } }; });
     expect_array_tuple_constval_normalization(cTA);
     std::tuple<std::array<int, 1>, std::array<int, 2>> ncTA = cTA;
+    (void) ncTA;
 
     auto cT1 = mk::make_constval([]{ return mk::type_c<int>; });
     expect_type_tag<int>(cT1);

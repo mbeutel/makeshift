@@ -106,7 +106,7 @@ namespace std
 
 
     // Specialize `tuple_size<>` for `fixed_random_access_range<>`.
-template <typename It, std::size_t Size> class tuple_size<makeshift::detail::fixed_random_access_range<It, Size>> : public std::integral_constant<std::size_t, Size> { };
+template <typename It, std::size_t Size> struct tuple_size<makeshift::detail::fixed_random_access_range<It, Size>> : public std::integral_constant<std::size_t, Size> { };
 
 
 } // namespace std
