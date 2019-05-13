@@ -48,7 +48,6 @@ struct from_stream
 };
 
 
-
 } // inline namespace types
 
 } // namespace makeshift
