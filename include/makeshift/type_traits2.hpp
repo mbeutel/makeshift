@@ -15,9 +15,6 @@
 namespace makeshift
 {
 
-inline namespace types
-{
-
 
     //ᅟ
     // `type<>` is a generic type tag.
@@ -132,9 +129,6 @@ template <auto V> constexpr constant<V> c{ };
 #endif // MAKESHIFT_CXX17
 
 
-} // inline namespace types
-
-
 namespace detail
 {
 
@@ -183,10 +177,6 @@ template <typename T1, typename T2>
 
 
 } // namespace detail
-
-
-inline namespace types
-{
 
 
     //ᅟ
@@ -272,8 +262,6 @@ template <typename T> constexpr bool is_flags_enum_v = is_flags_enum<T>::value;
     //
 template <typename T> using as_dependent_type = typename makeshift::detail::as_dependent_type_<T>::type;
 
-
-} // inline namespace types
 
 } // namespace makeshift
 

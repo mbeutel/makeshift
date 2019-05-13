@@ -15,9 +15,6 @@
 namespace makeshift
 {
 
-inline namespace metadata
-{
-
 
 MAKESHIFT_NODISCARD constexpr inline makeshift::detail::name_t name(std::string_view _name) noexcept
 {
@@ -42,8 +39,6 @@ template <typename... ParamsT>
     return { params... };
 }
 
-
-} // inline namespace metadata
 
 } // namespace makeshift
 

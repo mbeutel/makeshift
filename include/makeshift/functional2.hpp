@@ -13,9 +13,6 @@
 namespace makeshift
 {
 
-inline namespace types
-{
-
 
     //ᅟ
     // Constructs a functor wrapper that selects the matching overload among a number of given functors.
@@ -58,8 +55,6 @@ template <>
     }
 };
 
-
-} // inline namespace types
 
 } // namespace makeshift
 

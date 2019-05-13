@@ -11,9 +11,6 @@
 namespace makeshift
 {
 
-inline namespace types
-{
-
 
 template <typename ArrayT, typename C, dim MaxStaticBufferExtent = -1>
     using buffer = makeshift::detail::buffer<ArrayT, makeshift::detail::static_dim<C>(), MaxStaticBufferExtent>;
@@ -48,8 +45,6 @@ template <typename ArrayT, dim MaxBufferExtent, typename C>
     return { size };
 }
 
-
-} // inline namespace types
 
 } // namespace makeshift
 

@@ -18,9 +18,6 @@
 namespace makeshift
 {
 
-inline namespace types
-{
-
 
     //ᅟ
     // Pass `tuple_index` to `tuple_foreach()` or `tuple_transform()` to have the tuple element index passed as a functor argument.
@@ -226,8 +223,6 @@ template <typename TupleT, typename P>
         std::forward<TupleT>(tuple), false, std::forward<P>(pred));
 }
 
-
-} // inline namespace types
 
 } // namespace makeshift
 

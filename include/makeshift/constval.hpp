@@ -16,9 +16,6 @@
 namespace makeshift
 {
 
-inline namespace types
-{
-
 
     // For a reference to the general idea behind constexpr values, cf.
     // https://mpark.github.io/programming/2017/05/26/constexpr-function-parameters/ .
@@ -149,8 +146,6 @@ template <typename BoolC>
     return makeshift::detail::constval_assert_impl(is_constval<BoolC>{ }, arg);
 }
 
-
-} // inline namespace types
 
 } // namespace makeshift
 

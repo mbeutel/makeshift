@@ -37,6 +37,11 @@ template <typename EnumT> constexpr EnumT operator &=(EnumT& lhs, EnumT rhs) noe
 template <typename EnumT> constexpr EnumT operator ^=(EnumT& lhs, EnumT rhs) noexcept { lhs = lhs ^ rhs; return lhs; }
 
 
+} // namespace adl
+
+} // namespace detail
+
+
     //ᅟ
     // `has_flag(haystack, needle)` determines whether the flags enum `haystack` contains the flag `needle`. Equivalent to `(haystack & needle) != needle`.
     //
@@ -51,15 +56,6 @@ template <typename EnumT> MAKESHIFT_NODISCARD constexpr bool has_any_flag_of(Enu
     // `has_all_flags_of(haystack, needles)` determines whether the flags enum `haystack` contains all of the flags in `needles`. Equivalent to `(haystack & needles) == needles`.
     //
 template <typename EnumT> MAKESHIFT_NODISCARD constexpr bool has_all_flags_of(EnumT haystack, EnumT needles) noexcept { return (haystack & needles) == needles; }
-
-
-} // namespace adl
-
-} // namespace detail
-
-
-inline namespace types
-{
 
 
     //ᅟ
@@ -365,9 +361,6 @@ template <auto... Vs>
     //
 template <auto... Vs> constexpr tuple_constant<Vs...> tuple_c{ };
 #endif // MAKESHIFT_CXX17
-
-
-} // inline namespace types
 
 
 inline namespace literals

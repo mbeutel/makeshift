@@ -10,9 +10,6 @@
 namespace makeshift
 {
 
-inline namespace types
-{
-
 
     //ᅟ
     // Function object which wraps the to-stream operator `<<`.
@@ -47,8 +44,6 @@ struct from_stream
     }
 };
 
-
-} // inline namespace types
 
 } // namespace makeshift
 

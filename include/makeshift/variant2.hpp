@@ -17,9 +17,6 @@
 namespace makeshift
 {
 
-inline namespace types
-{
-
 
     //ᅟ
     // Determines whether a type has a variant-like interface (i.e. whether `std::variant_size<T>::value` is well-formed).
@@ -242,8 +239,6 @@ template <typename F, typename... Vs>
 #endif // MAKESHIFT_INTELLISENSE
 }
 
-
-} // inline namespace types
 
 } // namespace makeshift
 

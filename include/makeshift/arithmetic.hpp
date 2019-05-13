@@ -16,9 +16,6 @@
 namespace makeshift
 {
 
-inline namespace arithmetic
-{
-
 
 template <typename V>
     struct factor
@@ -90,9 +87,6 @@ public:
 };
 
 
-} // inline namespace arithmetic
-
-
 namespace detail
 {
 
@@ -111,10 +105,6 @@ struct assert_error_handler
 
 
 } // namespace detail
-
-
-inline namespace arithmetic
-{
 
 
     //ᅟ
@@ -491,8 +481,6 @@ struct modulus_or_throw
     }
 };
 
-
-} // inline namespace arithmetic
 
 } // namespace makeshift
 

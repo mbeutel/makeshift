@@ -13,9 +13,6 @@
 namespace makeshift
 {
 
-inline namespace metadata
-{
-
 
 template <typename T>
     struct metadata2_of : makeshift::detail::metadata_of_0<T, makeshift::detail::declares_metadata<T>::value>
@@ -27,8 +24,6 @@ template <typename T>
 
 template <typename T> constexpr inline metadata2_of<T> metadata2_of_v = { };
 
-
-} // inline namespace metadata
 
 } // namespace makeshift
 

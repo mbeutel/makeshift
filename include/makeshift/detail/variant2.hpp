@@ -34,14 +34,8 @@
 namespace makeshift
 {
 
-inline namespace types
-{
-
 
 class unsupported_runtime_value;
-
-
-} // inline namespace types
 
 
 namespace detail

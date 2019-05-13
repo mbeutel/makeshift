@@ -11,9 +11,6 @@
 namespace makeshift
 {
 
-inline namespace types
-{
-
 
     //ᅟ
     // Pass `array_index` to `array_transform()` to have the tuple element index passed as a functor argument.
@@ -134,8 +131,6 @@ template <typename T, typename... Ts>
     return makeshift::detail::array_cat_impl<T>(std::make_index_sequence<Indices::size>{ }, Indices{ }, std::tuple<Ts&&...>{ std::forward<Ts>(tuples)... });
 }
 
-
-} // inline namespace types
 
 } // namespace makeshift
 
