@@ -5,7 +5,7 @@
 
 #include <iterator>    // for input_iterator_tag, output_iterator_tag
 #include <utility>     // for forward<>()
-#include <type_traits> // for decay<>, declval<>()
+#include <type_traits> // for decay<>, declval<>(), is_integral<>
 
 #include <makeshift/constval.hpp> // for is_constval<>
 #include <makeshift/version.hpp>  // for MAKESHIFT_NODISCARD
@@ -127,7 +127,7 @@ template <typename FuncT>
     // Represents a pair of iterators.
     //
 template <typename It, typename EndIt = It>
-    struct range : makeshift::detail::range_base_<range<It, EndIt>>::type
+    struct range : makeshift::detail::range_base_<It, range<It, EndIt>>::type
 {
     using iterator = It;
     using end_iterator = EndIt;
@@ -153,9 +153,11 @@ template <typename It, typename EndIt = It>
     // Construct a range from a pair of iterators.
     //
 template <typename It, typename EndIt,
-          typename = std::enable_if_t<!std::is_integral<EndIt>::value && !is_constval_v<EndIt>>>
+          typename = std::enable_if_t<!std::is_convertible<EndIt, std::size_t>::value>>
     MAKESHIFT_NODISCARD range<It, EndIt> make_range(It first, EndIt last)
 {
+    // the is_convertible<> trait also covers integer constvals due to normalization
+
     return { std::move(first), std::move(last) };
 }
 

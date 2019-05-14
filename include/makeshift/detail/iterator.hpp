@@ -21,6 +21,7 @@ namespace makeshift
 namespace detail
 {
 
+
 struct range_base { };
 
 template <typename RangeT>
@@ -43,7 +44,7 @@ public:
 template <typename RangeT, bool IsBidiIterator> struct range_base_0_;
 template <typename RangeT> struct range_base_0_<RangeT, false> { using type = range_base; };
 template <typename RangeT> struct range_base_0_<RangeT, true> { using type = random_access_range_base<RangeT>; };
-template <typename RangeT> struct range_base_ : range_base_0_<RangeT, std::is_base_of<std::random_access_iterator_tag, typename std::iterator_traits<typename RangeT::iterator>::iterator_category>::value> { };
+template <typename It, typename RangeT> struct range_base_ : range_base_0_<RangeT, std::is_base_of<std::random_access_iterator_tag, typename std::iterator_traits<It>::iterator_category>::value> { };
 
 
 template <typename It, std::size_t Size>
