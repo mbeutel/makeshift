@@ -93,8 +93,8 @@ namespace detail
 
 struct throw_error_handler
 {
-    static constexpr void raise_overflow(void) { throw arithmetic_overflow("integer overflow"); }
-    static constexpr void raise_underflow(void) { throw arithmetic_overflow("integer underflow"); }
+    static void raise_overflow(void) { throw arithmetic_overflow("integer overflow"); }
+    static void raise_underflow(void) { throw arithmetic_overflow("integer underflow"); }
     static constexpr MAKESHIFT_FORCEINLINE void check_overflow(bool cond) { if (!cond) raise_overflow(); } // TODO: use HEDLEY_ASSUME() or similar
     static constexpr MAKESHIFT_FORCEINLINE void check_underflow(bool cond) { if (!cond) raise_underflow(); }
 };

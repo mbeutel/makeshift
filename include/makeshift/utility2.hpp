@@ -43,7 +43,7 @@ template <typename EnumT> constexpr EnumT operator ^=(EnumT& lhs, EnumT rhs) noe
 
 
     //ᅟ
-    // `has_flag(haystack, needle)` determines whether the flags enum `haystack` contains the flag `needle`. Equivalent to `(haystack & needle) != needle`.
+    // `has_flag(haystack, needle)` determines whether the flags enum `haystack` contains the flag `needle`. Equivalent to `(haystack & needle) == needle`.
     //
 template <typename EnumT> MAKESHIFT_NODISCARD constexpr bool has_flag(EnumT haystack, EnumT needle) noexcept { return (haystack & needle) == needle; }
     
