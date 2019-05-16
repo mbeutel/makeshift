@@ -27,21 +27,17 @@ struct range_base { };
 template <typename RangeT>
     struct random_access_range_base : range_base
 {
-private:
-    constexpr const RangeT& self(void) const noexcept { return static_cast<const RangeT&>(*this); }
-
-public:
     MAKESHIFT_NODISCARD constexpr std::size_t size(void) const noexcept
     {
-        return self().end() - self().begin();
+        return static_cast<const RangeT&>(*this).end() - static_cast<const RangeT&>(*this).begin();
     }
     MAKESHIFT_NODISCARD constexpr decltype(auto) operator [](std::ptrdiff_t i) const noexcept
     {
-        return self().begin()[i];
+        return static_cast<const RangeT&>(*this).begin()[i];
     }
 };
 
-template <typename RangeT, bool IsBidiIterator> struct range_base_0_;
+template <typename RangeT, bool IsRandomAccessIterator> struct range_base_0_;
 template <typename RangeT> struct range_base_0_<RangeT, false> { using type = range_base; };
 template <typename RangeT> struct range_base_0_<RangeT, true> { using type = random_access_range_base<RangeT>; };
 template <typename It, typename RangeT> struct range_base_ : range_base_0_<RangeT, std::is_base_of<std::random_access_iterator_tag, typename std::iterator_traits<It>::iterator_category>::value> { };
@@ -50,9 +46,6 @@ template <typename It, typename RangeT> struct range_base_ : range_base_0_<Range
 template <typename It, std::size_t Size>
     struct fixed_random_access_range
 {
-    using iterator = It;
-    using end_iterator = It;
-
     It first;
 
     constexpr fixed_random_access_range(It _first, It _last)
@@ -73,23 +66,6 @@ template <typename It, std::size_t Size>
     }
 };
 
-
-template <typename T> using has_static_size_r = decltype(std::tuple_size<T>::value);
-template <typename ContainerT, template <typename, typename> class RangeT, bool IsFixedSize> struct range_by_container_0_;
-template <typename ContainerT, template <typename, typename> class RangeT>
-    struct range_by_container_0_<ContainerT, RangeT, false>
-{
-    using It = decltype(std::declval<ContainerT>().begin());
-    using EndIt = decltype(std::declval<ContainerT>().end());
-    using type = RangeT<It, EndIt>;
-};
-template <typename ContainerT, template <typename, typename> class RangeT>
-    struct range_by_container_0_<ContainerT, RangeT, true>
-{
-    using It = decltype(std::declval<ContainerT>().begin());
-    using type = fixed_random_access_range<It, std::tuple_size<ContainerT>::value>;
-};
-template <typename ContainerT, template <typename, typename> class RangeT> struct range_by_container_ : range_by_container_0_<ContainerT, RangeT, can_instantiate_v<has_static_size_r, ContainerT>> { };
 
 template <typename It, typename ExtentC, template <typename, typename> class RangeT, bool IsConstval> struct range_by_extent_0_;
 template <typename It, typename ExtentC, template <typename, typename> class RangeT> struct range_by_extent_0_<It, ExtentC, RangeT, false> { using type = RangeT<It, It>; };

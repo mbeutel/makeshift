@@ -129,9 +129,6 @@ template <typename FuncT>
 template <typename It, typename EndIt = It>
     struct range : makeshift::detail::range_base_<It, range<It, EndIt>>::type
 {
-    using iterator = It;
-    using end_iterator = EndIt;
-
     It first;
     EndIt last;
 
@@ -168,16 +165,6 @@ template <typename It, typename ExtentC>
     MAKESHIFT_NODISCARD auto make_range(It start, ExtentC extentC)
 {
     return typename makeshift::detail::range_by_extent_<It, ExtentC, range>::type{ start, start + makeshift::constval_extract(extentC) };
-}
-
-    //ᅟ
-    // Construct a range from another range (e.g. a container).
-    // TODO: why would we want to do that? to take range args by value?
-    //
-template <typename ContainerT>
-    MAKESHIFT_NODISCARD auto make_range(ContainerT&& container)
-{
-    return typename makeshift::detail::range_by_container_<std::remove_reference_t<ContainerT>, range>::type{ std::forward<ContainerT>(container).begin(), std::forward<ContainerT>(container).end() };
 }
 
 
