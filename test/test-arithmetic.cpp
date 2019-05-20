@@ -300,6 +300,21 @@ TEST_CASE("checked")
             CHECK_THROWS_AS(mk::powi_or_throw(uint64_t(3), uint64_t(41)), mk::arithmetic_overflow);
         }
     }
+
+    SECTION("ceili")
+    {
+        CHECK(mk::ceili(0, 3) == 0);
+        CHECK(mk::ceili(1, 3) == 3);
+        CHECK(mk::ceili(2, 3) == 3);
+        CHECK(mk::ceili(3, 3) == 3);
+        CHECK(mk::ceili(4, 3) == 6);
+
+        CHECK(mk::ceili(0u, 3u) == 0u);
+        CHECK(mk::ceili(1u, 3u) == 3u);
+        CHECK(mk::ceili(2u, 3u) == 3u);
+        CHECK(mk::ceili(3u, 3u) == 3u);
+        CHECK(mk::ceili(4u, 3u) == 6u);
+    }
 }
 
 TEST_CASE("gsl::narrow", "testing gsl::narrow<>()")

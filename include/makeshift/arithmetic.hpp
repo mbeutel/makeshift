@@ -190,6 +190,24 @@ template <typename V, typename N>
 }
 
     //ᅟ
+    // Computes ⌊x ÷ d⌋ ∙ d for x ∊ ℕ₀, d ∊ ℕ, d ≠ 0. Enforces preconditions with `Expects()`.
+    //
+template <typename V>
+    MAKESHIFT_NODISCARD constexpr V floori(V x, V d)
+{
+    return makeshift::detail::checked_operations<makeshift::detail::assert_error_handler, V>::floori(x, d);
+}
+
+    //ᅟ
+    // Computes ⌈x ÷ d⌉ ∙ d for x ∊ ℕ₀, d ∊ ℕ, d ≠ 0. Enforces preconditions with `Expects()`. Uses `Expects()` to raise error upon overflow.
+    //
+template <typename V>
+    MAKESHIFT_NODISCARD constexpr V ceili(V x, V d)
+{
+    return makeshift::detail::checked_operations<makeshift::detail::assert_error_handler, V>::ceili(x, d);
+}
+
+    //ᅟ
     // Computes ⌊n ÷ d⌋ for n ∊ ℕ₀, d ∊ ℕ, d ≠ 0. Enforces preconditions with `Expects()`.
     //
 template <typename V>
@@ -332,6 +350,15 @@ template <typename V, typename N>
     MAKESHIFT_NODISCARD constexpr V powi_or_throw(V b, N e)
 {
     return makeshift::detail::checked_operations<makeshift::detail::throw_error_handler, V>::powi(b, e);
+}
+
+    //ᅟ
+    // Computes ⌈x ÷ d⌉ ∙ d for n ∊ ℕ₀, d ∊ ℕ, d ≠ 0. Enforces preconditions with `Expects()`. Throws exception upon overflow.
+    //
+template <typename V>
+    MAKESHIFT_NODISCARD constexpr V ceili_or_throw(V x, V d)
+{
+    return makeshift::detail::checked_operations<makeshift::detail::throw_error_handler, V>::ceili(x, d);
 }
 
     //ᅟ

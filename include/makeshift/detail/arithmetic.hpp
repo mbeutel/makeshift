@@ -45,10 +45,54 @@ enum int_width { has_wider_type, has_no_wider_type };
 template <typename EH, typename V>
     struct checked_operations;
 
+template <typename EH, typename V>
+struct checked_4_
+{
+        // Computes ⌊x ÷ d⌋ ∙ d for x ∊ ℕ₀, d ∊ ℕ, d ≠ 0.
+    static constexpr V floori(V x, V d)
+    {
+        Expects(d != 0);
+        return x - x % d;
+    }
+
+        // Computes ⌈x ÷ d⌉ ∙ d for x ∊ ℕ₀, d ∊ ℕ, d ≠ 0.
+    static constexpr V ceili(V x, V d)
+    {
+            // We have the following identities:
+            //
+            //     x = ⌊x ÷ d⌋ ∙ d + x mod d
+            //     ⌈x ÷ d⌉ = ⌊(x + d - 1) ÷ d⌋ = ⌊(x - 1) ÷ d⌋ + 1
+            //
+            // Assuming x ≠ 0, we can derive the form
+            //
+            //     ⌈x ÷ d⌉ ∙ d = x + d - (x - 1) mod d - 1 .
+
+        Expects(d != 0);
+        return x != 0
+            ? checked_operations<EH, V>::add(x, d - (x - 1) % d - 1)
+            : 0;
+   }
+
+        // Computes ⌊n ÷ d⌋ for n ∊ ℕ₀, d ∊ ℕ.
+    static constexpr V ratio_floor(V n, V d)
+    {
+        Expects(d != 0);
+        return n / d;
+    }
+
+        // Computes ⌈n ÷ d⌉ for n ∊ ℕ₀, d ∊ ℕ.
+    static constexpr V ratio_ceil(V n, V d)
+    {
+        Expects(d != 0);
+        return n != 0
+             ? (n - 1) / d + 1 // overflow-safe
+             : 0;
+    }
+};
 template <typename EH, typename V, int_signedness>
     struct checked_3_;
 template <typename EH, typename V>
-    struct checked_3_<EH, V, is_unsigned>
+    struct checked_3_<EH, V, is_unsigned> : checked_4_<EH, V>
 {
     static constexpr V divide(V lhs, V rhs)
     {
@@ -109,22 +153,6 @@ template <typename EH, typename V>
             --e;
         }
         return result;
-    }
-
-        // Computes ⌊n ÷ d⌋ for n ∊ ℕ₀, d ∊ ℕ.
-    static constexpr V ratio_floor(V n, V d)
-    {
-        Expects(d != 0);
-        return n / d;
-    }
-
-        // Computes ⌈n ÷ d⌉ for n ∊ ℕ₀, d ∊ ℕ.
-    static constexpr V ratio_ceil(V n, V d)
-    {
-        Expects(d != 0);
-        return n != 0
-             ? (n - 1) / d + 1 // overflow-safe
-             : 0;
     }
 
         // Given x,b ∊ ℕ, x > 0, b > 1, returns (r,{ {b,e} }) such that x = bᵉ + r with r ≥ 0 minimal.
@@ -295,7 +323,7 @@ template <typename EH, typename V>
     }
 };
 template <typename EH, typename V>
-    struct checked_3_<EH, V, is_signed>
+    struct checked_3_<EH, V, is_signed> : checked_4_<EH, V>
 {
     using U = std::make_unsigned_t<V>;
 
@@ -373,20 +401,32 @@ template <typename EH, typename V>
         return sign * V(absPow);
     }
 
+        // Computes ⌊x ÷ d⌋ ∙ d for x ∊ ℕ₀, d ∊ ℕ, d ≠ 0.
+    static constexpr V floori(V x, V d)
+    {
+        Expects(x >= 0);
+        return checked_4_<EH, V>::floori(x, d);
+    }
+
+        // Computes ⌈x ÷ d⌉ ∙ d for x ∊ ℕ₀, d ∊ ℕ, d ≠ 0.
+    static constexpr V ceili(V x, V d)
+    {
+        Expects(x >= 0);
+        return checked_4_<EH, V>::ceili(x, d);
+    }
+
         // Computes ⌊n ÷ d⌋ for n ∊ ℕ₀, d ∊ ℕ.
     static constexpr V ratio_floor(V n, V d)
     {
-        Expects(d > 0 && n >= 0);
-        return n / d;
+        Expects(n >= 0);
+        return checked_4_<EH, V>::ratio_floor(n, d);
     }
 
         // Computes ⌈n ÷ d⌉ for n ∊ ℕ₀, d ∊ ℕ.
     static constexpr V ratio_ceil(V n, V d)
     {
-        Expects(d > 0 && n >= 0);
-        return n != 0
-             ? (n - 1) / d + 1 // overflow-safe
-             : 0;
+        Expects(n >= 0);
+        return checked_4_<EH, V>::ratio_ceil(n, d);
     }
 
         // Given x,b ∊ ℕ, x > 0, b > 1, returns (r,{ {b,e} }) such that x = bᵉ + r with r ≥ 0 minimal.
