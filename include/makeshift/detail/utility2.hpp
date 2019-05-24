@@ -35,6 +35,10 @@ template <typename FlagsT, typename UnderlyingTypeT>
     enum class flags : UnderlyingTypeT { none = 0 };
     using flag = flags; // alias for declaring flag constants
 
+    flags value; // used for Natvis debugger visualizer
+
+    define_flags_base(void) = delete;
+
     static constexpr flags none = flags::none;
 
     friend constexpr type<FlagsT> flag_type_of_(flags, makeshift::detail::unwrap_enum_tag) { return { }; }
