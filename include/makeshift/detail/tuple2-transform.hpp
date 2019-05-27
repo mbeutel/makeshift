@@ -60,7 +60,7 @@ namespace adl
 
 
 template <std::size_t I>
-    constexpr std::integral_constant<std::size_t, I> get(tuple_index_t) noexcept
+    constexpr std::integral_constant<std::ptrdiff_t, I> get(tuple_index_t) noexcept
 {
     return { };
 }
