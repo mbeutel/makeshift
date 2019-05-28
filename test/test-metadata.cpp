@@ -36,15 +36,15 @@ constexpr inline auto reflect(mk::tag<MyEnum>, mk::any_tag_of<mk::reflection_tag
 
 struct Vegetables : mk::define_flags<Vegetables>
 {
-    static constexpr flag potato { 1 };
-    static constexpr flag tomato { 2 };
+    static constexpr auto potato = flag(1);
+    static constexpr auto tomato = flag(2);
 
-    static constexpr flag garlic { 4 };
-    static constexpr flag onion { 8 };
-    static constexpr flag chili { 16 };
+    static constexpr auto garlic = flag(4);
+    static constexpr auto onion = flag(8);
+    static constexpr auto chili = flag(16);
 
-    static constexpr flag bean { 32 };
-    static constexpr flag lentil { 64 };
+    static constexpr auto bean = flag(32);
+    static constexpr auto lentil = flag(64);
 
     static constexpr flags legume = bean | lentil;
     static constexpr flags spicy = garlic | chili;

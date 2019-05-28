@@ -43,19 +43,19 @@ struct type_flag : define_flags<type_flag>
         //ᅟ
         // Indicates that the associated type is a value type (either a scalar type or a user-defined wrapper).
         //
-    static constexpr flag value { 1 };
+    static constexpr auto value = flag(1);
 
         //ᅟ
         // Indicates that the associated type is a compound type, i.e. it has the semantics of a named tuple with regard to identity and comparability.
         // This type flag does not necessarily require aggregate-ness as defined in the C++ standard (`std::is_aggregate<>`), which imposes
         // unnecessary limitations (e.g. it may be reasonable for a compound type to have a user-defined constructor).
         //
-    static constexpr flag compound { 2 };
+    static constexpr auto compound = flag(2);
 
         //ᅟ
         // Indicates that the associated type is a composite type which itself forms a value, e.g. a geometrical point defined as `struct Point { int x, y; };`.
         //
-    static constexpr flag compound_value = compound | value;
+    static constexpr auto compound_value = compound | value;
 };
 using type_flags = type_flag::flags;
 

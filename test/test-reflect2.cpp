@@ -26,9 +26,9 @@ constexpr inline auto reflect(mk::type<BoundaryCondition>)
 
 struct PartitionFlag : mk::define_flags<PartitionFlag>
 {
-    static constexpr flag enclosedBoundary { 0x010u };
-    static constexpr flag nodeCut          { 0x020u };
-    static constexpr flag threadCut        { 0x040u };
+    static constexpr auto enclosedBoundary = flag(0x010u);
+    static constexpr auto nodeCut          = flag(0x020u);
+    static constexpr auto threadCut        = flag(0x040u);
 };
 using PartitionFlags = PartitionFlag::flags;
 constexpr inline auto reflect(mk::type<PartitionFlag>)

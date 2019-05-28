@@ -24,6 +24,15 @@ namespace makeshift
 namespace detail
 {
 
+
+template <typename T>
+    constexpr bool is_power_of_2(T value) noexcept
+{
+    return value > 0
+        && (value & (value - 1)) == 0;
+}
+
+
 namespace adl
 {
 
@@ -31,9 +40,9 @@ namespace adl
 template <typename FlagsT, typename UnderlyingTypeT>
     struct define_flags_base : makeshift::detail::flags_base
 {
+public:
     using base_type = UnderlyingTypeT;
     enum class flags : UnderlyingTypeT { none = 0 };
-    using flag = flags; // alias for declaring flag constants
 
     flags value; // used for Natvis debugger visualizer
 
@@ -46,7 +55,7 @@ template <typename FlagsT, typename UnderlyingTypeT>
         // We just forward the metadata defined for the derived type.
         // TODO: ensure that have_metadata<flag> is false if no metadata is defined for FlagsT.
     template <typename MetadataTagT>
-        friend constexpr auto reflect(tag<flag>, MetadataTagT) -> decltype(reflect(tag<FlagsT>{ }, MetadataTagT{ }))
+        friend constexpr auto reflect(tag<flags>, MetadataTagT) -> decltype(reflect(tag<FlagsT>{ }, MetadataTagT{ }))
     {
         return reflect(tag<FlagsT>{ }, MetadataTagT{ });
     }
@@ -54,9 +63,16 @@ template <typename FlagsT, typename UnderlyingTypeT>
         // We just forward the metadata defined for the derived type.
         // TODO: ensure that have_metadata<flag> is false if no metadata is defined for FlagsT.
     template <typename U = FlagsT>
-        friend constexpr auto reflect(type<flag>) -> decltype(reflect(type<U>{ }))
+        friend constexpr auto reflect(type<flags>) -> decltype(reflect(type<U>{ }))
     {
         return reflect(type<FlagsT>{ });
+    }
+
+protected:
+    static constexpr flags flag(UnderlyingTypeT constant)
+    {
+        Expects(is_power_of_2(constant));
+        return flags(constant);
     }
 };
 

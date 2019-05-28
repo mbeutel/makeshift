@@ -28,13 +28,58 @@ namespace adl
 {
 
 
-template <typename EnumT> MAKESHIFT_NODISCARD constexpr EnumT operator |(EnumT lhs, EnumT rhs) noexcept { return EnumT(std::underlying_type_t<EnumT>(lhs) | std::underlying_type_t<EnumT>(rhs)); }
-template <typename EnumT> MAKESHIFT_NODISCARD constexpr EnumT operator &(EnumT lhs, EnumT rhs) noexcept { return EnumT(std::underlying_type_t<EnumT>(lhs) & std::underlying_type_t<EnumT>(rhs)); }
-template <typename EnumT> MAKESHIFT_NODISCARD constexpr EnumT operator ^(EnumT lhs, EnumT rhs) noexcept { return EnumT(std::underlying_type_t<EnumT>(lhs) ^ std::underlying_type_t<EnumT>(rhs)); }
-template <typename EnumT> MAKESHIFT_NODISCARD constexpr EnumT operator ~(EnumT arg) noexcept { return EnumT(~std::underlying_type_t<EnumT>(arg)); }
-template <typename EnumT> constexpr EnumT operator |=(EnumT& lhs, EnumT rhs) noexcept { lhs = lhs | rhs; return lhs; }
-template <typename EnumT> constexpr EnumT operator &=(EnumT& lhs, EnumT rhs) noexcept { lhs = lhs & rhs; return lhs; }
-template <typename EnumT> constexpr EnumT operator ^=(EnumT& lhs, EnumT rhs) noexcept { lhs = lhs ^ rhs; return lhs; }
+template <typename EnumT,
+          typename = std::enable_if_t<is_flags_enum_v<EnumT>>>
+    MAKESHIFT_NODISCARD constexpr EnumT
+        operator ~(EnumT val) noexcept
+{
+    return EnumT(~std::underlying_type_t<EnumT>(val));
+}
+template <typename EnumT,
+          typename = std::enable_if_t<is_flags_enum_v<EnumT>>>
+    MAKESHIFT_NODISCARD constexpr EnumT
+    operator |(EnumT lhs, EnumT rhs) noexcept
+{
+    return EnumT(std::underlying_type_t<EnumT>(lhs) | std::underlying_type_t<EnumT>(rhs));
+}
+template <typename EnumT,
+          typename = std::enable_if_t<is_flags_enum_v<EnumT>>>
+    MAKESHIFT_NODISCARD constexpr EnumT
+    operator &(EnumT lhs, EnumT rhs) noexcept
+{
+    return EnumT(std::underlying_type_t<EnumT>(lhs) & std::underlying_type_t<EnumT>(rhs));
+}
+template <typename EnumT,
+          typename = std::enable_if_t<is_flags_enum_v<EnumT>>>
+    MAKESHIFT_NODISCARD constexpr EnumT
+    operator ^(EnumT lhs, EnumT rhs) noexcept
+{
+    return EnumT(std::underlying_type_t<EnumT>(lhs) ^ std::underlying_type_t<EnumT>(rhs));
+}
+template <typename EnumT,
+          typename = std::enable_if_t<is_flags_enum_v<EnumT>>>
+    MAKESHIFT_NODISCARD constexpr EnumT&
+    operator |=(EnumT& lhs, EnumT rhs) noexcept
+{
+    lhs = lhs | rhs;
+    return lhs;
+}
+template <typename EnumT,
+          typename = std::enable_if_t<is_flags_enum_v<EnumT>>>
+    MAKESHIFT_NODISCARD constexpr EnumT&
+    operator &=(EnumT& lhs, EnumT rhs) noexcept
+{
+    lhs = lhs & rhs;
+    return lhs;
+}
+template <typename EnumT,
+          typename = std::enable_if_t<is_flags_enum_v<EnumT>>>
+    MAKESHIFT_NODISCARD constexpr EnumT&
+    operator ^=(EnumT& lhs, EnumT rhs) noexcept
+{
+    lhs = lhs ^ rhs;
+    return lhs;
+}
 
 
 } // namespace adl
@@ -45,17 +90,36 @@ template <typename EnumT> constexpr EnumT operator ^=(EnumT& lhs, EnumT rhs) noe
     //ᅟ
     // `has_flag(haystack, needle)` determines whether the flags enum `haystack` contains the flag `needle`. Equivalent to `(haystack & needle) == needle`.
     //
-template <typename EnumT> MAKESHIFT_NODISCARD constexpr bool has_flag(EnumT haystack, EnumT needle) noexcept { return (haystack & needle) == needle; }
+template <typename EnumT>
+    MAKESHIFT_NODISCARD constexpr bool
+    has_flag(EnumT haystack, EnumT needle)
+{
+    static_assert(is_flags_enum_v<EnumT>, "arguments must be of flags enum type");
+    Expects(makeshift::detail::is_power_of_2(std::underlying_type_t<EnumT>(needle)));
+    return (haystack & needle) == needle;
+}
     
     //ᅟ
     // `has_any_flag_of(haystack, needles)` determines whether the flags enum `haystack` contains any of the flags in `needles`. Equivalent to `(haystack & needles) != EnumT::none`.
     //
-template <typename EnumT> MAKESHIFT_NODISCARD constexpr bool has_any_flag_of(EnumT haystack, EnumT needles) noexcept { return (haystack & needles) != EnumT(0); }
-    
+template <typename EnumT>
+    MAKESHIFT_NODISCARD constexpr bool
+    has_any_flag_of(EnumT haystack, EnumT needles)
+{
+    static_assert(is_flags_enum_v<EnumT>, "arguments must be of flags enum type");
+    return (haystack & needles) != EnumT::none;
+}
+
     //ᅟ
     // `has_all_flags_of(haystack, needles)` determines whether the flags enum `haystack` contains all of the flags in `needles`. Equivalent to `(haystack & needles) == needles`.
     //
-template <typename EnumT> MAKESHIFT_NODISCARD constexpr bool has_all_flags_of(EnumT haystack, EnumT needles) noexcept { return (haystack & needles) == needles; }
+template <typename EnumT>
+    MAKESHIFT_NODISCARD constexpr bool
+    has_all_flags_of(EnumT haystack, EnumT needles)
+{
+    static_assert(is_flags_enum_v<EnumT>, "arguments must be of flags enum type");
+    return (haystack & needles) == needles;
+}
 
 
     //ᅟ
@@ -63,9 +127,9 @@ template <typename EnumT> MAKESHIFT_NODISCARD constexpr bool has_all_flags_of(En
     //ᅟ
     //ᅟ    struct Vegetable : define_flags<Vegetable>
     //ᅟ    {
-    //ᅟ        static constexpr flag tomato { 1 };
-    //ᅟ        static constexpr flag onion { 2 };
-    //ᅟ        static constexpr flag eggplant { 4 };
+    //ᅟ        static constexpr auto tomato = flag(1);
+    //ᅟ        static constexpr auto onion = flag(2);
+    //ᅟ        static constexpr auto eggplant = flag(4);
     //ᅟ    };
     //ᅟ    using Vegetables = Vegetable::flags;
     //
