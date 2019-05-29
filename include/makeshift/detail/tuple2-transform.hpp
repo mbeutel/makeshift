@@ -90,6 +90,12 @@ template <std::size_t I, typename... Ts, typename F>
     return func(makeshift::detail::get_element<I>(std::forward<Ts>(args))...);
 }
 
+template <typename F, typename... Ts>
+    constexpr void
+    tuple_transform_impl1(foreach_tag, std::index_sequence<>, F&&, Ts&&...)
+{
+    // extra overload to avoid unused-parameter warning
+}
 template <std::size_t... Is, typename F, typename... Ts>
     constexpr void
     tuple_transform_impl1(foreach_tag, std::index_sequence<Is...>, F&& func, Ts&&... args)

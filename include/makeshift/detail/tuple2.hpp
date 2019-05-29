@@ -18,6 +18,12 @@ namespace detail
 {
 
 
+template <typename F, typename... Ts>
+    constexpr std::tuple<>
+    tuple_transform_impl1(transform_to_tuple_tag, std::index_sequence<>, F&&, Ts&&...)
+{
+    return { }; // extra overload to avoid unused-parameter warning
+}
 template <std::size_t... Is, typename F, typename... Ts>
     constexpr auto
     tuple_transform_impl1(transform_to_tuple_tag, std::index_sequence<Is...>, F&& func, Ts&&... args)
