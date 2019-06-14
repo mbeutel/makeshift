@@ -119,6 +119,17 @@ template <typename R, std::size_t... Is, typename F, typename... Ts>
 template <std::ptrdiff_t N, typename TransformTypeTag, typename F, typename... Ts>
     constexpr auto tuple_transform_impl0(F&& func, Ts&&... args)
 {
+        // TODO: all forms of this function could use a loop iteration if:
+        //  - all arguments have homogeneous elements (i.e. all are std::array<>; do we permit array_index? or do we make a distinction between array_index (runtime val) and tuple_index (constval)?)
+        //  - the result type is void or is trivially default-constructible (or it is composed of trivially default-constructible things)
+        // A loop iteration has the potential benefit of generating less code, with the compiler being free to unroll the loop for trivial operations.
+        // TODO: It is not clear why we wouldn't want a loop iteration if the result type isn't trivially default-constructible. But this is challenging to solve in the general case. How good is the compiler
+        // at avoiding zero-init if it proves unnecessary?
+        // TODO: we might want this even if the objects are not default-constructible but are trivially movable. How good is the compiler at eliding the move? Not good at all, I'd guess...
+        // Do we default-initialize arrays or tuples of trivially default-constructible things? Note that there might be compiler and runtime warnings in VC++ if we don't! (TODO: try & check this)
+
+        // TODO: how about other types of arrays or tuples? E.g. Thrust's tuple type or type_sequence<>. Perhaps we could have an overload with a template template parameter in the interface function?
+
     using Eq = equal_sizes_<std::decay_t<Ts>...>;
     static_assert(Eq::value, "sizes of tuple arguments do not match");
     static_assert(N != -1 || Eq::size != -1 || N == Eq::size, "given size argument does not match sizes of tuple arguments");
