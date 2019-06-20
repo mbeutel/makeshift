@@ -5,9 +5,10 @@
 
 #include <array>
 #include <tuple>
-#include <cstddef>     // for size_t
+#include <cstddef>     // for size_t, ptrdiff_t
 #include <utility>     // for integer_sequence<>, get<>()
 
+#include <makeshift/detail/type_traits2.hpp>     // for can_instantiate_<>
 #include <makeshift/detail/workaround.hpp>       // for cadd<>()
 #include <makeshift/detail/tuple2-transform.hpp> // for tuple_transform_impl2()
 
@@ -19,8 +20,14 @@ namespace detail
 {
 
 
-template <typename T> struct is_std_array_ : std::false_type { };
-template <typename T, std::size_t N> struct is_std_array_<std::array<T, N>> : std::true_type { };
+template <typename T> using is_array_r = decltype(std::declval<T>()[std::declval<std::ptrdiff_t>()]);
+template <typename T> struct is_array_ : can_instantiate_<is_array_r, void, T> { };
+
+template <typename T> struct is_homogeneous_arg_ : is_array_<T> { };
+template <> struct is_homogeneous_arg_<array_index_t> : std::true_type { };
+
+template <typename T> struct homogeneous_arg_type_ { using type = std::decay_t<is_array_r<T>>; };
+template <> struct homogeneous_arg_type_<array_index_t> { using type = std::ptrdiff_t; };
 
 
 template <typename F, std::size_t I, typename... Ts> struct result_type_ { using type = decltype(std::declval<F>()(makeshift::detail::get_element<I>(std::declval<Ts>())...)); };
@@ -43,8 +50,8 @@ template <std::ptrdiff_t N, bool HomogeneousArgs, typename F, typename... Ts>
 template <std::ptrdiff_t N, typename F, typename... Ts>
     struct homogeneous_result_<N, true, F, Ts...>
 {
-        // all arguments are array types, so we can just extract their value types
-    using type = decltype(std::declval<F>()(std::declval<typename transfer_ref_<Ts, typename std::decay_t<Ts>::value_type>::type>()...));
+        // all arguments are array types or array indices, so we can just extract their value types
+    using type = decltype(std::declval<F>()(std::declval<typename transfer_ref_<Ts, typename homogeneous_arg_type_<std::decay_t<Ts>>::type>::type>()...));
 };
 template <typename F, typename Rs, typename... Ts>
     struct check_homogeneous_result_;

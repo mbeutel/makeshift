@@ -21,6 +21,18 @@ template <typename T> using is_tuple_like_r = std::integral_constant<std::size_t
 
 
     //ᅟ
+    // Pass `array_index` to `array_transform()`, `tuple_foreach()`, or `tuple_transform()` to have the array element index passed as a functor argument.
+    // The argument is of type `index`.
+    //ᅟ
+    //ᅟ    auto indices = array_transform<3>(
+    //ᅟ        [](index i) { return i; },
+    //ᅟ        array_index);
+    //ᅟ    // returns std::array<index, 3>{ 0, 1, 2 }
+    //
+struct array_index_t { };
+
+
+    //ᅟ
     // Pass `tuple_index` to `tuple_foreach()` or `tuple_transform()` to have the tuple element index passed as a functor argument.
     // The argument is of type `integral_constant<std::size_t, I>` and implicitly converts to `std::size_t`.
     //ᅟ
@@ -32,13 +44,17 @@ template <typename T> using is_tuple_like_r = std::integral_constant<std::size_t
 struct tuple_index_t { };
 
 
-template <typename T> struct is_tuple_arg : std::disjunction<std::is_same<std::decay_t<T>, tuple_index_t>, can_instantiate<is_tuple_like_r, std::decay_t<T>>> { };
+template <typename T> struct is_tuple_arg_0 : can_instantiate<is_tuple_like_r, T> { };
+template <> struct is_tuple_arg_0<array_index_t> : std::true_type { };
+template <> struct is_tuple_arg_0<tuple_index_t> : std::true_type { };
+template <typename T> using is_tuple_arg = is_tuple_arg_0<std::decay_t<T>>;
 template <typename T> constexpr bool is_tuple_arg_v = is_tuple_arg<T>::value;
 
 template <typename... Ts> struct are_tuple_args : std::conjunction<is_tuple_arg<Ts>...> { };
 template <typename... Ts> constexpr bool are_tuple_args_v = are_tuple_args<Ts...>::value;
 
 template <typename T> struct maybe_tuple_size_ : std::tuple_size<T> { };
+template <> struct maybe_tuple_size_<array_index_t> : std::integral_constant<std::ptrdiff_t, -1> { };
 template <> struct maybe_tuple_size_<tuple_index_t> : std::integral_constant<std::ptrdiff_t, -1> { };
 
 template <bool Mismatch, std::ptrdiff_t N, typename... Ts> struct equal_sizes_0_;
@@ -59,6 +75,11 @@ namespace adl
 {
 
 
+template <std::size_t I>
+    constexpr std::ptrdiff_t get(array_index_t) noexcept
+{
+    return I;
+}
 template <std::size_t I>
     constexpr std::integral_constant<std::ptrdiff_t, I> get(tuple_index_t) noexcept
 {

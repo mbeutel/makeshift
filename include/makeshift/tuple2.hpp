@@ -20,25 +20,33 @@ namespace makeshift
 
 
     //ᅟ
-    // Pass `tuple_index` to `tuple_foreach()` or `tuple_transform()` to have the tuple element index passed as a functor argument.
-    // The argument is of type `integral_constant<std::size_t, I>` and implicitly converts to `std::size_t`.
+    // Pass `tuple_index` to `array_transform()`, `tuple_foreach()`, or `tuple_transform()` to have the tuple element index passed as a functor argument.
+    // The argument is of type `integral_constant<index, I>`.
     //ᅟ
-    //ᅟ    tuple_foreach(
-    //ᅟ        [](auto element, std::size_t idx) { std::cout << idx << ": " << element << '\n'; },
-    //ᅟ        std::make_tuple(42, 1.41421), tuple_index);
-    //ᅟ    // prints "0: 42\n1: 1.41421"
+    //ᅟ        // print all alternatives of a variant
+    //ᅟ    constexpr auto numAlternatives = std::variant_size_v<MyVariant>;
+    //ᅟ    tuple_foreach<numAlternatives>(
+    //ᅟ        [](auto idxC)
+    //ᅟ        {
+    //ᅟ            using T = std::variant_alternative_t<idxC(), MyVariant>;
+    //ᅟ            printTypename<T>();
+    //ᅟ        });
     //
 using tuple_index_t = makeshift::detail::tuple_index_t;
 
 
     //ᅟ
-    // Pass `tuple_index` to `tuple_foreach()` or `tuple_transform()` to have the tuple element index passed as a functor argument.
-    // The argument is of type `integral_constant<std::size_t, I>` and implicitly converts to `std::size_t`.
+    // Pass `tuple_index` to `array_transform()`, `tuple_foreach()`, or `tuple_transform()` to have the tuple element index passed as a functor argument.
+    // The argument is of type `integral_constant<index, I>`.
     //ᅟ
-    //ᅟ    tuple_foreach(
-    //ᅟ        [](auto element, std::size_t idx) { std::cout << idx << ": " << element << '\n'; },
-    //ᅟ        std::make_tuple(42, 1.41421), tuple_index);
-    //ᅟ    // prints "0: 42\n1: 1.41421"
+    //ᅟ        // print all alternatives of a variant
+    //ᅟ    constexpr auto numAlternatives = std::variant_size_v<MyVariant>;
+    //ᅟ    tuple_foreach<numAlternatives>(
+    //ᅟ        [](auto idxC)
+    //ᅟ        {
+    //ᅟ            using T = std::variant_alternative_t<idxC(), MyVariant>;
+    //ᅟ            printTypename<T>();
+    //ᅟ        });
     //
 constexpr tuple_index_t tuple_index{ };
 
@@ -58,8 +66,8 @@ template <typename T> constexpr bool is_tuple_like_v = is_tuple_like<T>::value;
     // Takes a scalar procedure (i.e. a function of non-tuple arguments which returns nothing) and calls the procedure for every element in the given tuples.
     //ᅟ
     //ᅟ    tuple_foreach<3>(
-    //ᅟ        [](std::size_t i) { std::cout << i << '\n'; },
-    //ᅟ        tuple_index
+    //ᅟ        [](index i) { std::cout << i << '\n'; },
+    //ᅟ        array_index
     //ᅟ    ); // prints "0\n1\n2\n"
     //
 template <std::size_t N, typename F, typename... Ts>
@@ -92,8 +100,8 @@ template <typename F, typename... Ts>
     // Takes a scalar function (i.e. a function of non-tuple arguments) and returns a tuple of the results of the function applied to the tuple elements.
     //ᅟ
     //ᅟ    auto indices = tuple_transform<3>(
-    //ᅟ        [](std::size_t i) { return i; },
-    //ᅟ        tuple_index);
+    //ᅟ        [](index i) { return i; },
+    //ᅟ        array_index);
     //ᅟ    // returns std::tuple{ 0, 1, 2 }
     //
 template <std::size_t N, typename F, typename... Ts>

@@ -30,8 +30,9 @@ TEST_CASE("tuple2", "[flags]")
         auto result_tuple = std::tuple{ 0, 0, 0 };
         auto lhs_tuple = std::tuple{ 10, 20, 30 };
         auto rhs_scalar = 1;
-        mk::tuple_foreach2([offset, rhs = rhs_scalar](auto& result, auto lhs, mk::index index)
+        mk::tuple_foreach2([offset, rhs = rhs_scalar](auto& result, auto lhs, auto indexC)
         {
+            constexpr mk::index index = indexC();
             result = lhs + rhs + int(index*offset);
         }, result_tuple, lhs_tuple, mk::tuple_index);
         CHECK(result_tuple == std::tuple{ 11, 121, 231 });

@@ -13,27 +13,25 @@ namespace makeshift
 
 
     //ᅟ
-    // Pass `array_index` to `array_transform()` to have the tuple element index passed as a functor argument.
-    // The argument is of type `integral_constant<std::size_t, I>` and implicitly converts to `std::size_t`.
-    // Note that `tuple_index_t` and `array_index_t` are aliases to the same type.
+    // Pass `array_index` to `array_transform()`, `tuple_foreach()`, or `tuple_transform()` to have the array element index passed as a functor argument.
+    // The argument is of type `index`.
     //ᅟ
     //ᅟ    auto indices = array_transform<3>(
-    //ᅟ        [](std::size_t i) { return i; },
+    //ᅟ        [](index i) { return i; },
     //ᅟ        array_index);
-    //ᅟ    // returns std::array{ 0, 1, 2 }
+    //ᅟ    // returns std::array<index, 3>{ 0, 1, 2 }
     //
-using array_index_t = makeshift::detail::tuple_index_t;
+using array_index_t = makeshift::detail::array_index_t;
 
 
     //ᅟ
-    // Pass `array_index` to `array_transform()` to have the tuple element index passed as a functor argument.
-    // The argument is of type `integral_constant<std::size_t, I>` and implicitly converts to `std::size_t`.
-    // Note that `tuple_index_t` and `array_index_t` are aliases to the same type.
+    // Pass `array_index` to `array_transform()`, `tuple_foreach()`, or `tuple_transform()` to have the array element index passed as a functor argument.
+    // The argument is of type `index`.
     //ᅟ
     //ᅟ    auto indices = array_transform<3>(
-    //ᅟ        [](std::size_t i) { return i; },
+    //ᅟ        [](index i) { return i; },
     //ᅟ        array_index);
-    //ᅟ    // returns std::array{ 0, 1, 2 }
+    //ᅟ    // returns std::array<index, 3>{ 0, 1, 2 }
     //
 constexpr array_index_t array_index{ };
 
