@@ -47,6 +47,40 @@ template <typename T, std::size_t... Dims> using array = typename makeshift::det
     //ᅟ
     // Takes a scalar function (i.e. a function of non-tuple arguments) and returns an array of the results of the function applied to the tuple elements.
     //ᅟ
+    //ᅟ    auto intSquares = array_transform(
+    //ᅟ        [](auto x) { return int(x*x); },
+    //ᅟ        std::make_tuple(2, 3.0f));
+    //ᅟ    // returns std::array{ 4, 9 }
+    //
+template <typename F, typename... Ts>
+    MAKESHIFT_NODISCARD constexpr auto
+    array_transform(F&& func, Ts&&... args)
+{
+    static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
+    return makeshift::detail::tuple_transform_impl0<-1, makeshift::detail::transform_to_array_tag<std::array>>(std::forward<F>(func), std::forward<Ts>(args)...);
+}
+
+
+    //ᅟ
+    // Takes a scalar function (i.e. a function of non-tuple arguments) and returns an array of the results of the function applied to the tuple elements.
+    //ᅟ
+    //ᅟ    auto intSquares = array_transform<MyArray>(
+    //ᅟ        [](auto x) { return int(x*x); },
+    //ᅟ        std::make_tuple(2, 3.0f));
+    //ᅟ    // returns MyArray<int, 2>{ 4, 9 }
+    //
+template <template <typename, std::size_t> class ArrayT, typename F, typename... Ts>
+    MAKESHIFT_NODISCARD constexpr auto
+    array_transform(F&& func, Ts&&... args)
+{
+    static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
+    return makeshift::detail::tuple_transform_impl0<-1, makeshift::detail::transform_to_array_tag<ArrayT>>(std::forward<F>(func), std::forward<Ts>(args)...);
+}
+
+
+    //ᅟ
+    // Takes a scalar function (i.e. a function of non-tuple arguments) and returns an array of the results of the function applied to the tuple elements.
+    //ᅟ
     //ᅟ    auto indices = array_transform<3>(
     //ᅟ        [](std::size_t i) { return i; },
     //ᅟ        array_index);
@@ -57,7 +91,24 @@ template <std::size_t N, typename F, typename... Ts>
     array_transform(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
-    return makeshift::detail::tuple_transform_impl0<N, makeshift::detail::transform_to_array_tag>(std::forward<F>(func), std::forward<Ts>(args)...);
+    return makeshift::detail::tuple_transform_impl0<N, makeshift::detail::transform_to_array_tag<std::array>>(std::forward<F>(func), std::forward<Ts>(args)...);
+}
+
+
+    //ᅟ
+    // Takes a scalar function (i.e. a function of non-tuple arguments) and returns an array of the results of the function applied to the tuple elements.
+    //ᅟ
+    //ᅟ    auto indices = array_transform<MyArray, 3>(
+    //ᅟ        [](std::size_t i) { return i; },
+    //ᅟ        array_index);
+    //ᅟ    // returns MyArray<int, 3>{ 0, 1, 2 }
+    //
+template <template <typename, std::size_t> class ArrayT, std::size_t N, typename F, typename... Ts>
+    MAKESHIFT_NODISCARD constexpr auto
+    array_transform(F&& func, Ts&&... args)
+{
+    static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
+    return makeshift::detail::tuple_transform_impl0<N, makeshift::detail::transform_to_array_tag<ArrayT>>(std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
 
@@ -74,7 +125,24 @@ template <typename T, typename F, typename... Ts>
     array_transform(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
-    return makeshift::detail::tuple_transform_impl0<-1, makeshift::detail::transform_to_array_of_tag<T>>(std::forward<F>(func), std::forward<Ts>(args)...);
+    return makeshift::detail::tuple_transform_impl0<-1, makeshift::detail::transform_to_array_of_tag<std::array, T>>(std::forward<F>(func), std::forward<Ts>(args)...);
+}
+
+
+    //ᅟ
+    // Takes a scalar function (i.e. a function of non-tuple arguments) and returns an array of the results of the function applied to the tuple elements.
+    //ᅟ
+    //ᅟ    auto intSquares = array_transform<MyArray, double>(
+    //ᅟ        [](auto x) { return x*x; },
+    //ᅟ        std::make_tuple(2.0, 3.0f));
+    //ᅟ    // returns MyArray<double, 2>{ 4.0, 9.0 }
+    //
+template <template <typename, std::size_t> class ArrayT, typename T, typename F, typename... Ts>
+    MAKESHIFT_NODISCARD constexpr auto
+    array_transform(F&& func, Ts&&... args)
+{
+    static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
+    return makeshift::detail::tuple_transform_impl0<-1, makeshift::detail::transform_to_array_of_tag<ArrayT, T>>(std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
 
@@ -91,24 +159,24 @@ template <typename T, std::size_t N, typename F, typename... Ts>
     array_transform(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
-    return makeshift::detail::tuple_transform_impl0<N, makeshift::detail::transform_to_array_of_tag<T>>(std::forward<F>(func), std::forward<Ts>(args)...);
+    return makeshift::detail::tuple_transform_impl0<N, makeshift::detail::transform_to_array_of_tag<std::array, T>>(std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
 
     //ᅟ
     // Takes a scalar function (i.e. a function of non-tuple arguments) and returns an array of the results of the function applied to the tuple elements.
     //ᅟ
-    //ᅟ    auto intSquares = array_transform(
-    //ᅟ        [](auto x) { return int(x*x); },
-    //ᅟ        std::make_tuple(2, 3.0f));
-    //ᅟ    // returns std::array{ 4, 9 }
+    //ᅟ    auto gridCoords = array_transform<MyArray, double, 3>(
+    //ᅟ        [dx = 1.0](mk::index i) { return i*dx; },
+    //ᅟ        array_index);
+    //ᅟ    // returns MyArray<double, 3>{ 0.0, 1.0, 2.0 }
     //
-template <typename F, typename... Ts>
+template <template <typename, std::size_t> class ArrayT, typename T, std::size_t N, typename F, typename... Ts>
     MAKESHIFT_NODISCARD constexpr auto
     array_transform(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
-    return makeshift::detail::tuple_transform_impl0<-1, makeshift::detail::transform_to_array_tag>(std::forward<F>(func), std::forward<Ts>(args)...);
+    return makeshift::detail::tuple_transform_impl0<N, makeshift::detail::transform_to_array_of_tag<ArrayT, T>>(std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
 
@@ -118,7 +186,7 @@ template <typename F, typename... Ts>
     //ᅟ    auto numbers = std::tuple{ 2, 3 };
     //ᅟ    auto moreNumbers = std::array{ 6, 8 };
     //ᅟ    auto allNumbers = array_cat<int>(numbers, moreNumbers);
-    //ᅟ    // returns { 2, 3, 6, 8 }
+    //ᅟ    // returns std::array{ 2, 3, 6, 8 }
     //
 template <typename T, typename... Ts>
     MAKESHIFT_NODISCARD constexpr auto
@@ -126,7 +194,26 @@ template <typename T, typename... Ts>
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
     using Indices = makeshift::detail::indices_2d_<std::tuple_size<std::decay_t<Ts>>::value...>;
-    return makeshift::detail::array_cat_impl<T>(std::make_index_sequence<Indices::size>{ }, Indices{ }, std::tuple<Ts&&...>{ std::forward<Ts>(tuples)... });
+    return makeshift::detail::array_cat_impl<std::array, T>(std::make_index_sequence<Indices::size>{ }, Indices{ }, std::tuple<Ts&&...>{ std::forward<Ts>(tuples)... });
+}
+
+
+    //ᅟ
+    // Takes a list of tuples and returns an array of concatenated elements.
+    // The array is constructed using the given array template.
+    //ᅟ
+    //ᅟ    auto numbers = std::tuple{ 2, 3 };
+    //ᅟ    auto moreNumbers = std::array{ 6, 8 };
+    //ᅟ    auto allNumbers = array_cat<MyArray, int>(numbers, moreNumbers);
+    //ᅟ    // returns MyArray<int, 4>{ 2, 3, 6, 8 }
+    //
+template <template <typename, std::size_t> class ArrayT, typename T, typename... Ts>
+    MAKESHIFT_NODISCARD constexpr auto
+    array_cat(Ts&&... tuples)
+{
+    static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
+    using Indices = makeshift::detail::indices_2d_<std::tuple_size<std::decay_t<Ts>>::value...>;
+    return makeshift::detail::array_cat_impl<ArrayT, T>(std::make_index_sequence<Indices::size>{ }, Indices{ }, std::tuple<Ts&&...>{ std::forward<Ts>(tuples)... });
 }
 
 

@@ -70,36 +70,36 @@ template <std::ptrdiff_t N, typename F, typename... Ts>
 };
 
 
-template <typename F, typename... Ts>
+template <template <typename, std::size_t> class ArrayT, typename F, typename... Ts>
     constexpr auto
-    tuple_transform_impl1(transform_to_array_tag, std::index_sequence<>, F&&, Ts&&...)
+    tuple_transform_impl1(transform_to_array_tag<ArrayT>, std::index_sequence<>, F&&, Ts&&...)
 {
     // extra overload to avoid unused-parameter warning
 
-    static_assert(cand(is_std_array_<std::decay_t<Ts>>::value...), "cannot infer array element type from empty tuple arguments");
+    static_assert(cand(is_homogeneous_arg_<std::decay_t<Ts>>::value...), "cannot infer array element type from empty tuple arguments");
     using R = typename homogeneous_result_<0, true, F, Ts...>::type;
-    return std::array<R, 0>{ };
+    return ArrayT<R, 0>{ };
 }
-template <std::size_t... Is, typename F, typename... Ts>
+template <template <typename, std::size_t> class ArrayT, std::size_t... Is, typename F, typename... Ts>
     constexpr auto
-    tuple_transform_impl1(transform_to_array_tag, std::index_sequence<Is...>, F&& func, Ts&&... args)
+    tuple_transform_impl1(transform_to_array_tag<ArrayT>, std::index_sequence<Is...>, F&& func, Ts&&... args)
 {
     (void) func;
-    using R = typename homogeneous_result_<sizeof...(Is), cand(is_std_array_<std::decay_t<Ts>>::value...), F, Ts...>::type;
-    return std::array<R, sizeof...(Is)>{ makeshift::detail::tuple_transform_impl2<Is>(func, std::forward<Ts>(args)...)... };
+    using R = typename homogeneous_result_<sizeof...(Is), cand(is_homogeneous_arg_<std::decay_t<Ts>>::value...), F, Ts...>::type;
+    return ArrayT<R, sizeof...(Is)>{ makeshift::detail::tuple_transform_impl2<Is>(func, std::forward<Ts>(args)...)... };
 }
-template <typename R, typename F, typename... Ts>
+template <template <typename, std::size_t> class ArrayT, typename R, typename F, typename... Ts>
     constexpr auto
-    tuple_transform_impl1(transform_to_array_of_tag<R>, std::index_sequence<>, F&&, Ts&&...)
+    tuple_transform_impl1(transform_to_array_of_tag<ArrayT, R>, std::index_sequence<>, F&&, Ts&&...)
 {
-    return std::array<R, 0>{ }; // extra overload to avoid unused-parameter warning
+    return ArrayT<R, 0>{ }; // extra overload to avoid unused-parameter warning
 }
-template <typename R, std::size_t... Is, typename F, typename... Ts>
+template <template <typename, std::size_t> class ArrayT, typename R, std::size_t... Is, typename F, typename... Ts>
     constexpr auto
-    tuple_transform_impl1(transform_to_array_of_tag<R>, std::index_sequence<Is...>, F&& func, Ts&&... args)
+    tuple_transform_impl1(transform_to_array_of_tag<ArrayT, R>, std::index_sequence<Is...>, F&& func, Ts&&... args)
 {
     (void) func;
-    return std::array<R, sizeof...(Is)>{ makeshift::detail::tuple_transform_impl2<Is>(func, std::forward<Ts>(args)...)... };
+    return ArrayT<R, sizeof...(Is)>{ makeshift::detail::tuple_transform_impl2<Is>(func, std::forward<Ts>(args)...)... };
 }
 
 
@@ -132,8 +132,8 @@ template <std::size_t... Ns>
     }
 };
 
-template <typename T, std::size_t... Is, typename IndicesT, typename... Ts>
-    constexpr std::array<T, IndicesT::size> array_cat_impl(std::index_sequence<Is...>, IndicesT, std::tuple<Ts...> tupleOfTuples)
+template <template <typename, std::size_t> class ArrayT, typename T, std::size_t... Is, typename IndicesT, typename... Ts>
+    constexpr ArrayT<T, IndicesT::size> array_cat_impl(std::index_sequence<Is...>, IndicesT, std::tuple<Ts...> tupleOfTuples)
 {
     using std::get;
     return { get<IndicesT::col(Is)>(std::get<IndicesT::row(Is)>(tupleOfTuples))... };

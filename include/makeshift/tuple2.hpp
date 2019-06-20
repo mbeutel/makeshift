@@ -75,7 +75,7 @@ template <std::size_t N, typename F, typename... Ts>
     tuple_foreach2(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
-    makeshift::detail::tuple_transform_impl0<N, makeshift::detail::foreach_tag>(std::forward<F>(func), std::forward<Ts>(args)...);
+    makeshift::detail::tuple_transform_impl0<N, makeshift::detail::tuple_foreach_tag>(std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
 
@@ -92,7 +92,42 @@ template <typename F, typename... Ts>
     tuple_foreach2(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
-    makeshift::detail::tuple_transform_impl0<-1, makeshift::detail::foreach_tag>(std::forward<F>(func), std::forward<Ts>(args)...);
+    makeshift::detail::tuple_transform_impl0<-1, makeshift::detail::tuple_foreach_tag>(std::forward<F>(func), std::forward<Ts>(args)...);
+}
+
+
+    //ᅟ
+    // Takes a scalar function (i.e. a function of non-tuple arguments) and returns a tuple of the results of the function applied to the tuple elements.
+    //ᅟ
+    //ᅟ    auto squares = tuple_transform(
+    //ᅟ        [](auto x) { return x*x; },
+    //ᅟ        std::make_tuple(2, 3.0f));
+    //ᅟ    // returns std::tuple{ 4, 9.0f }
+    //
+template <typename F, typename... Ts>
+    MAKESHIFT_NODISCARD constexpr auto
+    tuple_transform2(F&& func, Ts&&... args)
+{
+    static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
+    return makeshift::detail::tuple_transform_impl0<-1, makeshift::detail::transform_to_tuple_tag>(std::forward<F>(func), std::forward<Ts>(args)...);
+}
+
+
+    //ᅟ
+    // Takes a scalar function (i.e. a function of non-tuple arguments) and returns a tuple of the results of the function applied to the tuple elements.
+    // The tuple is constructed using the given tuple template.
+    //ᅟ
+    //ᅟ    auto squares = tuple_transform<MyTuple>(
+    //ᅟ        [](auto x) { return x*x; },
+    //ᅟ        std::make_tuple(2, 3.0f));
+    //ᅟ    // returns MyTuple<int, float>{ 4, 9.0f }
+    //
+template <template<typename...> class TupleT, typename F, typename... Ts>
+    MAKESHIFT_NODISCARD constexpr auto
+    tuple_transform2(F&& func, Ts&&... args)
+{
+    static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
+    return makeshift::detail::tuple_transform_impl0<-1, makeshift::detail::transform_to_custom_tuple_tag<TupleT>>(std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
 
@@ -115,18 +150,19 @@ template <std::size_t N, typename F, typename... Ts>
 
     //ᅟ
     // Takes a scalar function (i.e. a function of non-tuple arguments) and returns a tuple of the results of the function applied to the tuple elements.
+    // The tuple is constructed using the given tuple template.
     //ᅟ
-    //ᅟ    auto squares = tuple_transform(
-    //ᅟ        [](auto x) { return x*x; },
-    //ᅟ        std::make_tuple(2, 3.0f));
-    //ᅟ    // returns std::tuple{ 4, 9.0f }
+    //ᅟ    auto indices = tuple_transform<MyTuple, 3>(
+    //ᅟ        [](index i) { return i; },
+    //ᅟ        array_index);
+    //ᅟ    // returns MyTuple<index, index, index>{ 0, 1, 2 }
     //
-template <typename F, typename... Ts>
+template <template <typename...> class TupleT, std::size_t N, typename F, typename... Ts>
     MAKESHIFT_NODISCARD constexpr auto
     tuple_transform2(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
-    return makeshift::detail::tuple_transform_impl0<-1, makeshift::detail::transform_to_tuple_tag>(std::forward<F>(func), std::forward<Ts>(args)...);
+    return makeshift::detail::tuple_transform_impl0<N, makeshift::detail::transform_to_custom_tuple_tag<TupleT>>(std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
 

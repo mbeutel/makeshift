@@ -99,10 +99,11 @@ template <std::size_t I, typename T>
 }
 
 
-struct foreach_tag { };
-struct transform_to_array_tag { };
-template <typename T> struct transform_to_array_of_tag { };
+struct tuple_foreach_tag { };
+template <template <typename, std::size_t> class ArrayT> struct transform_to_array_tag { };
+template <template <typename, std::size_t> class ArrayT, typename T> struct transform_to_array_of_tag { };
 struct transform_to_tuple_tag { };
+template <template <typename...> class TupleT> struct transform_to_custom_tuple_tag { };
 
 template <std::size_t I, typename... Ts, typename F>
     constexpr decltype(auto)
@@ -113,13 +114,13 @@ template <std::size_t I, typename... Ts, typename F>
 
 template <typename F, typename... Ts>
     constexpr void
-    tuple_transform_impl1(foreach_tag, std::index_sequence<>, F&&, Ts&&...)
+    tuple_transform_impl1(tuple_foreach_tag, std::index_sequence<>, F&&, Ts&&...)
 {
     // extra overload to avoid unused-parameter warning
 }
 template <std::size_t... Is, typename F, typename... Ts>
     constexpr void
-    tuple_transform_impl1(foreach_tag, std::index_sequence<Is...>, F&& func, Ts&&... args)
+    tuple_transform_impl1(tuple_foreach_tag, std::index_sequence<Is...>, F&& func, Ts&&... args)
 {
     (void) func;
     using Swallow = int[];
@@ -127,15 +128,22 @@ template <std::size_t... Is, typename F, typename... Ts>
         (makeshift::detail::tuple_transform_impl2<Is>(func, std::forward<Ts>(args)...), void(), int{ })...
     };
 }
+
+     // defined in makeshift/detail/tuple.hpp
 template <std::size_t... Is, typename F, typename... Ts>
     constexpr auto
-    tuple_transform_impl1(transform_to_tuple_tag, std::index_sequence<Is...>, F&& func, Ts&&... args); // defined in makeshift/detail/tuple.hpp
-template <std::size_t... Is, typename F, typename... Ts>
+    tuple_transform_impl1(transform_to_tuple_tag, std::index_sequence<Is...>, F&& func, Ts&&... args);
+template <template <typename...> class TupleT, std::size_t... Is, typename F, typename... Ts>
     constexpr auto
-    tuple_transform_impl1(transform_to_array_tag, std::index_sequence<Is...>, F&& func, Ts&&... args); // defined in makeshift/detail/array.hpp
-template <typename R, std::size_t... Is, typename F, typename... Ts>
+    tuple_transform_impl1(transform_to_custom_tuple_tag<TupleT>, std::index_sequence<Is...>, F&& func, Ts&&... args);
+
+     // defined in makeshift/detail/array.hpp
+template <template <typename, std::size_t> class ArrayT, std::size_t... Is, typename F, typename... Ts>
     constexpr auto
-    tuple_transform_impl1(transform_to_array_of_tag<R>, std::index_sequence<Is...>, F&& func, Ts&&... args); // defined in makeshift/detail/array.hpp
+    tuple_transform_impl1(transform_to_array_tag<ArrayT>, std::index_sequence<Is...>, F&& func, Ts&&... args);
+template <template <typename, std::size_t> class ArrayT, typename R, std::size_t... Is, typename F, typename... Ts>
+    constexpr auto
+    tuple_transform_impl1(transform_to_array_of_tag<ArrayT, R>, std::index_sequence<Is...>, F&& func, Ts&&... args);
 
 template <std::ptrdiff_t N, typename TransformTypeTag, typename F, typename... Ts>
     constexpr auto tuple_transform_impl0(F&& func, Ts&&... args)
