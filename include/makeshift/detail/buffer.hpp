@@ -439,6 +439,10 @@ template <typename C>
 
 } // namespace detail
 
+
+// TODO: define get<>() for buffers
+
+
 } // namespace makeshift
 
 
@@ -446,11 +450,13 @@ namespace std
 {
 
 
-template <typename T, makeshift::dim Extent, makeshift::dim MaxStaticBufferExtent> struct tuple_size<makeshift::detail::buffer<T[], Extent, MaxStaticBufferExtent>> : std::integral_constant<std::size_t, Extent> { };
-template <typename T, makeshift::dim MaxStaticBufferExtent> struct tuple_size<makeshift::detail::buffer<T[], -1, MaxStaticBufferExtent>>; // undefined
+template <typename T, makeshift::dim Extent, makeshift::dim MaxStaticBufferExtent> struct tuple_size<makeshift::detail::buffer<T, Extent, MaxStaticBufferExtent>> : std::integral_constant<std::size_t, Extent> { };
+template <typename T, makeshift::dim MaxStaticBufferExtent> struct tuple_size<makeshift::detail::buffer<T, -1, MaxStaticBufferExtent>>; // undefined
+template <std::size_t I, typename T, makeshift::dim Extent, makeshift::dim MaxStaticBufferExtent> struct tuple_element<I, makeshift::detail::buffer<T, Extent, MaxStaticBufferExtent>> { using type = T; };
 
-template <typename T, makeshift::dim Extent, makeshift::dim MaxBufferExtent> struct tuple_size<makeshift::detail::fixed_buffer<T[], Extent, MaxBufferExtent>> : std::integral_constant<std::size_t, Extent> { };
-template <typename T, makeshift::dim MaxBufferExtent> struct tuple_size<makeshift::detail::fixed_buffer<T[], -1, MaxBufferExtent>>; // undefined
+template <typename T, makeshift::dim Extent, makeshift::dim MaxBufferExtent> struct tuple_size<makeshift::detail::fixed_buffer<T, Extent, MaxBufferExtent>> : std::integral_constant<std::size_t, Extent> { };
+template <typename T, makeshift::dim MaxBufferExtent> struct tuple_size<makeshift::detail::fixed_buffer<T, -1, MaxBufferExtent>>; // undefined
+template <std::size_t I, typename T, makeshift::dim Extent, makeshift::dim MaxBufferExtent> struct tuple_element<I, makeshift::detail::fixed_buffer<T, Extent, MaxBufferExtent>> { using type = T; };
 
 
 } // namespace std

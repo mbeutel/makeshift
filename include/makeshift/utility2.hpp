@@ -376,6 +376,10 @@ template <typename T, T... Vs>
     //
 template <typename T, T... Vs> constexpr array_constant<T, Vs...> array_c{ };
 
+// TODO: define get<>, tuple_size<>, and tuple_element<> for array_constant<>
+//template <std::size_t I, typename T, T... Vs>
+//    mk::constval14<T, 
+
 
     //ᅟ
     // Converts a `std::integer_sequence<>` to a constexpr value of type `std::array<>`.
