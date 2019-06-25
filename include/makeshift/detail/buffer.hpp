@@ -332,12 +332,12 @@ public:
     using _base::_base;
 };
 
-template <typename ArrayT, dim Extent = -1, dim MaxStaticBufferExtent = -1>
+template <typename T, dim Extent = -1, dim MaxStaticBufferExtent = -1>
     class buffer
-        : public buffer_base<typename array_element_type_<ArrayT>::type, Extent, MaxStaticBufferExtent, makeshift::detail::determine_memory_location(Extent, MaxStaticBufferExtent)>
+        : public buffer_base<T, Extent, MaxStaticBufferExtent, makeshift::detail::determine_memory_location(Extent, MaxStaticBufferExtent)>
 {
 private:
-    using _base = buffer_base<typename array_element_type_<ArrayT>::type, Extent, MaxStaticBufferExtent, makeshift::detail::determine_memory_location(Extent, MaxStaticBufferExtent)>;
+    using _base = buffer_base<T, Extent, MaxStaticBufferExtent, makeshift::detail::determine_memory_location(Extent, MaxStaticBufferExtent)>;
 
     struct check_size_functor
     {
@@ -360,29 +360,29 @@ public:
             : _base(RExtent)
     {
         static_assert(Extent == -1 || RExtent == Extent, "array extent does not match");
-        static_assert(std::is_convertible<U, typename array_element_type_<ArrayT>::type>::value, "incompatible array element types");
+        static_assert(std::is_convertible<U, T>::value, "incompatible array element types");
         std::copy(std::make_move_iterator(array), std::make_move_iterator(array + RExtent), this->begin());
     }
     template <dim RExtent, typename U>
         constexpr buffer& operator =(U (&&array)[RExtent])
     {
         static_assert(Extent == -1 || RExtent == Extent, "array extent does not match");
-        static_assert(std::is_convertible<U, typename array_element_type_<ArrayT>::type>::value, "incompatible array element types");
+        static_assert(std::is_convertible<U, T>::value, "incompatible array element types");
         Expects(RExtent == this->size());
         std::copy(std::make_move_iterator(array), std::make_move_iterator(array + RExtent), this->begin());
         return *this;
     }
 };
 
-template <typename ArrayT, dim Extent, dim MaxBufferExtent>
+template <typename T, dim Extent, dim MaxBufferExtent>
     class fixed_buffer
-        : public static_buffer_base<typename array_element_type_<ArrayT>::type, Extent, MaxBufferExtent>
+        : public static_buffer_base<T, Extent, MaxBufferExtent>
 {
     static_assert(MaxBufferExtent >= 0, "invalid maximal buffer extent");
     static_assert(Extent <= MaxBufferExtent, "size exceeds buffer extent");
 
 private:
-    using _base = static_buffer_base<typename array_element_type_<ArrayT>::type, Extent, MaxBufferExtent>;
+    using _base = static_buffer_base<T, Extent, MaxBufferExtent>;
 
     struct check_size_functor
     {
@@ -406,14 +406,14 @@ public:
             : _base(RExtent)
     {
         static_assert(Extent == -1 || RExtent == Extent, "array extent does not match");
-        static_assert(std::is_convertible<U, typename array_element_type_<ArrayT>::type>::value, "incompatible array element types");
+        static_assert(std::is_convertible<U, T>::value, "incompatible array element types");
         std::copy(std::make_move_iterator(array), std::make_move_iterator(array + RExtent), this->begin());
     }
     template <dim RExtent, typename U>
         constexpr fixed_buffer& operator =(U (&&array)[RExtent])
     {
         static_assert(Extent == -1 || RExtent == Extent, "array extent does not match");
-        static_assert(std::is_convertible<U, typename array_element_type_<ArrayT>::type>::value, "incompatible array element types");
+        static_assert(std::is_convertible<U, T>::value, "incompatible array element types");
         Expects(RExtent == this->size());
         std::copy(std::make_move_iterator(array), std::make_move_iterator(array + RExtent), this->begin());
         return *this;

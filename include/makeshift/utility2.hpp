@@ -353,10 +353,10 @@ template <typename T, std::ptrdiff_t N>
     //ᅟ
     // Represents a constexpr value of type `std::array<>` with the given element type and values.
     //
-template <typename ArrayT, typename makeshift::detail::array_element_type_<ArrayT>::type... Vs>
+template <typename T, T... Vs>
     struct array_constant : makeshift::detail::constval_tag
 {
-    using element_type = decltype(makeshift::detail::nttp_unwrap(std::declval<typename makeshift::detail::array_element_type_<ArrayT>::type>()));
+    using element_type = decltype(makeshift::detail::nttp_unwrap(std::declval<T>()));
     using value_type = std::array<element_type, sizeof...(Vs)>;
 
     static constexpr std::size_t size(void) noexcept { return sizeof...(Vs); }
@@ -374,7 +374,7 @@ template <typename ArrayT, typename makeshift::detail::array_element_type_<Array
     //ᅟ
     // Represents a constexpr value of type `std::array<>` with the given element type and values.
     //
-template <typename ArrayT, typename makeshift::detail::array_element_type_<ArrayT>::type... Vs> constexpr array_constant<ArrayT, Vs...> array_c{ };
+template <typename T, T... Vs> constexpr array_constant<T, Vs...> array_c{ };
 
 
     //ᅟ

@@ -199,12 +199,12 @@ template <typename T, typename Is, bool IsNTTP>
 template <typename T, std::size_t... Is>
     struct normalize_constval_array_0_<T, std::index_sequence<Is...>, true>
 {
-    template <typename C> using type = array_constant<T[], C{ }()[Is]...>;
+    template <typename C> using type = array_constant<T, C{ }()[Is]...>;
 };
 template <typename T, std::size_t... Is>
     struct normalize_constval_array_0_<T, std::index_sequence<Is...>, false>
 {
-    template <typename C> using type = array_constant<typename nttp_array_wrapper_<T, C>::type[], typename nttp_array_wrapper_<T, C>::type(Is)...>;
+    template <typename C> using type = array_constant<typename nttp_array_wrapper_<T, C>::type, typename nttp_array_wrapper_<T, C>::type(Is)...>;
 };
 template <typename T, typename Is> using normalize_constval_array_ = normalize_constval_array_0_<T, Is, is_valid_nttp_<T>::value>;
 

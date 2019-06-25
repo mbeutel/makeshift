@@ -29,12 +29,12 @@ template <typename T, T V>
 }
 
 template <typename T, T... Vs>
-    void expect_array_constval_normalization(mk::array_constant<T[], Vs...>)
+    void expect_array_constval_normalization(mk::array_constant<T, Vs...>)
 {
 }
 
 template <typename T, T... Vs>
-    void expect_nested_array_constval_normalization(mk::array_constant<T[], Vs...>)
+    void expect_nested_array_constval_normalization(mk::array_constant<T, Vs...>)
 {
     (expect_array_constval_normalization(mk::constval<Vs>), ...);
 }

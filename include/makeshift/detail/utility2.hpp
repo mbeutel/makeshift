@@ -243,26 +243,6 @@ template <typename T, char... Cs> struct make_constant : make_constant_<T, sizeo
 template <typename T, char... Cs> constexpr std::ptrdiff_t make_constant_v = make_constant<T, Cs...>::value;
 
 
-template <typename T>
-    struct array_element_type_
-{
-    static_assert(std::is_array<T>::value, "argument needs to be an unbounded array type, i.e. T[]"); // assertion always fails, but we must use a dependent expression here
-
-        // these members are defined only to avoid subsequent compilation errors
-    using type = T;
-};
-template <typename T>
-    struct array_element_type_<T[]>
-{
-    using type = T;
-};
-template <typename T, std::size_t N>
-    struct array_element_type_<T[N]> : array_element_type_<T>
-{
-    using type = T;
-};
-
-
 namespace non_adl
 {
 

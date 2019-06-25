@@ -12,35 +12,35 @@ namespace makeshift
 {
 
 
-template <typename ArrayT, typename C, dim MaxStaticBufferExtent = -1>
-    using buffer = makeshift::detail::buffer<ArrayT, makeshift::detail::static_dim<C>(), MaxStaticBufferExtent>;
+template <typename T, typename C, dim MaxStaticBufferExtent = -1>
+    using buffer = makeshift::detail::buffer<T, makeshift::detail::static_dim<C>(), MaxStaticBufferExtent>;
 
 
-template <typename ArrayT, typename C>
-    constexpr buffer<ArrayT, C> make_buffer(C size)
+template <typename T, typename C>
+    constexpr buffer<T, C> make_buffer(C size)
 {
     return { size };
 }
 
-template <typename ArrayT, dim MaxStaticBufferExtent, typename C>
-    constexpr buffer<ArrayT, C, MaxStaticBufferExtent> make_buffer(C size)
+template <typename T, dim MaxStaticBufferExtent, typename C>
+    constexpr buffer<T, C, MaxStaticBufferExtent> make_buffer(C size)
 {
     return { size };
 }
 
 
-template <typename ArrayT, typename C, dim MaxBufferExtent>
-    using fixed_buffer = makeshift::detail::fixed_buffer<ArrayT, makeshift::detail::static_dim<C>(), MaxBufferExtent>;
+template <typename T, typename C, dim MaxBufferExtent>
+    using fixed_buffer = makeshift::detail::fixed_buffer<T, makeshift::detail::static_dim<C>(), MaxBufferExtent>;
 
 
-template <typename ArrayT, typename C>
-    constexpr fixed_buffer<ArrayT, C, makeshift::detail::constval_value<C>> make_fixed_buffer(C size)
+template <typename T, typename C>
+    constexpr fixed_buffer<T, C, makeshift::detail::constval_value<C>> make_fixed_buffer(C size)
 {
     return { size };
 }
 
-template <typename ArrayT, dim MaxBufferExtent, typename C>
-    constexpr fixed_buffer<ArrayT, C, MaxBufferExtent> make_fixed_buffer(C size)
+template <typename T, dim MaxBufferExtent, typename C>
+    constexpr fixed_buffer<T, C, MaxBufferExtent> make_fixed_buffer(C size)
 {
     return { size };
 }
