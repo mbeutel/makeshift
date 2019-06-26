@@ -6,7 +6,7 @@
 #include <array>
 #include <cstddef>     // for size_t
 #include <iterator>    // for move_iterator<>
-#include <type_traits> // for integral_constant<>, is_convertible<>
+#include <type_traits> // for integral_constant<>, is_convertible<>, enable_if<>
 
 #include <gsl/gsl_assert> // for Expects()
 
@@ -437,11 +437,40 @@ template <typename C>
 }
 
 
+    // Implement tuple-like protocol for `buffer<>`.
+template <std::size_t I, typename T, dim Extent, dim MaxStaticBufferExtent,
+          std::enable_if_t<Extent != -1, int> = 0>
+    MAKESHIFT_NODISCARD constexpr T& get(buffer<T, Extent, MaxStaticBufferExtent>& buffer) noexcept
+{
+    static_assert(I < Extent, "index out of range");
+    return buffer[I];
+}
+template <std::size_t I, typename T, dim Extent, dim MaxStaticBufferExtent,
+          std::enable_if_t<Extent != -1, int> = 0>
+    MAKESHIFT_NODISCARD constexpr const T& get(const buffer<T, Extent, MaxStaticBufferExtent>& buffer) noexcept
+{
+    static_assert(I < Extent, "index out of range");
+    return buffer[I];
+}
+
+    // Implement tuple-like protocol for `fixed_buffer<>`.
+template <std::size_t I, typename T, dim Extent, dim MaxBufferExtent,
+          std::enable_if_t<Extent != -1, int> = 0>
+    MAKESHIFT_NODISCARD constexpr T& get(fixed_buffer<T, Extent, MaxBufferExtent>& buffer) noexcept
+{
+    static_assert(I < Extent, "index out of range");
+    return buffer[I];
+}
+template <std::size_t I, typename T, dim Extent, dim MaxBufferExtent,
+          std::enable_if_t<Extent != -1, int> = 0>
+    MAKESHIFT_NODISCARD constexpr const T& get(const fixed_buffer<T, Extent, MaxBufferExtent>& buffer) noexcept
+{
+    static_assert(I < Extent, "index out of range");
+    return buffer[I];
+}
+
+
 } // namespace detail
-
-
-// TODO: define get<>() for buffers
-
 
 } // namespace makeshift
 
@@ -450,10 +479,12 @@ namespace std
 {
 
 
+    // Implement tuple-like protocol for `buffer<>`.
 template <typename T, makeshift::dim Extent, makeshift::dim MaxStaticBufferExtent> struct tuple_size<makeshift::detail::buffer<T, Extent, MaxStaticBufferExtent>> : std::integral_constant<std::size_t, Extent> { };
 template <typename T, makeshift::dim MaxStaticBufferExtent> struct tuple_size<makeshift::detail::buffer<T, -1, MaxStaticBufferExtent>>; // undefined
 template <std::size_t I, typename T, makeshift::dim Extent, makeshift::dim MaxStaticBufferExtent> struct tuple_element<I, makeshift::detail::buffer<T, Extent, MaxStaticBufferExtent>> { using type = T; };
 
+    // Implement tuple-like protocol for `fixed_buffer<>`.
 template <typename T, makeshift::dim Extent, makeshift::dim MaxBufferExtent> struct tuple_size<makeshift::detail::fixed_buffer<T, Extent, MaxBufferExtent>> : std::integral_constant<std::size_t, Extent> { };
 template <typename T, makeshift::dim MaxBufferExtent> struct tuple_size<makeshift::detail::fixed_buffer<T, -1, MaxBufferExtent>>; // undefined
 template <std::size_t I, typename T, makeshift::dim Extent, makeshift::dim MaxBufferExtent> struct tuple_element<I, makeshift::detail::fixed_buffer<T, Extent, MaxBufferExtent>> { using type = T; };

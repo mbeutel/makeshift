@@ -73,6 +73,21 @@ template <typename It, typename ExtentC, template <typename, typename> class Ran
 template <typename It, typename ExtentC, template <typename, typename> class RangeT> struct range_by_extent_ : range_by_extent_0_<It, ExtentC, RangeT, is_constval_v<ExtentC>> { };
 
 
+    // Implement tuple-like protocol for `fixed_random_access_range<>`.
+template <std::size_t I, typename It, std::size_t Size>
+    MAKESHIFT_NODISCARD constexpr decltype(auto) get(fixed_random_access_range<It, Size>& range) noexcept
+{
+    static_assert(I < Size, "index out of range");
+    return range[I];
+}
+template <std::size_t I, typename It, std::size_t Size>
+    MAKESHIFT_NODISCARD constexpr decltype(auto) get(const fixed_random_access_range<It, Size>& range) noexcept
+{
+    static_assert(I < Size, "index out of range");
+    return range[I];
+}
+
+
 } // namespace detail
 
 } // namespace makeshift
@@ -82,8 +97,9 @@ namespace std
 {
 
 
-    // Specialize `tuple_size<>` for `fixed_random_access_range<>`.
+    // Implement tuple-like protocol for `fixed_random_access_range<>`.
 template <typename It, std::size_t Size> struct tuple_size<makeshift::detail::fixed_random_access_range<It, Size>> : public std::integral_constant<std::size_t, Size> { };
+template <std::size_t I, typename It, std::size_t Size> struct tuple_element<I, makeshift::detail::fixed_random_access_range<It, Size>> { using type = std::decay_t<decltype(*std::declval<It>())>; };
 
 
 } // namespace std
