@@ -45,6 +45,45 @@ template <typename T, std::size_t... Dims> using array = typename makeshift::det
 
 
     //ᅟ
+    // Takes a scalar procedure (i.e. a function of non-tuple arguments which returns nothing) and calls the procedure for every element in the given tuples.
+    // `array_foreach()` is implemented with a loop if all arguments are homogeneous, and in terms of `tuple_foreach()` otherwise.
+    //ᅟ
+    //ᅟ    array_foreach(
+    //ᅟ        [](index i, int val) { std::cout << "array[" << i << "]: " << val << '\n'; },
+    //ᅟ        array_index, std::array{ 1, 2, 3 });
+    //ᅟ    // prints "array[0]: 1\narray[1]: 2\narray[2]: 3\n"
+    //
+template <typename F, typename... Ts>
+    constexpr void
+    array_foreach(F&& func, Ts&&... args)
+{
+    static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
+    constexpr std::size_t size = makeshift::detail::tuple_transform_size<-1, Ts...>();
+    constexpr bool areArgsHomogeneous = makeshift::detail::cand(makeshift::detail::is_homogeneous_arg_<std::decay_t<Ts>>::value...);
+    return makeshift::detail::tuple_foreach_impl(makeshift::detail::array_foreach_index_arg<size, areArgsHomogeneous>{ },
+        std::forward<F>(func), std::forward<Ts>(args)...);
+}
+
+
+    //ᅟ
+    // Takes a scalar procedure (i.e. a function of non-tuple arguments which returns nothing) and calls the procedure for every element in the given tuples.
+    //ᅟ
+    //ᅟ    array_foreach<3>(
+    //ᅟ        [](index i) { std::cout << i << '\n'; },
+    //ᅟ        array_index
+    //ᅟ    ); // prints "0\n1\n2\n"
+    //
+template <std::size_t N, typename F, typename... Ts>
+    constexpr void
+    array_foreach(F&& func, Ts&&... args)
+{
+    static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
+    constexpr std::size_t size = makeshift::detail::tuple_transform_size<N, Ts...>();
+    return makeshift::detail::tuple_foreach_impl(std::make_index_sequence<size>{ }, std::forward<F>(func), std::forward<Ts>(args)...);
+}
+
+
+    //ᅟ
     // Takes a scalar function (i.e. a function of non-tuple arguments) and returns an array of the results of the function applied to the tuple elements.
     //ᅟ
     //ᅟ    auto intSquares = array_transform(

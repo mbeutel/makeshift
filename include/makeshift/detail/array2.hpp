@@ -70,6 +70,33 @@ template <std::ptrdiff_t N, typename F, typename... Ts>
 };
 
 
+template <std::size_t N, bool IsHomogeneous> struct array_foreach_index_arg;
+template <std::size_t N> struct array_foreach_index_arg<N, true> : std::integral_constant<std::size_t, N> { };
+template <std::size_t N> struct array_foreach_index_arg<N, false> : std::make_index_sequence<N> { };
+
+template <typename T>
+    constexpr decltype(auto)
+    makeshift_get_array_element(T&& arg, std::ptrdiff_t i)
+{
+    return std::forward<T>(arg)[i];
+}
+template <typename T>
+    constexpr std::ptrdiff_t
+    makeshift_get_array_element(array_index_t, std::ptrdiff_t i)
+{
+    return i;
+}
+
+template <std::size_t N, typename F, typename... Ts>
+    constexpr void
+    tuple_foreach_impl(std::integral_constant<std::size_t, N>, F&& func, Ts&&... args)
+{
+    for (std::ptrdiff_t i = 0; i < std::ptrdiff_t(N); ++i)
+    {
+        func(makeshift_get_array_element(std::forward<Ts>(args), i)...);
+    }
+}
+
 template <template <typename, std::size_t> class ArrayT, typename F, typename... Ts>
     constexpr auto
     array_transform_impl(std::index_sequence<>, F&&, Ts&&...)
