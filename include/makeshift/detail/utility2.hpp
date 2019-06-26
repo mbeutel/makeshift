@@ -95,7 +95,7 @@ public:
     constexpr define_type_enum_base& operator =(const define_type_enum_base&) = default;
 
     template <typename T,
-              typename = std::enable_if_t<try_index_of_type_v<T, Ts...> != -1>>
+              std::enable_if_t<try_index_of_type_v<T, Ts...> != -1, int> = 0>
         constexpr define_type_enum_base(type<T>) noexcept
             : value_(value_t(int(try_index_of_type_v<T, Ts...>)))
     {
@@ -125,25 +125,25 @@ public:
 };
 
 template <typename TypeEnumT, typename... Ts, typename T,
-          typename = std::enable_if_t<try_index_of_type_v<T, Ts...> != -1>>
+          std::enable_if_t<try_index_of_type_v<T, Ts...> != -1, int> = 0>
     constexpr bool operator ==(define_type_enum_base<TypeEnumT, Ts...> lhs, type<T>) noexcept
 {
     return int(try_index_of_type_v<T, Ts...>) == int(lhs);
 }
 template <typename TypeEnumT, typename... Ts, typename T,
-          typename = std::enable_if_t<try_index_of_type_v<T, Ts...> != -1>>
+          std::enable_if_t<try_index_of_type_v<T, Ts...> != -1, int> = 0>
     constexpr bool operator ==(type<T> lhs, define_type_enum_base<TypeEnumT, Ts...> rhs) noexcept
 {
     return rhs == lhs;
 }
 template <typename TypeEnumT, typename... Ts, typename T,
-          typename = std::enable_if_t<try_index_of_type_v<T, Ts...> != -1>>
+          std::enable_if_t<try_index_of_type_v<T, Ts...> != -1, int> = 0>
     constexpr bool operator !=(define_type_enum_base<TypeEnumT, Ts...> lhs, type<T> rhs) noexcept
 {
     return !(lhs == rhs);
 }
 template <typename TypeEnumT, typename... Ts, typename T,
-          typename = std::enable_if_t<try_index_of_type_v<T, Ts...> != -1>>
+          std::enable_if_t<try_index_of_type_v<T, Ts...> != -1, int> = 0>
     constexpr bool operator !=(type<T> lhs, define_type_enum_base<TypeEnumT, Ts...> rhs) noexcept
 {
     return !(rhs == lhs);

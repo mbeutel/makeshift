@@ -151,9 +151,9 @@ public:
     constexpr unit_variant(const unit_variant&) noexcept = default;
     constexpr unit_variant& operator =(const unit_variant&) noexcept = default;
     template <typename T,
-              typename = std::enable_if_t<!std::is_same<std::decay_t<T>, unit_variant>::value
-                                       && !is_instantiation_of_v<std::decay_t<T>, in_place_type_t>
-                                       && !is_in_place_index<std::decay_t<T>>::value>>
+              std::enable_if_t<!std::is_same<std::decay_t<T>, unit_variant>::value
+                            && !is_instantiation_of_v<std::decay_t<T>, in_place_type_t>
+                            && !is_in_place_index<std::decay_t<T>>::value, int> = 0>
         constexpr unit_variant(T&&) noexcept
             : base(index_value, makeshift::detail::value_overload_index_v<T, Ts...>)
     {

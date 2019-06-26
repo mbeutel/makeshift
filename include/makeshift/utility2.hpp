@@ -29,35 +29,35 @@ namespace adl
 
 
 template <typename EnumT,
-          typename = std::enable_if_t<is_flags_enum_v<EnumT>>>
+          std::enable_if_t<is_flags_enum_v<EnumT>, int> = 0>
     MAKESHIFT_NODISCARD constexpr EnumT
         operator ~(EnumT val) noexcept
 {
     return EnumT(~std::underlying_type_t<EnumT>(val));
 }
 template <typename EnumT,
-          typename = std::enable_if_t<is_flags_enum_v<EnumT>>>
+          std::enable_if_t<is_flags_enum_v<EnumT>, int> = 0>
     MAKESHIFT_NODISCARD constexpr EnumT
     operator |(EnumT lhs, EnumT rhs) noexcept
 {
     return EnumT(std::underlying_type_t<EnumT>(lhs) | std::underlying_type_t<EnumT>(rhs));
 }
 template <typename EnumT,
-          typename = std::enable_if_t<is_flags_enum_v<EnumT>>>
+          std::enable_if_t<is_flags_enum_v<EnumT>, int> = 0>
     MAKESHIFT_NODISCARD constexpr EnumT
     operator &(EnumT lhs, EnumT rhs) noexcept
 {
     return EnumT(std::underlying_type_t<EnumT>(lhs) & std::underlying_type_t<EnumT>(rhs));
 }
 template <typename EnumT,
-          typename = std::enable_if_t<is_flags_enum_v<EnumT>>>
+          std::enable_if_t<is_flags_enum_v<EnumT>, int> = 0>
     MAKESHIFT_NODISCARD constexpr EnumT
     operator ^(EnumT lhs, EnumT rhs) noexcept
 {
     return EnumT(std::underlying_type_t<EnumT>(lhs) ^ std::underlying_type_t<EnumT>(rhs));
 }
 template <typename EnumT,
-          typename = std::enable_if_t<is_flags_enum_v<EnumT>>>
+          std::enable_if_t<is_flags_enum_v<EnumT>, int> = 0>
     MAKESHIFT_NODISCARD constexpr EnumT&
     operator |=(EnumT& lhs, EnumT rhs) noexcept
 {
@@ -65,7 +65,7 @@ template <typename EnumT,
     return lhs;
 }
 template <typename EnumT,
-          typename = std::enable_if_t<is_flags_enum_v<EnumT>>>
+          std::enable_if_t<is_flags_enum_v<EnumT>, int> = 0>
     MAKESHIFT_NODISCARD constexpr EnumT&
     operator &=(EnumT& lhs, EnumT rhs) noexcept
 {
@@ -73,7 +73,7 @@ template <typename EnumT,
     return lhs;
 }
 template <typename EnumT,
-          typename = std::enable_if_t<is_flags_enum_v<EnumT>>>
+          std::enable_if_t<is_flags_enum_v<EnumT>, int> = 0>
     MAKESHIFT_NODISCARD constexpr EnumT&
     operator ^=(EnumT& lhs, EnumT rhs) noexcept
 {

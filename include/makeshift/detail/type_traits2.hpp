@@ -139,7 +139,7 @@ template <typename... Ts>
     struct any_tag_of
 {
     template <typename T,
-              typename = std::enable_if_t<std::disjunction_v<std::is_convertible<T, Ts>...>>>
+              std::enable_if_t<std::disjunction_v<std::is_convertible<T, Ts>...>, int> = 0>
         constexpr any_tag_of(const T&) noexcept
     {
     }

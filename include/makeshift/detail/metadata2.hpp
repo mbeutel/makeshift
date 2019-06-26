@@ -173,7 +173,7 @@ public:
           values_(extract_values(std::make_index_sequence<sizeof...(Ts)>{ }, _values))
     {
     }
-    template <typename = std::enable_if_t<sizeof...(ParamsT) == 0>>
+    template <std::enable_if_t<sizeof...(ParamsT) == 0, int> = 0>
         constexpr heterogeneous_values_parameter(TupleT<Ts...> _values) noexcept
             : values_(_values)
     {

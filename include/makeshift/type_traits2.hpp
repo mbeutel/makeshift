@@ -155,7 +155,7 @@ template <typename T>
         // This conversion exists so expressions of type `type<>` can be used as case labels of switch statements over type enums.
     template <typename EnumT,
               typename TypeEnumTypeT = decltype(type_enum_type_of_(EnumT{ }, makeshift::detail::unwrap_enum_tag{ })),
-              typename = std::enable_if_t<try_index_of_type_in<T, typename TypeEnumTypeT::type::types>::value != -1>>
+              std::enable_if_t<try_index_of_type_in<T, typename TypeEnumTypeT::type::types>::value != -1, int> = 0>
         constexpr operator EnumT(void) const noexcept
     {
         return EnumT(int(try_index_of_type_in<T, typename TypeEnumTypeT::types>::value));
