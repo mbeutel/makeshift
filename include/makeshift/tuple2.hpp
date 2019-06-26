@@ -65,23 +65,6 @@ template <typename T> constexpr bool is_tuple_like_v = is_tuple_like<T>::value;
     //ᅟ
     // Takes a scalar procedure (i.e. a function of non-tuple arguments which returns nothing) and calls the procedure for every element in the given tuples.
     //ᅟ
-    //ᅟ    tuple_foreach<3>(
-    //ᅟ        [](index i) { std::cout << i << '\n'; },
-    //ᅟ        array_index
-    //ᅟ    ); // prints "0\n1\n2\n"
-    //
-template <std::size_t N, typename F, typename... Ts>
-    constexpr void
-    tuple_foreach2(F&& func, Ts&&... args)
-{
-    static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
-    makeshift::detail::tuple_transform_impl0<N, makeshift::detail::tuple_foreach_tag>(std::forward<F>(func), std::forward<Ts>(args)...);
-}
-
-
-    //ᅟ
-    // Takes a scalar procedure (i.e. a function of non-tuple arguments which returns nothing) and calls the procedure for every element in the given tuples.
-    //ᅟ
     //ᅟ    tuple_foreach(
     //ᅟ        [](auto name, auto elem) { std::cout << name << ": " << elem << '\n'; },
     //ᅟ        std::make_tuple("a", "b"), std::make_tuple(1, 2.3f));
@@ -92,7 +75,26 @@ template <typename F, typename... Ts>
     tuple_foreach2(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
-    makeshift::detail::tuple_transform_impl0<-1, makeshift::detail::tuple_foreach_tag>(std::forward<F>(func), std::forward<Ts>(args)...);
+    constexpr std::size_t size = makeshift::detail::tuple_transform_size<-1, Ts...>();
+    return makeshift::detail::tuple_foreach_impl(std::make_index_sequence<size>{ }, std::forward<F>(func), std::forward<Ts>(args)...);
+}
+
+
+    //ᅟ
+    // Takes a scalar procedure (i.e. a function of non-tuple arguments which returns nothing) and calls the procedure for every element in the given tuples.
+    //ᅟ
+    //ᅟ    tuple_foreach<3>(
+    //ᅟ        [](index i) { std::cout << i << '\n'; },
+    //ᅟ        array_index
+    //ᅟ    ); // prints "0\n1\n2\n"
+    //
+template <std::size_t N, typename F, typename... Ts>
+    constexpr void
+    tuple_foreach2(F&& func, Ts&&... args)
+{
+    static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
+    constexpr std::size_t size = makeshift::detail::tuple_transform_size<N, Ts...>();
+    return makeshift::detail::tuple_foreach_impl(std::make_index_sequence<size>{ }, std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
 
@@ -109,7 +111,8 @@ template <typename F, typename... Ts>
     tuple_transform2(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
-    return makeshift::detail::tuple_transform_impl0<-1, makeshift::detail::transform_to_tuple_tag<std::tuple>>(std::forward<F>(func), std::forward<Ts>(args)...);
+    constexpr std::size_t size = makeshift::detail::tuple_transform_size<-1, Ts...>();
+    return makeshift::detail::tuple_transform_impl<std::tuple>(std::make_index_sequence<size>{ }, std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
 
@@ -127,7 +130,8 @@ template <template<typename...> class TupleT, typename F, typename... Ts>
     tuple_transform2(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
-    return makeshift::detail::tuple_transform_impl0<-1, makeshift::detail::transform_to_tuple_tag<TupleT>>(std::forward<F>(func), std::forward<Ts>(args)...);
+    constexpr std::size_t size = makeshift::detail::tuple_transform_size<-1, Ts...>();
+    return makeshift::detail::tuple_transform_impl<TupleT>(std::make_index_sequence<size>{ }, std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
 
@@ -144,7 +148,8 @@ template <std::size_t N, typename F, typename... Ts>
     tuple_transform2(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
-    return makeshift::detail::tuple_transform_impl0<N, makeshift::detail::transform_to_tuple_tag<std::tuple>>(std::forward<F>(func), std::forward<Ts>(args)...);
+    constexpr std::size_t size = makeshift::detail::tuple_transform_size<N, Ts...>();
+    return makeshift::detail::tuple_transform_impl<std::tuple>(std::make_index_sequence<size>{ }, std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
 
@@ -162,7 +167,8 @@ template <template <typename...> class TupleT, std::size_t N, typename F, typena
     tuple_transform2(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
-    return makeshift::detail::tuple_transform_impl0<N, makeshift::detail::transform_to_tuple_tag<TupleT>>(std::forward<F>(func), std::forward<Ts>(args)...);
+    constexpr std::size_t size = makeshift::detail::tuple_transform_size<N, Ts...>();
+    return makeshift::detail::tuple_transform_impl<TupleT>(std::make_index_sequence<size>{ }, std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
 

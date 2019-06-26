@@ -71,10 +71,6 @@ template <std::ptrdiff_t N, typename T0, typename... Ts>
 template <typename... Ts> struct equal_sizes_ : equal_sizes_0_<false, -1, Ts...> { };
 
 
-namespace adl
-{
-
-
 template <std::size_t I>
     constexpr std::ptrdiff_t get(array_index_t) noexcept
 {
@@ -87,90 +83,50 @@ template <std::size_t I>
 }
 
 
-} // namespace adl
-
-
 template <std::size_t I, typename T>
     constexpr decltype(auto) get_element(T&& arg) noexcept
 {
     using std::get; // make std::get<>() visible to enable ADL for template methods named get<>()
-    using makeshift::detail::adl::get;
     return get<I>(std::forward<T>(arg));
 }
 
 
-struct tuple_foreach_tag { };
-template <template <typename, std::size_t> class ArrayT> struct transform_to_array_tag { };
-template <template <typename, std::size_t> class ArrayT, typename T> struct transform_to_array_of_tag { };
-template <template <typename...> class TupleT> struct transform_to_tuple_tag { };
-
 template <std::size_t I, typename... Ts, typename F>
     constexpr decltype(auto)
-    tuple_transform_impl2(F&& func, Ts&&... args)
+    transform_element(F&& func, Ts&&... args)
 {
     return func(makeshift::detail::get_element<I>(std::forward<Ts>(args))...);
 }
 
 template <typename F, typename... Ts>
     constexpr void
-    tuple_transform_impl1(tuple_foreach_tag, std::index_sequence<>, F&&, Ts&&...)
+    tuple_foreach_impl(std::index_sequence<>, F&&, Ts&&...)
 {
     // extra overload to avoid unused-parameter warning
 }
 template <std::size_t... Is, typename F, typename... Ts>
     constexpr void
-    tuple_transform_impl1(tuple_foreach_tag, std::index_sequence<Is...>, F&& func, Ts&&... args)
+    tuple_foreach_impl(std::index_sequence<Is...>, F&& func, Ts&&... args)
 {
     (void) func;
     using Swallow = int[];
     (void) Swallow{ 1,
-        (makeshift::detail::tuple_transform_impl2<Is>(func, std::forward<Ts>(args)...), void(), int{ })...
+        (makeshift::detail::transform_element<Is>(func, std::forward<Ts>(args)...), void(), int{ })...
     };
 }
 
-     // defined in makeshift/detail/tuple.hpp
-template <template <typename...> class TupleT, std::size_t... Is, typename F, typename... Ts>
-    constexpr auto
-    tuple_transform_impl1(transform_to_tuple_tag<TupleT>, std::index_sequence<Is...>, F&& func, Ts&&... args);
-
-     // defined in makeshift/detail/array.hpp
-template <template <typename, std::size_t> class ArrayT, typename F, typename... Ts>
-    constexpr auto
-    tuple_transform_impl1(transform_to_array_tag<ArrayT>, std::index_sequence<>, F&&, Ts&&...);
-template <template <typename, std::size_t> class ArrayT, std::size_t... Is, typename F, typename... Ts>
-    constexpr auto
-    tuple_transform_impl1(transform_to_array_tag<ArrayT>, std::index_sequence<Is...>, F&& func, Ts&&... args);
-template <template <typename, std::size_t> class ArrayT, typename R, typename F, typename... Ts>
-    constexpr auto
-    tuple_transform_impl1(transform_to_array_of_tag<ArrayT, R>, std::index_sequence<>, F&&, Ts&&...);
-template <template <typename, std::size_t> class ArrayT, typename R, std::size_t... Is, typename F, typename... Ts>
-    constexpr auto
-    tuple_transform_impl1(transform_to_array_of_tag<ArrayT, R>, std::index_sequence<Is...>, F&& func, Ts&&... args);
-
-template <std::ptrdiff_t N, typename TransformTypeTag, typename F, typename... Ts>
-    constexpr auto tuple_transform_impl0(F&& func, Ts&&... args)
+template <std::ptrdiff_t N, typename... Ts>
+    constexpr std::size_t tuple_transform_size(void)
 {
-        // TODO: all forms of this function could use a loop iteration if:
-        //  - all arguments have homogeneous elements (i.e. all are std::array<>; do we permit array_index? or do we make a distinction between array_index (runtime val) and tuple_index (constval)?)
-        //  - the result type is void or is trivially default-constructible (or it is composed of trivially default-constructible things)
-        // A loop iteration has the potential benefit of generating less code, with the compiler being free to unroll the loop for trivial operations.
-        // TODO: It is not clear why we wouldn't want a loop iteration if the result type isn't trivially default-constructible. But this is challenging to solve in the general case. How good is the compiler
-        // at avoiding zero-init if it proves unnecessary?
-        // TODO: we might want this even if the objects are not default-constructible but are trivially movable. How good is the compiler at eliding the move? Not good at all, I'd guess...
-        // Do we default-initialize arrays or tuples of trivially default-constructible things? Note that there might be compiler and runtime warnings in VC++ if we don't! (TODO: try & check this)
-
-        // TODO: array_transform() and tuple_transform() should return a constval if the individual return types are constvals.
-
     using Eq = equal_sizes_<std::decay_t<Ts>...>;
     static_assert(Eq::value, "sizes of tuple arguments do not match");
     static_assert(N != -1 || Eq::size != -1 || N == Eq::size, "given size argument does not match sizes of tuple arguments");
     static_assert(N != -1 || Eq::size != -1, "no tuple argument and no size given");
-    constexpr std::size_t size = std::size_t(N != -1 ? N : Eq::size);
-    
-    (void) func;
-    return makeshift::detail::tuple_transform_impl1(TransformTypeTag{ }, std::make_index_sequence<size>{ },
-        std::forward<F>(func), std::forward<Ts>(args)...);
+    return std::size_t(N != -1 ? N : Eq::size);
 }
+
+
+// TODO: should array_transform() and tuple_transform() return a constval array if the individual return types are constvals? Probably not very useful...
 
 
 } // namespace detail
