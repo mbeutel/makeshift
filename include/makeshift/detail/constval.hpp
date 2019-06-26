@@ -282,7 +282,7 @@ template <typename V>
 template <typename H>
     constexpr auto get_hvalue(const H& arg)
 {
-    return get_hvalue_impl(is_constval_<H>{ }, arg);
+    return makeshift::detail::get_hvalue_impl(is_constval_<H>{ }, arg);
 }
 
 

@@ -109,7 +109,7 @@ template <typename F, typename... Ts>
     tuple_transform2(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
-    return makeshift::detail::tuple_transform_impl0<-1, makeshift::detail::transform_to_tuple_tag>(std::forward<F>(func), std::forward<Ts>(args)...);
+    return makeshift::detail::tuple_transform_impl0<-1, makeshift::detail::transform_to_tuple_tag<std::tuple>>(std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
 
@@ -127,7 +127,7 @@ template <template<typename...> class TupleT, typename F, typename... Ts>
     tuple_transform2(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
-    return makeshift::detail::tuple_transform_impl0<-1, makeshift::detail::transform_to_custom_tuple_tag<TupleT>>(std::forward<F>(func), std::forward<Ts>(args)...);
+    return makeshift::detail::tuple_transform_impl0<-1, makeshift::detail::transform_to_tuple_tag<TupleT>>(std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
 
@@ -144,7 +144,7 @@ template <std::size_t N, typename F, typename... Ts>
     tuple_transform2(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
-    return makeshift::detail::tuple_transform_impl0<N, makeshift::detail::transform_to_tuple_tag>(std::forward<F>(func), std::forward<Ts>(args)...);
+    return makeshift::detail::tuple_transform_impl0<N, makeshift::detail::transform_to_tuple_tag<std::tuple>>(std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
 
@@ -162,7 +162,7 @@ template <template <typename...> class TupleT, std::size_t N, typename F, typena
     tuple_transform2(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
-    return makeshift::detail::tuple_transform_impl0<N, makeshift::detail::transform_to_custom_tuple_tag<TupleT>>(std::forward<F>(func), std::forward<Ts>(args)...);
+    return makeshift::detail::tuple_transform_impl0<N, makeshift::detail::transform_to_tuple_tag<TupleT>>(std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
 

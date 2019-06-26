@@ -100,9 +100,9 @@ template <typename C>
     //ᅟ
     // Returns the result of the function applied to the values of the given constexpr values as a constexpr value, or the result value itself if one of the arguments is not a constexpr value.
     //ᅟ
-    //ᅟ    auto baseIndexR = make_constval([]{ return 42; }); // returns `std::integral_constant<int, 42>`
-    //ᅟ    auto offsetR = make_constval([]{ return 3; }); // returns `std::integral_constant<int, 3>`
-    //ᅟ    auto indexR = constval_transform(std::plus<>, baseIndexR, offsetR); // returns `std::integral_constant<int, 45>`
+    //ᅟ    auto baseIndexR = make_constval([]{ return 42; }); // returns `std::integral_constant<int, 42>{ }`
+    //ᅟ    auto offsetR = make_constval([]{ return 3; }); // returns `std::integral_constant<int, 3>{ }`
+    //ᅟ    auto indexR = constval_transform(std::plus<>, baseIndexR, offsetR); // returns `std::integral_constant<int, 45>{ }`
     //
 template <typename F, typename... Cs>
     MAKESHIFT_NODISCARD constexpr auto

@@ -448,8 +448,8 @@ template <typename T, typename VariantT,
     //ᅟ
     // Concatenates the variants in a variant of variants.
     //ᅟ
-    //ᅟ    auto number = std::variant<std::variant<int, unsigned>, std::variant<float, double>>{ 3 }; // TODO this is probably ambiguous
-    //ᅟ    auto flat_variant = number
+    //ᅟ    auto number = std::variant<std::variant<int, unsigned>, std::variant<float, double>>{ 3 };
+    //ᅟ    auto flatVariant = number
     //ᅟ        | variant_cat(); // returns std::variant<int, unsigned, float, double>{ 3 };
     //
 constexpr inline makeshift::detail::variant_cat_t
@@ -462,8 +462,8 @@ variant_cat(void)
     //ᅟ
     // Concatenates the variants in a variant of variants.
     //ᅟ
-    //ᅟ    auto number = std::variant<std::variant<int, unsigned>, std::variant<float, double>>{ 3 }; // TODO this is probably ambiguous
-    //ᅟ    auto flat_variant = variant_cat(number); // returns std::variant<int, unsigned, float, double>{ 3 };
+    //ᅟ    auto number = std::variant<std::variant<int, unsigned>, std::variant<float, double>>{ 3 };
+    //ᅟ    auto flatVariant = variant_cat(number); // returns std::variant<int, unsigned, float, double>{ 3 };
     //
 template <typename VariantT,
           typename = std::enable_if_t<is_variant_like_v<std::decay_t<VariantT>>>>

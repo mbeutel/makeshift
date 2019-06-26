@@ -18,28 +18,15 @@ namespace detail
 {
 
 
-template <typename F, typename... Ts>
-    constexpr std::tuple<>
-    tuple_transform_impl1(transform_to_tuple_tag, std::index_sequence<>, F&&, Ts&&...)
-{
-    return { }; // extra overload to avoid unused-parameter warning
-}
-template <std::size_t... Is, typename F, typename... Ts>
-    constexpr auto
-    tuple_transform_impl1(transform_to_tuple_tag, std::index_sequence<Is...>, F&& func, Ts&&... args)
-{
-    (void) func;
-    return std::make_tuple(makeshift::detail::tuple_transform_impl2<Is>(func, std::forward<Ts>(args)...)...);
-}
 template <template <typename...> class TupleT, typename F, typename... Ts>
     constexpr TupleT<>
-    tuple_transform_impl1(transform_to_custom_tuple_tag<TupleT>, std::index_sequence<>, F&&, Ts&&...)
+    tuple_transform_impl1(transform_to_tuple_tag<TupleT>, std::index_sequence<>, F&&, Ts&&...)
 {
     return { }; // extra overload to avoid unused-parameter warning
 }
 template <template <typename...> class TupleT, std::size_t... Is, typename F, typename... Ts>
     constexpr auto
-    tuple_transform_impl1(transform_to_custom_tuple_tag<TupleT>, std::index_sequence<Is...>, F&& func, Ts&&... args)
+    tuple_transform_impl1(transform_to_tuple_tag<TupleT>, std::index_sequence<Is...>, F&& func, Ts&&... args)
 {
     (void) func;
     using RTuple = TupleT<std::decay_t<decltype(makeshift::detail::tuple_transform_impl2<Is>(func, std::forward<Ts>(args)...))>...>;

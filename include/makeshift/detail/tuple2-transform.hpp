@@ -102,8 +102,7 @@ template <std::size_t I, typename T>
 struct tuple_foreach_tag { };
 template <template <typename, std::size_t> class ArrayT> struct transform_to_array_tag { };
 template <template <typename, std::size_t> class ArrayT, typename T> struct transform_to_array_of_tag { };
-struct transform_to_tuple_tag { };
-template <template <typename...> class TupleT> struct transform_to_custom_tuple_tag { };
+template <template <typename...> class TupleT> struct transform_to_tuple_tag { };
 
 template <std::size_t I, typename... Ts, typename F>
     constexpr decltype(auto)
@@ -130,17 +129,20 @@ template <std::size_t... Is, typename F, typename... Ts>
 }
 
      // defined in makeshift/detail/tuple.hpp
-template <std::size_t... Is, typename F, typename... Ts>
-    constexpr auto
-    tuple_transform_impl1(transform_to_tuple_tag, std::index_sequence<Is...>, F&& func, Ts&&... args);
 template <template <typename...> class TupleT, std::size_t... Is, typename F, typename... Ts>
     constexpr auto
-    tuple_transform_impl1(transform_to_custom_tuple_tag<TupleT>, std::index_sequence<Is...>, F&& func, Ts&&... args);
+    tuple_transform_impl1(transform_to_tuple_tag<TupleT>, std::index_sequence<Is...>, F&& func, Ts&&... args);
 
      // defined in makeshift/detail/array.hpp
+template <template <typename, std::size_t> class ArrayT, typename F, typename... Ts>
+    constexpr auto
+    tuple_transform_impl1(transform_to_array_tag<ArrayT>, std::index_sequence<>, F&&, Ts&&...);
 template <template <typename, std::size_t> class ArrayT, std::size_t... Is, typename F, typename... Ts>
     constexpr auto
     tuple_transform_impl1(transform_to_array_tag<ArrayT>, std::index_sequence<Is...>, F&& func, Ts&&... args);
+template <template <typename, std::size_t> class ArrayT, typename R, typename F, typename... Ts>
+    constexpr auto
+    tuple_transform_impl1(transform_to_array_of_tag<ArrayT, R>, std::index_sequence<>, F&&, Ts&&...);
 template <template <typename, std::size_t> class ArrayT, typename R, std::size_t... Is, typename F, typename... Ts>
     constexpr auto
     tuple_transform_impl1(transform_to_array_of_tag<ArrayT, R>, std::index_sequence<Is...>, F&& func, Ts&&... args);
@@ -157,7 +159,7 @@ template <std::ptrdiff_t N, typename TransformTypeTag, typename F, typename... T
         // TODO: we might want this even if the objects are not default-constructible but are trivially movable. How good is the compiler at eliding the move? Not good at all, I'd guess...
         // Do we default-initialize arrays or tuples of trivially default-constructible things? Note that there might be compiler and runtime warnings in VC++ if we don't! (TODO: try & check this)
 
-        // TODO: how about other types of arrays or tuples? E.g. Thrust's tuple type or type_sequence<>. Perhaps we could have an overload with a template template parameter in the interface function?
+        // TODO: array_transform() and tuple_transform() should return a constval if the individual return types are constvals.
 
     using Eq = equal_sizes_<std::decay_t<Ts>...>;
     static_assert(Eq::value, "sizes of tuple arguments do not match");
