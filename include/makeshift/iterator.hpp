@@ -4,34 +4,31 @@
 
 
 #include <iterator>    // for input_iterator_tag, output_iterator_tag
-#include <utility>     // for forward<>()
-#include <type_traits> // for decay<>, declval<>(), is_integral<>
+#include <utility>     // for move(), forward<>()
+#include <type_traits> // for decay<>, declval<>()
 
-#include <makeshift/constval.hpp> // for is_constval<>
-#include <makeshift/version.hpp>  // for MAKESHIFT_NODISCARD
-
-#include <makeshift/detail/iterator.hpp>
+#include <makeshift/version.hpp> // for MAKESHIFT_NODISCARD
 
 
 namespace makeshift
 {
 
 
-template <typename FuncT>
+template <typename F>
     class callback_input_iterator
 {
 public:
     using difference_type = void;
     using value_type = void;
     using pointer = void;
-    using reference = decltype(std::declval<FuncT>()());
+    using reference = decltype(std::declval<F>()());
     using iterator_category = std::input_iterator_tag;
 
 private:
-    FuncT func_;
+    F func_;
 
 public:
-    constexpr explicit callback_input_iterator(FuncT _func)
+    constexpr explicit callback_input_iterator(F _func)
         : func_{ std::move(_func) }
     {
     }
@@ -51,17 +48,17 @@ public:
         return *this;
     }
 };
-template <typename FuncT>
-    callback_input_iterator(FuncT&&) -> callback_input_iterator<std::decay_t<FuncT>>;
+template <typename F>
+    callback_input_iterator(F&&) -> callback_input_iterator<std::decay_t<F>>;
 
-template <typename FuncT>
-    MAKESHIFT_NODISCARD constexpr callback_input_iterator<std::decay_t<FuncT>> make_callback_input_iterator(FuncT&& func)
+template <typename F>
+    MAKESHIFT_NODISCARD constexpr callback_input_iterator<std::decay_t<F>> make_callback_input_iterator(F&& func)
 {
-	return callback_input_iterator<std::decay_t<FuncT>>{ std::forward<FuncT>(func) };
+	return callback_input_iterator<std::decay_t<F>>{ std::forward<F>(func) };
 }
 
 
-template <typename FuncT>
+template <typename F>
     class callback_output_iterator
 {
 public:
@@ -70,12 +67,12 @@ public:
     using pointer = void;
     class reference
     {
-        friend callback_output_iterator<FuncT>;
+        friend callback_output_iterator<F>;
 
     private:
         callback_output_iterator& self_;
 
-        constexpr reference(callback_output_iterator& _self)
+        constexpr reference(callback_output_iterator& _self) noexcept
             : self_{ _self }
         {
         }
@@ -90,10 +87,10 @@ public:
     using iterator_category = std::output_iterator_tag;
 
 private:
-    FuncT func_;
+    F func_;
 
 public:
-    constexpr explicit callback_output_iterator(FuncT _func)
+    constexpr explicit callback_output_iterator(F _func)
         : func_{ std::move(_func) }
     {
     }
@@ -113,63 +110,17 @@ public:
         return *this;
     }
 };
-template <typename FuncT>
-    callback_output_iterator(FuncT&&) -> callback_output_iterator<std::decay_t<FuncT>>;
+template <typename F>
+    callback_output_iterator(F&&) -> callback_output_iterator<std::decay_t<F>>;
 
-template <typename FuncT>
-    MAKESHIFT_NODISCARD constexpr callback_output_iterator<std::decay_t<FuncT>> make_callback_output_iterator(FuncT&& func)
+template <typename F>
+    MAKESHIFT_NODISCARD constexpr callback_output_iterator<std::decay_t<F>> make_callback_output_iterator(F&& func)
 {
-	return callback_output_iterator<std::decay_t<FuncT>>{ std::forward<FuncT>(func) };
-}
-
-
-    //ᅟ
-    // Represents a pair of iterators.
-    //
-template <typename It, typename EndIt = It>
-    struct range : makeshift::detail::range_base_<It, range<It, EndIt>>::type
-{
-    It first;
-    EndIt last;
-
-    constexpr range(It _first, EndIt _last)
-        : first(std::move(_first)), last(std::move(_last))
-    {
-    }
-    template <std::size_t Size>
-        constexpr range(makeshift::detail::fixed_random_access_range<It, Size> _rhs)
-            : first(std::move(_rhs.first)), last(first + Size)
-    {
-    }
-
-    MAKESHIFT_NODISCARD constexpr const It& begin(void) const noexcept { return first; }
-    MAKESHIFT_NODISCARD constexpr const EndIt& end(void) const noexcept { return last; }
-};
-
-    //ᅟ
-    // Construct a range from a pair of iterators.
-    //
-template <typename It, typename EndIt,
-          typename = std::enable_if_t<!std::is_convertible<EndIt, std::size_t>::value>>
-    MAKESHIFT_NODISCARD range<It, EndIt> make_range(It first, EndIt last)
-{
-    // the is_convertible<> trait also covers integer constvals due to normalization
-
-    return { std::move(first), std::move(last) };
-}
-
-    //ᅟ
-    // Construct a range from an iterator and an extent.
-    //
-template <typename It, typename ExtentC>
-    MAKESHIFT_NODISCARD auto make_range(It start, ExtentC extentC)
-{
-    return typename makeshift::detail::range_by_extent_<It, ExtentC, range>::type{ start, start + makeshift::constval_extract(extentC) };
+	return callback_output_iterator<std::decay_t<F>>{ std::forward<F>(func) };
 }
 
 
 } // namespace makeshift
-
 
 
 #endif // INCLUDED_MAKESHIFT_ITERATOR_HPP_

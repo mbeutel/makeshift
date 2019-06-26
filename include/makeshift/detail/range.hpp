@@ -1,6 +1,6 @@
 
-#ifndef INCLUDED_MAKESHIFT_DETAIL_ITERATOR_HPP_
-#define INCLUDED_MAKESHIFT_DETAIL_ITERATOR_HPP_
+#ifndef INCLUDED_MAKESHIFT_DETAIL_RANGE_HPP_
+#define INCLUDED_MAKESHIFT_DETAIL_RANGE_HPP_
 
 
 #include <cstddef>     // for size_t, ptrdiff_t
@@ -105,4 +105,4 @@ template <std::size_t I, typename It, std::size_t Size> struct tuple_element<I, 
 } // namespace std
 
 
-#endif // INCLUDED_MAKESHIFT_DETAIL_ITERATOR_HPP_
+#endif // INCLUDED_MAKESHIFT_DETAIL_RANGE_HPP_
