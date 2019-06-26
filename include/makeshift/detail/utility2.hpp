@@ -243,28 +243,6 @@ template <typename T, char... Cs> struct make_constant : make_constant_<T, sizeo
 template <typename T, char... Cs> constexpr std::ptrdiff_t make_constant_v = make_constant<T, Cs...>::value;
 
 
-namespace non_adl
-{
-
-
-template <typename T>
-    constexpr T makeshift_nttp_unwrap(T arg)
-{
-    return arg;
-}
-
-
-} // namespace non_adl
-
-
-template <typename T>
-    constexpr auto nttp_unwrap(T arg)
-{
-    using makeshift::detail::non_adl::makeshift_nttp_unwrap;
-    return makeshift_nttp_unwrap(arg);
-}
-
-
 } // namespace detail
 
 } // namespace makeshift

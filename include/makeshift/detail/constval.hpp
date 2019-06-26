@@ -12,12 +12,21 @@
 #endif // MAKESHIFT_CXX17
 
 #include <makeshift/type_traits2.hpp> // for constval_tag
-#include <makeshift/utility2.hpp>     // for array_constant<> // TODO: shouldn't we avoid pulling in the entire header?
 #include <makeshift/version.hpp>      // for MAKESHIFT_NODISCARD
 
 
 namespace makeshift
 {
+
+
+template <typename T, T... Vs>
+    struct array_constant;
+
+#ifdef MAKESHIFT_CXX17
+template <auto... Vs>
+    struct tuple_constant;
+#endif // MAKESHIFT_CXX17
+
 
 namespace detail
 {
@@ -339,6 +348,28 @@ template <typename BoolC>
 static constexpr void constval_assert_impl(std::false_type /*isConstval*/, bool arg)
 {
     Expects(arg);
+}
+
+
+namespace non_adl
+{
+
+
+template <typename T>
+    constexpr T makeshift_nttp_unwrap(T arg)
+{
+    return arg;
+}
+
+
+} // namespace non_adl
+
+
+template <typename T>
+    constexpr auto nttp_unwrap(T arg)
+{
+    using makeshift::detail::non_adl::makeshift_nttp_unwrap;
+    return makeshift_nttp_unwrap(arg);
 }
 
 

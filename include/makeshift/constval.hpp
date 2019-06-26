@@ -3,6 +3,7 @@
 #define INCLUDED_MAKESHIFT_CONSTVAL_HPP_
 
 
+#include <utility>     // for tuple_size<>, tuple_element<>, integer_sequence<>
 #include <type_traits> // for is_empty<>, conjunction<>
 
 #include <gsl/gsl_assert> // for Expects()
@@ -147,7 +148,127 @@ template <typename BoolC>
 }
 
 
+
+
+    //ᅟ
+    // Represents a constexpr value of type `std::array<>` with the given element type and values.
+    //
+template <typename T, T... Vs>
+    struct array_constant : makeshift::detail::constval_tag
+{
+    using element_type = decltype(makeshift::detail::nttp_unwrap(std::declval<T>()));
+    using value_type = std::array<element_type, sizeof...(Vs)>;
+
+    static constexpr std::size_t size(void) noexcept { return sizeof...(Vs); } // TODO: remove?
+
+    MAKESHIFT_NODISCARD constexpr value_type operator ()(void) const noexcept
+    {
+        return { makeshift::detail::nttp_unwrap(Vs)... };
+    }
+    MAKESHIFT_NODISCARD constexpr operator value_type(void) const noexcept
+    {
+        return (*this)();
+    }
+};
+
+    //ᅟ
+    // Represents a constexpr value of type `std::array<>` with the given element type and values.
+    //
+template <typename T, T... Vs> constexpr array_constant<T, Vs...> array_c{ };
+
+    //ᅟ
+    // Implement tuple-like protocol for `array_constant<>`.
+    //
+template <std::size_t I, typename T, T... Vs>
+    MAKESHIFT_NODISCARD constexpr
+    make_constval_t<makeshift::detail::array_accessor_functor<array_constant<T, Vs...>, I>>
+    get(array_constant<T, Vs...>) noexcept
+{
+    static_assert(I < sizeof...(Vs), "index out of range");
+    return { };
+}
+
+    //ᅟ
+    // Converts a `std::integer_sequence<>` to a constexpr value of type `std::array<>`.
+    // TODO: remove?
+    //
+template <typename T, T... Vs>
+    MAKESHIFT_NODISCARD constexpr array_constant<T,Vs...> make_array_constant(std::integer_sequence<T, Vs...>) noexcept
+{
+    return { };
+}
+
+    //ᅟ
+    // Converts a sequence of homogeneously typed constexpr values to a constexpr value of type `std::array<>`.
+    // TODO: remove?
+    //
+template <typename T, T... Vs>
+    MAKESHIFT_NODISCARD constexpr array_constant<T,Vs...> make_array_constant(std::integral_constant<T, Vs>...) noexcept
+{
+        // This permits conversion from any sequence of constvals because of constval normalization.
+    return { };
+}
+
+
+#ifdef MAKESHIFT_CXX17
+    //ᅟ
+    // Represents a constexpr value of type `std::tuple<>` with the given values.
+    //
+template <auto... Vs>
+    struct tuple_constant : makeshift::detail::constval_tag
+{
+    using value_type = std::tuple<decltype(makeshift::detail::nttp_unwrap(Vs))...>;
+
+    static constexpr std::size_t size(void) noexcept { return sizeof...(Vs); }
+
+    MAKESHIFT_NODISCARD constexpr value_type operator ()(void) const noexcept
+    {
+        return { makeshift::detail::nttp_unwrap(Vs)... };
+    }
+    MAKESHIFT_NODISCARD constexpr operator value_type(void) const noexcept
+    {
+        return (*this)();
+    }
+};
+
+    //ᅟ
+    // Represents a constexpr value of type `std::tuple<>` with the given values.
+    //
+template <auto... Vs> constexpr tuple_constant<Vs...> tuple_c{ };
+
+    //ᅟ
+    // Implement tuple-like protocol for `tuple_constant<>`.
+    //
+template <std::size_t I, auto... Vs>
+    MAKESHIFT_NODISCARD constexpr
+    make_constval_t<makeshift::detail::tuple_accessor_functor<tuple_constant<Vs...>, I>>
+    get(tuple_constant<Vs...>) noexcept
+{
+    static_assert(I < sizeof...(Vs), "index out of range");
+    return { };
+}
+#endif // MAKESHIFT_CXX17
+
+
 } // namespace makeshift
+
+
+namespace std
+{
+
+
+    // Implement tuple-like protocol for `array_constant<>`.
+template <typename T, T... Vs> struct tuple_size<makeshift::array_constant<T, Vs...>> : public std::integral_constant<std::size_t, sizeof...(Vs)> { };
+template <std::size_t I, typename T, T... Vs> struct tuple_element<I, makeshift::array_constant<T, Vs...>> { using type = makeshift::make_constval_t<makeshift::detail::array_accessor_functor<makeshift::array_constant<T, Vs...>, I>>; };
+
+#ifdef MAKESHIFT_CXX17
+    // Implement tuple-like protocol for `tuple_constant<>`.
+template <auto... Vs> struct tuple_size<makeshift::tuple_constant<Vs...>> : public std::integral_constant<std::size_t, sizeof...(Vs)> { };
+template <std::size_t I, auto... Vs> struct tuple_element<I, makeshift::tuple_constant<Vs...>> { using type = makeshift::make_constval_t<makeshift::detail::tuple_accessor_functor<makeshift::tuple_constant<Vs...>, I>>; };
+#endif // MAKESHIFT_CXX17
+
+
+} // namespace std
 
 
 #endif // INCLUDED_MAKESHIFT_CONSTVAL_HPP_
