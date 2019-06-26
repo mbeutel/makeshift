@@ -4,11 +4,11 @@
 # makeshift unit tests
 
 
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.14)
 
 # dependencies
 find_package(Catch2 2.4 REQUIRED)
-find_package(CMakeshift 3.4 REQUIRED)
+find_package(CMakeshift 3.5 REQUIRED)
 find_package(MS-GSL REQUIRED)
 
 # test target

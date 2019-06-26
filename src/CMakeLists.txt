@@ -4,10 +4,10 @@
 # makeshift library target
 
 
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.14)
 
 # dependencies
-find_package(CMakeshift 3.4 REQUIRED)
+find_package(CMakeshift 3.5 REQUIRED)
 find_package(MS-GSL REQUIRED)
 
 # library target

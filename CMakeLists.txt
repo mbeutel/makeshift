@@ -8,12 +8,6 @@
 
 cmake_minimum_required(VERSION 3.12)
 
-# Disable in-source builds to avoid cluttering the source directory.
-# If you attempted to build in the source directory and run into this error, you first need to clean up
-# manually by deleting the CMakeFiles directory and the CMakeCache.txt file before proceeding.
-set(CMAKE_DISABLE_SOURCE_CHANGES ON)
-set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
-
 # Define the project.
 project(makeshift
     VERSION 3.0.0
