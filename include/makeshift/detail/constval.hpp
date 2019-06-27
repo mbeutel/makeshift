@@ -32,6 +32,26 @@ namespace detail
 {
 
 
+template <typename C> struct make_constval_;
+
+
+template <typename C, std::size_t I>
+    struct array_accessor_functor
+{
+    constexpr auto operator ()(void) const
+    {
+        return C{ }()[I];
+    }
+};
+
+template <typename C, std::size_t I>
+    struct tuple_accessor_functor
+{
+    constexpr auto operator ()(void) const
+    {
+        return std::get<I>(C{ }());
+    }
+};
 
 
     // Workaround for non-default-constructible lambdas in C++17.
@@ -107,9 +127,26 @@ public:
     }
 };
 
+template <typename F>
+    struct constval_tuple_functor_wrapper : constval_functor_wrapper<F>
+{
+    template <std::size_t I>
+        MAKESHIFT_NODISCARD friend constexpr
+        typename make_constval_<tuple_accessor_functor<constval_tuple_functor_wrapper, I>>::type
+        get(constval_tuple_functor_wrapper) noexcept
+    {
+        using V = typename constval_functor_wrapper<F>::value_type;
+        static_assert(I < std::tuple_size<V>::value, "index out of range");
+        return { };
+    }
+};
+
+template <typename C, bool IsTupleLike> struct constval_functor_1_;
+template <typename C> struct constval_functor_1_<C, true> { using type = constval_tuple_functor_wrapper<C>; };
+template <typename C> struct constval_functor_1_<C, false> { using type = constval_functor_wrapper<C>; };
 template <typename C, bool IsConstval> struct constval_functor_0_;
 template <typename C> struct constval_functor_0_<C, true> { using type = C; };
-template <typename C> struct constval_functor_0_<C, false> { using type = constval_functor_wrapper<C>; };
+template <typename C> struct constval_functor_0_<C, false> : constval_functor_1_<C, can_instantiate_v<is_tuple_like_r, C>> { };
 template <typename C> using constval_functor_t = typename constval_functor_0_<C, is_constval_<C>::value>::type;
 
     // determines if a given type makes a valid C++14 non-type template parameter
@@ -127,25 +164,7 @@ template <typename... Ts> struct can_normalize_constval_<std::tuple<Ts...>> : st
 template <typename T>
     struct normalize_constval_;
 
-template <typename C, std::size_t I>
-    struct array_accessor_functor
-{
-    constexpr auto operator ()(void) const
-    {
-        return C{ }()[I];
-    }
-};
-
 #ifdef MAKESHIFT_CXX17
-template <typename C, std::size_t I>
-    struct tuple_accessor_functor
-{
-    constexpr auto operator ()(void) const
-    {
-        return std::get<I>(C{ }());
-    }
-};
-
 template <typename T, typename C>
     struct nttp_wrapper_
 {
@@ -375,6 +394,22 @@ template <typename T>
 } // namespace detail
 
 } // namespace makeshift
+
+
+namespace std
+{
+
+
+    // Implement tuple-like protocol for `constval_tuple_functor_wrapper<>`.
+template <typename F> struct tuple_size<makeshift::detail::constval_tuple_functor_wrapper<F>> : tuple_size<typename makeshift::detail::constval_tuple_functor_wrapper<F>::value_type> { };
+template <std::size_t I, typename F>
+    struct tuple_element<I, makeshift::detail::constval_tuple_functor_wrapper<F>>
+{
+    using type = makeshift::detail::make_constval_t<makeshift::detail::tuple_accessor_functor<makeshift::detail::constval_tuple_functor_wrapper<F>, I>>;
+};
+
+
+} // namespace std
 
 
 #endif // INCLUDED_MAKESHIFT_DETAIL_CONSTVAL_HPP_
