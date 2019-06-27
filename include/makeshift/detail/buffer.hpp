@@ -11,7 +11,7 @@
 #include <gsl/gsl_assert> // for Expects()
 
 #include <makeshift/utility2.hpp> // for dim
-#include <makeshift/constval.hpp> // for constval_extract(), constval_assert(), constval_transform()
+#include <makeshift/constval.hpp> // for constval_extract(), constval_assert()
 
 
 namespace makeshift
@@ -353,7 +353,7 @@ public:
         constexpr buffer(C _size)
             : _base(makeshift::constval_extract(_size))
     {
-        makeshift::constval_assert(makeshift::constval_transform(check_size_functor{ }, _size));
+        makeshift::constval_assert(check_size_functor{ }, _size); // ensure that static and dynamic sizes match
     }
     template <dim RExtent, typename U>
         constexpr buffer(U (&&array)[RExtent])
@@ -399,7 +399,7 @@ public:
         constexpr fixed_buffer(C _size)
             : _base(makeshift::constval_extract(_size))
     {
-        makeshift::constval_assert(makeshift::constval_transform(check_size_functor{ }, _size));
+        makeshift::constval_assert(check_size_functor{ }, _size); // ensure that static and dynamic sizes match
     }
     template <dim RExtent, typename U>
         constexpr fixed_buffer(U (&&array)[RExtent])

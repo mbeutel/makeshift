@@ -138,16 +138,30 @@ template <typename CF, typename... Cs>
     //ᅟ
     // Generates an assertion for the given condition value which is checked at compile time for constexpr values, or at runtime for non-constexpr values.
     //ᅟ
-    //ᅟ    constval_assert(constval_transform([](index idx) { return idx >= 0; }, idxC));
+    //ᅟ    auto condC = constval_transform([](index idx) { return idx >= 0; }, idxC);
+    //ᅟ    constval_assert(condC);
     //
-template <typename BoolC>
+template <typename BoolC,
+          std::enable_if_t<std::is_convertible<BoolC, bool>::value, int> = 0>
     constexpr void
     constval_assert(const BoolC& arg)
 {
     return makeshift::detail::constval_assert_impl(is_constval<BoolC>{ }, arg);
 }
 
-
+    //ᅟ
+    // Generates an assertion for the given condition value which is checked at compile time for constexpr values, or at runtime for non-constexpr values.
+    //ᅟ
+    //ᅟ    constval_assert([](index idx) { return idx >= 0; }, idxC);
+    //
+template <typename F, typename... Cs,
+          std::enable_if_t<!std::is_convertible<F, bool>::value, int> = 0>
+    constexpr void
+    constval_assert(const F& func, const Cs&... args)
+{
+    static_assert(std::is_empty<F>::value, "transformer must be stateless");
+    makeshift::constval_assert(makeshift::constval_transform(func, args...));
+}
 
 
     //ᅟ
