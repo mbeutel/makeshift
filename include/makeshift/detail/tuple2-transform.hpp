@@ -9,15 +9,14 @@
 
 #include <makeshift/type_traits2.hpp> // for can_instantiate<>
 
+#include <makeshift/detail/type_traits2.hpp> // for is_tuple_like_r<>
+
 
 namespace makeshift
 {
 
 namespace detail
 {
-
-
-template <typename T> using is_tuple_like_r = std::integral_constant<std::size_t, std::tuple_size<T>::value>;
 
 
     //ᅟ
@@ -124,9 +123,6 @@ template <std::ptrdiff_t N, typename... Ts>
     static_assert(N != -1 || Eq::size != -1, "no tuple argument and no size given");
     return std::size_t(N != -1 ? N : Eq::size);
 }
-
-
-// TODO: should array_transform() and tuple_transform() return a constval array if the individual return types are constvals? Probably not very useful...
 
 
 } // namespace detail

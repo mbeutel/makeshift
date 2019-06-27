@@ -15,7 +15,8 @@
 #include <makeshift/type_traits2.hpp> // for flags_base, unwrap_enum_tag, type<>, type_sequence<>
 #include <makeshift/version.hpp>      // for MAKESHIFT_NODISCARD
 
-#include <makeshift/detail/workaround.hpp> // for csum<>(), cand()
+#include <makeshift/detail/type_traits2.hpp> // for is_tuple_like_r<>
+#include <makeshift/detail/workaround.hpp>   // for csum<>(), cand()
 
 
 namespace makeshift
@@ -153,15 +154,13 @@ template <typename TypeEnumT, typename... Ts, typename T,
 } // namespace adl
 
 
-template <typename T> using has_constval_size_r = decltype(std::tuple_size<T>::value);
-
 template <typename ContainerT>
-    std::tuple_size<ContainerT> csize_impl(std::true_type /*isConstval*/, const ContainerT&)
+    constexpr std::integral_constant<std::size_t, std::tuple_size<ContainerT>::value> csize_impl(std::true_type /*isConstval*/, const ContainerT&)
 {
     return { };
 }
 template <typename ContainerT>
-    auto csize_impl(std::false_type /*isConstval*/, const ContainerT& c)
+    constexpr auto csize_impl(std::false_type /*isConstval*/, const ContainerT& c)
         -> decltype(c.size())
 {
     return c.size();

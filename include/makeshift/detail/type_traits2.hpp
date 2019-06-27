@@ -5,7 +5,7 @@
 
 #include <cstddef>     // for size_t
 #include <iterator>    // for begin(), end()
-#include <utility>     // for integer_sequence<>
+#include <utility>     // for integer_sequence<>, tuple_size<>
 #include <type_traits> // for declval<>(), integral_constant<>, disjunction<>, is_convertible<>
 
 
@@ -165,6 +165,9 @@ template <typename T, typename R> struct is_constval_of_type_ : std::conjunction
 
 
 template <typename T> struct as_dependent_type_ { using type = T; };
+
+
+template <typename T> using is_tuple_like_r = decltype(std::tuple_size<T>::value);
 
 
 } // namespace detail

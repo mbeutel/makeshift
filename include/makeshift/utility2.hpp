@@ -326,7 +326,7 @@ template <typename T, std::ptrdiff_t N>
 template <typename ContainerT>
     MAKESHIFT_NODISCARD constexpr auto csize(const ContainerT& c)
 {
-    return csize_impl(can_instantiate<makeshift::detail::has_constval_size_r, ContainerT>{ }, c);
+    return csize_impl(can_instantiate<makeshift::detail::is_tuple_like_r, ContainerT>{ }, c);
 }
 template <typename T, std::size_t N>
     MAKESHIFT_NODISCARD constexpr std::integral_constant<std::size_t, N> csize(const T (&)[N]) noexcept
@@ -341,7 +341,7 @@ template <typename T, std::size_t N>
 template <typename ContainerT>
     MAKESHIFT_NODISCARD constexpr auto cssize(const ContainerT& c)
 {
-    return cssize_impl(can_instantiate<makeshift::detail::has_constval_size_r, ContainerT>{ }, c);
+    return cssize_impl(can_instantiate<makeshift::detail::is_tuple_like_r, ContainerT>{ }, c);
 }
 template <typename T, std::ptrdiff_t N>
     MAKESHIFT_NODISCARD constexpr std::integral_constant<std::ptrdiff_t, N> cssize(const T (&)[N]) noexcept
@@ -352,6 +352,9 @@ template <typename T, std::ptrdiff_t N>
 
 inline namespace literals
 {
+
+
+// TODO: remove
 
 
     //ᅟ

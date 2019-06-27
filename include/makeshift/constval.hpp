@@ -45,26 +45,20 @@ template <typename T, typename R> constexpr bool is_constval_of_type_v = is_cons
 
 
     //ᅟ
-    // A constexpr value type representing the given constexpr function object type.
+    // A constexpr value type representing the given nullary constexpr function object type. Applies normalization if applicable.
     //ᅟ
-    // If the value type of the constexpr value is valid as a non-type template parameter, the result type is guaranteed to be an instantiation of `std::integral_constant<>`.
-    //
 template <typename C> using make_constval_t = makeshift::detail::make_constval_t<C>;
 
 
     //ᅟ
-    // A constexpr value representing the given constexpr function object type.
+    // A constexpr value representing the given nullary constexpr function object type. Applies normalization if applicable.
     //ᅟ
-    // If the value type of the constexpr value is valid as a non-type template parameter, the result type is guaranteed to be an instantiation of `std::integral_constant<>`.
-    //
 template <typename C> constexpr make_constval_t<C> make_constval_v = { };
 
 
     //ᅟ
-    // Returns a constexpr value representing the given nullary constexpr function object type. Applies normlization if applicable.
+    // Returns a constexpr value representing the given nullary constexpr function object type. Applies normalization if applicable.
     //ᅟ
-    // If the value type of the constexpr function object is valid as a non-type template parameter, the result type is guaranteed to be an instantiation of `std::integral_constant<>`.
-    //
 template <typename C>
     constexpr make_constval_t<C> make_constval(const C&)
 {
@@ -173,8 +167,6 @@ template <typename T, T... Vs>
     using element_type = decltype(makeshift::detail::nttp_unwrap(std::declval<T>()));
     using value_type = std::array<element_type, sizeof...(Vs)>;
 
-    static constexpr std::size_t size(void) noexcept { return sizeof...(Vs); } // TODO: remove?
-
     MAKESHIFT_NODISCARD constexpr value_type operator ()(void) const noexcept
     {
         return { makeshift::detail::nttp_unwrap(Vs)... };
@@ -183,6 +175,18 @@ template <typename T, T... Vs>
     {
         return (*this)();
     }
+
+        //ᅟ
+        // Implement tuple-like protocol for `array_constant<>`.
+        //
+    template <std::size_t I>
+        MAKESHIFT_NODISCARD friend constexpr
+        make_constval_t<makeshift::detail::array_accessor_functor<array_constant, I>>
+        get(array_constant) noexcept
+    {
+        static_assert(I < sizeof...(Vs), "index out of range");
+        return { };
+    }
 };
 
     //ᅟ
@@ -190,17 +194,6 @@ template <typename T, T... Vs>
     //
 template <typename T, T... Vs> constexpr array_constant<T, Vs...> array_c{ };
 
-    //ᅟ
-    // Implement tuple-like protocol for `array_constant<>`.
-    //
-template <std::size_t I, typename T, T... Vs>
-    MAKESHIFT_NODISCARD constexpr
-    make_constval_t<makeshift::detail::array_accessor_functor<array_constant<T, Vs...>, I>>
-    get(array_constant<T, Vs...>) noexcept
-{
-    static_assert(I < sizeof...(Vs), "index out of range");
-    return { };
-}
 
     //ᅟ
     // Converts a `std::integer_sequence<>` to a constexpr value of type `std::array<>`.
@@ -233,8 +226,6 @@ template <auto... Vs>
 {
     using value_type = std::tuple<decltype(makeshift::detail::nttp_unwrap(Vs))...>;
 
-    static constexpr std::size_t size(void) noexcept { return sizeof...(Vs); }
-
     MAKESHIFT_NODISCARD constexpr value_type operator ()(void) const noexcept
     {
         return { makeshift::detail::nttp_unwrap(Vs)... };
@@ -243,24 +234,24 @@ template <auto... Vs>
     {
         return (*this)();
     }
+
+        //ᅟ
+        // Implement tuple-like protocol for `tuple_constant<>`.
+        //
+    template <std::size_t I>
+        MAKESHIFT_NODISCARD friend constexpr
+        make_constval_t<makeshift::detail::tuple_accessor_functor<tuple_constant, I>>
+        get(tuple_constant) noexcept
+    {
+        static_assert(I < sizeof...(Vs), "index out of range");
+        return { };
+    }
 };
 
     //ᅟ
     // Represents a constexpr value of type `std::tuple<>` with the given values.
     //
 template <auto... Vs> constexpr tuple_constant<Vs...> tuple_c{ };
-
-    //ᅟ
-    // Implement tuple-like protocol for `tuple_constant<>`.
-    //
-template <std::size_t I, auto... Vs>
-    MAKESHIFT_NODISCARD constexpr
-    make_constval_t<makeshift::detail::tuple_accessor_functor<tuple_constant<Vs...>, I>>
-    get(tuple_constant<Vs...>) noexcept
-{
-    static_assert(I < sizeof...(Vs), "index out of range");
-    return { };
-}
 #endif // MAKESHIFT_CXX17
 
 

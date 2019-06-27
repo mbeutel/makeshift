@@ -11,7 +11,7 @@
  #include <tuple>
 #endif // MAKESHIFT_CXX17
 
-#include <makeshift/type_traits2.hpp> // for constval_tag
+#include <makeshift/type_traits2.hpp> // for constval_tag, can_instantiate<>
 #include <makeshift/version.hpp>      // for MAKESHIFT_NODISCARD
 
 
@@ -32,7 +32,6 @@ namespace detail
 {
 
 
-template <typename T> using type_member_r = typename T::type;
 
 
     // Workaround for non-default-constructible lambdas in C++17.

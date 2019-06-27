@@ -52,12 +52,16 @@ constexpr tuple_index_t tuple_index{ };
 
 
     //ᅟ
-    // Determines whether a type has a tuple-like interface (i.e. whether `std::tuple_size<T>::value` is well-formed).
+    // Determines whether a type has a tuple-like interface.
+    //ᅟ
+    // A type `T` has a tuple-like interface if `std::tuple_size<T>::value`, `std::tuple_element_t<I, T>`, and `get<I>(t)` are well-formed. This trait only checks `std::tuple_size<T>::value`.
     //
 template <typename T> struct is_tuple_like : can_instantiate<makeshift::detail::is_tuple_like_r, T> { };
 
     //ᅟ
-    // Determines whether a type has a tuple-like interface (i.e. whether `std::tuple_size<T>::value` is well-formed).
+    // Determines whether a type has a tuple-like interface.
+    //ᅟ
+    // A type `T` has a tuple-like interface if `std::tuple_size<T>::value`, `std::tuple_element_t<I, T>`, and `get<I>(t)` are well-formed. This trait only checks `std::tuple_size<T>::value`.
     //
 template <typename T> constexpr bool is_tuple_like_v = is_tuple_like<T>::value;
 
