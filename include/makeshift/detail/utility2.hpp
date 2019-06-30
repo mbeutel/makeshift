@@ -167,12 +167,12 @@ template <typename ContainerT>
 }
 
 template <typename ContainerT>
-    std::integral_constant<std::ptrdiff_t, std::tuple_size<ContainerT>::value> cssize_impl(std::true_type /*isConstval*/, const ContainerT&)
+    constexpr std::integral_constant<std::ptrdiff_t, std::tuple_size<ContainerT>::value> cssize_impl(std::true_type /*isConstval*/, const ContainerT&)
 {
     return { };
 }
 template <typename ContainerT>
-    auto cssize_impl(std::false_type /*isConstval*/, const ContainerT& c)
+    constexpr auto cssize_impl(std::false_type /*isConstval*/, const ContainerT& c)
         -> std::common_type_t<std::ptrdiff_t, std::make_signed_t<decltype(c.size())>>
 {
     using R = std::common_type_t<std::ptrdiff_t, std::make_signed_t<decltype(c.size())>>;
