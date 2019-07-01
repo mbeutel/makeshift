@@ -4,6 +4,9 @@
 
 
 #include <array>
+#include <cstddef> // for size_t
+
+#include <makeshift/version.hpp> // for MAKESHIFT_NODISCARD
 
 #include <makeshift/detail/array2.hpp>
 
