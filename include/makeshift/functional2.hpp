@@ -3,11 +3,14 @@
 #define INCLUDED_MAKESHIFT_FUNCTIONAL2_HPP_
 
 
-#include <utility>     // for move()
+#include <utility>     // for move(), forward<>()
+#include <cstddef>     // for size_t
 #include <functional>  // for hash<>
 #include <type_traits> // for decay<>
 
 #include <makeshift/version.hpp>  // for MAKESHIFT_NODISCARD, MAKESHIFT_EMPTY_BASES
+
+#include <makeshift/detail/functional2.hpp>
 
 
 namespace makeshift
@@ -35,6 +38,7 @@ template <typename... Ts>
 
     //ᅟ
     // Higher-order function for defining recursive lambda functions.
+    // Note that the lambda function must explicitly declare a return type.
     //ᅟ
     //ᅟ    auto fac = y_combinator{ 
     //ᅟ        [](auto fac, int i) -> int
@@ -52,40 +56,6 @@ template <typename F>
 private:
     F func_;
 
-    class func_ref
-    {
-    private:
-        F& func_;
-
-    public:
-        constexpr explicit func_ref(F& _func) noexcept
-            : func_(_func)
-        {
-        }
-        template <typename... ArgsT>
-            constexpr decltype(auto) operator()(ArgsT&&... args) const
-        {
-            return func_(*this, std::forward<ArgsT>(args)...);
-        }
-    };
-
-    class func_const_ref
-    {
-    private:
-        const F& func_;
-
-    public:
-        constexpr explicit func_const_ref(F& _func) noexcept
-            : func_(_func)
-        {
-        }
-        template <typename... ArgsT>
-            constexpr decltype(auto) operator()(ArgsT&&... args) const
-        {
-            return func_(*this, std::forward<ArgsT>(args)...);
-        }
-    };
-
 public:
     constexpr explicit y_combinator(F&& _func)
         : func_(std::forward<F>(_func))
@@ -95,12 +65,12 @@ public:
     template <typename... ArgsT>
         constexpr decltype(auto) operator()(ArgsT&&... args)
     {
-        return func_(func_ref{ func_ }, std::forward<ArgsT>(args)...);
+        return func_(makeshift::detail::y_combinator_func_ref<F&>{ func_ }, std::forward<ArgsT>(args)...);
     }
     template <typename... ArgsT>
         constexpr decltype(auto) operator()(ArgsT&&... args) const
     {
-        return func_(func_const_ref{ func_ }, std::forward<ArgsT>(args)...);
+        return func_(makeshift::detail::y_combinator_func_ref<const F&>{ func_ }, std::forward<ArgsT>(args)...);
     }
 };
 template <typename F>

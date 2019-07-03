@@ -103,6 +103,8 @@ struct index_value_t { };
 constexpr inline index_value_t index_value{ };
 
 
+// TODO: perhaps get rid of unit_variant<>, and of our own visit() implementation, in favor of using the STL's visit() (desirable for reasons of QoI)
+
 template <bool HaveMonostate, typename... Ts>
    class unit_variant_base;
 template <typename... Ts>
