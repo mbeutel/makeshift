@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<NonUserCode xmlns="http://schemas.microsoft.com/vstudio/debugger/jmc/2013">
+
+  <File Name="*\makeshift\include\*"/>
+  
+  <!-- CRT Exception implementation-->
+  <Function Name="makeshift::detail::throw_error_handler::raise_overflow" ExceptionImplementation="true" />
+  <Function Name="makeshift::detail::throw_error_handler::raise_underflow" ExceptionImplementation="true" />
+  <Function Name="makeshift::detail::result_handler_throw::fail" ExceptionImplementation="true" />
+  <Function Name="makeshift::detail::value_to_variant" ExceptionImplementation="true" />
+  <Function Name="makeshift::detail::expand2_impl3_array" ExceptionImplementation="true" />
+  <Function Name="makeshift::detail::expand2_impl3" ExceptionImplementation="true" />
+  <Function Name="makeshift::detail::expand2_impl3_compound" ExceptionImplementation="true" />
+  <Function Name="makeshift::detail::expand2_impl2" ExceptionImplementation="true" />
+  <Function Name="makeshift::detail::expand2_impl1" ExceptionImplementation="true" />
+  <Function Name="makeshift::detail::visit_impl_0" ExceptionImplementation="true" />
+</NonUserCode>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<NonUserCode xmlns="http://schemas.microsoft.com/vstudio/debugger/jmc/2013">
+
+  <File Name="*\gsl\*"/>
+  
+  <!-- CRT Exception implementation-->
+  <Function Name="gsl::details::throw_exception" ExceptionImplementation="true" />
+</NonUserCode>
