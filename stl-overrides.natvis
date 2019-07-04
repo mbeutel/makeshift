@@ -4,9 +4,10 @@
     <Type Name="std::array&lt;*,*&gt;">
         <!--DisplayString Condition="$T2 &lt; 7">{ &amp;_Elems,na }</DisplayString-->
         <DisplayString Condition="$T2 == 0">{{ }}</DisplayString>
-        <DisplayString Optional="true" Condition="$T2 &lt; 7">{ ($T1 (&amp;&amp;)[$T2]) _Elems }</DisplayString>
+        <DisplayString Condition="$T2 &lt; 7" Optional="true">{ ($T1 (&amp;&amp;)[$T2]) _Elems }</DisplayString>
         <DisplayString>{{ size={ $T2 } }}</DisplayString>
         <Expand>
+            <Item Name="[size]">$T2</Item>
             <ArrayItems>
                 <Size>$T2</Size>
                 <ValuePointer>_Elems</ValuePointer>

@@ -683,4 +683,55 @@
         </Expand>
     </Type>
 
+    <Type Name="makeshift::detail::static_buffer_base&lt;*,-1,*&gt;">
+        <DisplayString Condition="size_ == 0">{{ }}</DisplayString>
+        <DisplayString Condition="size_ == 1">{{ {data_._Elems[0]} }}</DisplayString>
+        <DisplayString Condition="size_ == 2">{{ {data_._Elems[0]}, {data_._Elems[1]} }}</DisplayString>
+        <DisplayString Condition="size_ == 3">{{ {data_._Elems[0]}, {data_._Elems[1]}, {data_._Elems[2]} }}</DisplayString>
+        <DisplayString Condition="size_ == 4">{{ {data_._Elems[0]}, {data_._Elems[1]}, {data_._Elems[2]}, {data_._Elems[3]} }}</DisplayString>
+        <DisplayString Condition="size_ == 5">{{ {data_._Elems[0]}, {data_._Elems[1]}, {data_._Elems[2]}, {data_._Elems[3]}, {data_._Elems[4]} }}</DisplayString>
+        <DisplayString Condition="size_ == 6">{{ {data_._Elems[0]}, {data_._Elems[1]}, {data_._Elems[2]}, {data_._Elems[3]}, {data_._Elems[4]}, {data_._Elems[5]} }}</DisplayString>
+        <DisplayString>{{ size={size_} }}</DisplayString>
+        <Expand>
+            <Synthetic Name="[allocation]">
+                <DisplayString>static (buffer size: { $T3 })</DisplayString>
+            </Synthetic>
+            <Item Name="[size]">size_</Item>
+            <ArrayItems>
+                <Size>size_</Size>
+                <ValuePointer>data_._Elems</ValuePointer>
+            </ArrayItems>
+        </Expand>
+    </Type>
+    <Type Name="makeshift::detail::static_buffer_base&lt;*,*,*&gt;">
+        <DisplayString>{ data_ }</DisplayString>
+        <Expand>
+            <Synthetic Name="[allocation]">
+                <DisplayString>static</DisplayString>
+            </Synthetic>
+            <ExpandedItem>data_</ExpandedItem>
+        </Expand>
+    </Type>
+    <Type Name="makeshift::detail::dynamic_buffer_base&lt;*,*&gt;">
+        <DisplayString Condition="size_ == 0">{{ }}</DisplayString>
+        <DisplayString Condition="size_ == 1">{{ {data_[0]} }}</DisplayString>
+        <DisplayString Condition="size_ == 2">{{ {data_[0]}, {data_[1]} }}</DisplayString>
+        <DisplayString Condition="size_ == 3">{{ {data_[0]}, {data_[1]}, {data_[2]} }}</DisplayString>
+        <DisplayString Condition="size_ == 4">{{ {data_[0]}, {data_[1]}, {data_[2]}, {data_[3]} }}</DisplayString>
+        <DisplayString Condition="size_ == 5">{{ {data_[0]}, {data_[1]}, {data_[2]}, {data_[3]}, {data_[4]} }}</DisplayString>
+        <DisplayString Condition="size_ == 6">{{ {data_[0]}, {data_[1]}, {data_[2]}, {data_[3]}, {data_[4]}, {data_[5]} }}</DisplayString>
+        <DisplayString>{{ size={size_} }}</DisplayString>
+        <Expand>
+            <Synthetic Name="[allocation]">
+                <DisplayString Condition="size_ &lt;= $T2">static (buffer size: { $T2 })</DisplayString>
+                <DisplayString Condition="size_ &gt; $T2">dynamic (buffer size: { $T2 })</DisplayString>
+            </Synthetic>
+            <Item Name="[size]">size_</Item>
+            <ArrayItems>
+                <Size>size_</Size>
+                <ValuePointer>data_</ValuePointer>
+            </ArrayItems>
+        </Expand>
+    </Type>
+
 </AutoVisualizer>

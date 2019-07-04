@@ -16,7 +16,11 @@ TEST_CASE("buffer")
     auto c5 = mk::make_constval([]{ return 5; });
 
     auto buf1 = mk::make_buffer<int>(c1);
-    (void) buf1;
+    buf1 = { 1 };
     auto buf5 = mk::make_buffer<int, 1>(c5);
-    (void) buf5;
+    buf5 = { 1, 4, 1, 4, 2 };
+    auto buf3 = mk::make_buffer<int, 4>(3);
+    buf3 = { 1, 4, 1 };
+    auto buf7 = mk::make_buffer<int, 4>(7);
+    buf7 = { 1, 4, 1, 4, 2, 1, 3 };
 }
