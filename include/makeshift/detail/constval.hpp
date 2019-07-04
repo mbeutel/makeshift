@@ -111,16 +111,15 @@ private:
 #endif // MAKESHIFT_CXX17
 
 public:
-        // required for Natvis support
 #ifdef MAKESHIFT_CXX17
     static constexpr value_type value = impl{ }.obj(); // we can legally use `obj` even if it wasn't initialized because it is empty
 #else // MAKESHIFT_CXX17
     static constexpr value_type value = F{ }(); // C++14 doesn't support this trick, which is one of the reasons why lambdas cannot be used to make constexpr values (the other reason being that they cannot be constexpr)
 #endif // MAKESHIFT_CXX17
 
-#if defined(_MSC_VER) && !defined(NDEBUG)
-    // for Natvis support
 private:
+#if defined(_MSC_VER) && !defined(NDEBUG)
+        // for Natvis support
     static inline const value_type value_ = value;
 #endif // defined(_MSC_VER) && !defined(NDEBUG)
 

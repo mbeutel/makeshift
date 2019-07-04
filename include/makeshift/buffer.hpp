@@ -12,6 +12,7 @@ namespace makeshift
 {
 
 
+    // TODO: do we really want this interface, just to permit hybrid usage? Shouldn't we just use dynamic_extent like span<> does?
 template <typename T, typename C, dim MaxStaticBufferExtent = -1>
     using buffer = makeshift::detail::buffer<T, makeshift::detail::static_dim<C>(), MaxStaticBufferExtent>;
 
