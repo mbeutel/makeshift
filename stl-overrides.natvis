@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+
+    <Type Name="std::array&lt;*,*&gt;">
+        <!--DisplayString Condition="$T2 &lt; 7">{ &amp;_Elems,na }</DisplayString-->
+        <DisplayString Condition="$T2 == 0">{{ }}</DisplayString>
+        <DisplayString Condition="$T2 &lt; 7">{ ($T1 (&amp;&amp;)[$T2]) _Elems }</DisplayString>
+        <DisplayString>{{ size={ $T2 } }}</DisplayString>
+        <Expand>
+            <ArrayItems>
+                <Size>$T2</Size>
+                <ValuePointer>_Elems</ValuePointer>
+            </ArrayItems>
+        </Expand>
+    </Type>
+
+</AutoVisualizer>
