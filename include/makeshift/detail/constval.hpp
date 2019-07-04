@@ -91,10 +91,13 @@ template <typename F> struct stateless_functor_0_<F, false> { using type = state
 template <typename F> using stateless_functor_t = typename stateless_functor_0_<F, std::is_default_constructible<F>::value>::type;
 template <typename F> constexpr stateless_functor_t<F> stateless_functor_v = { };
 
-template <typename F>
-    struct constval_functor_wrapper : constval_tag
+template <typename T, typename F>
+    struct constval_wrapper : constval_tag
 {
     static_assert(std::is_empty<F>::value, "lambda must be empty");
+
+public:
+    using value_type = T;
 
 private:
 #ifdef MAKESHIFT_CXX17
@@ -108,14 +111,23 @@ private:
 #endif // MAKESHIFT_CXX17
 
 public:
-    using value_type = decltype(std::declval<F>()());
+        // required for Natvis support
+#ifdef MAKESHIFT_CXX17
+    static constexpr value_type value = impl{ }.obj(); // we can legally use `obj` even if it wasn't initialized because it is empty
+#else // MAKESHIFT_CXX17
+    static constexpr value_type value = F{ }(); // C++14 doesn't support this trick, which is one of the reasons why lambdas cannot be used to make constexpr values (the other reason being that they cannot be constexpr)
+#endif // MAKESHIFT_CXX17
+
+#if defined(_MSC_VER) && !defined(NDEBUG)
+    // for Natvis support
+private:
+    static inline const value_type value_ = value;
+#endif // defined(_MSC_VER) && !defined(NDEBUG)
+
+public:
     MAKESHIFT_NODISCARD constexpr value_type operator ()(void) const
     {
-#ifdef MAKESHIFT_CXX17
-        return impl{ }.obj(); // we can legally use `obj` even if it wasn't initialized because it is empty
-#else // MAKESHIFT_CXX17
-        return F{ }.obj(); // C++14 doesn't support this trick, which is one of the reasons why lambdas cannot be used to make constexpr values (the other reason being that they cannot be constexpr)
-#endif // MAKESHIFT_CXX17
+        return value;
     }
 #if defined(_MSC_VER) && !defined(__clang__) && !defined(__INTELLISENSE__)
     MAKESHIFT_NODISCARD constexpr operator auto(void) const -> value_type // workaround for VC++ bug, cf. https://developercommunity.visualstudio.com/content/problem/149701/c2833-with-operator-decltype.html#reply-152822
@@ -123,30 +135,30 @@ public:
     MAKESHIFT_NODISCARD constexpr operator value_type(void) const
 #endif // defined(_MSC_VER) && !defined(__clang__) && !defined(__INTELLISENSE__)
     {
-        return (*this)();
+        return value;
     }
 };
 
-template <typename F>
-    struct constval_tuple_functor_wrapper : constval_functor_wrapper<F>
+template <typename T, typename F>
+    struct constval_tuple_wrapper : constval_wrapper<T, F>
 {
     template <std::size_t I>
         MAKESHIFT_NODISCARD friend constexpr
-        typename make_constval_<tuple_accessor_functor<constval_tuple_functor_wrapper, I>>::type
-        get(constval_tuple_functor_wrapper) noexcept
+        typename make_constval_<tuple_accessor_functor<constval_tuple_wrapper, I>>::type
+        get(constval_tuple_wrapper) noexcept
     {
-        using V = typename constval_functor_wrapper<F>::value_type;
-        static_assert(I < std::tuple_size<V>::value, "index out of range");
+        static_assert(I < std::tuple_size<T>::value, "index out of range");
         return { };
     }
 };
 
-template <typename C, bool IsTupleLike> struct constval_functor_1_;
-template <typename C> struct constval_functor_1_<C, true> { using type = constval_tuple_functor_wrapper<C>; };
-template <typename C> struct constval_functor_1_<C, false> { using type = constval_functor_wrapper<C>; };
+template <typename T, typename F, bool IsTupleLike> struct constval_functor_2_;
+template <typename T, typename F> struct constval_functor_2_<T, F, true> { using type = constval_tuple_wrapper<T, F>; };
+template <typename T, typename F> struct constval_functor_2_<T, F, false> { using type = constval_wrapper<T, F>; };
+template <typename T, typename F> struct constval_functor_1_ : constval_functor_2_<T, F, can_instantiate_v<is_tuple_like_r, T>> { };
 template <typename C, bool IsConstval> struct constval_functor_0_;
 template <typename C> struct constval_functor_0_<C, true> { using type = C; };
-template <typename C> struct constval_functor_0_<C, false> : constval_functor_1_<C, can_instantiate_v<is_tuple_like_r, C>> { };
+template <typename C> struct constval_functor_0_<C, false> : constval_functor_1_<decltype(std::declval<C>()()), C> { };
 template <typename C> using constval_functor_t = typename constval_functor_0_<C, is_constval_<C>::value>::type;
 
     // determines if a given type makes a valid C++14 non-type template parameter
@@ -400,12 +412,12 @@ namespace std
 {
 
 
-    // Implement tuple-like protocol for `constval_tuple_functor_wrapper<>`.
-template <typename F> struct tuple_size<makeshift::detail::constval_tuple_functor_wrapper<F>> : tuple_size<typename makeshift::detail::constval_tuple_functor_wrapper<F>::value_type> { };
-template <std::size_t I, typename F>
-    struct tuple_element<I, makeshift::detail::constval_tuple_functor_wrapper<F>>
+    // Implement tuple-like protocol for `constval_tuple_wrapper<>`.
+template <typename T, typename F> struct tuple_size<makeshift::detail::constval_tuple_wrapper<T, F>> : tuple_size<T> { };
+template <std::size_t I, typename T, typename F>
+    struct tuple_element<I, makeshift::detail::constval_tuple_wrapper<T, F>>
 {
-    using type = makeshift::detail::make_constval_t<makeshift::detail::tuple_accessor_functor<makeshift::detail::constval_tuple_functor_wrapper<F>, I>>;
+    using type = makeshift::detail::make_constval_t<makeshift::detail::tuple_accessor_functor<makeshift::detail::constval_tuple_wrapper<T, F>, I>>;
 };
 
 

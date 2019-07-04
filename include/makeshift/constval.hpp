@@ -167,13 +167,15 @@ template <typename T, T... Vs>
     using element_type = decltype(makeshift::detail::nttp_unwrap(std::declval<T>()));
     using value_type = std::array<element_type, sizeof...(Vs)>;
 
+    static constexpr value_type value = { makeshift::detail::nttp_unwrap(Vs)... };
+
     MAKESHIFT_NODISCARD constexpr value_type operator ()(void) const noexcept
     {
-        return { makeshift::detail::nttp_unwrap(Vs)... };
+        return value;
     }
     MAKESHIFT_NODISCARD constexpr operator value_type(void) const noexcept
     {
-        return (*this)();
+        return value;
     }
 
         //ᅟ
@@ -226,13 +228,15 @@ template <auto... Vs>
 {
     using value_type = std::tuple<decltype(makeshift::detail::nttp_unwrap(Vs))...>;
 
+    static constexpr value_type value = { makeshift::detail::nttp_unwrap(Vs)... };
+
     MAKESHIFT_NODISCARD constexpr value_type operator ()(void) const noexcept
     {
-        return { makeshift::detail::nttp_unwrap(Vs)... };
+        return value;
     }
     MAKESHIFT_NODISCARD constexpr operator value_type(void) const noexcept
     {
-        return (*this)();
+        return value;
     }
 
         //ᅟ

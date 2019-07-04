@@ -1,4 +1,5 @@
 
+#include <array>
 #include <tuple>
 #include <type_traits> // for integral_constant<>, is_same<>
 #include <functional>  // for plus<>
@@ -55,8 +56,28 @@ template <typename... Ts>
 {
 }
 
+template <typename C>
+    void expect_tuple_like(C c)
+{
+    (void) c;
 
-TEST_CASE("constexpr")
+    if constexpr (std::tuple_size_v<C> > 0)
+    {
+        using std::get;
+        std::tuple_element_t<0, C> c0 = get<0>(c);
+        (void) c0;
+    }
+}
+
+
+struct CustomType
+{
+    int i;
+    float f;
+    std::array<int, 2> a;
+};
+
+TEST_CASE("constval")
 {
     auto c1 = std::integral_constant<int, 1>{ };
     auto c5 = mk::make_constval([]{ return 5; });
@@ -101,4 +122,30 @@ TEST_CASE("constexpr")
 
     auto cTS2 = mk::type_sequence<float, int>{ };
     expect_type_sequence_tag<float, int>(cTS2);
+
+    auto cCT = mk::make_constval([]
+        {
+            return CustomType{
+                42,
+                13.37f,
+                { 4, 2 }
+            };
+        });
+    //(void) &cCT.value;
+    //(void) &cCT.value_;
+    auto cCTA = mk::constval_transform(
+        [](auto customTypeObj)
+        {
+            return std::array{ customTypeObj, customTypeObj };
+        },
+        cCT);
+    expect_tuple_like(cCTA);
+
+    auto cCTV = mk::constval_transform(
+        [](auto customTypeObj)
+        {
+            return std::tuple{ customTypeObj, customTypeObj };
+        },
+        cCT);
+    expect_tuple_like(cCTV);
 }
