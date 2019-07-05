@@ -23,41 +23,41 @@ namespace makeshift
 
 
     //ᅟ
-    // Determines whether the given type is a constexpr value.
+    // Determines whether the given type is a constval.
     //
 template <typename T> struct is_constval : makeshift::detail::is_constval_<T> { };
 
     //ᅟ
-    // Determines whether the given type is a constexpr value.
+    // Determines whether the given type is a constval.
     //
 template <typename T> constexpr bool is_constval_v = is_constval<T>::value;
 
 
     //ᅟ
-    // Determines whether the given type `T` is a constexpr value returning the type `R`.
+    // Determines whether the given type `T` is a constval returning the type `R`.
     //
 template <typename T, typename R> struct is_constval_of_type : makeshift::detail::is_constval_of_type_<T, R> { };
 
     //ᅟ
-    // Determines whether the given type `T` is a constexpr value returning the type `R`.
+    // Determines whether the given type `T` is a constval returning the type `R`.
     //
 template <typename T, typename R> constexpr bool is_constval_of_type_v = is_constval_of_type<T, R>::value;
 
 
     //ᅟ
-    // A constexpr value type representing the given nullary constexpr function object type. Applies normalization if applicable.
+    // A constval type representing the given nullary constexpr function object type. Applies normalization if applicable.
     //ᅟ
 template <typename C> using make_constval_t = makeshift::detail::make_constval_t<C>;
 
 
     //ᅟ
-    // A constexpr value representing the given nullary constexpr function object type. Applies normalization if applicable.
+    // A constval representing the given nullary constexpr function object type. Applies normalization if applicable.
     //ᅟ
 template <typename C> constexpr make_constval_t<C> make_constval_v = { };
 
 
     //ᅟ
-    // Returns a constexpr value representing the given nullary constexpr function object type. Applies normalization if applicable.
+    // Returns a constval representing the given nullary constexpr function object type. Applies normalization if applicable.
     //ᅟ
 template <typename C>
     constexpr make_constval_t<C> make_constval(const C&)
@@ -69,8 +69,16 @@ template <typename C>
 }
 
 
+    //ᅟ
+    // A constval type that represents the given constexpr object `V`.
+    // If `V` is a NTTP wrapper value, the constval type represents the unwrapped value.
+    //ᅟ
 template <typename T, T V> using constval14_t = typename makeshift::detail::unwrap_constval_<T, V>::type;
 
+    //ᅟ
+    // A constval that represents the given constexpr object `V`.
+    // If `V` is a NTTP wrapper value, the constval represents the unwrapped value.
+    //ᅟ
 template <typename T, T V> constval14_t<T, V> constval14{ };
 
 
@@ -87,8 +95,16 @@ template <typename T, const T& Ref> using ref_constval14_t = makeshift::detail::
 template <typename T, const T& Ref> constexpr ref_constval14_t<T, Ref> ref_constval14 = { };
 
 #ifdef MAKESHIFT_CXX17
+    //ᅟ
+    // A constval type that represents the given constexpr object `V`.
+    // If `V` is a NTTP wrapper value, the constval type represents the unwrapped value.
+    //ᅟ
 template <auto V> using constval_t = typename makeshift::detail::unwrap_constval_<decltype(V), V>::type;
 
+    //ᅟ
+    // A constval that represents the given constexpr object `V`.
+    // If `V` is a NTTP wrapper value, the constval represents the unwrapped value.
+    //ᅟ
 template <auto V> constval_t<V> constval{ };
 
     //ᅟ
@@ -106,7 +122,7 @@ template <const auto& Ref> constexpr ref_constval_t<Ref> ref_constval = { };
 
 
     //ᅟ
-    // Returns the value of a constexpr value, or passes through the argument if it is not a constexpr value.
+    // Returns the value of a constval, or passes through the argument if it is not a constval.
     //
 template <typename C>
     constexpr auto constval_extract(const C& value)
@@ -116,7 +132,7 @@ template <typename C>
 
 
     //ᅟ
-    // Returns the result of the function applied to the values of the given constexpr values as a constexpr value, or the result value itself if one of the arguments is not a constexpr value.
+    // Returns the result of the function applied to the values of the given constvals as a constval, or the result value itself if one of the arguments is not a constval.
     //ᅟ
     //ᅟ    auto baseIndexR = make_constval([]{ return 42; }); // returns `std::integral_constant<int, 42>{ }`
     //ᅟ    auto offsetR = make_constval([]{ return 3; }); // returns `std::integral_constant<int, 3>{ }`
@@ -132,7 +148,7 @@ template <typename F, typename... Cs>
 
 
     //ᅟ
-    // Returns the result of the function applied to the given constexpr values as a constexpr value, or the result value itself if one of the arguments is not a constexpr value.
+    // Returns the result of the function applied to the given constvals as a constval, or the result value itself if one of the arguments is not a constval.
     //ᅟ
     //ᅟ    auto variantR = make_constval([]{ return std::variant<int, float>{ 42 }; });
     //ᅟ    auto elementR = constval_extend(
@@ -154,7 +170,7 @@ template <typename CF, typename... Cs>
 
 
     //ᅟ
-    // Generates an assertion for the given condition value which is checked at compile time for constexpr values, or at runtime for non-constexpr values.
+    // Generates an assertion for the given condition value which is checked at compile time for constvals, or at runtime for non-constvals.
     //ᅟ
     //ᅟ    auto condC = constval_transform([](index idx) { return idx >= 0; }, idxC);
     //ᅟ    constval_assert(condC);
@@ -168,7 +184,7 @@ template <typename BoolC,
 }
 
     //ᅟ
-    // Generates an assertion for the given condition value which is checked at compile time for constexpr values, or at runtime for non-constexpr values.
+    // Generates an assertion for the given condition value which is checked at compile time for constvals, or at runtime for non-constvals.
     //ᅟ
     //ᅟ    constval_assert([](index idx) { return idx >= 0; }, idxC);
     //
@@ -183,7 +199,7 @@ template <typename F, typename... Cs,
 
 
     //ᅟ
-    // Represents a constexpr value of type `std::array<>` with the given element type and values.
+    // Represents a constval of type `std::array<>` with the given element type and values.
     //
 template <typename T, T... Vs>
     struct array_constant : makeshift::detail::constval_tag
@@ -216,13 +232,13 @@ template <typename T, T... Vs>
 };
 
     //ᅟ
-    // Represents a constexpr value of type `std::array<>` with the given element type and values.
+    // Represents a constval of type `std::array<>` with the given element type and values.
     //
 template <typename T, T... Vs> constexpr array_constant<T, Vs...> array_c{ };
 
 
     //ᅟ
-    // Converts a `std::integer_sequence<>` to a constexpr value of type `std::array<>`.
+    // Converts a `std::integer_sequence<>` to a constval of type `std::array<>`.
     // TODO: remove?
     //
 template <typename T, T... Vs>
@@ -232,7 +248,7 @@ template <typename T, T... Vs>
 }
 
     //ᅟ
-    // Converts a sequence of homogeneously typed constexpr values to a constexpr value of type `std::array<>`.
+    // Converts a sequence of homogeneously typed constvals to a constval of type `std::array<>`.
     // TODO: remove?
     //
 template <typename T, T... Vs>
@@ -245,7 +261,7 @@ template <typename T, T... Vs>
 
 #ifdef MAKESHIFT_CXX17
     //ᅟ
-    // Represents a constexpr value of type `std::tuple<>` with the given values.
+    // Represents a constval of type `std::tuple<>` with the given values.
     //
 template <auto... Vs>
     struct tuple_constant : makeshift::detail::constval_tag
@@ -277,7 +293,7 @@ template <auto... Vs>
 };
 
     //ᅟ
-    // Represents a constexpr value of type `std::tuple<>` with the given values.
+    // Represents a constval of type `std::tuple<>` with the given values.
     //
 template <auto... Vs> constexpr tuple_constant<Vs...> tuple_c{ };
 #endif // MAKESHIFT_CXX17

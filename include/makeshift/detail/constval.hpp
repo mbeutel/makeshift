@@ -81,7 +81,7 @@ public:
 #ifdef MAKESHIFT_CXX17
         return impl{ }.obj(std::forward<Ts>(args)...); // we can legally use `obj` even if it wasn't initialized because it is empty
 #else // MAKESHIFT_CXX17
-        return F{ }.obj(std::forward<Ts>(args)...); // C++14 doesn't support this trick, which is one of the reasons why lambdas cannot be used to make constexpr values (the other reason being that they cannot be constexpr)
+        return F{ }.obj(std::forward<Ts>(args)...); // C++14 doesn't support this trick, which is one of the reasons why lambdas cannot be used to make constvals (the other reason being that they cannot be constexpr)
 #endif // MAKESHIFT_CXX17
     }
 };
@@ -311,7 +311,7 @@ template <typename C> constexpr auto constval_value = C{ }(); // workaround for 
 
     // idea taken from Ben Deane & Jason Turner, "constexpr ALL the things!", C++Now 2017
     // currently not used because VS doesn't reliably support constexpr detection
-    // (...and also because we now expect that constexpr values are explicitly marked as such)
+    // (...and also because we now expect that constvals are explicitly marked as such)
 //template <typename F> using is_constexpr_functor_r = std::integral_constant<bool, (std::declval<F>()(), true)>;
 template <typename F> using is_constexpr_functor_r = decltype(std::declval<F>()());
 

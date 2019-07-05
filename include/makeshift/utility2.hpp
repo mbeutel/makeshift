@@ -209,77 +209,77 @@ using stride = std::ptrdiff_t;
 
 
     //ᅟ
-    // Represents an integer constexpr value.
+    // Represents an integer constval.
     //
 template <int Value> using int_constant = std::integral_constant<int, Value>;
 
     //ᅟ
-    // Represents an integer constexpr value.
+    // Represents an integer constval.
     //
 template <int Value> constexpr int_constant<Value> int_c{ };
 
 
     //ᅟ
-    // Represents a boolean constexpr value.
+    // Represents a boolean constval.
     //
 template <bool Value> using bool_constant = std::integral_constant<bool, Value>; // superseded by `std::bool_constant<>` in C++17
 
     //ᅟ
-    // Represents a boolean constexpr value.
+    // Represents a boolean constval.
     //
 template <bool Value> constexpr bool_constant<Value> bool_c{ };
 
     //ᅟ
-    // Represents the constexpr value `false`.
+    // Represents the constval `false`.
     //
 constexpr inline bool_constant<false> false_c{ };
 
     //ᅟ
-    // Represents the constexpr value `true`.
+    // Represents the constval `true`.
     //
 constexpr inline bool_constant<true> true_c{ };
 
 
     //ᅟ
-    // Represents an index constexpr value.
+    // Represents an index constval.
     //
 template <index Value> using index_constant = std::integral_constant<index, Value>;
 
     //ᅟ
-    // Represents an index constexpr value.
+    // Represents an index constval.
     //
 template <index Value> constexpr index_constant<Value> index_c{ };
 
 
     //ᅟ
-    // Represents a difference constexpr value.
+    // Represents a difference constval.
     //
 template <diff Value> using diff_constant = std::integral_constant<diff, Value>;
 
     //ᅟ
-    // Represents a difference constexpr value.
+    // Represents a difference constval.
     //
 template <diff Value> constexpr diff_constant<Value> diff_c{ };
 
 
     //ᅟ
-    // Represents a dimension constexpr value.
+    // Represents a dimension constval.
     //
 template <dim Value> using dim_constant = std::integral_constant<dim, Value>;
 
     //ᅟ
-    // Represents an dimension constexpr value.
+    // Represents an dimension constval.
     //
 template <dim Value> constexpr dim_constant<Value> dim_c{ };
 
 
     //ᅟ
-    // Represents an array stride constexpr value.
+    // Represents an array stride constval.
     //
 template <stride Value> using stride_constant = std::integral_constant<stride, Value>;
 
     //ᅟ
-    // Represents an array stride constexpr value.
+    // Represents an array stride constval.
     //
 template <stride Value> constexpr stride_constant<Value> stride_c{ };
 
@@ -321,7 +321,7 @@ template <typename T, std::ptrdiff_t N>
 
 
     //ᅟ
-    // Returns the size of an array or container as a constexpr value if known at compile time, or as a value if not.
+    // Returns the size of an array or container as a constval if known at compile time, or as a value if not.
     //
 template <typename ContainerT>
     MAKESHIFT_NODISCARD constexpr auto csize(const ContainerT& c)
@@ -336,7 +336,7 @@ template <typename T, std::size_t N>
 
 
     //ᅟ
-    // Returns the signed size of an array or container as a constexpr value if known at compile time, or as a value if not.
+    // Returns the signed size of an array or container as a constval if known at compile time, or as a value if not.
     //
 template <typename ContainerT>
     MAKESHIFT_NODISCARD constexpr auto cssize(const ContainerT& c)
