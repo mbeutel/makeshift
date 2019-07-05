@@ -77,6 +77,13 @@ struct CustomType
     std::array<int, 2> a;
 };
 
+struct SomeClass
+{
+    static constexpr CustomType ct = { 4, 1.41421f, { 1, 3 } };
+    static constexpr std::array<int, 2> ca = { 2, 4 };
+};
+
+
 TEST_CASE("constval")
 {
     auto c1 = std::integral_constant<int, 1>{ };
@@ -131,8 +138,6 @@ TEST_CASE("constval")
                 { 4, 2 }
             };
         });
-    //(void) &cCT.value;
-    //(void) &cCT.value_;
     auto cCTA = mk::constval_transform(
         [](auto customTypeObj)
         {
@@ -148,4 +153,13 @@ TEST_CASE("constval")
         },
         cCT);
     expect_tuple_like(cCTV);
+
+    auto cCT2 = mk::ref_constval<SomeClass::ct>;
+    static constexpr CustomType c2 = cCT2();
+    auto cA2 = mk::ref_constval<SomeClass::ca>;
+    expect_array_constval_normalization(cA2);
+    //auto iCT = mk::ref_constval<SomeClass::ct.i>; // this doesn't work because arg doesn't have linkage
+    //auto cCT3 = mk::ref_constval<c2>; // this doesn't work either, for the same reason
+    auto iCT = mk::make_constval([]{ return SomeClass::ct.i; });
+    expect_constval_normalization<int>(iCT);
 }

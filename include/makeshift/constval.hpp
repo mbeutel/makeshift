@@ -74,10 +74,34 @@ template <typename T, T V> using constval14_t = typename makeshift::detail::unwr
 template <typename T, T V> constval14_t<T, V> constval14{ };
 
 
+    //ᅟ
+    // A constval type that represents the given constexpr object referenced by `Ref`.
+    // The language requires template reference arguments to have static linkage (e.g. global static objects, or static member objects of classes).
+    //ᅟ
+template <typename T, const T& Ref> using ref_constval14_t = makeshift::detail::ref_constval<T, Ref>;
+
+    //ᅟ
+    // A constval that represents the given constexpr object referenced by `Ref`.
+    // The language requires template reference arguments to have static linkage (e.g. global static objects, or static member objects of classes).
+    //ᅟ
+template <typename T, const T& Ref> constexpr ref_constval14_t<T, Ref> ref_constval14 = { };
+
 #ifdef MAKESHIFT_CXX17
 template <auto V> using constval_t = typename makeshift::detail::unwrap_constval_<decltype(V), V>::type;
 
 template <auto V> constval_t<V> constval{ };
+
+    //ᅟ
+    // A constval type that represents the given constexpr object referenced by `Ref`.
+    // The language requires template reference arguments to have static linkage (e.g. global static objects, or static member objects of classes).
+    //ᅟ
+template <const auto& Ref> using ref_constval_t = make_constval_t<makeshift::detail::ref_constval<std::remove_const_t<std::remove_reference_t<decltype(Ref)>>, Ref>>;
+
+    //ᅟ
+    // A constval that represents the given constexpr object referenced by `Ref`.
+    // The language requires template reference arguments to have static linkage (e.g. global static objects, or static member objects of classes).
+    //ᅟ
+template <const auto& Ref> constexpr ref_constval_t<Ref> ref_constval = { };
 #endif // MAKESHIFT_CXX17
 
 

@@ -668,15 +668,22 @@
         </Expand>
     </Type>
 
-    <Type Name="makeshift::detail::constval_wrapper&lt;*,*&gt;">
+    <Type Name="makeshift::detail::functor_constval&lt;*,*&gt;">
         <DisplayString>{ "$T1",sb }{ value_ } constval</DisplayString>
         <Expand>
             <Item Name="Type">"$T1",sb</Item>
             <ExpandedItem>value_</ExpandedItem>
         </Expand>
     </Type>
-    <Type Name="makeshift::detail::constval_tuple_wrapper&lt;*,*&gt;">
+    <Type Name="makeshift::detail::tuple_functor_constval&lt;*,*&gt;">
         <DisplayString>{ value_ } constval</DisplayString>
+        <Expand>
+            <Item Name="Type">"$T1",sb</Item>
+            <ExpandedItem>value_</ExpandedItem>
+        </Expand>
+    </Type>
+    <Type Name="makeshift::detail::ref_constval&lt;*,*&gt;">
+        <DisplayString>{ "$T1",sb }{ value_ } constval</DisplayString>
         <Expand>
             <Item Name="Type">"$T1",sb</Item>
             <ExpandedItem>value_</ExpandedItem>

@@ -92,7 +92,7 @@ template <typename F> using stateless_functor_t = typename stateless_functor_0_<
 template <typename F> constexpr stateless_functor_t<F> stateless_functor_v = { };
 
 template <typename T, typename F>
-    struct constval_wrapper : constval_tag
+    struct functor_constval : constval_tag
 {
     static_assert(std::is_empty<F>::value, "lambda must be empty");
 
@@ -139,21 +139,39 @@ public:
 };
 
 template <typename T, typename F>
-    struct constval_tuple_wrapper : constval_wrapper<T, F>
+    struct tuple_functor_constval : functor_constval<T, F>
 {
     template <std::size_t I>
         MAKESHIFT_NODISCARD friend constexpr
-        typename make_constval_<tuple_accessor_functor<constval_tuple_wrapper, I>>::type
-        get(constval_tuple_wrapper) noexcept
+        typename make_constval_<tuple_accessor_functor<tuple_functor_constval, I>>::type
+        get(tuple_functor_constval) noexcept
     {
         static_assert(I < std::tuple_size<T>::value, "index out of range");
         return { };
     }
 };
 
+template <typename T, const T& Ref>
+    struct ref_constval : constval_tag
+{
+public:
+    using value_type = T;
+    static constexpr value_type value = Ref;
+
+private:
+#if defined(_MSC_VER) && !defined(NDEBUG)
+        // for Natvis support
+    static inline const value_type value_ = value;
+#endif // defined(_MSC_VER) && !defined(NDEBUG)
+
+public:
+    constexpr operator T(void) const noexcept { return value; }
+    constexpr value_type operator ()(void) const noexcept { return value; }
+};
+
 template <typename T, typename F, bool IsTupleLike> struct constval_functor_2_;
-template <typename T, typename F> struct constval_functor_2_<T, F, true> { using type = constval_tuple_wrapper<T, F>; };
-template <typename T, typename F> struct constval_functor_2_<T, F, false> { using type = constval_wrapper<T, F>; };
+template <typename T, typename F> struct constval_functor_2_<T, F, true> { using type = tuple_functor_constval<T, F>; };
+template <typename T, typename F> struct constval_functor_2_<T, F, false> { using type = functor_constval<T, F>; };
 template <typename T, typename F> struct constval_functor_1_ : constval_functor_2_<T, F, can_instantiate_v<is_tuple_like_r, T>> { };
 template <typename C, bool IsConstval> struct constval_functor_0_;
 template <typename C> struct constval_functor_0_<C, true> { using type = C; };
@@ -411,12 +429,12 @@ namespace std
 {
 
 
-    // Implement tuple-like protocol for `constval_tuple_wrapper<>`.
-template <typename T, typename F> struct tuple_size<makeshift::detail::constval_tuple_wrapper<T, F>> : tuple_size<T> { };
+    // Implement tuple-like protocol for `tuple_functor_constval<>`.
+template <typename T, typename F> struct tuple_size<makeshift::detail::tuple_functor_constval<T, F>> : tuple_size<T> { };
 template <std::size_t I, typename T, typename F>
-    struct tuple_element<I, makeshift::detail::constval_tuple_wrapper<T, F>>
+    struct tuple_element<I, makeshift::detail::tuple_functor_constval<T, F>>
 {
-    using type = makeshift::detail::make_constval_t<makeshift::detail::tuple_accessor_functor<makeshift::detail::constval_tuple_wrapper<T, F>, I>>;
+    using type = makeshift::detail::make_constval_t<makeshift::detail::tuple_accessor_functor<makeshift::detail::tuple_functor_constval<T, F>, I>>;
 };
 
 
