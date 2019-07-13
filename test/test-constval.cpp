@@ -83,6 +83,8 @@ struct SomeClass
     static constexpr std::array<int, 2> ca = { 2, 4 };
 };
 
+enum class Color { red, green, blue };
+
 
 TEST_CASE("constval")
 {
@@ -90,6 +92,9 @@ TEST_CASE("constval")
     auto c5 = mk::make_constval([]{ return 5; });
     expect_constval_normalization(c5);
     auto c42 = 42;
+
+    auto cClr = mk::make_constval([]{ return Color::red; });
+    expect_constval_normalization(cClr);
 
     /*auto c6R = mk::constval_transform(std::plus<>{ }, c1, c5);
     constexpr int c6 = c6R();

@@ -2,7 +2,7 @@
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
 
     <Type Name="std::integral_constant&lt;*,*&gt;">
-        <DisplayString>{$T2} constval</DisplayString>
+        <DisplayString>{($T1)$T2} constval</DisplayString>
     </Type>
 
     <Type Name="makeshift::array_constant&lt;*&gt;">
