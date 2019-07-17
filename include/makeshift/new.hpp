@@ -16,14 +16,13 @@ namespace makeshift
 
 
     // It is controversial whether `std::hardware_{constructive|destructive}_interference_size` should really be a constexpr value, cf. the discussion at
-    // https://lists.llvm.org/pipermail/cfe-dev/2018-May/058073.html.
+    // https://lists.llvm.org/pipermail/cfe-dev/2018-May/058073.html and the proposal paper P0154R1 at http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0154r1.html.
 
-    // The proposal paper (P0154R1, http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0154r1.html) shows how this can be queried at runtime for a
-    // variety of operating systems. My current take is that the constexpr constants below are reasonable but not necessarily accurate values to minimize
-    // the impact of false sharing. An accurate value can be determined at runtime by calling `hardware_cache_line_size()`.
+    // My current take is that the constexpr constants below should be reasonable but not necessarily accurate values to minimize the impact of false sharing.
+    // An accurate value can be determined at runtime by calling `hardware_cache_line_size()`.
 
-    // Note that defining these constexpr values in makeshift is less controversial than defining them in the standard library because makeshift is not
-    // burdened by the ABI implications. However, note that it would be possible to run into ODR violations if we defined different values for different
+    // Defining these constexpr values in makeshift is less controversial than defining them in the standard library because makeshift is not burdened by
+    // the ABI implications. However, note that it would be possible to run into ODR violations if we defined different values for different
     // sub-architectures, so the constexpr value defined here should depend only on architecture (e.g. x64), not on sub-architecture (e.g. Intel "Penryn").
 
 #ifdef _MSC_VER
@@ -40,12 +39,12 @@ namespace makeshift
 
 
     //ᅟ
-    // Returns the operating system's page size in bytes.
+    // Reports the operating system's page size in bytes.
     //
 MAKESHIFT_PUBLIC std::size_t hardware_page_size(void) noexcept;
 
     //ᅟ
-    // Returns the CPU architecture's cache line size in bytes.
+    // Reports the CPU architecture's cache line size in bytes.
     //
 MAKESHIFT_PUBLIC std::size_t hardware_cache_line_size(void) noexcept;
 

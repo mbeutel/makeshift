@@ -73,27 +73,6 @@ std::size_t hardware_cache_line_size(void) noexcept
                 return pSlpi[i].Cache.LineSize;
             }
         }
-        /*SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX slpi[1]; // optimistic guess
-        std::unique_ptr<SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX[]> dynSlpi;
-        SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX* pSlpi = slpi;
-        DWORD nbSlpi = sizeof slpi;
-        BOOL success = GetLogicalProcessorInformationEx(RelationAll, pSlpi, &nbSlpi);
-        if (!success && GetLastError() == ERROR_INSUFFICIENT_BUFFER)
-        {
-            dynSlpi = std::make_unique<SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX[]>((nbSlpi + sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX) - 1) / sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX));
-            pSlpi = dynSlpi.get();
-            success = GetLogicalProcessorInformationEx(RelationAll, pSlpi, &nbSlpi);
-        }
-        Expects(success);
-        for (std::ptrdiff_t i = 0, n = nbSlpi / sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX); i != n; ++i)
-        {
-            if (pSlpi[i].Relationship == RelationCache && pSlpi[i].Cache.Level == 1 && (pSlpi[i].Cache.Type == CacheData || pSlpi[i].Cache.Type == CacheUnified))
-            {
-                // We don't bother further checking the CPU affinity group here because we don't expect to encounter a system with heterogeneous cache line sizes.
-
-                return pSlpi[i].Cache.LineSize;
-            }
-        }*/
         std::terminate(); // nothing was found; we cannot go on
 
 #elif defined(__linux__)
