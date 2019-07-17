@@ -11,6 +11,10 @@
 namespace makeshift
 {
 
+
+enum class alignment : std::ptrdiff_t;
+
+
 namespace detail
 {
 
@@ -83,6 +87,10 @@ template <typename T, typename A, typename SizeC>
     }
     return ptr;
 }
+
+
+MAKESHIFT_PUBLIC std::size_t alignment_in_bytes(alignment a, std::size_t alignOfT) noexcept;
+//std::size_t augment_size_for_alignment(std::size_t n, std::size_t s, alignment a);
 
 
 } // namespace detail

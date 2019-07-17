@@ -3,11 +3,15 @@
 #define INCLUDED_MAKESHIFT_MEMORY_HPP_
 
 
-#include <new>
+#include <new>         // for align_val_t
 #include <cstddef>     // for size_t, ptrdiff_t
 #include <memory>      // for unique_ptr<>, allocator<>, allocator_traits<>
 #include <utility>     // for forward<>()
+#include <numeric>     // for lcm()
 #include <type_traits> // for is_nothrow_default_constructible<>, enable_if<>, is_same<>, remove_cv<>
+
+#include <makeshift/type_traits2.hpp> // for can_instantiate<>
+#include <makeshift/version.hpp>      // for MAKESHIFT_NODISCARD
 
 #include <makeshift/detail/memory.hpp>
 
@@ -42,6 +46,47 @@ public:
         void construct(U* ptr, ArgsT&&... args)
     {
         std::allocator_traits<A>::construct(static_cast<A&>(*this), ptr, std::forward<ArgsT>(args)...);
+    }
+};
+
+
+    //ᅟ
+    // Represents an alignment to use for aligned allocations.
+    // In addition to the special values, any positive integer may be casted to `alignment`.
+    //
+enum class alignment : std::ptrdiff_t
+{
+    page = -2,
+    cache_line = -1,
+    none = 0
+};
+
+
+    //ᅟ
+    // Allocator adaptor that aligns memory allocations by the given size.
+    //
+template <typename T, alignment Alignment, typename A = std::allocator<T>>
+    class aligned_allocator; // currently not implemented for any allocator other than `std::allocator<T>`
+
+template <typename T, alignment Alignment>
+    class aligned_allocator<T, Alignment, std::allocator<T>> : public std::allocator<T>
+{
+public:
+    using std::allocator<T>::allocator;
+
+    template <typename U>
+        struct rebind
+    {
+        using other = aligned_allocator<U, Alignment, typename std::allocator_traits<std::allocator<T>>::template rebind_alloc<U>>;
+    };
+
+    MAKESHIFT_NODISCARD T* allocate(std::size_t n)
+    {
+        return static_cast<T*>(::operator new(sizeof(T) * n, std::align_val_t(makeshift::detail::alignment_in_bytes(Alignment, alignof(T)))));
+    }
+    MAKESHIFT_NODISCARD void deallocate(T* ptr, std::size_t /*n*/)
+    {
+        ::operator delete(ptr, std::align_val_t(makeshift::detail::alignment_in_bytes(Alignment, alignof(T))));
     }
 };
 
