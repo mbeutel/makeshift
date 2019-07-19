@@ -91,6 +91,11 @@ template <typename F> struct stateless_functor_0_<F, false> { using type = state
 template <typename F> using stateless_functor_t = typename stateless_functor_0_<F, std::is_default_constructible<F>::value>::type;
 template <typename F> constexpr stateless_functor_t<F> stateless_functor_v = { };
 
+#if defined(MAKESHIFT_CXX17) && !(defined(_MSC_VER) && _MSVC_LANG > 201703L)
+ #define MAKESHIFT_NEED_LAMBDA_DEFAULT_CTR_WORKAROUND_
+#endif // defined(MAKESHIFT_CXX17) && !(defined(_MSC_VER) && _MSVC_LANG > 201703L)
+
+
 template <typename T, typename F>
     struct functor_constval : constval_tag
 {
@@ -100,7 +105,10 @@ public:
     using value_type = T;
 
 private:
-#ifdef MAKESHIFT_CXX17
+#ifdef MAKESHIFT_NEED_LAMBDA_DEFAULT_CTR_WORKAROUND_
+        // We can legally use `obj` even if it wasn't initialized because it is empty. Or at least that's what happens to work for GCC, Clang, and VC++ with /std:c++17.
+        // C++14 doesn't support this trick, which is one of the reasons why lambdas cannot be used to make constexpr values (the other reason being that they cannot be constexpr).
+        // C++20 obviates the need for this workaround because it makes stateless lambdas default-constructible.
     union impl
     {
         F obj;
@@ -108,14 +116,14 @@ private:
 
         constexpr impl(void) noexcept : dummy(0) { }
     };
-#endif // MAKESHIFT_CXX17
+#endif // MAKESHIFT_NEED_LAMBDA_DEFAULT_CTR_WORKAROUND_
 
 public:
-#ifdef MAKESHIFT_CXX17
-    static constexpr value_type value = impl{ }.obj(); // we can legally use `obj` even if it wasn't initialized because it is empty
-#else // MAKESHIFT_CXX17
-    static constexpr value_type value = F{ }(); // C++14 doesn't support this trick, which is one of the reasons why lambdas cannot be used to make constexpr values (the other reason being that they cannot be constexpr)
-#endif // MAKESHIFT_CXX17
+#ifdef MAKESHIFT_NEED_LAMBDA_DEFAULT_CTR_WORKAROUND_
+    static constexpr value_type value = impl{ }.obj();
+#else // MAKESHIFT_NEED_LAMBDA_DEFAULT_CTR_WORKAROUND_
+    static constexpr value_type value = F{ }();
+#endif // MAKESHIFT_NEED_LAMBDA_DEFAULT_CTR_WORKAROUND_
 
 private:
 #if defined(_MSC_VER) && !defined(NDEBUG)

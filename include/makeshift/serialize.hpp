@@ -87,8 +87,6 @@ struct compound_serialization_options
         // Determines comparison mode for string representations of member names.
         //
     string_comparison member_name_comparison_mode = string_comparison::ordinal_ignore_case;
-
-    constexpr compound_serialization_options(void) = default;
 };
 
     //ᅟ
@@ -98,8 +96,6 @@ struct any_compound_serialization_options
 {
     compound_serialization_options compound = { "{ ", " }", "=", ".", ", ", true, string_comparison::ordinal_ignore_case };
     compound_serialization_options compound_value = { "(", ")", "=", ".", ", ", false, string_comparison::ordinal_ignore_case };
-
-    constexpr any_compound_serialization_options(void) = default;
 };
 
 

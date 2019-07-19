@@ -59,8 +59,6 @@ struct compound_hint_options
         // Determines the placeholder to be used for members without name.
         //
     std::string_view unnamed_member_placeholder = "val";
-
-    constexpr compound_hint_options(void) = default;
 };
 
     //ᅟ
@@ -70,8 +68,6 @@ struct any_compound_hint_options
 {
     compound_hint_options compound = { "{", "}", ",", "val" };
     compound_hint_options compound_value = { "(", ")", ",", "val" };
-
-    constexpr any_compound_hint_options(void) = default;
 };
 
 

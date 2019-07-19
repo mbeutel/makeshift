@@ -38,6 +38,9 @@ cmakeshift_target_compile_settings(test-makeshift
         default
         diagnostics
         $<$<CONFIG:Debug>:runtime-checks>)
+target_compile_features(test-makeshift
+    PUBLIC
+        cxx_std_20)
 
 # test properties
 target_compile_definitions(test-makeshift
