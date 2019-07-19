@@ -53,11 +53,12 @@ template <typename C> using make_constval_t = makeshift::detail::make_constval_t
     //ᅟ
     // A constval representing the given nullary constexpr function object type. Applies normalization if applicable.
     //ᅟ
-template <typename C> constexpr make_constval_t<C> make_constval_v = { };
+template <typename C> constexpr make_constval_t<C> make_constval_v = { }; // TODO: should be _c, not _v!!
 
 
     //ᅟ
     // Returns a constval representing the given nullary constexpr function object type. Applies normalization if applicable.
+    // TODO: better docs
     //ᅟ
 template <typename C>
     constexpr make_constval_t<C> make_constval(const C&)
@@ -67,6 +68,24 @@ template <typename C>
 
     return { };
 }
+
+
+    //ᅟ
+    // Returns a reference to a constexpr object with the value of the given nullary constexpr function object type.
+    // TODO: better docs
+    //ᅟ
+template <typename C>
+    constexpr const typename make_constval_t<C>::value_type& make_nttp(const C&)
+{
+    static_assert(std::is_empty<C>::value, "argument must be stateless");
+    static_assert(can_instantiate_v<makeshift::detail::is_constexpr_functor_r, C>, "argument must be constexpr function object");
+
+    return make_constval_t<C>::value;
+}
+
+
+    // TODO: docs
+template <typename C> constexpr const typename make_constval_t<C>::value_type& make_nttp_v = make_constval_t<C>::value;
 
 
     //ᅟ
@@ -99,25 +118,25 @@ template <typename T, const T& Ref> constexpr ref_constval14_t<T, Ref> ref_const
     // A constval type that represents the given constexpr object `V`.
     // If `V` is a NTTP wrapper value, the constval type represents the unwrapped value.
     //ᅟ
-template <auto V> using constval_t = typename makeshift::detail::unwrap_constval_<decltype(V), V>::type;
+template <auto V> using constval_t = typename makeshift::detail::unwrap_constval_<decltype(V), V>::type; // TODO: should this be called constant<>?
 
     //ᅟ
     // A constval that represents the given constexpr object `V`.
     // If `V` is a NTTP wrapper value, the constval represents the unwrapped value.
     //ᅟ
-template <auto V> constval_t<V> constval{ };
+template <auto V> constval_t<V> constval{ }; // TODO: should this be called c<>?
 
     //ᅟ
     // A constval type that represents the given constexpr object referenced by `Ref`.
     // The language requires template reference arguments to have static linkage (e.g. global static objects, or static member objects of classes).
     //ᅟ
-template <const auto& Ref> using ref_constval_t = make_constval_t<makeshift::detail::ref_constval<std::remove_const_t<std::remove_reference_t<decltype(Ref)>>, Ref>>;
+template <const auto& Ref> using ref_constval_t = make_constval_t<makeshift::detail::ref_constval<std::remove_const_t<std::remove_reference_t<decltype(Ref)>>, Ref>>; // TODO: should this be called ref_constant<>?
 
     //ᅟ
     // A constval that represents the given constexpr object referenced by `Ref`.
     // The language requires template reference arguments to have static linkage (e.g. global static objects, or static member objects of classes).
     //ᅟ
-template <const auto& Ref> constexpr ref_constval_t<Ref> ref_constval = { };
+template <const auto& Ref> constexpr ref_constval_t<Ref> ref_constval = { }; // TODO: should this be called ref_c<>?
 #endif // MAKESHIFT_CXX17
 
 
