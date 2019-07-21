@@ -15,4 +15,19 @@
         </Expand>
     </Type>
 
+    <!-- Workaround for some recently-changed types (VS 2019) for which STL.natvis wasn't updated. -->
+    <Type Name="std::_Atomic_padded&lt;*&gt;">
+        <DisplayString>{ _Value }</DisplayString>
+        <Expand>
+            <ExpandedItem>_Value</ExpandedItem>
+        </Expand>
+    </Type>
+
+    <Type Name="std::_Atomic_storage&lt;*,*&gt;">
+        <DisplayString>{ _Storage }</DisplayString>
+        <Expand>
+            <ExpandedItem>_Storage</ExpandedItem>
+        </Expand>
+    </Type>
+
 </AutoVisualizer>
