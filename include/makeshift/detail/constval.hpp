@@ -54,6 +54,11 @@ template <typename C, std::size_t I>
 };
 
 
+#if defined(MAKESHIFT_CXX17) && !(defined(_MSC_VER) && _MSVC_LANG > 201703L)
+ #define MAKESHIFT_NEED_LAMBDA_DEFAULT_CTR_WORKAROUND_
+#endif // defined(MAKESHIFT_CXX17) && !(defined(_MSC_VER) && _MSVC_LANG > 201703L)
+
+
     // Workaround for non-default-constructible lambdas in C++17.
     // Does not rely on UB (as far as I can tell). Works with GCC 8.2, Clang 7.0, MSVC 19.20, and ICC 19.0 (also `constexpr` evaluation).
     // Idea taken from http://pfultz2.com/blog/2014/09/02/static-lambda/ and modified to avoid casts.
@@ -64,7 +69,7 @@ template <typename F>
     static_assert(std::is_empty<F>::value, "lambda must be empty");
 
 private:
-#ifdef MAKESHIFT_CXX17
+#ifdef MAKESHIFT_NEED_LAMBDA_DEFAULT_CTR_WORKAROUND_
     union impl
     {
         F obj;
@@ -72,17 +77,17 @@ private:
 
         constexpr impl(void) noexcept : dummy(0) { }
     };
-#endif // MAKESHIFT_CXX17
+#endif // MAKESHIFT_NEED_LAMBDA_DEFAULT_CTR_WORKAROUND_
 
 public:
     template <typename... Ts>
         constexpr decltype(auto) operator ()(Ts&&... args) const
     {
-#ifdef MAKESHIFT_CXX17
+#ifdef MAKESHIFT_NEED_LAMBDA_DEFAULT_CTR_WORKAROUND_
         return impl{ }.obj(std::forward<Ts>(args)...); // we can legally use `obj` even if it wasn't initialized because it is empty
-#else // MAKESHIFT_CXX17
+#else // MAKESHIFT_NEED_LAMBDA_DEFAULT_CTR_WORKAROUND_
         return F{ }.obj(std::forward<Ts>(args)...); // C++14 doesn't support this trick, which is one of the reasons why lambdas cannot be used to make constvals (the other reason being that they cannot be constexpr)
-#endif // MAKESHIFT_CXX17
+#endif // MAKESHIFT_NEED_LAMBDA_DEFAULT_CTR_WORKAROUND_
     }
 };
 template <typename F, bool IsDefaultConstructible> struct stateless_functor_0_;
@@ -91,13 +96,9 @@ template <typename F> struct stateless_functor_0_<F, false> { using type = state
 template <typename F> using stateless_functor_t = typename stateless_functor_0_<F, std::is_default_constructible<F>::value>::type;
 template <typename F> constexpr stateless_functor_t<F> stateless_functor_v = { };
 
-#if defined(MAKESHIFT_CXX17) && !(defined(_MSC_VER) && _MSVC_LANG > 201703L)
- #define MAKESHIFT_NEED_LAMBDA_DEFAULT_CTR_WORKAROUND_
-#endif // defined(MAKESHIFT_CXX17) && !(defined(_MSC_VER) && _MSVC_LANG > 201703L)
-
 
 template <typename T, typename F>
-    struct functor_constval : constval_tag
+    struct functor_constval_base : constval_tag
 {
     static_assert(std::is_empty<F>::value, "lambda must be empty");
 
@@ -119,22 +120,13 @@ private:
 #endif // MAKESHIFT_NEED_LAMBDA_DEFAULT_CTR_WORKAROUND_
 
 public:
-#ifdef MAKESHIFT_NEED_LAMBDA_DEFAULT_CTR_WORKAROUND_
-    static constexpr value_type value = impl{ }.obj();
-#else // MAKESHIFT_NEED_LAMBDA_DEFAULT_CTR_WORKAROUND_
-    static constexpr value_type value = F{ }();
-#endif // MAKESHIFT_NEED_LAMBDA_DEFAULT_CTR_WORKAROUND_
-
-private:
-#if defined(_MSC_VER) && !defined(NDEBUG)
-        // for Natvis support
-    static inline const value_type value_ = value;
-#endif // defined(_MSC_VER) && !defined(NDEBUG)
-
-public:
     MAKESHIFT_NODISCARD constexpr value_type operator ()(void) const
     {
-        return value;
+#ifdef MAKESHIFT_NEED_LAMBDA_DEFAULT_CTR_WORKAROUND_
+        return impl{ }.obj();
+#else // MAKESHIFT_NEED_LAMBDA_DEFAULT_CTR_WORKAROUND_
+        return F{ }();
+#endif // MAKESHIFT_NEED_LAMBDA_DEFAULT_CTR_WORKAROUND_
     }
 #if defined(_MSC_VER) && !defined(__clang__) && !defined(__INTELLISENSE__)
     MAKESHIFT_NODISCARD constexpr operator auto(void) const -> value_type // workaround for VC++ bug, cf. https://developercommunity.visualstudio.com/content/problem/149701/c2833-with-operator-decltype.html#reply-152822
@@ -142,8 +134,20 @@ public:
     MAKESHIFT_NODISCARD constexpr operator value_type(void) const
 #endif // defined(_MSC_VER) && !defined(__clang__) && !defined(__INTELLISENSE__)
     {
-        return value;
+        return (*this)();
     }
+};
+
+template <typename T, typename F>
+    struct functor_constval : functor_constval_base<T, F>
+{
+    static constexpr T value = functor_constval_base<T, F>{ }();
+
+private:
+#if defined(_MSC_VER) && !defined(NDEBUG)
+        // for Natvis support
+    static inline const T value_ = value;
+#endif // defined(_MSC_VER) && !defined(NDEBUG)
 };
 
 template <typename T, typename F>
