@@ -185,7 +185,7 @@ template <typename T, typename A, typename... ArgsT,
     //ᅟ    // returns `std::unique_ptr<float[42], allocator_deleter<float[42], MyAllocator<float>>>`
     //
 template <typename ArrayT, typename A,
-          std::enable_if_t<makeshift::detail::extent_only_v<ArrayT> != 0, int> = 0>
+          std::enable_if_t<makeshift::detail::extent_only<ArrayT>::value != 0, int> = 0>
     std::unique_ptr<ArrayT, allocator_deleter<ArrayT, A>>
     allocate_unique(A alloc)
 {
@@ -203,7 +203,7 @@ template <typename ArrayT, typename A,
     //ᅟ    // returns `std::unique_ptr<float[], allocator_deleter<float[], MyAllocator<float>>>`
     //
 template <typename ArrayT, typename A,
-          std::enable_if_t<makeshift::detail::extent_only_v<ArrayT> == 0, int> = 0>
+          std::enable_if_t<makeshift::detail::extent_only<ArrayT>::value == 0, int> = 0>
     std::unique_ptr<ArrayT, allocator_deleter<ArrayT, A>>
     allocate_unique(A alloc, std::size_t size)
 {
