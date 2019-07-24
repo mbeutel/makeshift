@@ -158,7 +158,7 @@ template <typename T>
               std::enable_if_t<try_index_of_type_in<T, typename TypeEnumTypeT::type::types>::value != -1, int> = 0>
         constexpr operator EnumT(void) const noexcept
     {
-        return EnumT(int(try_index_of_type_in<T, typename TypeEnumTypeT::types>::value));
+        return EnumT(int(try_index_of_type_in<T, typename TypeEnumTypeT::type::types>::value));
     }
 };
 

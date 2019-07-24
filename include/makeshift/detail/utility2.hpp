@@ -108,7 +108,7 @@ public:
         Expects(_value >= 0 && _value < int(sizeof...(Ts)));
     }
 
-    operator bool(void) const = delete;
+    explicit operator bool(void) const = delete;
 
         // This conversion exists so type enums can be used in switch statements.
     constexpr operator value_t(void) const noexcept { return value_; }
