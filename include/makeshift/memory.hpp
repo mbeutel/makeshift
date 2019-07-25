@@ -89,6 +89,12 @@ public:
         ::operator delete(ptr, std::align_val_t(makeshift::detail::alignment_in_bytes(Alignment, alignof(T))));
     }
 };
+template <typename T, alignment Alignment>
+    class aligned_allocator<T, Alignment, default_init_allocator<T, std::allocator<T>>> : public default_init_allocator<T, aligned_allocator<T, Alignment, std::allocator<T>>>
+{
+public:
+    using default_init_allocator<T, aligned_allocator<T, Alignment, std::allocator<T>>>::default_init_allocator;
+};
 
 
     //ᅟ
