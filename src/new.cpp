@@ -79,7 +79,7 @@ std::size_t hardware_cache_line_size(void) noexcept
         long result = 0;
  #ifdef _SC_LEVEL1_DCACHE_LINESIZE
         result = sysconf(_SC_LEVEL1_DCACHE_LINESIZE);
-        if (result > 0) return result;
+        if (result > 0) return gsl::narrow_cast<std::size_t>(result);
  #endif // _SC_LEVEL1_DCACHE_LINESIZE
         FILE* f = fopen("/sys/devices/system/cpu/cpu0/cache/index0/coherency_line_size", "r");
         Expects(f != nullptr);

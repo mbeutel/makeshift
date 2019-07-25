@@ -161,6 +161,7 @@ TEST_CASE("constval")
 
     auto cCT2 = mk::ref_constval<SomeClass::ct>;
     static constexpr CustomType c2 = cCT2();
+    (void) c2;
     auto cA2 = mk::ref_constval<SomeClass::ca>;
     expect_array_constval_normalization(cA2);
     //auto iCT = mk::ref_constval<SomeClass::ct.i>; // this doesn't work because arg doesn't have linkage

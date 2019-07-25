@@ -84,7 +84,7 @@ public:
     {
         return static_cast<T*>(::operator new(sizeof(T) * n, std::align_val_t(makeshift::detail::alignment_in_bytes(Alignment, alignof(T)))));
     }
-    MAKESHIFT_NODISCARD void deallocate(T* ptr, std::size_t /*n*/)
+    void deallocate(T* ptr, std::size_t /*n*/)
     {
         ::operator delete(ptr, std::align_val_t(makeshift::detail::alignment_in_bytes(Alignment, alignof(T))));
     }
