@@ -80,7 +80,7 @@ template <typename F, typename... Ts>
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
     constexpr std::size_t size = makeshift::detail::tuple_transform_size<-1, Ts...>();
-    return makeshift::detail::tuple_foreach_impl(std::make_index_sequence<size>{ }, std::forward<F>(func), std::forward<Ts>(args)...);
+    makeshift::detail::tuple_foreach_impl(std::make_index_sequence<size>{ }, std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
 
