@@ -3,8 +3,19 @@
 
     <Type Name="std::array&lt;*,*&gt;">
         <!--DisplayString Condition="$T2 &lt; 7">{ &amp;_Elems,na }</DisplayString-->
-        <DisplayString Condition="$T2 == 0">{{ }}</DisplayString>
-        <DisplayString Condition="$T2 &lt; 7" Optional="true">{ ($T1 (&amp;&amp;)[$T2]) _Elems }</DisplayString>
+        <DisplayString Condition="$T2 == 0">{{ size=0 data={{ }} }}</DisplayString>
+        <DisplayString Condition="$T2 &lt; 7" Optional="true">{{ size={ $T2 } data={ ($T1 (&amp;&amp;)[$T2]) _Elems } }}</DisplayString>
+        <DisplayString>{{ size={ $T2 } }}</DisplayString>
+        <Expand>
+            <Item Name="[size]">$T2</Item>
+            <ArrayItems>
+                <Size>$T2</Size>
+                <ValuePointer>_Elems</ValuePointer>
+            </ArrayItems>
+        </Expand>
+    </Type>
+
+    <Type Name="std::array&lt;std::array&lt;*,*&gt;,*&gt;">
         <DisplayString>{{ size={ $T2 } }}</DisplayString>
         <Expand>
             <Item Name="[size]">$T2</Item>
