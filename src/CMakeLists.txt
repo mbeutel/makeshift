@@ -64,15 +64,12 @@ target_link_libraries(makeshift
 
 # installation: public header files, generated header files, target
 install(
-    DIRECTORY "${PROJECT_SOURCE_DIR}/include/"
-    DESTINATION "include")
+    DIRECTORY "${PROJECT_SOURCE_DIR}/include/" # the trailing '/' is significant
+    TYPE INCLUDE)
 install(
-    DIRECTORY "${PROJECT_BINARY_DIR}/include/"
-    DESTINATION "include")
+    DIRECTORY "${PROJECT_BINARY_DIR}/include/" # the trailing '/' is significant
+    TYPE INCLUDE)
 install(
     TARGETS makeshift
-    EXPORT makeshiftExport
-    ARCHIVE DESTINATION "lib"
-    RUNTIME DESTINATION "bin"
-    LIBRARY DESTINATION "lib"
-    INCLUDES DESTINATION "include")
+    EXPORT makeshift
+    RUNTIME ARCHIVE LIBRARY INCLUDES)
