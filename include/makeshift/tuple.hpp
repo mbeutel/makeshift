@@ -35,7 +35,7 @@ template <typename... Ts>
     constexpr type_tuple& operator =(const type_tuple&) noexcept { return *this; }
     constexpr type_tuple(const Ts&...) noexcept { }
     template <typename TupleT,
-              typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>> && std::is_same<apply_t<type_sequence, std::decay_t<TupleT>>, type_sequence<Ts...>>::value>>
+              typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>> && std::is_same<instantiate_t<type_sequence, std::decay_t<TupleT>>, type_sequence<Ts...>>::value>>
         explicit constexpr type_tuple(const TupleT&) noexcept
     {
     }
@@ -48,7 +48,7 @@ template <>
     constexpr type_tuple(const type_tuple&) noexcept = default;
     constexpr type_tuple& operator =(const type_tuple&) noexcept { return *this; }
     template <typename TupleT,
-              typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>> && std::is_same<apply_t<type_sequence, std::decay_t<TupleT>>, type_sequence<>>::value>>
+              typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>> && std::is_same<instantiate_t<type_sequence, std::decay_t<TupleT>>, type_sequence<>>::value>>
         explicit constexpr type_tuple(const TupleT&) noexcept
     {
     }
