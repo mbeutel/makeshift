@@ -58,7 +58,7 @@ enum class alignment : std::ptrdiff_t
 {
     page = -2,
     cache_line = -1,
-    none = 0
+    none = 1
 };
 
 

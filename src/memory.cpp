@@ -20,12 +20,9 @@ static inline std::size_t alignment_in_bytes(alignment a) noexcept
 {
     switch (a)
     {
-    case alignment::page:
-        return hardware_page_size();
-    case alignment::cache_line:
-        return hardware_cache_line_size();
-    case alignment::none:
-        return 0;
+    case alignment::page: return hardware_page_size();
+    case alignment::cache_line: return hardware_cache_line_size();
+    case alignment::none: return 1;
     }
     Expects(std::ptrdiff_t(a) > 0);
     return std::ptrdiff_t(a);
