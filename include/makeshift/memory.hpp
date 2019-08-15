@@ -85,9 +85,12 @@ public:
 
     MAKESHIFT_NODISCARD T* allocate(std::size_t n)
     {
-        return static_cast<T*>(::operator new(sizeof(T) * n, std::align_val_t(makeshift::detail::alignment_in_bytes(Alignment, alignof(T)))));
+            // When adapting the default allocator, make use of `operator new()` with alignment support.
+        std::size_t size = n * sizeof(T);
+        if (size / sizeof(T) != n) throw std::bad_alloc{ }; // overflow
+        return static_cast<T*>(::operator new(size, std::align_val_t(makeshift::detail::alignment_in_bytes(Alignment, alignof(T)))));
     }
-    void deallocate(T* ptr, std::size_t /*n*/)
+    void deallocate(T* ptr, std::size_t /*n*/) noexcept
     {
         ::operator delete(ptr, std::align_val_t(makeshift::detail::alignment_in_bytes(Alignment, alignof(T))));
     }
