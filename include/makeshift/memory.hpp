@@ -3,8 +3,9 @@
 #define INCLUDED_MAKESHIFT_MEMORY_HPP_
 
 
-#include <new>         // for align_val_t
+#include <new>         // for align_val_t, bad_alloc
 #include <cstddef>     // for size_t, ptrdiff_t
+#include <cstdlib>     // for calloc(), free()
 #include <memory>      // for unique_ptr<>, allocator<>, allocator_traits<>
 #include <utility>     // for forward<>()
 #include <numeric>     // for lcm()
@@ -49,6 +50,48 @@ public:
         std::allocator_traits<A>::construct(static_cast<A&>(*this), ptr, std::forward<ArgsT>(args)...);
     }
 };
+
+
+    //ᅟ
+    // Allocator that always returns zero-initialized memory.
+    //
+template <typename T>
+    class zero_init_allocator
+{
+public:
+    using value_type = T;
+
+    constexpr zero_init_allocator(void) noexcept
+    {
+    }
+    template <typename U>
+        constexpr zero_init_allocator(zero_init_allocator<U> const&) noexcept
+    {
+    }
+
+    MAKESHIFT_NODISCARD value_type* allocate(std::size_t n)
+    {
+        auto mem = std::calloc(n, sizeof(value_type));
+        if (mem == nullptr) throw std::bad_alloc{ };
+        return static_cast<value_type*>(mem);
+    }
+
+    void deallocate(value_type* p, std::size_t) noexcept
+    {
+        std::free(p);
+    }
+};
+
+template <typename T, typename U>
+    MAKESHIFT_NODISCARD bool operator==(zero_init_allocator<T> const&, zero_init_allocator<U> const&) noexcept
+{
+    return true;
+}
+template <class T, class U>
+    MAKESHIFT_NODISCARD bool operator!=(zero_init_allocator<T> const& x, zero_init_allocator<U> const& y) noexcept
+{
+    return !(x == y);
+}
 
 
     //ᅟ
