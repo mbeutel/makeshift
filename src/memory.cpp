@@ -29,8 +29,15 @@ static inline std::size_t alignment_in_bytes(alignment a) noexcept
 }
 std::size_t alignment_in_bytes(alignment a, std::size_t alignOfT) noexcept
 {
+        // TODO: overflow checking?
     return std::lcm(alignment_in_bytes(a), alignOfT);
 }
+std::size_t alignment_in_elements(alignment a, std::size_t sizeOfT, std::size_t alignOfT) noexcept
+{
+        // TODO: overflow checking?
+    return std::lcm(alignment_in_bytes(a, alignOfT), sizeOfT) / sizeOfT;
+}
+
 
 
 } // namespace detail

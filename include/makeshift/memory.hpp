@@ -6,13 +6,13 @@
 #include <new>         // for align_val_t, bad_alloc
 #include <cstddef>     // for size_t, ptrdiff_t
 #include <cstdlib>     // for calloc(), free()
+#include <cstring>     // for memcpy()
 #include <memory>      // for unique_ptr<>, allocator<>, allocator_traits<>
 #include <utility>     // for forward<>()
-#include <numeric>     // for lcm()
 #include <type_traits> // for is_nothrow_default_constructible<>, enable_if<>, is_same<>, remove_cv<>
 
 #include <makeshift/type_traits2.hpp> // for can_instantiate<>
-#include <makeshift/version.hpp>      // for MAKESHIFT_NODISCARD
+#include <makeshift/version.hpp>      // for MAKESHIFT_CXX17, MAKESHIFT_NODISCARD
 
 #include <makeshift/detail/utility2.hpp> // for is_power_of_2()
 #include <makeshift/detail/memory.hpp>
@@ -110,8 +110,57 @@ enum class alignment : std::ptrdiff_t
     // Allocator adaptor that aligns memory allocations by the given size.
     //
 template <typename T, alignment Alignment, typename A = std::allocator<T>>
-    class aligned_allocator; // currently not implemented for any allocator other than `std::allocator<T>`
+    class aligned_allocator : public A
+{
+    static_assert(Alignment == alignment::page || Alignment == alignment::cache_line || makeshift::detail::is_power_of_2(std::ptrdiff_t(Alignment)));
 
+public:
+    using A::A;
+
+    template <typename U>
+        struct rebind
+    {
+        using other = aligned_allocator<U, Alignment, typename std::allocator_traits<A>::template rebind_alloc<U>>;
+    };
+
+    MAKESHIFT_NODISCARD T* allocate(std::size_t n)
+    {
+        constexpr std::size_t nExtra = (sizeof(void*) - 1) / sizeof(T) + 1; // = ⌈sizeof(void*) ÷ sizeof(T)⌉
+
+        std::size_t nAlign = makeshift::detail::alignment_in_elements(Alignment, sizeof(T), alignof(T));
+        std::size_t nAlloc = (n + nExtra) + nAlign;
+        if (nAlloc <= n) throw std::bad_alloc{ }; // overflow
+
+        void* mem = std::allocator_traits<A>::allocate(*this, nAlloc);
+
+        std::size_t allocSize = nAlloc * sizeof(T); // cannot overflow, otherwise upstream `allocate()` would have thrown
+        std::size_t size = (n + nExtra) * sizeof(T); // cannot overflow either because `nAlloc >= n + nExtra`
+        std::size_t alignment = nAlign * sizeof(T); // cannot overflow, otherwise `alignment_in_elements()` would have failed
+        void* alignedMem = mem;
+        void* alignResult = std::align(alignment, size, alignedMem, allocSize);
+        Expects(alignResult != nullptr); // should not happen
+
+            // Store pointer to actual allocation at end of buffer. Use `memcpy()` so we don't have to worry about alignment.
+        std::memcpy(static_cast<char*>(alignResult) + sizeof(T) * n, &mem, sizeof(void*));
+
+        return static_cast<T*>(alignResult);
+    }
+    void deallocate(T* ptr, std::size_t n) noexcept
+    {
+        constexpr std::size_t nExtra = (sizeof(void*) - 1) / sizeof(T) + 1; // = ⌈sizeof(void*) ÷ sizeof(T)⌉
+
+            // Retrieve pointer to actual allocation at end of buffer. Use `memcpy()` so we don't have to worry about alignment.
+        void* mem;
+        std::memcpy(&mem, reinterpret_cast<char*>(ptr) + sizeof(T) * n, sizeof(void*));
+
+        std::size_t nAlign = makeshift::detail::alignment_in_elements(Alignment, sizeof(T), alignof(T));
+        std::size_t nAlloc = (n + nExtra) + nAlign; // we already checked for overflow in `allocate()`, so here we assume there is no overflow
+
+        std::allocator_traits<A>::deallocate(*this, static_cast<T*>(mem), nAlloc);
+    }
+};
+
+#ifdef MAKESHIFT_CXX17
 template <typename T, alignment Alignment>
     class aligned_allocator<T, Alignment, std::allocator<T>> : public std::allocator<T>
 {
@@ -144,6 +193,7 @@ template <typename T, alignment Alignment>
 public:
     using default_init_allocator<T, aligned_allocator<T, Alignment, std::allocator<T>>>::default_init_allocator;
 };
+#endif // MAKESHIFT_CXX17
 
 
     //ᅟ
