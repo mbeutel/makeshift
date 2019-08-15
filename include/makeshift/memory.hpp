@@ -7,9 +7,11 @@
 #include <cstddef>     // for size_t, ptrdiff_t
 #include <cstdlib>     // for calloc(), free()
 #include <cstring>     // for memcpy()
-#include <memory>      // for unique_ptr<>, allocator<>, allocator_traits<>
+#include <memory>      // for unique_ptr<>, allocator<>, allocator_traits<>, align()
 #include <utility>     // for forward<>()
 #include <type_traits> // for is_nothrow_default_constructible<>, enable_if<>, is_same<>, remove_cv<>
+
+#include <gsl/gsl_assert> // for Expects()
 
 #include <makeshift/type_traits2.hpp> // for can_instantiate<>
 #include <makeshift/version.hpp>      // for MAKESHIFT_CXX17, MAKESHIFT_NODISCARD
@@ -149,7 +151,7 @@ public:
     {
         constexpr std::size_t nExtra = (sizeof(void*) - 1) / sizeof(T) + 1; // = ⌈sizeof(void*) ÷ sizeof(T)⌉
 
-            // Retrieve pointer to actual allocation at end of buffer. Use `memcpy()` so we don't have to worry about alignment.
+            // Retrieve pointer to actual allocation from end of buffer. Use `memcpy()` so we don't have to worry about alignment.
         void* mem;
         std::memcpy(&mem, reinterpret_cast<char*>(ptr) + sizeof(T) * n, sizeof(void*));
 
