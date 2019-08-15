@@ -13,6 +13,7 @@
 #include <makeshift/type_traits2.hpp> // for can_instantiate<>
 #include <makeshift/version.hpp>      // for MAKESHIFT_NODISCARD
 
+#include <makeshift/detail/utility2.hpp> // for is_power_of_2()
 #include <makeshift/detail/memory.hpp>
 
 
@@ -52,7 +53,7 @@ public:
 
     //ᅟ
     // Represents an alignment to use for aligned allocations.
-    // In addition to the special values, any positive integer may be casted to `alignment`.
+    // In addition to the special values, any positive integer that is a power of 2 may be casted to `alignment`.
     //
 enum class alignment : std::ptrdiff_t
 {
@@ -71,6 +72,8 @@ template <typename T, alignment Alignment, typename A = std::allocator<T>>
 template <typename T, alignment Alignment>
     class aligned_allocator<T, Alignment, std::allocator<T>> : public std::allocator<T>
 {
+    static_assert(Alignment == alignment::page || Alignment == alignment::cache_line || makeshift::detail::is_power_of_2(std::ptrdiff_t(Alignment)));
+
 public:
     using std::allocator<T>::allocator;
 
