@@ -21,6 +21,8 @@ template <typename V>
     struct factor;
 template <typename V, dim NumFactors>
     struct factorization;
+template <typename T>
+    struct arithmetic_result;
 
 
 namespace detail
@@ -29,6 +31,117 @@ namespace detail
 
     // The implementations below have borrowed heavily from the suggestions made and examples used in the SEI CERT C Coding Standard:
     // https://wiki.sei.cmu.edu/confluence/display/c/
+
+
+struct unreachable_wildcard_t
+{
+    template <typename T>
+        [[noreturn]] operator T(void) const noexcept
+    {
+        std::terminate(); // unreachable
+    }
+};
+
+struct errc_wildcard_t
+{
+    std::errc ec;
+
+    template <typename T>
+        constexpr operator arithmetic_result<T>(void) const noexcept
+    {
+        return { { }, ec };
+    }
+};
+
+struct try_error_handler
+{
+    template <typename T> using result = arithmetic_result<T>;
+    
+    template <typename T>
+        static constexpr MAKESHIFT_FORCEINLINE arithmetic_result<T> make_result(T value) noexcept
+    {
+        return { value, std::errc{ } };
+    }
+    static constexpr inline errc_wildcard_t make_error(std::errc ec) noexcept
+    {
+        return { ec };
+    }
+    template <typename T>
+        static constexpr MAKESHIFT_FORCEINLINE T get_value(arithmetic_result<T> const& result) noexcept
+    {
+        return result.value;
+    }
+    template <typename T>
+        static constexpr MAKESHIFT_FORCEINLINE bool is_error(arithmetic_result<T> const& result) noexcept
+    {
+        return result.ec != std::errc{ };
+    }
+    template <typename T>
+        static constexpr MAKESHIFT_FORCEINLINE errc_wildcard_t passthrough_error(const arithmetic_result<T> const& result) noexcept
+    {
+        return { result.ec };
+    }
+};
+
+struct throw_error_handler
+{
+    template <typename T> using result = T;
+    
+    template <typename T>
+        static constexpr MAKESHIFT_FORCEINLINE T make_result(T value) noexcept
+    {
+        return { value, std::errc{ } };
+    }
+    [[noreturn]] static constexpr inline T make_error(std::errc ec) noexcept
+    {
+        throw std::system_error(ec);
+    }
+    template <typename T>
+        static constexpr MAKESHIFT_FORCEINLINE T get_value(T result) noexcept
+    {
+        return result;
+    }
+    template <typename T>
+        static constexpr MAKESHIFT_FORCEINLINE std::false_type is_error(T) noexcept
+    {
+        return { };
+    }
+    template <typename T>
+        static constexpr MAKESHIFT_FORCEINLINE unreachable_wildcard_t passthrough_error(T) noexcept
+    {
+        std::terminate();
+    }
+};
+
+struct assert_error_handler
+{
+    template <typename T> using result = T;
+    
+    template <typename T>
+        static constexpr MAKESHIFT_FORCEINLINE T make_result(T value) noexcept
+    {
+        return { value, std::errc{ } };
+    }
+    [[noreturn]] static constexpr inline unreachable_wildcard_t make_error(std::errc) noexcept
+    {
+        std::terminate();
+    }
+    template <typename T>
+        static constexpr MAKESHIFT_FORCEINLINE T get_value(T result) noexcept
+    {
+        return result;
+    }
+    template <typename T>
+        static constexpr MAKESHIFT_FORCEINLINE std::false_type is_error(T) noexcept
+    {
+        return { };
+    }
+    template <typename T>
+        static constexpr MAKESHIFT_FORCEINLINE unreachable_wildcard_t passthrough_error(T) noexcept
+    {
+        std::terminate();
+    }
+};
 
 
 template <typename V> struct wider_type;
@@ -45,6 +158,8 @@ enum int_width { has_wider_type, has_no_wider_type };
 template <typename EH, typename V>
     struct checked_operations;
 
+template <typename EH, typename V> using result_t = typename EH::template result<V>;
+
 template <typename EH, typename V>
 struct checked_4_
 {
@@ -52,11 +167,12 @@ struct checked_4_
     static constexpr V floori(V x, V d)
     {
         Expects(d != 0);
+        
         return x - x % d;
     }
 
         // Computes ⌈x ÷ d⌉ ∙ d for x ∊ ℕ₀, d ∊ ℕ, d ≠ 0.
-    static constexpr V ceili(V x, V d)
+    static constexpr result_t<EH, V> ceili(V x, V d)
     {
             // We have the following identities:
             //
@@ -68,15 +184,17 @@ struct checked_4_
             //     ⌈x ÷ d⌉ ∙ d = x + d - (x - 1) mod d - 1 .
 
         Expects(d != 0);
+        
         return x != 0
             ? checked_operations<EH, V>::add(x, d - (x - 1) % d - 1)
-            : 0;
+            : EH::make_result(V(0));
    }
 
         // Computes ⌊n ÷ d⌋ for n ∊ ℕ₀, d ∊ ℕ.
     static constexpr V ratio_floor(V n, V d)
     {
         Expects(d != 0);
+        
         return n / d;
     }
 
@@ -84,6 +202,7 @@ struct checked_4_
     static constexpr V ratio_ceil(V n, V d)
     {
         Expects(d != 0);
+        
         return n != 0
              ? (n - 1) / d + 1 // overflow-safe
              : 0;
@@ -94,41 +213,46 @@ template <typename EH, typename V, int_signedness>
 template <typename EH, typename V>
     struct checked_3_<EH, V, is_unsigned> : checked_4_<EH, V>
 {
-    static constexpr V divide(V lhs, V rhs)
+    static constexpr result_t<EH, V> divide(V lhs, V rhs)
     {
         Expects(rhs != 0);
-        return lhs / rhs;
+        
+        return EH::make_result(lhs / rhs);
     }
-    static constexpr V modulo(V lhs, V rhs)
+    static constexpr result_t<EH, V> modulo(V lhs, V rhs)
     {
         Expects(rhs != 0);
-        return lhs % rhs;
+        
+        return EH::make_result(lhs % rhs);
     }
-    static constexpr V negate(V arg)
+    static constexpr result_t<EH, V> negate(V arg)
     {
-        EH::check_underflow(arg == 0);
-        return 0;
+        if (arg != 0) return EH::make_error(std::errc::value_too_large);
+        return EH::make_result(V(0));
     }
-    static constexpr V subtract(V lhs, V rhs)
+    static constexpr result_t<EH, V> subtract(V lhs, V rhs)
     {
-        EH::check_underflow(lhs >= rhs);
-        return lhs - rhs;
+        if (lhs < rhs) return EH::make_error(std::errc::value_too_large);
+        return EH::make_result(lhs - rhs);
     }
-    static constexpr V shl(V lhs, V rhs)
+    static constexpr result_t<EH, V> shl(V lhs, V rhs)
     {
-        Expects(rhs < sizeof(V)*8);
-        EH::check_overflow(lhs <= (std::numeric_limits<V>::max() >> rhs));
-        return lhs << rhs;
+        if (rhs >= sizeof(V)*8
+         || lhs > (std::numeric_limits<V>::max() >> rhs))
+        {
+            return EH::make_error(std::errc::value_too_large);
+        }
+        return EH::make_result(lhs << rhs);
     }
-    static constexpr V shr(V lhs, V rhs)
+    static constexpr result_t<EH, V> shr(V lhs, V rhs)
     {
-        Expects(rhs < sizeof(V)*8);
-        return lhs >> rhs;
+        if (rhs >= sizeof(V)*8) return EH::make_error(std::errc::value_too_large);
+        return EH::make_result(lhs >> rhs);
     }
 
         // Computes bᵉ for e ∊ ℕ₀.
     template <typename N>
-        static constexpr V powi(V b, N e)
+        static constexpr result_t<EH, V> powi(V b, N e)
     {
         static_assert(std::is_integral<N>::value, "exponent must be an integral type");
 
@@ -137,9 +261,13 @@ template <typename EH, typename V>
 
             // conventionally, `powi(0,0)` is 1
         if (e == 0)
-            return e != 0 ? 0 : 1;
+        {
+            return EH::make_result(V(e != 0 ? 0 : 1));
+        }
         if (b == 0)
-            return 0;
+        {
+            return EH::make_result(V(0));
+        }
 
             // we assume `b > 0` henceforth
         V m = std::numeric_limits<V>::max() / b;
@@ -148,11 +276,11 @@ template <typename EH, typename V>
         while (e > 0)
         {
                 // ensure the multiplication cannot overflow
-            EH::check_overflow(result <= m);
+            if (result > m) return EH::make_error(std::errc::value_too_large);
             result *= b;
             --e;
         }
-        return result;
+        return EH::make_result(result);
     }
 
         // Given x,b ∊ ℕ, x > 0, b > 1, returns (r,{ {b,e} }) such that x = bᵉ + r with r ≥ 0 minimal.
@@ -185,11 +313,15 @@ template <typename EH, typename V>
         {
                 // Compare with m before computing bᵉ⁺¹ to avoid overflow.
             if (x0 > m)
+            {
                 return { x - x0, { factor<V>{ b, e } } };
+            }
 
             V x1 = x0 * b; // = bᵉ⁺¹
             if (x1 > x)
+            {
                 return { x - x0, { factor<V>{ b, e } } };
+            }
 
             x0 = x1;
             ++e;
@@ -197,20 +329,29 @@ template <typename EH, typename V>
     }
 
         // Given x,b ∊ ℕ, x > 0, b > 1, returns (r,{ {b,e} }) such that x = bᵉ - r with r ≥ 0 minimal.
-    static constexpr factorization<V, 1> factorize_ceil(V x, V b)
+    static constexpr result_t<EH, factorization<V, 1>> factorize_ceil(V x, V b)
     {
-        auto [rFloor, fFloor] = checked_3_::factorize_floor(x, b);
-        if (rFloor == 0)
-            return { 0, fFloor };
-        auto xFloor = x - rFloor;
-        auto rCeil = checked_operations<EH, V>::multiply(xFloor, b - 1) - rFloor; // x = bᵉ + r =: bᵉ⁺¹ - r' ⇒ r' = bᵉ(b - 1) - r
-        return { rCeil, { factor<V>{ b, fFloor[0].exponent + 1 } } }; // e cannot overflow
+        auto floorFac = factorize_floor(x, b);
+        if (floorFac.remainder == 0)
+        {
+            return EH::make_result(factorization<V, 1>{ 0, floorFac.factors });
+        }
+        auto xFloor = x - floorFac.remainder;
+        
+        auto prodResult = checked_operations<EH, V>::multiply(xFloor, b - 1);
+        if (EH::is_error(prodResult)) return EH::passthrough_error(prodResult);
+        auto prod = EH::get_value(prodResult);
+        
+        auto rCeil = prod - floorFac.remainder; // x = bᵉ + r =: bᵉ⁺¹ - r' ⇒ r' = bᵉ(b - 1) - r
+        return EH::make_result(factorization<V, 1>{
+            rCeil, { factor<V>{ b, floorFac.factors[0].exponent + 1 } } // e cannot overflow
+        });
     }
 
         // Computes ⌊log x ÷ log b⌋ for x,b ∊ ℕ, x > 0, b > 1.
     static constexpr V log_floor(V x, V b)
     {
-        auto result = checked_3_::factorize_floor(x, b);
+        auto result = factorize_floor(x, b);
         return result.factors[0].exponent;
     }
 
@@ -242,24 +383,35 @@ template <typename EH, typename V>
     }
 
         // Given x,a,b ∊ ℕ, x > 0, a,b > 1, a ≠ b, returns (r,{ {a,i}, {b,j} }) such that x = aⁱ ∙ bʲ - r with r ≥ 0 minimal.
-    static constexpr factorization<V, 2> factorize_ceil(V x, V a, V b)
+    static constexpr result_t<EH, factorization<V, 2>> factorize_ceil(V x, V a, V b)
     {
         Expects(x > 0 && a > 1 && b > 1 && a != b);
 
             // algorithm discussed in http://stackoverflow.com/a/39050139 and slightly altered to avoid unnecessary overflows
 
-        auto [r, f] = checked_3_::factorize_ceil(x, a);
-        V i = f[0].exponent,
+        auto facAResult = factorize_ceil(x, a);
+        if (EH::is_error(facAResult)) return EH::passthrough_error(facAResult);
+        auto facA = EH::get_value(facAResult);
+        
+        auto y0Result = checked_operations<EH, V>::add(x, facA.remainder); // = aⁱ
+        if (EH::is_error(y0Result)) return EH::passthrough_error(y0Result);
+        auto y0 = EH::get_value(y0Result);
+        
+        V i = facA.factors[0].exponent,
           j = 0;
         V ci = i,
           cj = j;
-        V y = checked_operations<EH, V>::add(x, r); // = aⁱ
+        V y = y0;
         V cy = y; // cy ≥ x at all times
 
         for (;;)
         {
             if (i == 0)
-                return { cy - x, { factor<V>{ a, ci }, factor<V>{ b, cj } } };
+            {
+                return EH::make_result(factorization<V, 2>{
+                    cy - x, { factor<V>{ a, ci }, factor<V>{ b, cj } }
+                });
+            }
 
                 // take factor a
             y /= a;
@@ -268,7 +420,9 @@ template <typename EH, typename V>
                 // give factors b until y ≥ x
             while (y < x)
             {
-                y = checked_operations<EH, V>::multiply(y, b);
+                auto yResult = checked_operations<EH, V>::multiply(y, b);
+                if (EH::is_error(yResult)) return EH::passthrough_error(yResult);
+                y = EH::get_value(yResult);
                 ++j;
             }
 
@@ -286,10 +440,11 @@ template <typename EH, typename V>
     {
         Expects(x > 0 && a > 1 && b > 1 && a != b);
 
-            // adaption of algorithm in factorize_ceil() for different optimisation criterion
+            // adaption of algorithm in factorize_ceil() for different optimization criterion
 
-        auto [r, f] = checked_3_::factorize_floor(x, a);
-        V i = f[0].exponent,
+        auto facA = factorize_floor(x, a);
+        
+        V i = facA.factors[0].exponent,
           j = 0;
         V ci = i,
           cj = j;
@@ -299,7 +454,9 @@ template <typename EH, typename V>
         for (;;)
         {
             if (i == 0)
+            {
                 return { x - cy, { factor<V>{ a, ci }, factor<V>{ b, cj } } };
+            }
 
                 // take factor a
             y /= a;
@@ -327,48 +484,50 @@ template <typename EH, typename V>
 {
     using U = std::make_unsigned_t<V>;
 
-    static constexpr V divide(V lhs, V rhs)
+    static constexpr result_t<EH, V> divide(V lhs, V rhs)
     {
         Expects(rhs != 0);
-        EH::check_overflow(lhs != std::numeric_limits<V>::min() || rhs != -1);
-        return lhs / rhs;
+        
+        if (lhs == std::numeric_limits<V>::min() && rhs == -1) return EH::make_error(std::errc::value_too_large);
+        return EH::make_result(lhs / rhs);
     }
-    static constexpr V modulo(V lhs, V rhs)
+    static constexpr result_t<EH, V> modulo(V lhs, V rhs)
     {
         Expects(rhs != 0);
-        EH::check_overflow(lhs != std::numeric_limits<V>::min() || rhs != -1);
-        return lhs % rhs;
+
+        if (lhs == std::numeric_limits<V>::min() && rhs == -1) return EH::make_error(std::errc::value_too_large);
+        return EH::make_result(lhs % rhs);
     }
-    static constexpr V negate(V arg)
+    static constexpr result_t<EH, V> negate(V arg)
     {
             // this assumes a two's complement representation (it will yield a false negative for one's complement integers)
-        EH::check_underflow(arg != std::numeric_limits<V>::min());
-        return -arg;
+        if (arg == std::numeric_limits<V>::min()) return EH::make_error(std::errc::value_too_large);
+        return EH::make_result(-arg);
     }
-    static constexpr V subtract(V lhs, V rhs)
+    static constexpr result_t<EH, V> subtract(V lhs, V rhs)
     {
         EH::check_underflow(
             (rhs <= 0 || lhs >= std::numeric_limits<V>::min() + rhs)
          && (rhs >= 0 || lhs <= std::numeric_limits<V>::max() + rhs));
-        return lhs - rhs;
+        return EH::make_result(lhs - rhs);
     }
-    static constexpr V shl(V lhs, V rhs)
+    static constexpr result_t<EH, V> shl(V lhs, V rhs)
     {
             // note that we fail when shifting negative integers
         Expects(lhs >= 0 && rhs >= 0 && rhs < V(sizeof(V)*8));
         EH::check_overflow(lhs <= (std::numeric_limits<V>::max() >> rhs));
-        return lhs << rhs;
+        return EH::make_result(lhs << rhs);
     }
-    static constexpr V shr(V lhs, V rhs)
+    static constexpr result_t<EH, V> shr(V lhs, V rhs)
     {
             // note that we fail when shifting negative integers
         Expects(lhs >= 0 && rhs >= 0 && rhs < V(sizeof(V)*8));
-        return lhs >> rhs;
+        return EH::make_result(lhs >> rhs);
     }
 
         // Computes bᵉ for e ∊ ℕ₀.
     template <typename N>
-        static constexpr V powi(V b, N e)
+        static constexpr result_t<EH, V> powi(V b, N e)
     {
         static_assert(std::is_integral<N>::value, "exponent must be an integral type");
 
@@ -398,7 +557,7 @@ template <typename EH, typename V>
 
             // convert back to signed, prefix with sign
         EH::check_overflow(absPow <= U(std::numeric_limits<V>::max()));
-        return sign * V(absPow);
+        return EH::make_result(sign * V(absPow));
     }
 
         // Computes ⌊x ÷ d⌋ ∙ d for x ∊ ℕ₀, d ∊ ℕ, d ≠ 0.
@@ -409,7 +568,7 @@ template <typename EH, typename V>
     }
 
         // Computes ⌈x ÷ d⌉ ∙ d for x ∊ ℕ₀, d ∊ ℕ, d ≠ 0.
-    static constexpr V ceili(V x, V d)
+    static constexpr result_t<EH, V> ceili(V x, V d)
     {
         Expects(x >= 0);
         return checked_4_<EH, V>::ceili(x, d);
@@ -438,12 +597,12 @@ template <typename EH, typename V>
     }
 
         // Given x,b ∊ ℕ, x > 0, b > 1, returns (r,{ {b,e} }) such that x = bᵉ - r with r ≥ 0 minimal.
-    static constexpr factorization<V, 1> factorize_ceil(V x, V b)
+    static constexpr result_t<EH, factorization<V, 1>> factorize_ceil(V x, V b)
     {
         Expects(x > 0 && b > 1);
         auto [r, f] = checked_operations<EH, U>::factorize_ceil(U(x), U(b));
         EH::check_overflow(r <= U(std::numeric_limits<V>::max()));
-        return { V(r), { factor<V>{ b, V(f[0].exponent) } } };
+        return EH::make_result(factorization<V, 1>{ V(r), { factor<V>{ b, V(f[0].exponent) } } });
     }
 
         // Computes ⌊log x ÷ log b⌋ for x,b ∊ ℕ, x > 0, b > 1.
@@ -461,12 +620,14 @@ template <typename EH, typename V>
     }
 
         // Given x,a,b ∊ ℕ, x > 0, a,b > 1, a ≠ b, returns (r,{ {a,i}, {b,j} }) such that x = aⁱ ∙ bʲ - r with r ≥ 0 minimal.
-    static constexpr factorization<V, 2> factorize_ceil(V x, V a, V b)
+    static constexpr result_t<EH, factorization<V, 2>> factorize_ceil(V x, V a, V b)
     {
         Expects(x > 0 && a > 1 && b > 1 && a != b);
         auto [r, f] = checked_operations<EH, U>::factorize_ceil(U(x), U(a), U(b));
         EH::check_overflow(r <= U(std::numeric_limits<V>::max()));
-        return { V(r), { factor<V>{ a, V(f[0].exponent) }, factor<V>{ b, V(f[1].exponent) } } };
+        return EH::make_result(factorization<V, 2>{
+            V(r), { factor<V>{ a, V(f[0].exponent) }, factor<V>{ b, V(f[1].exponent) } }
+        });
     }
 
         // Given x,a,b ∊ ℕ, x > 0, a,b > 1, a ≠ b, returns (r,{ {a,i}, {b,j} }) such that x = aⁱ ∙ bʲ + r with r ≥ 0 minimal.
@@ -484,17 +645,17 @@ template <typename EH, typename V>
 {
     using W = typename wider_type<V>::type;
 
-    static constexpr V add(V lhs, V rhs)
+    static constexpr result_t<EH, V> add(V lhs, V rhs)
     {
         W result = W(lhs) + W(rhs);
         EH::check_overflow(result <= std::numeric_limits<V>::max());
-        return V(result);
+        return EH::make_result(V(result));
     }
-    static constexpr V multiply(V lhs, V rhs)
+    static constexpr result_t<EH, V> multiply(V lhs, V rhs)
     {
         W result = W(lhs) * W(rhs);
         EH::check_overflow(result <= std::numeric_limits<V>::max());
-        return V(result);
+        return EH::make_result(V(result));
     }
     static constexpr bool can_multiply(V lhs, V rhs)
     {
@@ -507,17 +668,17 @@ template <typename EH, typename V>
 {
     using W = typename wider_type<V>::type;
 
-    static constexpr V add(V lhs, V rhs)
+    static constexpr result_t<EH, V> add(V lhs, V rhs)
     {
         W result = W(lhs) + W(rhs);
         EH::check_overflow(result >= std::numeric_limits<V>::min() && result <= std::numeric_limits<V>::max());
-        return V(result);
+        return EH::make_result(V(result));
     }
-    static constexpr V multiply(V lhs, V rhs)
+    static constexpr result_t<EH, V> multiply(V lhs, V rhs)
     {
         W result = W(lhs) * W(rhs);
         EH::check_overflow(result >= std::numeric_limits<V>::min() && result <= std::numeric_limits<V>::max());
-        return V(result);
+        return EH::make_result(V(result));
     }
     static constexpr bool can_multiply(V lhs, V rhs)
     {
@@ -528,16 +689,16 @@ template <typename EH, typename V>
 template <typename EH, typename V>
     struct checked_2_<EH, V, has_no_wider_type, is_unsigned> : checked_3_<EH, V, is_unsigned>
 {
-    static constexpr V add(V lhs, V rhs)
+    static constexpr result_t<EH, V> add(V lhs, V rhs)
     {
         V result = lhs + rhs;
         EH::check_overflow(result >= lhs && result >= rhs);
-        return result;
+        return EH::make_result(result);
     }
-    static constexpr V multiply(V lhs, V rhs)
+    static constexpr result_t<EH, V> multiply(V lhs, V rhs)
     {
         EH::check_overflow(can_multiply(lhs, rhs));
-        return lhs * rhs;
+        return EH::make_result(lhs * rhs);
     }
     static constexpr bool can_multiply(V lhs, V rhs)
     {
@@ -549,18 +710,18 @@ template <typename EH, typename V>
 {
     using U = std::make_unsigned_t<V>;
 
-    static constexpr V add(V lhs, V rhs)
+    static constexpr result_t<EH, V> add(V lhs, V rhs)
     {
         V result = V(U(lhs) + U(rhs));
         EH::check_overflow(
             (lhs >= 0 || rhs >= 0 || result < 0) // at least one operand is non-negative, or the result is negative
          && (lhs <  0 || rhs <  0 || result >= 0)); // at least one operand is negative, or the result is non-negative
-        return result;
+        return EH::make_result(result);
     }
-    static constexpr V multiply(V lhs, V rhs)
+    static constexpr result_t<EH, V> multiply(V lhs, V rhs)
     {
         EH::check_overflow(can_multiply(lhs, rhs));
-        return lhs * rhs;
+        return EH::make_result(lhs * rhs);
     }
     static constexpr bool can_multiply(V lhs, V rhs)
     {

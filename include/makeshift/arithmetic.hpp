@@ -4,8 +4,13 @@
 
 
 #include <array>
-#include <iosfwd>    // for ostream
-#include <stdexcept> // for runtime_error
+#include <iosfwd>       // for ostream
+#include <exception>    // for terminate()
+#include <stdexcept>    // for runtime_error
+#include <type_traits>  // for integral_constant
+#include <system_error> // for errc
+
+#include <gsl/gsl_assert> // for Expects()
 
 #include <makeshift/utility2.hpp> // for dim
 #include <makeshift/version.hpp>  // for MAKESHIFT_NODISCARD, MAKESHIFT_CONSTEXPR_CXX20
@@ -77,35 +82,12 @@ template <typename V, dim NumFactors>
 };
 
 
-    //ᅟ
-    // Exception class thrown upon overflow by arithmetic routines named `*_or_throw()`.
-    //
-class arithmetic_overflow : public std::runtime_error
+template <typename T>
+    struct arithmetic_result
 {
-public:
-    using std::runtime_error::runtime_error;
+    T value;
+    std::errc ec;
 };
-
-
-namespace detail
-{
-
-
-struct throw_error_handler
-{
-    static void raise_overflow(void) { throw arithmetic_overflow("integer overflow"); }
-    static void raise_underflow(void) { throw arithmetic_overflow("integer underflow"); }
-    static constexpr MAKESHIFT_FORCEINLINE void check_overflow(bool cond) { if (!cond) raise_overflow(); } // TODO: use HEDLEY_ASSUME() or similar
-    static constexpr MAKESHIFT_FORCEINLINE void check_underflow(bool cond) { if (!cond) raise_underflow(); }
-};
-struct assert_error_handler
-{
-    static constexpr MAKESHIFT_FORCEINLINE void check_overflow(bool cond) { Expects(cond); }
-    static constexpr MAKESHIFT_FORCEINLINE void check_underflow(bool cond) { Expects(cond); }
-};
-
-
-} // namespace detail
 
 
     //ᅟ
