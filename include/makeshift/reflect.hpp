@@ -64,7 +64,7 @@ template <typename T, typename MetadataTagT = reflection_tag>
         //| tuple_map([](const auto& v) { return c<std::decay_t<decltype(v)>::value>; });
         | tuple_map([](const auto& v) { return typename std::decay_t<decltype(v)>::type{ }; }); // workaround for ICE in VC++
     using Values = decltype(lvalues); // std::tuple<constant<Cs>...>
-    return apply_t<type_tuple, Values>{ }; // type_tuple<constant<Cs>...>
+    return instantiate_t<type_tuple, Values>{ }; // type_tuple<constant<Cs>...>
 }
 
 
@@ -123,7 +123,7 @@ template <typename T, typename MetadataTagT = reflection_tag>
 template <typename MemberMetadataT>
     constexpr auto member_accessor(const MemberMetadataT&)
 {
-    using AccessorsTuple = apply_t<type_tuple, typename MemberMetadataT::accessors>;
+    using AccessorsTuple = instantiate_t<type_tuple, typename MemberMetadataT::accessors>;
     auto memberObjectPointer = AccessorsTuple{ }
         | tuple_filter(trait_v<std::is_member_object_pointer>(value_type_transform_v))
         | single_or_none();

@@ -92,6 +92,7 @@ template <typename T, typename A, typename SizeC>
 
 
 MAKESHIFT_PUBLIC std::size_t alignment_in_bytes(alignment a, std::size_t alignOfT) noexcept;
+MAKESHIFT_PUBLIC std::size_t alignment_in_elements(alignment a, std::size_t sizeOfT, std::size_t alignOfT) noexcept;
 
 
 } // namespace detail

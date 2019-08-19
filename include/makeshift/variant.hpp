@@ -482,10 +482,10 @@ template <typename VariantT,
     //
 template <typename T, typename TupleT, typename EqualToT,
           typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
-    constexpr typename apply<std::variant, std::decay_t<TupleT>>::type
+    constexpr typename instantiate<std::variant, std::decay_t<TupleT>>::type
     expand(T&& value, TupleT&& tuple, EqualToT&& equalToFunc)
 {
-    using R = typename apply<std::variant, std::decay_t<TupleT>>::type;
+    using R = typename instantiate<std::variant, std::decay_t<TupleT>>::type;
     return makeshift::detail::expand_impl<R>(std::true_type{ }, std::make_index_sequence<std::tuple_size<std::decay_t<TupleT>>::value>{ },
         std::forward<T>(value), std::forward<EqualToT>(equalToFunc), std::forward<TupleT>(tuple));
 }
@@ -499,10 +499,10 @@ template <typename T, typename TupleT, typename EqualToT,
     //
 template <typename T, typename TupleT,
           typename = std::enable_if_t<is_tuple_like_v<std::decay_t<TupleT>>>>
-    constexpr typename apply<std::variant, std::decay_t<TupleT>>::type
+    constexpr typename instantiate<std::variant, std::decay_t<TupleT>>::type
     expand(T&& value, TupleT&& tuple)
 {
-    using R = typename apply<std::variant, std::decay_t<TupleT>>::type;
+    using R = typename instantiate<std::variant, std::decay_t<TupleT>>::type;
     return makeshift::detail::expand_impl<R>(std::true_type{ }, std::make_index_sequence<std::tuple_size<std::decay_t<TupleT>>::value>{ },
         std::forward<T>(value), [](const auto& lhs, const auto& rhs) noexcept { return lhs == rhs; }, std::forward<TupleT>(tuple));
 }
