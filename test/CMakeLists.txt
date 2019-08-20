@@ -9,7 +9,7 @@ cmake_minimum_required(VERSION 3.14)
 # dependencies
 find_package(Catch2 2.4 REQUIRED)
 find_package(CMakeshift 3.5 REQUIRED)
-find_package(MS-GSL REQUIRED)
+find_package(gsl-lite REQUIRED)
 
 # test target
 add_executable(test-makeshift
@@ -52,7 +52,7 @@ target_compile_definitions(test-makeshift
 # test dependencies
 target_link_libraries(test-makeshift
     PRIVATE
-        MS-GSL::MS-GSL
+        gsl::gsl-lite
         Catch2::Catch2
         makeshift)
 

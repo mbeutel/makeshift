@@ -4,10 +4,12 @@
 
 
 #include <limits>
-#include <cstdint>     // for [u]int(8|16|32|64)_t
+#include <cstdint>     // for [u]int(8|16|32|64)_t, intptr_t
 #include <type_traits> // for make_unsigned<>, is_signed<>, is_integral<>, is_same<>
 
-#include <gsl/gsl_assert> // for Expects()
+#include "gsl-lite.hpp" // for Expects()
+
+#include <hedley.h> // for HEDLEY_ALWAYS_INLINE
 
 #include <makeshift/utility2.hpp> // for dim
 #include <makeshift/version.hpp>  // for MAKESHIFT_FORCEINLINE
