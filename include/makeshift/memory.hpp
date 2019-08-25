@@ -11,7 +11,7 @@
 #include <utility>     // for forward<>()
 #include <type_traits> // for is_nothrow_default_constructible<>, enable_if<>, is_same<>, remove_cv<>
 
-#include <gsl/gsl_assert> // for Expects()
+#include <gsl/gsl-lite.hpp> // for Expects()
 
 #include <makeshift/type_traits2.hpp> // for can_instantiate<>
 #include <makeshift/version.hpp>      // for MAKESHIFT_CXX17, MAKESHIFT_NODISCARD

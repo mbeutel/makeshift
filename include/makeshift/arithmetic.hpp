@@ -548,7 +548,7 @@ template <typename N, typename D>
 
     //ᅟ
     // Computes ⌈n ÷ d⌉ for n ∊ ℕ₀, d ∊ ℕ, d ≠ 0.
-    // Enforces preconditions with `Expects()`. Uses `Expects()` to raise error upon overflow.
+    // Enforces preconditions with `Expects()`.
     //
 template <typename N, typename D>
     MAKESHIFT_NODISCARD constexpr makeshift::detail::common_integral_value_type<N, D>
@@ -557,35 +557,7 @@ template <typename N, typename D>
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<N, D>, "arguments must be convertible to an integral type");
     static_assert(makeshift::detail::have_same_signedness_v<N, D>, "argument types must have identical signedness");
 
-    return makeshift::detail::ratio_ceili<makeshift::detail::assert_error_handler>(n, d);
-}
-
-    //ᅟ
-    // Computes ⌈n ÷ d⌉ for n ∊ ℕ₀, d ∊ ℕ, d ≠ 0.
-    // Enforces preconditions with `Expects()`. Returns error code `std::errc::value_too_large` upon overflow.
-    //
-template <typename N, typename D>
-    MAKESHIFT_NODISCARD constexpr arithmetic_result<makeshift::detail::common_integral_value_type<N, D>>
-    try_ratio_ceili(N n, D d)
-{
-    static_assert(makeshift::detail::are_integral_arithmetic_types_v<N, D>, "arguments must be convertible to an integral type");
-    static_assert(makeshift::detail::have_same_signedness_v<N, D>, "argument types must have identical signedness");
-
-    return makeshift::detail::ratio_ceili<makeshift::detail::try_error_handler>(n, d);
-}
-
-    //ᅟ
-    // Computes ⌈n ÷ d⌉ for n ∊ ℕ₀, d ∊ ℕ, d ≠ 0.
-    // Enforces preconditions with `Expects()`. Throws `std::system_error` upon overflow.
-    //
-template <typename N, typename D>
-    MAKESHIFT_NODISCARD constexpr makeshift::detail::common_integral_value_type<N, D>
-    ratio_ceili_or_throw(N n, D d)
-{
-    static_assert(makeshift::detail::are_integral_arithmetic_types_v<N, D>, "arguments must be convertible to an integral type");
-    static_assert(makeshift::detail::have_same_signedness_v<N, D>, "argument types must have identical signedness");
-
-    return makeshift::detail::ratio_ceili<makeshift::detail::throw_error_handler>(n, d);
+    return makeshift::detail::ratio_ceili(n, d);
 }
 
 
