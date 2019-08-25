@@ -9,7 +9,7 @@
 #include <utility>     // for move()
 #include <type_traits> // for underlying_type<>, integral_constant<>
 
-#include <gsl/gsl_assert> // for Expects()
+#include <gsl/gsl-lite.hpp> // for Expects()
 
 #include <makeshift/version.hpp> // for MAKESHIFT_NODISCARD
 

@@ -5,7 +5,7 @@
 #include <exception> // for terminate()
 #include <stdexcept> // for runtime_error
 
-#include <gsl/gsl_assert> // for Expects()
+#include <gsl/gsl-lite.hpp> // for Expects()
 
 #include <makeshift/constrained.hpp>
 #include <makeshift/hint.hpp>        // for enum_hint_options

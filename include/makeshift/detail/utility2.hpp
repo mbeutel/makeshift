@@ -9,7 +9,7 @@
 #include <exception>   // for terminate()
 #include <type_traits> // for integral_constant<>, make_signed<>, make_unsigned<>, common_type<>
 
-#include <gsl/gsl_assert> // for Expects()
+#include <gsl/gsl-lite.hpp> // for Expects()
 
 #include <makeshift/type_traits.hpp>  // for tag<>
 #include <makeshift/type_traits2.hpp> // for flags_base, unwrap_enum_tag, type<>, type_sequence<>

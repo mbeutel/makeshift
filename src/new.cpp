@@ -3,8 +3,7 @@
 #include <cstddef>   // for size_t, ptrdiff_t
 #include <exception> // for terminate()
 
-#include <gsl/gsl_util>   // for narrow_cast<>()
-#include <gsl/gsl_assert> // for Expects()
+#include <gsl/gsl-lite.hpp> // for Expects(), narrow_cast<>()
 
 #include <makeshift/new.hpp>
 #include <makeshift/memory.hpp>

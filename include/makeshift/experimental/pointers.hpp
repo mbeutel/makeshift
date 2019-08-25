@@ -8,8 +8,7 @@
 #include <typeinfo>       // for bad_cast
 #include <type_traits>    // for declval<>()
 
-#include <gsl/gsl_assert> // for Expects(), Ensures()
-#include <gsl/pointers>   // for not_null<>
+#include <gsl/gsl-lite.hpp> // for Expects(), Ensures(), not_null<>
 
 #include <makeshift/type_traits.hpp> // for can_instantiate<>
 

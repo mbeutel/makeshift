@@ -8,7 +8,7 @@
 #include <iterator>    // for move_iterator<>
 #include <type_traits> // for is_convertible<>
 
-#include <gsl/gsl_assert> // for Expects()
+#include <gsl/gsl-lite.hpp> // for Expects()
 
 #include <makeshift/constval.hpp> // for constval_extract()
 #include <makeshift/utility2.hpp> // for dim

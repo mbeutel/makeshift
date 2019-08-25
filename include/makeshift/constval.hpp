@@ -6,7 +6,7 @@
 #include <utility>     // for tuple_size<>, tuple_element<>, integer_sequence<>
 #include <type_traits> // for is_empty<>, conjunction<>
 
-#include <gsl/gsl_assert> // for Expects()
+#include <gsl/gsl-lite.hpp> // for Expects()
 
 #include <makeshift/type_traits2.hpp> // for can_instantiate<>
 #include <makeshift/version.hpp>      // for MAKESHIFT_NODISCARD

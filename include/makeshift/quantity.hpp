@@ -6,7 +6,7 @@
 #include <cstdint>     // for uint64_t
 #include <type_traits> // for enable_if<>, is_nothrow_default_constructible<>, is_nothrow_copy_constructible<>
 
-#include <gsl/gsl_assert> // for Expects()
+#include <gsl/gsl-lite.hpp> // for Expects()
 
 #include <makeshift/type_traits.hpp> // for is_instantiation_of<>
 

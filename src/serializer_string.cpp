@@ -1,7 +1,7 @@
 
 #include <string>
 
-#include <gsl/gsl_util> // for narrow<>()
+#include <gsl/gsl-lite.hpp> // for narrow<>()
 
 #include <makeshift/type_traits.hpp>        // for tag<>
 #include <makeshift/serializers/string.hpp>

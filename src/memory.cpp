@@ -2,7 +2,7 @@
 #include <numeric> // for lcm()
 #include <cstddef> // for size_t, ptrdiff_t, max_align_t
 
-#include <gsl/gsl_assert> // for Expects()
+#include <gsl/gsl-lite.hpp> // for Expects()
 
 #include <makeshift/new.hpp>    // for hardware_page_size(), hardware_cache_line_size()
 #include <makeshift/memory.hpp>

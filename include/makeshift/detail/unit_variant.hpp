@@ -7,7 +7,7 @@
 #include <utility>     // for move(), forward<>(), get<>, in_place_index<>, in_place_type<>, swap()
 #include <type_traits> // for enable_if<>, decay<>, integral_constant<>, index_sequence<>, is_nothrow_default_constructible<>, is_empty<>
 
-#include <gsl/gsl_assert> // for Expects()
+#include <gsl/gsl-lite.hpp> // for Expects()
 
 #include <makeshift/type_traits2.hpp> // for is_instantiation_of<>
 #include <makeshift/version.hpp>      // for MAKESHIFT_NODISCARD, MAKESHIFT_CXX17

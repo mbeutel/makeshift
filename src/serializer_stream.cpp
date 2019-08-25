@@ -6,7 +6,7 @@
 #include <iomanip>
 #include <cctype>
 
-#include <gsl/gsl_assert> // for Expects()
+#include <gsl/gsl-lite.hpp> // for Expects()
 
 #include <makeshift/string.hpp>
 #include <makeshift/quantity.hpp>

@@ -7,7 +7,7 @@
 #include <optional>
 #include <exception> // for terminate()
 
-#include <gsl/gsl_assert> // for Expects()
+#include <gsl/gsl-lite.hpp> // for Expects()
 
 #include <makeshift/hint.hpp>               // for enum_hint_options
 #include <makeshift/serialize.hpp>          // for enum_serialization_options

@@ -4,13 +4,19 @@
 
 
 #include <limits>
-#include <cstdint>     // for [u]int(8|16|32|64)_t
-#include <type_traits> // for make_unsigned<>, is_signed<>, is_integral<>, is_same<>
+#include <cstdint>      // for [u]int(8|16|32|64)_t
+#include <type_traits>  // for integral_constant<>, make_unsigned<>, is_signed<>, is_integral<>, is_same<>
+#include <system_error> // for errc
 
-#include <gsl/gsl_assert> // for Expects()
+#include <gsl/gsl-lite.hpp> // for Expects()
 
-#include <makeshift/utility2.hpp> // for dim
 #include <makeshift/version.hpp>  // for MAKESHIFT_FORCEINLINE
+
+
+#if defined(_MSC_VER) && !defined(__clang__)
+ #pragma warning( push )
+ #pragma warning( disable: 4702 ) // unreachable code
+#endif // defined(_MSC_VER) && !defined(__clang__)
 
 
 namespace makeshift
@@ -19,7 +25,7 @@ namespace makeshift
 
 template <typename V>
     struct factor;
-template <typename V, dim NumFactors>
+template <typename V, int NumFactors>
     struct factorization;
 template <typename T>
     struct arithmetic_result;
@@ -27,10 +33,6 @@ template <typename T>
 
 namespace detail
 {
-
-
-    // The implementations below have borrowed heavily from the suggestions made and examples used in the SEI CERT C Coding Standard:
-    // https://wiki.sei.cmu.edu/confluence/display/c/
 
 
 struct unreachable_wildcard_t
@@ -77,7 +79,7 @@ struct try_error_handler
         return result.ec != std::errc{ };
     }
     template <typename T>
-        static constexpr MAKESHIFT_FORCEINLINE errc_wildcard_t passthrough_error(const arithmetic_result<T> const& result) noexcept
+        static constexpr MAKESHIFT_FORCEINLINE errc_wildcard_t passthrough_error(arithmetic_result<T> const& result) noexcept
     {
         return { result.ec };
     }
@@ -90,11 +92,11 @@ struct throw_error_handler
     template <typename T>
         static constexpr MAKESHIFT_FORCEINLINE T make_result(T value) noexcept
     {
-        return { value, std::errc{ } };
+        return value;
     }
-    [[noreturn]] static constexpr inline T make_error(std::errc ec) noexcept
+    [[noreturn]] static inline unreachable_wildcard_t make_error(std::errc ec)
     {
-        throw std::system_error(ec);
+        throw std::system_error(std::make_error_code(ec));
     }
     template <typename T>
         static constexpr MAKESHIFT_FORCEINLINE T get_value(T result) noexcept
@@ -120,9 +122,9 @@ struct assert_error_handler
     template <typename T>
         static constexpr MAKESHIFT_FORCEINLINE T make_result(T value) noexcept
     {
-        return { value, std::errc{ } };
+        return value;
     }
-    [[noreturn]] static constexpr inline unreachable_wildcard_t make_error(std::errc) noexcept
+    [[noreturn]] static inline unreachable_wildcard_t make_error(std::errc) noexcept
     {
         std::terminate();
     }
@@ -144,606 +146,864 @@ struct assert_error_handler
 };
 
 
-template <typename V> struct wider_type;
-template <> struct wider_type<std::int8_t> { using type = std::int32_t; };
-template <> struct wider_type<std::int16_t> { using type = std::int32_t; };
-template <> struct wider_type<std::int32_t> { using type = std::int64_t; };
-template <> struct wider_type<std::uint8_t> { using type = std::uint32_t; };
-template <> struct wider_type<std::uint16_t> { using type = std::uint32_t; };
-template <> struct wider_type<std::uint32_t> { using type = std::uint64_t; };
+template <typename V> struct integral_value_type_ { using type = V; };
+template <typename V, V Value> struct integral_value_type_<std::integral_constant<V, Value>> { using type = V; };
+template <typename V> using integral_value_type = typename integral_value_type_<V>::type;
 
-enum int_signedness { is_signed, is_unsigned };
-enum int_width { has_wider_type, has_no_wider_type };
+template <typename... Vs> using common_integral_value_type = std::common_type_t<typename integral_value_type_<Vs>::type...>;
 
-template <typename EH, typename V>
-    struct checked_operations;
+template <typename V> struct is_nonbool_integral : std::integral_constant<bool, std::is_integral<V>::value && !std::is_same<V, bool>::value> { };
+
+template <typename... Vs> constexpr bool are_integral_arithmetic_types_v = std::conjunction_v<is_nonbool_integral<Vs>...>;
+
+template <bool Signed, typename... Vs> constexpr bool have_same_signedness_0_v = std::conjunction_v<std::integral_constant<bool, std::is_signed<integral_value_type<Vs>>::value == Signed>...>;
+template <typename... Vs> constexpr bool have_same_signedness_v = false;
+template <> constexpr bool have_same_signedness_v<> = true;
+template <typename V0, typename... Vs> constexpr bool have_same_signedness_v<V0, Vs...> = have_same_signedness_0_v<std::is_signed<integral_value_type<V0>>::value, Vs...>;
+
+template <typename V> struct wider_type_;
+template <typename V> using wider_type = typename wider_type_<V>::type;
+template <> struct wider_type_<std::int8_t> { using type = std::int32_t; };
+template <> struct wider_type_<std::int16_t> { using type = std::int32_t; };
+template <> struct wider_type_<std::int32_t> { using type = std::int64_t; };
+template <> struct wider_type_<std::uint8_t> { using type = std::uint32_t; };
+template <> struct wider_type_<std::uint16_t> { using type = std::uint32_t; };
+template <> struct wider_type_<std::uint32_t> { using type = std::uint64_t; };
+template <typename V> constexpr bool has_wider_type_v = sizeof(V) <= sizeof(std::uint32_t);
+template <typename V> struct has_wider_type : std::integral_constant<bool, has_wider_type_v<V>> { };
 
 template <typename EH, typename V> using result_t = typename EH::template result<V>;
 
+
+    // The implementations below have borrowed heavily from the suggestions made and examples used in the SEI CERT C Coding Standard:
+    // https://wiki.sei.cmu.edu/confluence/display/c/
+
+
 template <typename EH, typename V>
-struct checked_4_
+    constexpr result_t<EH, integral_value_type<V>> negate_unsigned(V v)
 {
-        // Computes ⌊x ÷ d⌋ ∙ d for x ∊ ℕ₀, d ∊ ℕ, d ≠ 0.
-    static constexpr V floori(V x, V d)
-    {
-        Expects(d != 0);
-        
-        return x - x % d;
-    }
+    using V0 = integral_value_type<V>;
 
-        // Computes ⌈x ÷ d⌉ ∙ d for x ∊ ℕ₀, d ∊ ℕ, d ≠ 0.
-    static constexpr result_t<EH, V> ceili(V x, V d)
-    {
-            // We have the following identities:
-            //
-            //     x = ⌊x ÷ d⌋ ∙ d + x mod d
-            //     ⌈x ÷ d⌉ = ⌊(x + d - 1) ÷ d⌋ = ⌊(x - 1) ÷ d⌋ + 1
-            //
-            // Assuming x ≠ 0, we can derive the form
-            //
-            //     ⌈x ÷ d⌉ ∙ d = x + d - (x - 1) mod d - 1 .
-
-        Expects(d != 0);
-        
-        return x != 0
-            ? checked_operations<EH, V>::add(x, d - (x - 1) % d - 1)
-            : EH::make_result(V(0));
-   }
-
-        // Computes ⌊n ÷ d⌋ for n ∊ ℕ₀, d ∊ ℕ.
-    static constexpr V ratio_floor(V n, V d)
-    {
-        Expects(d != 0);
-        
-        return n / d;
-    }
-
-        // Computes ⌈n ÷ d⌉ for n ∊ ℕ₀, d ∊ ℕ.
-    static constexpr V ratio_ceil(V n, V d)
-    {
-        Expects(d != 0);
-        
-        return n != 0
-             ? (n - 1) / d + 1 // overflow-safe
-             : 0;
-    }
-};
-template <typename EH, typename V, int_signedness>
-    struct checked_3_;
+    if (v != 0) return EH::make_error(std::errc::value_too_large);
+    return EH::make_result(V0(0));
+}
 template <typename EH, typename V>
-    struct checked_3_<EH, V, is_unsigned> : checked_4_<EH, V>
+    constexpr result_t<EH, integral_value_type<V>> negate_signed(V v)
 {
-    static constexpr result_t<EH, V> divide(V lhs, V rhs)
+    using V0 = integral_value_type<V>;
+
+        // This assumes a two's complement representation (it will yield a false negative for one's complement integers).
+    if (v == std::numeric_limits<V0>::min()) return EH::make_error(std::errc::value_too_large);
+    return EH::make_result(V0(-v));
+}
+#ifndef MAKESHIFT_CXX17
+template <typename EH, typename V>
+    constexpr result_t<EH, integral_value_type<V>> negate_0(std::false_type /*isSigned*/, V v)
+{
+    return negate_unsigned<EH>(v);
+}
+template <typename EH, typename V>
+    constexpr result_t<EH, integral_value_type<V>> negate_0(std::true_type /*isSigned*/, V v)
+{
+    return negate_signed<EH>(v);
+}
+#endif MAKESHIFT_CXX17
+template <typename EH, typename V>
+    constexpr result_t<EH, integral_value_type<V>> negate(V v)
+{
+    using V0 = integral_value_type<V>;
+
+#ifdef MAKESHIFT_CXX17
+    if constexpr (std::is_signed_v<V0>)
     {
-        Expects(rhs != 0);
-        
-        return EH::make_result(lhs / rhs);
+        return negate_signed<EH>(v);
     }
-    static constexpr result_t<EH, V> modulo(V lhs, V rhs)
+    else
     {
-        Expects(rhs != 0);
-        
-        return EH::make_result(lhs % rhs);
+        return negate_unsigned<EH>(v);
     }
-    static constexpr result_t<EH, V> negate(V arg)
+#else // MAKESHIFT_CXX17
+    return negate_0<EH>(std::is_signed<V0>{ }, v);
+#endif // MAKESHIFT_CXX17
+}
+
+
+template <typename EH, typename A, typename B>
+    constexpr result_t<EH, common_integral_value_type<A, B>> add_narrow(A a, B b)
+{
+    using V = common_integral_value_type<A, B>;
+    using W = wider_type<V>;
+
+    W result = W(a) + W(b);
+    if (result < std::numeric_limits<V>::min() || result > std::numeric_limits<V>::max()) return EH::make_error(std::errc::value_too_large);
+    return EH::make_result(V(result));
+}
+template <typename EH, typename A, typename B>
+    constexpr result_t<EH, common_integral_value_type<A, B>> add_wide_unsigned(A a, B b)
+{
+    using V = common_integral_value_type<A, B>;
+
+    V result = a + b;
+    if (result < a || result < b) return EH::make_error(std::errc::value_too_large);
+    return EH::make_result(V(result));
+}
+template <typename EH, typename A, typename B>
+    constexpr result_t<EH, common_integral_value_type<A, B>> add_wide_signed(A a, B b)
+{
+    using V = common_integral_value_type<A, B>;
+    using U = std::make_unsigned_t<V>;
+
+    V result = V(U(a) + U(b));
+    if ((a <  0 && b <  0 && result >= 0)
+     || (a >= 0 && b >= 0 && result <  0))
     {
-        if (arg != 0) return EH::make_error(std::errc::value_too_large);
+        return EH::make_error(std::errc::value_too_large);
+    }
+    return EH::make_result(V(result));
+}
+#ifndef MAKESHIFT_CXX17
+template <typename EH, typename BC, typename A, typename B>
+    constexpr result_t<EH, common_integral_value_type<A, B>> add_0(std::true_type /*isNarrow*/, BC /*isSigned*/, A a, B b)
+{
+    return add_narrow<EH>(a, b);
+}
+template <typename EH, typename A, typename B>
+    constexpr result_t<EH, common_integral_value_type<A, B>> add_0(std::false_type /*isNarrow*/, std::false_type /*isSigned*/, A a, B b)
+{
+    return add_wide_unsigned<EH>(a, b);
+}
+template <typename EH, typename A, typename B>
+    constexpr result_t<EH, common_integral_value_type<A, B>> add_0(std::false_type /*isNarrow*/, std::true_type /*isSigned*/, A a, B b)
+{
+    return add_wide_signed<EH>(a, b);
+}
+#endif // MAKESHIFT_CXX17
+template <typename EH, typename A, typename B>
+    constexpr result_t<EH, common_integral_value_type<A, B>> add(A a, B b)
+{
+    using V = common_integral_value_type<A, B>;
+
+#ifdef MAKESHIFT_CXX17
+    if constexpr (has_wider_type_v<V>)
+    {
+        return add_narrow<EH>(a, b);
+    }
+    else if constexpr (std::is_signed_v<V>)
+    {
+        return add_wide_signed<EH>(a, b);
+    }
+    else
+    {
+        return add_wide_unsigned<EH>(a, b);
+    }
+#else // MAKESHIFT_CXX17
+    return add_0<EH>(has_wider_type<V>{ }, std::is_signed<V>{ }, a, b);
+#endif // MAKESHIFT_CXX17
+}
+
+
+template <typename EH, typename A, typename B>
+    constexpr result_t<EH, common_integral_value_type<A, B>> subtract_unsigned(A a, B b)
+{
+    using V = common_integral_value_type<A, B>;
+
+    if (a < b) return EH::make_error(std::errc::value_too_large);
+    return EH::make_result(V(a - b));
+}
+template <typename EH, typename A, typename B>
+    constexpr result_t<EH, common_integral_value_type<A, B>> subtract_signed(A a, B b)
+{
+    using V = common_integral_value_type<A, B>;
+
+    if ((b > 0 && a < std::numeric_limits<V>::min() + b)
+     || (b < 0 && a > std::numeric_limits<V>::max() + b))
+    {
+        return EH::make_error(std::errc::value_too_large);
+    }
+    return EH::make_result(V(a - b));
+}
+#ifndef MAKESHIFT_CXX17
+template <typename EH, typename A, typename B>
+    constexpr result_t<EH, common_integral_value_type<A, B>> subtract_0(std::false_type /*isSigned*/, A a, B b)
+{
+    return subtract_unsigned<EH>(a, b);
+}
+template <typename EH, typename A, typename B>
+    constexpr result_t<EH, common_integral_value_type<A, B>> subtract_0(std::true_type /*isSigned*/, A a, B b)
+{
+    return subtract_signed<EH>(a, b);
+}
+#endif // MAKESHIFT_CXX17
+template <typename EH, typename A, typename B>
+    constexpr result_t<EH, common_integral_value_type<A, B>> subtract(A a, B b)
+{
+    using V = common_integral_value_type<A, B>;
+
+#ifdef MAKESHIFT_CXX17
+    if constexpr (std::is_signed_v<V>)
+    {
+        return subtract_signed<EH>(a, b);
+    }
+    else
+    {
+        return subtract_unsigned<EH>(a, b);
+    }
+#else // MAKESHIFT_CXX17
+    return subtract_0<EH>(std::is_signed<V>{ }, a, b);
+#endif // MAKESHIFT_CXX17
+}
+
+
+template <typename A, typename B>
+    constexpr bool can_multiply_narrow(A a, B b) noexcept
+{
+    using V = common_integral_value_type<A, B>;
+    using W = wider_type<V>;
+
+    W result = W(a) * W(b);
+    return result >= std::numeric_limits<V>::min() && result <= std::numeric_limits<V>::max();
+}
+template <typename A, typename B>
+    constexpr bool can_multiply_wide_unsigned(A a, B b) noexcept
+{
+    using V = common_integral_value_type<A, B>;
+
+    return b == 0 || a <= std::numeric_limits<V>::max() / b;
+}
+template <typename A, typename B>
+    constexpr bool can_multiply_wide_signed(A a, B b) noexcept
+{
+    using V = common_integral_value_type<A, B>;
+
+    return (a <= 0 || ((b <= 0             || a <= std::numeric_limits<V>::max() / b)
+                      && (b >  0             || b >= std::numeric_limits<V>::min() / a)))
+        && (a >  0 || ((b <= 0             || a >= std::numeric_limits<V>::min() / b)
+                      && (b >  0 || a == 0 || b >= std::numeric_limits<V>::max() / a)));
+}
+#ifndef MAKESHIFT_CXX17
+template <typename BC, typename A, typename B>
+    constexpr bool can_multiply_0(std::true_type /*isNarrow*/, BC /*isSigned*/, A a, B b)
+{
+    return can_multiply_narrow(a, b);
+}
+template <typename A, typename B>
+    constexpr bool can_multiply_0(std::false_type /*isNarrow*/, std::false_type /*isSigned*/, A a, B b)
+{
+    return can_multiply_wide_unsigned(a, b);
+}
+template <typename A, typename B>
+    constexpr bool can_multiply_0(std::false_type /*isNarrow*/, std::true_type /*isSigned*/, A a, B b)
+{
+    return can_multiply_wide_signed(a, b);
+}
+#endif // MAKESHIFT_CXX17
+template <typename A, typename B>
+    constexpr bool can_multiply(A a, B b)
+{
+    using V = common_integral_value_type<A, B>;
+
+#ifdef MAKESHIFT_CXX17
+    if constexpr (has_wider_type_v<V>)
+    {
+        return can_multiply_narrow(a, b);
+    }
+    else if constexpr (std::is_signed_v<V>)
+    {
+        return can_multiply_wide_signed(a, b);
+    }
+    else
+    {
+        return can_multiply_wide_unsigned(a, b);
+    }
+#else // MAKESHIFT_CXX17
+    return can_multiply_0(has_wider_type<V>{ }, std::is_signed<V>{ }, a, b);
+#endif // MAKESHIFT_CXX17
+}
+
+template <typename EH, typename A, typename B>
+    constexpr result_t<EH, common_integral_value_type<A, B>> multiply_narrow(A a, B b)
+{
+    using V = common_integral_value_type<A, B>;
+    using W = wider_type<V>;
+
+    W result = W(a) * W(b);
+    if (result < std::numeric_limits<V>::min() || result > std::numeric_limits<V>::max()) return EH::make_error(std::errc::value_too_large);
+    return EH::make_result(V(result));
+}
+template <typename EH, typename A, typename B>
+    constexpr result_t<EH, common_integral_value_type<A, B>> multiply_wide_unsigned(A a, B b)
+{
+    using V = common_integral_value_type<A, B>;
+
+    if (!can_multiply_wide_unsigned(a, b)) return EH::make_error(std::errc::value_too_large);
+    return EH::make_result(V(a * b));
+}
+template <typename EH, typename A, typename B>
+    constexpr result_t<EH, common_integral_value_type<A, B>> multiply_wide_signed(A a, B b)
+{
+    using V = common_integral_value_type<A, B>;
+
+    if (!can_multiply_wide_signed(a, b)) return EH::make_error(std::errc::value_too_large);
+    return EH::make_result(V(a * b));
+}
+#ifndef MAKESHIFT_CXX17
+template <typename EH, typename BC, typename A, typename B>
+    constexpr result_t<EH, common_integral_value_type<A, B>> multiply_0(std::true_type /*isNarrow*/, BC /*isSigned*/, A a, B b)
+{
+    return multiply_narrow<EH>(a, b);
+}
+template <typename EH, typename A, typename B>
+    constexpr result_t<EH, common_integral_value_type<A, B>> multiply_0(std::false_type /*isNarrow*/, std::false_type /*isSigned*/, A a, B b)
+{
+    return multiply_wide_unsigned<EH>(a, b);
+}
+template <typename EH, typename A, typename B>
+    constexpr result_t<EH, common_integral_value_type<A, B>> multiply_0(std::false_type /*isNarrow*/, std::true_type /*isSigned*/, A a, B b)
+{
+    return multiply_wide_signed<EH>(a, b);
+}
+#endif // MAKESHIFT_CXX17
+template <typename EH, typename A, typename B>
+    constexpr result_t<EH, common_integral_value_type<A, B>> multiply(A a, B b)
+{
+    using V = common_integral_value_type<A, B>;
+
+#ifdef MAKESHIFT_CXX17
+    if constexpr (has_wider_type_v<V>)
+    {
+        return multiply_narrow<EH>(a, b);
+    }
+    else if constexpr (std::is_signed_v<V>)
+    {
+        return multiply_wide_signed<EH>(a, b);
+    }
+    else
+    {
+        return multiply_wide_unsigned<EH>(a, b);
+    }
+#else // MAKESHIFT_CXX17
+    return multiply_0<EH>(has_wider_type<V>{ }, std::is_signed<V>{ }, a, b);
+#endif // MAKESHIFT_CXX17
+}
+
+
+template <typename EH, typename N, typename D>
+    constexpr result_t<EH, common_integral_value_type<N, D>> divide_unsigned(N n, D d)
+{
+    using V = common_integral_value_type<N, D>;
+
+    Expects(d != 0);
+
+    return EH::make_result(V(n / d));
+}
+template <typename EH, typename N, typename D>
+    constexpr result_t<EH, common_integral_value_type<N, D>> divide_signed(N n, D d)
+{
+    using V = common_integral_value_type<N, D>;
+
+    Expects(d != 0);
+
+    if (n == std::numeric_limits<V>::min() && d == -1) return EH::make_error(std::errc::value_too_large);
+    return EH::make_result(V(n / d));
+}
+#ifndef MAKESHIFT_CXX17
+template <typename EH, typename N, typename D>
+    constexpr result_t<EH, common_integral_value_type<N, D>> divide_0(std::false_type /*isSigned*/, N n, D d)
+{
+    return divide_unsigned<EH>(n, d);
+}
+template <typename EH, typename N, typename D>
+    constexpr result_t<EH, common_integral_value_type<N, D>> divide_0(std::true_type /*isSigned*/, N n, D d)
+{
+    return divide_signed<EH>(n, d);
+}
+#endif // MAKESHIFT_CXX17
+template <typename EH, typename N, typename D>
+    constexpr result_t<EH, common_integral_value_type<N, D>> divide(N n, D d)
+{
+    using V = common_integral_value_type<N, D>;
+
+#ifdef MAKESHIFT_CXX17
+    if constexpr (std::is_signed_v<V>)
+    {
+        return divide_signed<EH>(n, d);
+    }
+    else
+    {
+        return divide_unsigned<EH>(n, d);
+    }
+#else // MAKESHIFT_CXX17
+    return divide_0<EH>(std::is_signed<V>{ }, n, d);
+#endif // MAKESHIFT_CXX17
+}
+
+
+template <typename EH, typename N, typename D>
+    constexpr result_t<EH, common_integral_value_type<N, D>> modulo_unsigned(N n, D d)
+{
+    using V = common_integral_value_type<N, D>;
+
+    Expects(d != 0);
+
+    return EH::make_result(V(n % d));
+}
+template <typename EH, typename N, typename D>
+    constexpr result_t<EH, common_integral_value_type<N, D>> modulo_signed(N n, D d)
+{
+    using V = common_integral_value_type<N, D>;
+
+    Expects(d != 0);
+
+    if (n == std::numeric_limits<V>::min() && d == -1) return EH::make_error(std::errc::value_too_large);
+    return EH::make_result(V(n % d));
+}
+#ifndef MAKESHIFT_CXX17
+template <typename EH, typename N, typename D>
+    constexpr result_t<EH, common_integral_value_type<N, D>> modulo_0(std::false_type /*isSigned*/, N n, D d)
+{
+    return modulo_unsigned<EH>(n, d);
+}
+template <typename EH, typename N, typename D>
+    constexpr result_t<EH, common_integral_value_type<N, D>> modulo_0(std::true_type /*isSigned*/, N n, D d)
+{
+    return modulo_signed<EH>(n, d);
+}
+#endif // MAKESHIFT_CXX17
+template <typename EH, typename N, typename D>
+    constexpr result_t<EH, common_integral_value_type<N, D>> modulo(N n, D d)
+{
+    using V = common_integral_value_type<N, D>;
+
+#ifdef MAKESHIFT_CXX17
+    if constexpr (std::is_signed_v<V>)
+    {
+        return modulo_signed<EH>(n, d);
+    }
+    else
+    {
+        return modulo_unsigned<EH>(n, d);
+    }
+#else // MAKESHIFT_CXX17
+    return modulo_0<EH>(std::is_signed<V>{ }, n, d);
+#endif // MAKESHIFT_CXX17
+}
+
+
+template <typename EH, typename X, typename S>
+    constexpr result_t<EH, integral_value_type<X>> shift_right(X x, S s)
+{
+    using V0 = integral_value_type<X>;
+
+        // Note that we fail when shifting negative integers.
+    Expects(x >= 0 && s >= 0);
+
+    if (s >= sizeof(X)*8) return EH::make_error(std::errc::value_too_large);
+    return EH::make_result(V0(x >> s));
+}
+
+
+template <typename EH, typename X, typename S>
+    constexpr result_t<EH, integral_value_type<X>> shift_left(X x, S s)
+{
+    using V0 = integral_value_type<X>;
+
+        // Note that we fail when shifting negative integers.
+    Expects(x >= 0 && s >= 0);
+
+    if (s >= sizeof(V0)*8
+     || x > (std::numeric_limits<V0>::max() >> s))
+    {
+        return EH::make_error(std::errc::value_too_large);
+    }
+    return EH::make_result(V0(x << s));
+}
+
+
+    // Computes ⌊x ÷ d⌋ ∙ d for x ∊ ℕ₀, d ∊ ℕ, d ≠ 0.
+template <typename X, typename D>
+    constexpr common_integral_value_type<X, D> floori(X x, D d)
+{
+    Expects(x >= 0 && d > 0);
+
+    return x - x % d;
+}
+
+
+    // Computes ⌈x ÷ d⌉ ∙ d for x ∊ ℕ₀, d ∊ ℕ, d ≠ 0.
+template <typename EH, typename X, typename D>
+    constexpr result_t<EH, common_integral_value_type<X, D>> ceili(X x, D d)
+{
+    using V = common_integral_value_type<X, D>;
+
+    Expects(x >= 0 && d > 0);
+
+        // We have the following identities:
+        //
+        //     x = ⌊x ÷ d⌋ ∙ d + x mod d
+        //     ⌈x ÷ d⌉ = ⌊(x + d - 1) ÷ d⌋ = ⌊(x - 1) ÷ d⌋ + 1
+        //
+        // Assuming x ≠ 0, we can derive the form
+        //
+        //     ⌈x ÷ d⌉ ∙ d = x + d - (x - 1) mod d - 1 .
+
+    return x != 0
+        ? add<EH>(x, d - (x - 1) % d - 1)
+        : EH::make_result(V(0));
+}
+
+
+    // Computes ⌊n ÷ d⌋ for n ∊ ℕ₀, d ∊ ℕ, d ≠ 0.
+template <typename N, typename D>
+    constexpr common_integral_value_type<N, D> ratio_floori(N n, D d)
+{
+    Expects(n >= 0 && d > 0);
+        
+    return n / d;
+}
+
+
+    // Computes ⌈n ÷ d⌉ for n ∊ ℕ₀, d ∊ ℕ, d ≠ 0.
+template <typename N, typename D>
+    constexpr common_integral_value_type<N, D> ratio_ceili(N n, D d)
+{
+    Expects(n >= 0 && d > 0);
+        
+    return n != 0
+        ? (n - 1) / d + 1 // overflow-safe
+        : 0;
+}
+
+
+    // Computes bᵉ for e ∊ ℕ₀.
+template <typename EH, typename B, typename E>
+    static constexpr result_t<EH, integral_value_type<B>> powi_unsigned(B b, E e)
+{
+    using V = integral_value_type<B>;
+
+        // Conventionally, `powi(0,0)` is 1.
+    if (e == 0)
+    {
+        return EH::make_result(V(e != 0 ? 0 : 1));
+    }
+    if (b == 0)
+    {
         return EH::make_result(V(0));
     }
-    static constexpr result_t<EH, V> subtract(V lhs, V rhs)
+
+        // We assume `b > 0` henceforth.
+    V m = std::numeric_limits<V>::max() / b;
+
+    V result = 1;
+    integral_value_type<E> remainingExponents = e;
+    while (remainingExponents > 0)
     {
-        if (lhs < rhs) return EH::make_error(std::errc::value_too_large);
-        return EH::make_result(lhs - rhs);
+            // Ensure the multiplication cannot overflow.
+        if (result > m) return EH::make_error(std::errc::value_too_large);
+        result *= b;
+        --remainingExponents;
     }
-    static constexpr result_t<EH, V> shl(V lhs, V rhs)
-    {
-        if (rhs >= sizeof(V)*8
-         || lhs > (std::numeric_limits<V>::max() >> rhs))
-        {
-            return EH::make_error(std::errc::value_too_large);
-        }
-        return EH::make_result(lhs << rhs);
-    }
-    static constexpr result_t<EH, V> shr(V lhs, V rhs)
-    {
-        if (rhs >= sizeof(V)*8) return EH::make_error(std::errc::value_too_large);
-        return EH::make_result(lhs >> rhs);
-    }
-
-        // Computes bᵉ for e ∊ ℕ₀.
-    template <typename N>
-        static constexpr result_t<EH, V> powi(V b, N e)
-    {
-        static_assert(std::is_integral<N>::value, "exponent must be an integral type");
-
-            // negative powers are not integral
-        Expects(e >= 0);
-
-            // conventionally, `powi(0,0)` is 1
-        if (e == 0)
-        {
-            return EH::make_result(V(e != 0 ? 0 : 1));
-        }
-        if (b == 0)
-        {
-            return EH::make_result(V(0));
-        }
-
-            // we assume `b > 0` henceforth
-        V m = std::numeric_limits<V>::max() / b;
-
-        V result = 1;
-        while (e > 0)
-        {
-                // ensure the multiplication cannot overflow
-            if (result > m) return EH::make_error(std::errc::value_too_large);
-            result *= b;
-            --e;
-        }
-        return EH::make_result(result);
-    }
-
-        // Given x,b ∊ ℕ, x > 0, b > 1, returns (r,{ {b,e} }) such that x = bᵉ + r with r ≥ 0 minimal.
-    static constexpr factorization<V, 1> factorize_floor(V x, V b)
-    {
-        Expects(x > 0 && b > 1);
-
-        V e = 0;
-        V x0 = 1;
-        constexpr V M = std::numeric_limits<V>::max();
-        V m = M / b;
-
-            // We generally assume bᵉ ≤ x (⇔ e ≤ log x ÷ log b).
-            //
-            // Then, by definition,
-            //
-            //  (    bᵉ⁺¹ > x
-            //    ⇔ e+1 > log x ÷ log b
-            //    ⇒ e = ⌊log x ÷ log b⌋ )   (<-- #1)
-            //
-            // Additionally we know that
-            //
-            //  (    bᵉ > m = ⌊M ÷ b⌋
-            //    ⇒ bᵉ > M ÷ b
-            //    ⇒ bᵉ⁺¹ > M ≥ x
-            //    ⇒ e = ⌊log x ÷ log b⌋ )   because of #1 (<-- #2)
-
-            // x₀ ≤ x upon loop entry because x₀ = 1, x ≥ 1.
-        for (;;) 
-        {
-                // Compare with m before computing bᵉ⁺¹ to avoid overflow.
-            if (x0 > m)
-            {
-                return { x - x0, { factor<V>{ b, e } } };
-            }
-
-            V x1 = x0 * b; // = bᵉ⁺¹
-            if (x1 > x)
-            {
-                return { x - x0, { factor<V>{ b, e } } };
-            }
-
-            x0 = x1;
-            ++e;
-        }
-    }
-
-        // Given x,b ∊ ℕ, x > 0, b > 1, returns (r,{ {b,e} }) such that x = bᵉ - r with r ≥ 0 minimal.
-    static constexpr result_t<EH, factorization<V, 1>> factorize_ceil(V x, V b)
-    {
-        auto floorFac = factorize_floor(x, b);
-        if (floorFac.remainder == 0)
-        {
-            return EH::make_result(factorization<V, 1>{ 0, floorFac.factors });
-        }
-        auto xFloor = x - floorFac.remainder;
-        
-        auto prodResult = checked_operations<EH, V>::multiply(xFloor, b - 1);
-        if (EH::is_error(prodResult)) return EH::passthrough_error(prodResult);
-        auto prod = EH::get_value(prodResult);
-        
-        auto rCeil = prod - floorFac.remainder; // x = bᵉ + r =: bᵉ⁺¹ - r' ⇒ r' = bᵉ(b - 1) - r
-        return EH::make_result(factorization<V, 1>{
-            rCeil, { factor<V>{ b, floorFac.factors[0].exponent + 1 } } // e cannot overflow
-        });
-    }
-
-        // Computes ⌊log x ÷ log b⌋ for x,b ∊ ℕ, x > 0, b > 1.
-    static constexpr V log_floor(V x, V b)
-    {
-        auto result = factorize_floor(x, b);
-        return result.factors[0].exponent;
-    }
-
-        // Computes ⌈log x ÷ log b⌉ for x,b ∊ ℕ, x > 0, b > 1.
-    static constexpr V log_ceil(V x, V b)
-    {
-        Expects(x > 0 && b > 1);
-
-        V e = 0;
-        V x0 = 1;
-        constexpr V M = std::numeric_limits<V>::max();
-        V m = M / b;
-
-        while (x0 < x)
-        {
-            if (x0 > m)
-            {
-                    // x₀ = bᵉ < x, otherwise we wouldn't be in the loop.
-                    // bᵉ > m implies bᵉ⁺¹ > M (cf. reasoning in factorize_floor()).
-                    // Because x ≤ M, ⌈log x ÷ log b⌉ = e + 1.
-                return e + 1;
-            }
-
-            x0 *= b;
-            ++e;
-        }
-
-        return e;
-    }
-
-        // Given x,a,b ∊ ℕ, x > 0, a,b > 1, a ≠ b, returns (r,{ {a,i}, {b,j} }) such that x = aⁱ ∙ bʲ - r with r ≥ 0 minimal.
-    static constexpr result_t<EH, factorization<V, 2>> factorize_ceil(V x, V a, V b)
-    {
-        Expects(x > 0 && a > 1 && b > 1 && a != b);
-
-            // algorithm discussed in http://stackoverflow.com/a/39050139 and slightly altered to avoid unnecessary overflows
-
-        auto facAResult = factorize_ceil(x, a);
-        if (EH::is_error(facAResult)) return EH::passthrough_error(facAResult);
-        auto facA = EH::get_value(facAResult);
-        
-        auto y0Result = checked_operations<EH, V>::add(x, facA.remainder); // = aⁱ
-        if (EH::is_error(y0Result)) return EH::passthrough_error(y0Result);
-        auto y0 = EH::get_value(y0Result);
-        
-        V i = facA.factors[0].exponent,
-          j = 0;
-        V ci = i,
-          cj = j;
-        V y = y0;
-        V cy = y; // cy ≥ x at all times
-
-        for (;;)
-        {
-            if (i == 0)
-            {
-                return EH::make_result(factorization<V, 2>{
-                    cy - x, { factor<V>{ a, ci }, factor<V>{ b, cj } }
-                });
-            }
-
-                // take factor a
-            y /= a;
-            --i;
-
-                // give factors b until y ≥ x
-            while (y < x)
-            {
-                auto yResult = checked_operations<EH, V>::multiply(y, b);
-                if (EH::is_error(yResult)) return EH::passthrough_error(yResult);
-                y = EH::get_value(yResult);
-                ++j;
-            }
-
-            if (y < cy)
-            {
-                cy = y;
-                ci = i;
-                cj = j;
-            }
-        }
-    }
-
-        // Given x,a,b ∊ ℕ, x > 0, a,b > 1, a ≠ b, returns (r,{ {a,i}, {b,j} }) such that x = aⁱ ∙ bʲ + r with r ≥ 0 minimal.
-    static constexpr factorization<V, 2> factorize_floor(V x, V a, V b)
-    {
-        Expects(x > 0 && a > 1 && b > 1 && a != b);
-
-            // adaption of algorithm in factorize_ceil() for different optimization criterion
-
-        auto facA = factorize_floor(x, a);
-        
-        V i = facA.factors[0].exponent,
-          j = 0;
-        V ci = i,
-          cj = j;
-        V y = x - r; // = aⁱ
-        V cy = y; // cy ≤ x at all times
-
-        for (;;)
-        {
-            if (i == 0)
-            {
-                return { x - cy, { factor<V>{ a, ci }, factor<V>{ b, cj } } };
-            }
-
-                // take factor a
-            y /= a;
-            --i;
-
-                // give factors b as long as y ≤ x
-                // (note that y ∙ b overflowing implies y ∙ b > x)
-            while (checked_operations<EH, V>::can_multiply(y, b) && y * b <= x)
-            {
-                y *= b;
-                ++j;
-            }
-
-            if (y > cy)
-            {
-                cy = y;
-                ci = i;
-                cj = j;
-            }
-        }
-    }
-};
-template <typename EH, typename V>
-    struct checked_3_<EH, V, is_signed> : checked_4_<EH, V>
+    return EH::make_result(result);
+}
+    // Computes bᵉ for e ∊ ℕ₀.
+template <typename EH, typename B, typename E>
+    static constexpr result_t<EH, integral_value_type<B>> powi_signed(B b, E e)
 {
-    using U = std::make_unsigned_t<V>;
+    using V = integral_value_type<B>;
 
-    static constexpr result_t<EH, V> divide(V lhs, V rhs)
+        // In the special case of `b` assuming the smallest representable value, `sign * b` would overflow,
+        // so we need to handle it separately.
+    if (b == std::numeric_limits<V>::min())
     {
-        Expects(rhs != 0);
-        
-        if (lhs == std::numeric_limits<V>::min() && rhs == -1) return EH::make_error(std::errc::value_too_large);
-        return EH::make_result(lhs / rhs);
-    }
-    static constexpr result_t<EH, V> modulo(V lhs, V rhs)
-    {
-        Expects(rhs != 0);
-
-        if (lhs == std::numeric_limits<V>::min() && rhs == -1) return EH::make_error(std::errc::value_too_large);
-        return EH::make_result(lhs % rhs);
-    }
-    static constexpr result_t<EH, V> negate(V arg)
-    {
-            // this assumes a two's complement representation (it will yield a false negative for one's complement integers)
-        if (arg == std::numeric_limits<V>::min()) return EH::make_error(std::errc::value_too_large);
-        return EH::make_result(-arg);
-    }
-    static constexpr result_t<EH, V> subtract(V lhs, V rhs)
-    {
-        EH::check_underflow(
-            (rhs <= 0 || lhs >= std::numeric_limits<V>::min() + rhs)
-         && (rhs >= 0 || lhs <= std::numeric_limits<V>::max() + rhs));
-        return EH::make_result(lhs - rhs);
-    }
-    static constexpr result_t<EH, V> shl(V lhs, V rhs)
-    {
-            // note that we fail when shifting negative integers
-        Expects(lhs >= 0 && rhs >= 0 && rhs < V(sizeof(V)*8));
-        EH::check_overflow(lhs <= (std::numeric_limits<V>::max() >> rhs));
-        return EH::make_result(lhs << rhs);
-    }
-    static constexpr result_t<EH, V> shr(V lhs, V rhs)
-    {
-            // note that we fail when shifting negative integers
-        Expects(lhs >= 0 && rhs >= 0 && rhs < V(sizeof(V)*8));
-        return EH::make_result(lhs >> rhs);
+        if (e > 1) return EH::make_error(std::errc::value_too_large); // `powi()` would overflow for exponents greater than 1
+        return EH::make_result(V(e == 0 ? V(1) : b));
     }
 
-        // Computes bᵉ for e ∊ ℕ₀.
-    template <typename N>
-        static constexpr result_t<EH, V> powi(V b, N e)
-    {
-        static_assert(std::is_integral<N>::value, "exponent must be an integral type");
-
-            // negative powers are not integral
-        Expects(e >= 0);
-
-            // in the special case of `b` assuming the smallest representable value, `sign * b` would overflow,
-            // so we handle it separately
-        if (b == std::numeric_limits<V>::min())
-        {
-            EH::check_overflow(e <= 1); // `powi()` would overflow for exponents greater than 1
-            return e == 0 ? 1 : b;
-        }
-
-            // factor out sign
-        V sign = b >= 0
+        // Factor out sign.
+    V sign = b >= 0
+        ? 1
+        : e % 2 == 0
             ? 1
-            : 1 - 2 * (e % 2);
+            : -1;
 
-            // perform `powi()` for unsigned positive number
-        using U = std::make_unsigned_t<V>;
-        U absPow = checked_operations<EH, U>::powi(U(sign * b), e);
-
-            // handle special case where result is smallest representable value
-        if (sign == -1 && absPow == U(std::numeric_limits<V>::max()) + 1)
-            return std::numeric_limits<V>::min(); // assuming two's complement
-
-            // convert back to signed, prefix with sign
-        EH::check_overflow(absPow <= U(std::numeric_limits<V>::max()));
-        return EH::make_result(sign * V(absPow));
-    }
-
-        // Computes ⌊x ÷ d⌋ ∙ d for x ∊ ℕ₀, d ∊ ℕ, d ≠ 0.
-    static constexpr V floori(V x, V d)
-    {
-        Expects(x >= 0);
-        return checked_4_<EH, V>::floori(x, d);
-    }
-
-        // Computes ⌈x ÷ d⌉ ∙ d for x ∊ ℕ₀, d ∊ ℕ, d ≠ 0.
-    static constexpr result_t<EH, V> ceili(V x, V d)
-    {
-        Expects(x >= 0);
-        return checked_4_<EH, V>::ceili(x, d);
-    }
-
-        // Computes ⌊n ÷ d⌋ for n ∊ ℕ₀, d ∊ ℕ.
-    static constexpr V ratio_floor(V n, V d)
-    {
-        Expects(n >= 0);
-        return checked_4_<EH, V>::ratio_floor(n, d);
-    }
-
-        // Computes ⌈n ÷ d⌉ for n ∊ ℕ₀, d ∊ ℕ.
-    static constexpr V ratio_ceil(V n, V d)
-    {
-        Expects(n >= 0);
-        return checked_4_<EH, V>::ratio_ceil(n, d);
-    }
-
-        // Given x,b ∊ ℕ, x > 0, b > 1, returns (r,{ {b,e} }) such that x = bᵉ + r with r ≥ 0 minimal.
-    static constexpr factorization<V, 1> factorize_floor(V x, V b)
-    {
-        Expects(x > 0 && b > 1);
-        auto [r, f] = checked_operations<EH, U>::factorize_floor(U(x), U(b));
-        return { V(r), { factor<V>{ b, V(f[0].exponent) } } };
-    }
-
-        // Given x,b ∊ ℕ, x > 0, b > 1, returns (r,{ {b,e} }) such that x = bᵉ - r with r ≥ 0 minimal.
-    static constexpr result_t<EH, factorization<V, 1>> factorize_ceil(V x, V b)
-    {
-        Expects(x > 0 && b > 1);
-        auto [r, f] = checked_operations<EH, U>::factorize_ceil(U(x), U(b));
-        EH::check_overflow(r <= U(std::numeric_limits<V>::max()));
-        return EH::make_result(factorization<V, 1>{ V(r), { factor<V>{ b, V(f[0].exponent) } } });
-    }
-
-        // Computes ⌊log x ÷ log b⌋ for x,b ∊ ℕ, x > 0, b > 1.
-    static constexpr V log_floor(V x, V b)
-    {
-        Expects(x > 0 && b > 1);
-        return V(checked_operations<EH, U>::log_floor(U(x), U(b)));
-    }
-
-        // Computes ⌈log x ÷ log b⌉ for x,b ∊ ℕ, x > 0, b > 1.
-    static constexpr V log_ceil(V x, V b)
-    {
-        Expects(x > 0 && b > 1);
-        return V(checked_operations<EH, U>::log_ceil(U(x), U(b)));
-    }
-
-        // Given x,a,b ∊ ℕ, x > 0, a,b > 1, a ≠ b, returns (r,{ {a,i}, {b,j} }) such that x = aⁱ ∙ bʲ - r with r ≥ 0 minimal.
-    static constexpr result_t<EH, factorization<V, 2>> factorize_ceil(V x, V a, V b)
-    {
-        Expects(x > 0 && a > 1 && b > 1 && a != b);
-        auto [r, f] = checked_operations<EH, U>::factorize_ceil(U(x), U(a), U(b));
-        EH::check_overflow(r <= U(std::numeric_limits<V>::max()));
-        return EH::make_result(factorization<V, 2>{
-            V(r), { factor<V>{ a, V(f[0].exponent) }, factor<V>{ b, V(f[1].exponent) } }
-        });
-    }
-
-        // Given x,a,b ∊ ℕ, x > 0, a,b > 1, a ≠ b, returns (r,{ {a,i}, {b,j} }) such that x = aⁱ ∙ bʲ + r with r ≥ 0 minimal.
-    static constexpr factorization<V, 2> factorize_floor(V x, V a, V b)
-    {
-        Expects(x > 0 && a > 1 && b > 1 && a != b);
-        auto [r, f] = checked_operations<EH, U>::factorize_floor(U(x), U(a), U(b));
-        return { V(r), { factor<V>{ a, V(f[0].exponent) }, factor<V>{ b, V(f[1].exponent) } } };
-    }
-};
-template <typename EH, typename V, int_width, int_signedness>
-    struct checked_2_;
-template <typename EH, typename V>
-    struct checked_2_<EH, V, has_wider_type, is_unsigned> : checked_3_<EH, V, is_unsigned>
-{
-    using W = typename wider_type<V>::type;
-
-    static constexpr result_t<EH, V> add(V lhs, V rhs)
-    {
-        W result = W(lhs) + W(rhs);
-        EH::check_overflow(result <= std::numeric_limits<V>::max());
-        return EH::make_result(V(result));
-    }
-    static constexpr result_t<EH, V> multiply(V lhs, V rhs)
-    {
-        W result = W(lhs) * W(rhs);
-        EH::check_overflow(result <= std::numeric_limits<V>::max());
-        return EH::make_result(V(result));
-    }
-    static constexpr bool can_multiply(V lhs, V rhs)
-    {
-        W result = W(lhs) * W(rhs);
-        return result <= std::numeric_limits<V>::max();
-    }
-};
-template <typename EH, typename V>
-    struct checked_2_<EH, V, has_wider_type, is_signed> : checked_3_<EH, V, is_signed>
-{
-    using W = typename wider_type<V>::type;
-
-    static constexpr result_t<EH, V> add(V lhs, V rhs)
-    {
-        W result = W(lhs) + W(rhs);
-        EH::check_overflow(result >= std::numeric_limits<V>::min() && result <= std::numeric_limits<V>::max());
-        return EH::make_result(V(result));
-    }
-    static constexpr result_t<EH, V> multiply(V lhs, V rhs)
-    {
-        W result = W(lhs) * W(rhs);
-        EH::check_overflow(result >= std::numeric_limits<V>::min() && result <= std::numeric_limits<V>::max());
-        return EH::make_result(V(result));
-    }
-    static constexpr bool can_multiply(V lhs, V rhs)
-    {
-        W result = W(lhs) * W(rhs);
-        return result >= std::numeric_limits<V>::min() && result <= std::numeric_limits<V>::max();
-    }
-};
-template <typename EH, typename V>
-    struct checked_2_<EH, V, has_no_wider_type, is_unsigned> : checked_3_<EH, V, is_unsigned>
-{
-    static constexpr result_t<EH, V> add(V lhs, V rhs)
-    {
-        V result = lhs + rhs;
-        EH::check_overflow(result >= lhs && result >= rhs);
-        return EH::make_result(result);
-    }
-    static constexpr result_t<EH, V> multiply(V lhs, V rhs)
-    {
-        EH::check_overflow(can_multiply(lhs, rhs));
-        return EH::make_result(lhs * rhs);
-    }
-    static constexpr bool can_multiply(V lhs, V rhs)
-    {
-        return rhs == 0 || lhs <= std::numeric_limits<V>::max() / rhs;
-    }
-};
-template <typename EH, typename V>
-    struct checked_2_<EH, V, has_no_wider_type, is_signed> : checked_3_<EH, V, is_signed>
-{
+        // Compute `powi()` for unsigned positive number.
     using U = std::make_unsigned_t<V>;
+    U absPow = powi_unsigned<EH>(U(sign * b), e);
 
-    static constexpr result_t<EH, V> add(V lhs, V rhs)
+        // Handle special case where result is smallest representable value.
+    if (sign == -1 && absPow == U(std::numeric_limits<V>::max()) + 1)
     {
-        V result = V(U(lhs) + U(rhs));
-        EH::check_overflow(
-            (lhs >= 0 || rhs >= 0 || result < 0) // at least one operand is non-negative, or the result is negative
-         && (lhs <  0 || rhs <  0 || result >= 0)); // at least one operand is negative, or the result is non-negative
-        return EH::make_result(result);
+        return EH::make_result(std::numeric_limits<V>::min()); // assuming two's complement
     }
-    static constexpr result_t<EH, V> multiply(V lhs, V rhs)
-    {
-        EH::check_overflow(can_multiply(lhs, rhs));
-        return EH::make_result(lhs * rhs);
-    }
-    static constexpr bool can_multiply(V lhs, V rhs)
-    {
-        return (lhs <= 0 || ((rhs <= 0             || lhs <= std::numeric_limits<V>::max() / rhs)
-                          && (rhs >  0             || rhs >= std::numeric_limits<V>::min() / lhs)))
-            && (lhs >  0 || ((rhs <= 0             || lhs >= std::numeric_limits<V>::min() / rhs)
-                          && (rhs >  0 || lhs == 0 || rhs >= std::numeric_limits<V>::max() / lhs)));
-    }
-};
-template <typename EH, typename V>
-    struct checked_operations : checked_2_<EH, V,
-        (sizeof(V) < sizeof(std::uint64_t)) ? has_wider_type : has_no_wider_type,
-        std::is_signed<V>::value ? is_signed : is_unsigned>
+
+        // Convert back to signed and prefix with sign.
+    if (absPow > U(std::numeric_limits<V>::max())) return EH::make_error(std::errc::value_too_large);
+    return EH::make_result(V(sign * V(absPow)));
+}
+#ifndef MAKESHIFT_CXX17
+template <typename EH, typename B, typename E>
+    constexpr result_t<EH, integral_value_type<B>> powi_0(std::false_type /*isSigned*/, B b, E e)
 {
-    static_assert(!std::is_same<V, bool>::value, "checked arithmetic does not support bool");
-    static_assert(std::is_integral<V>::value, "checked arithmetic only works with integral types");
-};
+    return powi_unsigned<EH>(b, e);
+}
+template <typename EH, typename B, typename E>
+    constexpr result_t<EH, integral_value_type<B>> powi_0(std::true_type /*isSigned*/, B b, E e)
+{
+    return powi_signed<EH>(b, e);
+}
+#endif // MAKESHIFT_CXX17
+template <typename EH, typename B, typename E>
+    constexpr result_t<EH, integral_value_type<B>> powi(B b, E e)
+{
+    using V = integral_value_type<B>;
+
+        // Negative powers are not integral.
+    Expects(e >= 0);
+
+#ifdef MAKESHIFT_CXX17
+    if constexpr (std::is_signed_v<V>)
+    {
+        return powi_signed<EH>(b, e);
+    }
+    else
+    {
+        return powi_unsigned<EH>(b, e);
+    }
+#else // MAKESHIFT_CXX17
+    return powi_0<EH>(std::is_signed<V>{ }, b, e);
+#endif // MAKESHIFT_CXX17
+}
+
+
+    // Given x,b ∊ ℕ, x > 0, b > 1, returns (r,{ {b,e} }) such that x = bᵉ + r with r ≥ 0 minimal.
+template <typename X, typename B>
+    constexpr factorization<common_integral_value_type<X, B>, 1> factorize_floori(X x, B b)
+{
+    using V = common_integral_value_type<X, B>;
+
+    Expects(x > 0 && b > 1);
+
+    V e = 0;
+    V x0 = 1;
+    constexpr V M = std::numeric_limits<V>::max();
+    V m = M / b;
+
+        // We generally assume bᵉ ≤ x (⇔ e ≤ log x ÷ log b).
+        //
+        // Then, by definition,
+        //
+        //  (    bᵉ⁺¹ > x
+        //    ⇔ e+1 > log x ÷ log b
+        //    ⇒ e = ⌊log x ÷ log b⌋ )   (<-- #1)
+        //
+        // Additionally we know that
+        //
+        //  (    bᵉ > m = ⌊M ÷ b⌋
+        //    ⇒ bᵉ > M ÷ b
+        //    ⇒ bᵉ⁺¹ > M ≥ x
+        //    ⇒ e = ⌊log x ÷ log b⌋ )   because of #1 (<-- #2)
+
+        // x₀ ≤ x upon loop entry because x₀ = 1, x ≥ 1.
+    for (;;)
+    {
+            // Compare with m before computing bᵉ⁺¹ to avoid overflow.
+        if (x0 > m)
+        {
+            return { x - x0, { factor<V>{ b, e } } };
+        }
+
+        V x1 = x0 * b; // = bᵉ⁺¹
+        if (x1 > x)
+        {
+            return { x - x0, { factor<V>{ b, e } } };
+        }
+
+        x0 = x1;
+        ++e;
+    }
+}
+
+
+    // Given x,b ∊ ℕ, x > 0, b > 1, returns (r,{ {b,e} }) such that x = bᵉ - r with r ≥ 0 minimal.
+template <typename EH, typename X, typename B>
+    constexpr result_t<EH, factorization<common_integral_value_type<X, B>, 1>> factorize_ceili(X x, B b)
+{
+    using V = common_integral_value_type<X, B>;
+
+    Expects(x > 0 && b > 1);
+
+    auto floorFac = factorize_floori(x, b);
+    if (floorFac.remainder == 0)
+    {
+        return EH::make_result(factorization<V, 1>{ 0, floorFac.factors });
+    }
+
+    auto xFloor = x - floorFac.remainder; // = bᵉ
+    auto prodResult = multiply<EH>(xFloor, b - 1);
+    if (EH::is_error(prodResult)) return EH::passthrough_error(prodResult);
+    auto prod = EH::get_value(prodResult);
+        
+    auto rCeil = prod - floorFac.remainder; // x = bᵉ + r =: bᵉ⁺¹ - r' ⇒ r' = bᵉ(b - 1) - r
+    return EH::make_result(factorization<V, 1>{
+        rCeil, { factor<V>{ b, floorFac.factors[0].exponent + 1 } } // e cannot overflow
+    });
+}
+
+
+    // Computes ⌊log x ÷ log b⌋ for x,b ∊ ℕ, x > 0, b > 1.
+template <typename X, typename B>
+    constexpr common_integral_value_type<X, B> log_floori(X x, B b)
+{
+    using V = common_integral_value_type<X, B>;
+
+    auto fac = factorize_floori(x, b);
+    return fac.factors[0].exponent;
+}
+
+
+    // Computes ⌊log x ÷ log b⌋ for x,b ∊ ℕ, x > 0, b > 1.
+template <typename X, typename B>
+    constexpr common_integral_value_type<X, B> log_ceili(X x, B b)
+{
+    using V = common_integral_value_type<X, B>;
+
+    Expects(x > 0 && b > 1);
+
+    V e = 0;
+    V x0 = 1;
+    constexpr V M = std::numeric_limits<V>::max();
+    V m = M / b;
+
+    while (x0 < x)
+    {
+        if (x0 > m)
+        {
+                // x₀ = bᵉ < x, otherwise we wouldn't be in the loop.
+                // bᵉ > m implies bᵉ⁺¹ > M (cf. reasoning in factorize_floori()).
+                // Because x ≤ M, ⌈log x ÷ log b⌉ = e + 1.
+            return e + 1;
+        }
+
+        x0 *= b;
+        ++e;
+    }
+
+    return e;
+}
+
+
+    // Given x,a,b ∊ ℕ, x > 0, a,b > 1, a ≠ b, returns (r,{ {a,i}, {b,j} }) such that x = aⁱ ∙ bʲ + r with r ≥ 0 minimal.
+template <typename X, typename A, typename B>
+    constexpr factorization<common_integral_value_type<X, A, B>, 2> factorize_floori(X x, A a, B b)
+{
+    using V = common_integral_value_type<X, A, B>;
+
+    Expects(x > 0 && a > 1 && b > 1 && a != b);
+
+        // adaption of algorithm in factorize_ceili() for different optimization criterion
+
+    auto facA = factorize_floori(x, a);
+        
+    V i = facA.factors[0].exponent,
+      j = 0;
+    V ci = i,
+      cj = j;
+    V y = x - facA.remainder; // = aⁱ
+    V cy = y; // cy ≤ x at all times
+
+    for (;;)
+    {
+        if (i == 0)
+        {
+            return { x - cy, { factor<V>{ a, ci }, factor<V>{ b, cj } } };
+        }
+
+            // take factor a
+        y /= a;
+        --i;
+
+            // give factors b as long as y ≤ x
+            // (note that y ∙ b overflowing implies y ∙ b > x)
+        while (can_multiply(y, b) && y * b <= x)
+        {
+            y *= b;
+            ++j;
+        }
+
+        if (y > cy)
+        {
+            cy = y;
+            ci = i;
+            cj = j;
+        }
+    }
+}
+
+
+    // Given x,a,b ∊ ℕ, x > 0, a,b > 1, a ≠ b, returns (r,{ {a,i}, {b,j} }) such that x = aⁱ ∙ bʲ - r with r ≥ 0 minimal.
+template <typename EH, typename X, typename A, typename B>
+    constexpr result_t<EH, factorization<common_integral_value_type<X, A, B>, 2>> factorize_ceili(X x, A a, B b)
+{
+    using V = common_integral_value_type<X, A, B>;
+
+    Expects(x > 0 && a > 1 && b > 1 && a != b);
+
+        // algorithm discussed in http://stackoverflow.com/a/39050139 and slightly altered to avoid unnecessary overflows
+
+    auto facAResult = factorize_ceili<EH>(x, a);
+    if (EH::is_error(facAResult)) return EH::passthrough_error(facAResult);
+    auto facA = EH::get_value(facAResult);
+        
+    auto y0Result = add<EH>(x, facA.remainder); // = aⁱ
+    if (EH::is_error(y0Result)) return EH::passthrough_error(y0Result);
+    auto y0 = EH::get_value(y0Result);
+        
+    V i = facA.factors[0].exponent,
+      j = 0;
+    V ci = i,
+      cj = j;
+    V y = y0;
+    V cy = y; // cy ≥ x at all times
+
+    for (;;)
+    {
+        if (i == 0)
+        {
+            return EH::make_result(factorization<V, 2>{
+                cy - x, { factor<V>{ a, ci }, factor<V>{ b, cj } }
+            });
+        }
+
+            // take factor a
+        y /= a;
+        --i;
+
+            // give factors b until y ≥ x
+        while (y < x)
+        {
+            auto yResult = multiply<EH>(y, b);
+            if (EH::is_error(yResult)) return EH::passthrough_error(yResult);
+            y = EH::get_value(yResult);
+            ++j;
+        }
+
+        if (y < cy)
+        {
+            cy = y;
+            ci = i;
+            cj = j;
+        }
+    }
+}
 
 
 } // namespace detail
 
 } // namespace makeshift
+
+
+#if defined(_MSC_VER) && !defined(__clang__)
+ #pragma warning( pop )
+#endif // defined(_MSC_VER) && !defined(__clang__)
 
 
 #endif // INCLUDED_MAKESHIFT_DETAIL_ARITHMETIC_HPP_

@@ -12,7 +12,7 @@
 #include <cstdint>     // for uint64_t
 #include <tuple>
 
-#include <gsl/span>
+#include <gsl/gsl-lite.hpp> // for span<>
 
 #include <makeshift/type_traits.hpp> // for tag<>, flags_base
 #include <makeshift/metadata.hpp>

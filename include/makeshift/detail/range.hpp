@@ -8,7 +8,7 @@
 #include <iterator>    // for iterator_traits<>, random_access_iterator_tag
 #include <type_traits> // for is_base_of<>
 
-#include <gsl/gsl_assert> // for Expects()
+#include <gsl/gsl-lite.hpp> // for Expects()
 
 #include <makeshift/constval.hpp>     // for is_constval<>
 #include <makeshift/type_traits2.hpp> // for can_instantiate<>

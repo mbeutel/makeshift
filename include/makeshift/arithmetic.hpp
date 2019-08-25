@@ -10,7 +10,7 @@
 #include <type_traits>  // for integral_constant
 #include <system_error> // for errc
 
-#include <gsl/gsl_assert> // for Expects()
+#include <gsl/gsl-lite.hpp> // for Expects()
 
 #include <makeshift/utility2.hpp> // for dim
 #include <makeshift/version.hpp>  // for MAKESHIFT_NODISCARD, MAKESHIFT_CONSTEXPR_CXX20

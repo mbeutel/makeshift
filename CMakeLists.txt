@@ -29,4 +29,4 @@ install_basic_package_files(makeshift
     COMPATIBILITY SameMajorVersion
     DEPENDENCIES
         "CMakeshift 3.5"
-        "MS-GSL")
+        "gsl-lite")

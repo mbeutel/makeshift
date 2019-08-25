@@ -8,7 +8,7 @@
 
 #include <makeshift/arithmetic.hpp>
 
-#include <gsl/gsl_util> // for narrow<>(), fail_fast
+#include <gsl/gsl-lite.hpp> // for narrow<>(), fail_fast
 
 
 namespace mk = makeshift;

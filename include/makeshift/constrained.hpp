@@ -10,7 +10,7 @@
 #include <string_view>
 #include <type_traits> // for is_signed<>, conditional<>
 
-#include <gsl/gsl_assert> // for Expects()
+#include <gsl/gsl-lite.hpp> // for Expects()
 
 #include <makeshift/metadata.hpp>
 #include <makeshift/tuple.hpp>       // for get_or_default<>(), get_or_none<>()

@@ -10,7 +10,7 @@
 #include <utility>     // for move(), forward<>(), integer_sequence<>
 #include <type_traits> // for decay<>
 
-#include <gsl/gsl_assert> // for Expects()
+#include <gsl/gsl-lite.hpp> // for Expects()
 
 #include <makeshift/constval.hpp>     // for constval<>, constval_transform()
 #include <makeshift/metadata2.hpp>    // for values<>
