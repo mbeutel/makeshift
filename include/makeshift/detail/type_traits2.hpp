@@ -107,8 +107,8 @@ template <template <typename...> class TypeSeq1T, template <typename...> class T
 {
 };
 
-template <template <typename...> class Z, typename SeqT> struct apply_;
-template <template <typename...> class Z, template <typename...> class SeqT, typename... Ts> struct apply_<Z, SeqT<Ts...>> { using type = Z<Ts...>; };
+template <template <typename...> class Z, typename SeqT> struct instantiate_;
+template <template <typename...> class Z, template <typename...> class SeqT, typename... Ts> struct instantiate_<Z, SeqT<Ts...>> { using type = Z<Ts...>; };
 
 
 template <typename T> struct type_t;

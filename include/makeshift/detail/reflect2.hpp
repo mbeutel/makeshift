@@ -98,10 +98,10 @@ template <typename T>
 };
 template <typename TypeEnumT>
     struct default_metadata<TypeEnumT, std::enable_if_t<std::is_base_of<type_enum_base, TypeEnumT>::value>>
-        : heterogeneous_values_t<typename apply_<type_sequence, typename TypeEnumT::types>::type>
+        : heterogeneous_values_t<typename instantiate_<type_sequence, typename TypeEnumT::types>::type>
 {
 private:
-    using base = heterogeneous_values_t<typename apply_<type_sequence, typename TypeEnumT::types>::type>;
+    using base = heterogeneous_values_t<typename instantiate_<type_sequence, typename TypeEnumT::types>::type>;
 
 public:
     constexpr default_metadata(void)

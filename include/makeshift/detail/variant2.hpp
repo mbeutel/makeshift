@@ -714,7 +714,7 @@ template <typename F, typename... Vs>
     constexpr std::size_t numOptions = makeshift::detail::cmul<std::size_t>(variant_size<std::remove_reference_t<Vs>>::value...);
     using ResultSeq = decltype(variant_transform_result_1<numOptions, Strides>(std::forward<F>(func), std::declval<std::tuple<Vs&&...>>()));
     using UniqueResultSeq = typename unique_sequence_<ResultSeq>::type;
-    using Result = typename apply_<std::variant, UniqueResultSeq>::type;
+    using Result = typename instantiate_<std::variant, UniqueResultSeq>::type;
 
     return makeshift::detail::visit_impl_0(
         [func = std::forward<F>(func)](auto&&... args)

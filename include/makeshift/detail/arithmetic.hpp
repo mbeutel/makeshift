@@ -10,6 +10,8 @@
 
 #include <gsl/gsl-lite.hpp> // for Expects()
 
+#include <hedley.h> // for HEDLEY_ALWAYS_INLINE
+
 #include <makeshift/version.hpp>  // for MAKESHIFT_FORCEINLINE
 
 

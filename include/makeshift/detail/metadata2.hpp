@@ -69,7 +69,7 @@ public:
     {
     }
 
-    MAKESHIFT_NODISCARD constexpr friend const std::array<ParamT, N>& select_parameters(const parameter_array& self, typename apply_<any_tag_of, typename ParamT::parameter_categories>::type) noexcept { return self.parameters_; }
+    MAKESHIFT_NODISCARD constexpr friend const std::array<ParamT, N>& select_parameters(const parameter_array& self, typename instantiate_<any_tag_of, typename ParamT::parameter_categories>::type) noexcept { return self.parameters_; }
 };
 
 
