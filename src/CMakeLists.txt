@@ -9,6 +9,7 @@ cmake_minimum_required(VERSION 3.14)
 # dependencies
 find_package(CMakeshift 3.5 REQUIRED)
 find_package(gsl-lite REQUIRED)
+find_package(Hedley REQUIRED)
 
 # library target
 add_library(makeshift
@@ -51,7 +52,8 @@ cmakeshift_target_library_version(makeshift ${PROJECT_VERSION} ${makeshift_APIVE
 # library dependencies
 target_link_libraries(makeshift
     PUBLIC
-        gsl::gsl-lite)
+        gsl::gsl-lite
+        Hedley::Hedley)
 
 # installation: public header files, generated header files, target
 install(

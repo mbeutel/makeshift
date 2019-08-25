@@ -29,4 +29,5 @@ install_basic_package_files(makeshift
     COMPATIBILITY SameMajorVersion
     DEPENDENCIES
         "CMakeshift 3.5"
-        "gsl-lite")
+        "gsl-lite"
+        "Hedley")
