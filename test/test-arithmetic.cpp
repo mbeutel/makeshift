@@ -39,118 +39,128 @@ const volatile int8_t zi8 = 0;
 const volatile int64_t zi64 = 0;
 
 const volatile size_t smax = std::numeric_limits<size_t>::max();
-const volatile size_t smaxlog = mk::log_floor(smax, size_t(2));
+const volatile size_t smaxlog = mk::log_floori(smax, size_t(2));
 const volatile int imin = std::numeric_limits<int>::min(),
                    imax = std::numeric_limits<int>::max();
-const volatile int imaxlog = mk::log_floor(imax, 2);
-const volatile int iminlog = mk::log_floor(imin / -2, 2) + 1;
+const volatile int imaxlog = mk::log_floori(imax, 2);
+const volatile int iminlog = mk::log_floori(imin / -2, 2) + 1;
 const volatile int64_t lmin = std::numeric_limits<int64_t>::min(),
                          lmax = std::numeric_limits<int64_t>::max();
-const volatile int64_t lmaxlog = mk::log_floor(lmax, int64_t(2));
-const volatile int64_t lminlog = mk::log_floor(lmin / -2, int64_t(2)) + 1;
+const volatile int64_t lmaxlog = mk::log_floori(lmax, int64_t(2));
+const volatile int64_t lminlog = mk::log_floori(lmin / -2, int64_t(2)) + 1;
 
 
-TEST_CASE("factorize")
+TEST_CASE("arithmetic")
 {
     SECTION("log")
     {
-        CHECK(mk::log_floor(1, 2) == 0);
-        CHECK(mk::log_floor(2, 2) == 1);
-        CHECK(mk::log_floor(3, 2) == 1);
-        CHECK(mk::log_floor(8, 2) == 3);
+        CHECK(mk::log_floori(1, 2) == 0);
+        CHECK(mk::log_floori(2, 2) == 1);
+        CHECK(mk::log_floori(3, 2) == 1);
+        CHECK(mk::log_floori(8, 2) == 3);
 
-        CHECK(mk::log_ceil(1, 2) == 0);
-        CHECK(mk::log_ceil(2, 2) == 1);
-        CHECK(mk::log_ceil(3, 2) == 2);
-        CHECK(mk::log_ceil(8, 2) == 3);
+        CHECK(mk::log_ceili(1, 2) == 0);
+        CHECK(mk::log_ceili(2, 2) == 1);
+        CHECK(mk::log_ceili(3, 2) == 2);
+        CHECK(mk::log_ceili(8, 2) == 3);
     }
 
     SECTION("factorize")
     {
-        CHECK(mk::factorize_ceil(1, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor<int>{ 2, 0 }, mk::factor<int>{ 3, 0 } } });
-        CHECK(mk::factorize_ceil(2, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor<int>{ 2, 1 }, mk::factor<int>{ 3, 0 } } });
-        CHECK(mk::factorize_ceil(3, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor<int>{ 2, 0 }, mk::factor<int>{ 3, 1 } } });
-        CHECK(mk::factorize_ceil(4, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor<int>{ 2, 2 }, mk::factor<int>{ 3, 0 } } });
-        CHECK(mk::factorize_ceil(5, 2, 3) == mk::factorization<int, 2>{ 1, { mk::factor<int>{ 2, 1 }, mk::factor<int>{ 3, 1 } } });
-        CHECK(mk::factorize_ceil(6, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor<int>{ 2, 1 }, mk::factor<int>{ 3, 1 } } });
-        CHECK(mk::factorize_ceil(7, 2, 3) == mk::factorization<int, 2>{ 1, { mk::factor<int>{ 2, 3 }, mk::factor<int>{ 3, 0 } } });
-        CHECK(mk::factorize_ceil(8, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor<int>{ 2, 3 }, mk::factor<int>{ 3, 0 } } });
+        CHECK(mk::factorize_ceili(1, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor<int>{ 2, 0 }, mk::factor<int>{ 3, 0 } } });
+        CHECK(mk::factorize_ceili(2, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor<int>{ 2, 1 }, mk::factor<int>{ 3, 0 } } });
+        CHECK(mk::factorize_ceili(3, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor<int>{ 2, 0 }, mk::factor<int>{ 3, 1 } } });
+        CHECK(mk::factorize_ceili(4, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor<int>{ 2, 2 }, mk::factor<int>{ 3, 0 } } });
+        CHECK(mk::factorize_ceili(5, 2, 3) == mk::factorization<int, 2>{ 1, { mk::factor<int>{ 2, 1 }, mk::factor<int>{ 3, 1 } } });
+        CHECK(mk::factorize_ceili(6, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor<int>{ 2, 1 }, mk::factor<int>{ 3, 1 } } });
+        CHECK(mk::factorize_ceili(7, 2, 3) == mk::factorization<int, 2>{ 1, { mk::factor<int>{ 2, 3 }, mk::factor<int>{ 3, 0 } } });
+        CHECK(mk::factorize_ceili(8, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor<int>{ 2, 3 }, mk::factor<int>{ 3, 0 } } });
 
-        CHECK(mk::factorize_floor(1, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor<int>{ 2, 0 }, mk::factor<int>{ 3, 0 } } });
-        CHECK(mk::factorize_floor(2, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor<int>{ 2, 1 }, mk::factor<int>{ 3, 0 } } });
-        CHECK(mk::factorize_floor(3, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor<int>{ 2, 0 }, mk::factor<int>{ 3, 1 } } });
-        CHECK(mk::factorize_floor(4, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor<int>{ 2, 2 }, mk::factor<int>{ 3, 0 } } });
-        CHECK(mk::factorize_floor(5, 2, 3) == mk::factorization<int, 2>{ 1, { mk::factor<int>{ 2, 2 }, mk::factor<int>{ 3, 0 } } });
-        CHECK(mk::factorize_floor(6, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor<int>{ 2, 1 }, mk::factor<int>{ 3, 1 } } });
-        CHECK(mk::factorize_floor(7, 2, 3) == mk::factorization<int, 2>{ 1, { mk::factor<int>{ 2, 1 }, mk::factor<int>{ 3, 1 } } });
-        CHECK(mk::factorize_floor(8, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor<int>{ 2, 3 }, mk::factor<int>{ 3, 0 } } });
+        CHECK(mk::factorize_floori(1, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor<int>{ 2, 0 }, mk::factor<int>{ 3, 0 } } });
+        CHECK(mk::factorize_floori(2, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor<int>{ 2, 1 }, mk::factor<int>{ 3, 0 } } });
+        CHECK(mk::factorize_floori(3, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor<int>{ 2, 0 }, mk::factor<int>{ 3, 1 } } });
+        CHECK(mk::factorize_floori(4, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor<int>{ 2, 2 }, mk::factor<int>{ 3, 0 } } });
+        CHECK(mk::factorize_floori(5, 2, 3) == mk::factorization<int, 2>{ 1, { mk::factor<int>{ 2, 2 }, mk::factor<int>{ 3, 0 } } });
+        CHECK(mk::factorize_floori(6, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor<int>{ 2, 1 }, mk::factor<int>{ 3, 1 } } });
+        CHECK(mk::factorize_floori(7, 2, 3) == mk::factorization<int, 2>{ 1, { mk::factor<int>{ 2, 1 }, mk::factor<int>{ 3, 1 } } });
+        CHECK(mk::factorize_floori(8, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor<int>{ 2, 3 }, mk::factor<int>{ 3, 0 } } });
     }
-}
 
-TEST_CASE("checked")
-{
-    SECTION("fail")
+    volatile uint8_t lu8;
+    volatile uint64_t lu64;
+    volatile int8_t li8;
+    volatile int64_t li64;
+
+    SECTION("negate")
     {
-        volatile uint8_t lu8;
-        volatile uint64_t lu64;
-        volatile int8_t li8;
-        volatile int64_t li64;
+        CHECK_THROWS_AS(lu8 = mk::negate_or_throw(u8), std::system_error);
+        CHECK_THROWS_AS(li8 = mk::negate_or_throw(i8nm), std::system_error);
+    }
 
-            // negation
-        CHECK_THROWS_AS(lu8 = mk::negate_or_throw(u8), mk::arithmetic_overflow);
-        CHECK_THROWS_AS(li8 = mk::negate_or_throw(i8nm), mk::arithmetic_overflow);
+    SECTION("add")
+    {
+        CHECK_THROWS_AS(lu8 = mk::add_or_throw(u8, u8), std::system_error);
+        CHECK_THROWS_AS(li8 = mk::add_or_throw(i8p, i8p), std::system_error);
+        CHECK_THROWS_AS(li8 = mk::add_or_throw(i8n, i8n), std::system_error);
+        CHECK_THROWS_AS(lu64 = mk::add_or_throw(u64, u64), std::system_error);
+        CHECK_THROWS_AS(li64 = mk::add_or_throw(i64p, i64p), std::system_error);
+        CHECK_THROWS_AS(li64 = mk::add_or_throw(i64n, i64n), std::system_error);
+    }
 
-            // addition
-        CHECK_THROWS_AS(lu8 = mk::add_or_throw(u8, u8), mk::arithmetic_overflow);
-        CHECK_THROWS_AS(li8 = mk::add_or_throw(i8p, i8p), mk::arithmetic_overflow);
-        CHECK_THROWS_AS(li8 = mk::add_or_throw(i8n, i8n), mk::arithmetic_overflow);
-        CHECK_THROWS_AS(lu64 = mk::add_or_throw(u64, u64), mk::arithmetic_overflow);
-        CHECK_THROWS_AS(li64 = mk::add_or_throw(i64p, i64p), mk::arithmetic_overflow);
-        CHECK_THROWS_AS(li64 = mk::add_or_throw(i64n, i64n), mk::arithmetic_overflow);
-
-            // subtraction
-        CHECK_THROWS_AS(lu8 = mk::subtract_or_throw(zu8, u8), mk::arithmetic_overflow);
-        CHECK_THROWS_AS(li8 = mk::subtract_or_throw(i8p, i8n), mk::arithmetic_overflow);
-        CHECK_THROWS_AS(li8 = mk::subtract_or_throw(i8n, i8p), mk::arithmetic_overflow);
-        CHECK_THROWS_AS(lu64 = mk::subtract_or_throw(zu64, u64), mk::arithmetic_overflow);
-        CHECK_THROWS_AS(li64 = mk::subtract_or_throw(i64p, i64n), mk::arithmetic_overflow);
-        CHECK_THROWS_AS(li64 = mk::subtract_or_throw(i64n, i64p), mk::arithmetic_overflow);
-
-            // multiplication
-        CHECK_THROWS_AS(lu8 = mk::multiply_or_throw(u8, u8), mk::arithmetic_overflow);
-        CHECK_THROWS_AS(li8 = mk::multiply_or_throw(i8p, i8p), mk::arithmetic_overflow);
-        CHECK_THROWS_AS(li8 = mk::multiply_or_throw(i8p, i8n), mk::arithmetic_overflow);
-        CHECK_THROWS_AS(li8 = mk::multiply_or_throw(i8n, i8n), mk::arithmetic_overflow);
-        CHECK_THROWS_AS(lu64 = mk::multiply_or_throw(u64, u64), mk::arithmetic_overflow);
-        CHECK_THROWS_AS(li64 = mk::multiply_or_throw(i64p, i64p), mk::arithmetic_overflow);
-        CHECK_THROWS_AS(li64 = mk::multiply_or_throw(i64p, i64n), mk::arithmetic_overflow);
-        CHECK_THROWS_AS(li64 = mk::multiply_or_throw(i64n, i64n), mk::arithmetic_overflow);
-
-            // division
-        CHECK_THROWS_AS(lu8 = mk::divide_or_throw(u8, zu8), gsl::fail_fast);
-        CHECK_THROWS_AS(li8 = mk::divide_or_throw(i8p, zi8), gsl::fail_fast);
-        CHECK_THROWS_AS(li8 = mk::divide_or_throw(i8nm, int8_t(-1)), mk::arithmetic_overflow);
-
-            // modulo
-        CHECK_THROWS_AS(lu8 = mk::modulo_or_throw(u8, zu8), gsl::fail_fast);
-        CHECK_THROWS_AS(li8 = mk::modulo_or_throw(i8p, zi8), gsl::fail_fast);
-        CHECK_THROWS_AS(li8 = mk::modulo_or_throw(i8nm, int8_t(-1)), mk::arithmetic_overflow);
-
-            // left shift
-        CHECK_THROWS_AS(lu8 = mk::shift_left_or_throw(u8, uint8_t(10)), gsl::fail_fast);
-        CHECK_THROWS_AS(li8 = mk::shift_left_or_throw(zi8, int8_t(10)), gsl::fail_fast);
-        CHECK_THROWS_AS(li8 = mk::shift_left_or_throw(zi8, int8_t(-1)), gsl::fail_fast);
-        CHECK_THROWS_AS(li8 = mk::shift_left_or_throw(i8n, int8_t(0)), gsl::fail_fast);
-        CHECK_THROWS_AS(li8 = mk::shift_left_or_throw(i8p, int8_t(2)), mk::arithmetic_overflow);
-
-            // right shift
-        CHECK_THROWS_AS(lu8 = mk::shift_right(u8, uint8_t(10)), gsl::fail_fast);
-        CHECK_THROWS_AS(li8 = mk::shift_right(zi8, int8_t(10)), gsl::fail_fast);
-        CHECK_THROWS_AS(li8 = mk::shift_right(zi8, int8_t(-1)), gsl::fail_fast);
-        CHECK_THROWS_AS(li8 = mk::shift_right(i8n, int8_t(0)), gsl::fail_fast);
+    SECTION("subtract")
+    {
+        CHECK_THROWS_AS(lu8 = mk::subtract_or_throw(zu8, u8), std::system_error);
+        CHECK_THROWS_AS(li8 = mk::subtract_or_throw(i8p, i8n), std::system_error);
+        CHECK_THROWS_AS(li8 = mk::subtract_or_throw(i8n, i8p), std::system_error);
+        CHECK_THROWS_AS(lu64 = mk::subtract_or_throw(zu64, u64), std::system_error);
+        CHECK_THROWS_AS(li64 = mk::subtract_or_throw(i64p, i64n), std::system_error);
+        CHECK_THROWS_AS(li64 = mk::subtract_or_throw(i64n, i64p), std::system_error);
     }
 
     SECTION("multiply")
+    {
+        CHECK_THROWS_AS(lu8 = mk::multiply_or_throw(u8, u8), std::system_error);
+        CHECK_THROWS_AS(li8 = mk::multiply_or_throw(i8p, i8p), std::system_error);
+        CHECK_THROWS_AS(li8 = mk::multiply_or_throw(i8p, i8n), std::system_error);
+        CHECK_THROWS_AS(li8 = mk::multiply_or_throw(i8n, i8n), std::system_error);
+        CHECK_THROWS_AS(lu64 = mk::multiply_or_throw(u64, u64), std::system_error);
+        CHECK_THROWS_AS(li64 = mk::multiply_or_throw(i64p, i64p), std::system_error);
+        CHECK_THROWS_AS(li64 = mk::multiply_or_throw(i64p, i64n), std::system_error);
+        CHECK_THROWS_AS(li64 = mk::multiply_or_throw(i64n, i64n), std::system_error);
+    }
+
+    SECTION("divide")
+    {
+        CHECK_THROWS_AS(lu8 = mk::divide_or_throw(u8, zu8), gsl::fail_fast);
+        CHECK_THROWS_AS(li8 = mk::divide_or_throw(i8p, zi8), gsl::fail_fast);
+        CHECK_THROWS_AS(li8 = mk::divide_or_throw(i8nm, int8_t(-1)), std::system_error);
+    }
+
+    SECTION("modulo")
+    {
+        CHECK_THROWS_AS(lu8 = mk::modulo_or_throw(u8, zu8), gsl::fail_fast);
+        CHECK_THROWS_AS(li8 = mk::modulo_or_throw(i8p, zi8), gsl::fail_fast);
+        CHECK_THROWS_AS(li8 = mk::modulo_or_throw(i8nm, int8_t(-1)), std::system_error);
+    }
+
+    SECTION("shift_left")
+    {
+        CHECK_THROWS_AS(lu8 = mk::shift_left_or_throw(u8, uint8_t(10)), std::system_error);
+        CHECK_THROWS_AS(li8 = mk::shift_left_or_throw(zi8, int8_t(10)), std::system_error);
+        CHECK_THROWS_AS(li8 = mk::shift_left_or_throw(zi8, int8_t(-1)), gsl::fail_fast);
+        CHECK_THROWS_AS(li8 = mk::shift_left_or_throw(i8n, int8_t(0)), gsl::fail_fast);
+        CHECK_THROWS_AS(li8 = mk::shift_left_or_throw(i8p, int8_t(2)), std::system_error);
+    }
+
+    SECTION("shift_right")
+    {
+        CHECK_THROWS_AS(lu8 = mk::shift_right_or_throw(u8, uint8_t(10)), std::system_error);
+        CHECK_THROWS_AS(li8 = mk::shift_right_or_throw(zi8, int8_t(10)), std::system_error);
+        CHECK_THROWS_AS(li8 = mk::shift_right_or_throw(zi8, int8_t(-1)), gsl::fail_fast);
+        CHECK_THROWS_AS(li8 = mk::shift_right_or_throw(i8n, int8_t(0)), gsl::fail_fast);
+    }
+
+    SECTION("multiply-extended")
     {
         SECTION("good")
         {
@@ -213,42 +223,42 @@ TEST_CASE("checked")
 
         SECTION("bad")
         {
-            CHECK_THROWS_AS(mk::multiply_or_throw(smax, size_t(2)), mk::arithmetic_overflow);
-            CHECK_THROWS_AS(mk::multiply_or_throw(size_t(2), smax), mk::arithmetic_overflow);
-            CHECK_THROWS_AS(mk::multiply_or_throw(smax / size_t(2), size_t(4)), mk::arithmetic_overflow);
-            CHECK_THROWS_AS(mk::multiply_or_throw(size_t(4), smax / size_t(2)), mk::arithmetic_overflow);
+            CHECK_THROWS_AS(mk::multiply_or_throw(smax, size_t(2)), std::system_error);
+            CHECK_THROWS_AS(mk::multiply_or_throw(size_t(2), smax), std::system_error);
+            CHECK_THROWS_AS(mk::multiply_or_throw(smax / size_t(2), size_t(4)), std::system_error);
+            CHECK_THROWS_AS(mk::multiply_or_throw(size_t(4), smax / size_t(2)), std::system_error);
 
-            CHECK_THROWS_AS(mk::multiply_or_throw(imin, -1), mk::arithmetic_overflow);
-            CHECK_THROWS_AS(mk::multiply_or_throw(-1, imin), mk::arithmetic_overflow);
-            CHECK_THROWS_AS(mk::multiply_or_throw(imin + 1, 2), mk::arithmetic_overflow);
-            CHECK_THROWS_AS(mk::multiply_or_throw(2, imin + 1), mk::arithmetic_overflow);
-            CHECK_THROWS_AS(mk::multiply_or_throw(imin + 1, -2), mk::arithmetic_overflow);
-            CHECK_THROWS_AS(mk::multiply_or_throw(-2, imin + 1), mk::arithmetic_overflow);
-            CHECK_THROWS_AS(mk::multiply_or_throw(imax - 1, -2), mk::arithmetic_overflow);
-            CHECK_THROWS_AS(mk::multiply_or_throw(-2, imax - 1), mk::arithmetic_overflow);
-            CHECK_THROWS_AS(mk::multiply_or_throw(imax - 1, 2), mk::arithmetic_overflow);
-            CHECK_THROWS_AS(mk::multiply_or_throw(2, imax - 1), mk::arithmetic_overflow);
+            CHECK_THROWS_AS(mk::multiply_or_throw(imin, -1), std::system_error);
+            CHECK_THROWS_AS(mk::multiply_or_throw(-1, imin), std::system_error);
+            CHECK_THROWS_AS(mk::multiply_or_throw(imin + 1, 2), std::system_error);
+            CHECK_THROWS_AS(mk::multiply_or_throw(2, imin + 1), std::system_error);
+            CHECK_THROWS_AS(mk::multiply_or_throw(imin + 1, -2), std::system_error);
+            CHECK_THROWS_AS(mk::multiply_or_throw(-2, imin + 1), std::system_error);
+            CHECK_THROWS_AS(mk::multiply_or_throw(imax - 1, -2), std::system_error);
+            CHECK_THROWS_AS(mk::multiply_or_throw(-2, imax - 1), std::system_error);
+            CHECK_THROWS_AS(mk::multiply_or_throw(imax - 1, 2), std::system_error);
+            CHECK_THROWS_AS(mk::multiply_or_throw(2, imax - 1), std::system_error);
 
-            CHECK_THROWS_AS(mk::multiply_or_throw<int64_t>(lmin, -1), mk::arithmetic_overflow);
-            CHECK_THROWS_AS(mk::multiply_or_throw<int64_t>(-1, lmin), mk::arithmetic_overflow);
-            CHECK_THROWS_AS(mk::multiply_or_throw<int64_t>(lmin + 1, 2), mk::arithmetic_overflow);
-            CHECK_THROWS_AS(mk::multiply_or_throw<int64_t>(2, lmin + 1), mk::arithmetic_overflow);
-            CHECK_THROWS_AS(mk::multiply_or_throw<int64_t>(lmin + 1, -2), mk::arithmetic_overflow);
-            CHECK_THROWS_AS(mk::multiply_or_throw<int64_t>(-2, lmin + 1), mk::arithmetic_overflow);
-            CHECK_THROWS_AS(mk::multiply_or_throw<int64_t>(lmax - 1, -2), mk::arithmetic_overflow);
-            CHECK_THROWS_AS(mk::multiply_or_throw<int64_t>(-2, lmax - 1), mk::arithmetic_overflow);
-            CHECK_THROWS_AS(mk::multiply_or_throw<int64_t>(lmax - 1, 2), mk::arithmetic_overflow);
-            CHECK_THROWS_AS(mk::multiply_or_throw<int64_t>(2, lmax - 1), mk::arithmetic_overflow);
+            CHECK_THROWS_AS(mk::multiply_or_throw<int64_t>(lmin, -1), std::system_error);
+            CHECK_THROWS_AS(mk::multiply_or_throw<int64_t>(-1, lmin), std::system_error);
+            CHECK_THROWS_AS(mk::multiply_or_throw<int64_t>(lmin + 1, 2), std::system_error);
+            CHECK_THROWS_AS(mk::multiply_or_throw<int64_t>(2, lmin + 1), std::system_error);
+            CHECK_THROWS_AS(mk::multiply_or_throw<int64_t>(lmin + 1, -2), std::system_error);
+            CHECK_THROWS_AS(mk::multiply_or_throw<int64_t>(-2, lmin + 1), std::system_error);
+            CHECK_THROWS_AS(mk::multiply_or_throw<int64_t>(lmax - 1, -2), std::system_error);
+            CHECK_THROWS_AS(mk::multiply_or_throw<int64_t>(-2, lmax - 1), std::system_error);
+            CHECK_THROWS_AS(mk::multiply_or_throw<int64_t>(lmax - 1, 2), std::system_error);
+            CHECK_THROWS_AS(mk::multiply_or_throw<int64_t>(2, lmax - 1), std::system_error);
 
                 // This check is to foil the idea of comparing the result to check for overflow, wrongly assuming that a wrapped multiplication
                 // violates monotonicity.
                 // 5¹³ =  0x48C27395
                 // 5¹⁴ = 0x16BCC41E9, which truncates to something still greater than 5¹³
-            CHECK_THROWS_AS(mk::multiply_or_throw<int32_t>(0x48C27395L, 5), mk::arithmetic_overflow);
-            CHECK_THROWS_AS(mk::multiply_or_throw(uint32_t(0x48C27395UL), uint32_t(5)), mk::arithmetic_overflow);
+            CHECK_THROWS_AS(mk::multiply_or_throw<int32_t>(0x48C27395L, 5), std::system_error);
+            CHECK_THROWS_AS(mk::multiply_or_throw(uint32_t(0x48C27395UL), uint32_t(5)), std::system_error);
                 // 3⁴⁰ =  0xA8B8B452291FE821
                 // 3⁴¹ = 0x1FA2A1CF67B5FB863, which truncates to something still greater than 3⁴⁰
-            CHECK_THROWS_AS(mk::multiply_or_throw(uint64_t(0xA8B8B452291FE821ULL), uint64_t(3)), mk::arithmetic_overflow);
+            CHECK_THROWS_AS(mk::multiply_or_throw(uint64_t(0xA8B8B452291FE821ULL), uint64_t(3)), std::system_error);
         }
     }
 
@@ -278,26 +288,26 @@ TEST_CASE("checked")
 
         SECTION("bad")
         {
-            CHECK_THROWS_AS(mk::powi_or_throw(size_t(2), smaxlog + 1), mk::arithmetic_overflow);
-            CHECK_THROWS_AS(mk::powi_or_throw(smax, size_t(2)), mk::arithmetic_overflow);
+            CHECK_THROWS_AS(mk::powi_or_throw(size_t(2), smaxlog + 1), std::system_error);
+            CHECK_THROWS_AS(mk::powi_or_throw(smax, size_t(2)), std::system_error);
 
             CHECK_THROWS_AS(mk::powi_or_throw(0, -1), gsl::fail_fast); // domain error
-            CHECK_THROWS_AS(mk::powi_or_throw(2, imaxlog + 1), mk::arithmetic_overflow);
-            CHECK_THROWS_AS(mk::powi_or_throw(-2, iminlog + 1), mk::arithmetic_overflow);
-            CHECK_THROWS_AS(mk::powi_or_throw(imax, 2), mk::arithmetic_overflow);
-            CHECK_THROWS_AS(mk::powi_or_throw(imin, 2), mk::arithmetic_overflow);
+            CHECK_THROWS_AS(mk::powi_or_throw(2, imaxlog + 1), std::system_error);
+            CHECK_THROWS_AS(mk::powi_or_throw(-2, iminlog + 1), std::system_error);
+            CHECK_THROWS_AS(mk::powi_or_throw(imax, 2), std::system_error);
+            CHECK_THROWS_AS(mk::powi_or_throw(imin, 2), std::system_error);
 
                 // This check is to foil the idea of comparing the result to check for overflow, wrongly assuming that a wrapped multiplication
                 // violates monotonicity.
                 // 5¹³ =  0x48C27395
                 // 5¹⁴ = 0x16BCC41E9, which truncates to something still greater than 5¹³
             CHECK(mk::powi_or_throw(uint32_t(5), uint32_t(13)) == 0x48C27395UL);
-            CHECK_THROWS_AS(mk::powi_or_throw(uint32_t(5), uint32_t(14)), mk::arithmetic_overflow);
+            CHECK_THROWS_AS(mk::powi_or_throw(uint32_t(5), uint32_t(14)), std::system_error);
                 // 3⁴⁰ =  0xA8B8B452291FE821
                 // 3⁴¹ = 0x1FA2A1CF67B5FB863, which truncates to something still greater than 3⁴⁰
                 // This check also fails with a rounding error if the implementation uses floating-point numbers.
             CHECK(mk::powi_or_throw(uint64_t(3), uint64_t(40)) == 0xA8B8B452291FE821ULL);
-            CHECK_THROWS_AS(mk::powi_or_throw(uint64_t(3), uint64_t(41)), mk::arithmetic_overflow);
+            CHECK_THROWS_AS(mk::powi_or_throw(uint64_t(3), uint64_t(41)), std::system_error);
         }
     }
 
