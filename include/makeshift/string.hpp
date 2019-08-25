@@ -3,67 +3,103 @@
 #define INCLUDED_MAKESHIFT_STRING_HPP_
 
 
-#include <string>
 #include <string_view>
-#include <type_traits> // for decay<>, enable_if<>
 
-#include <makeshift/type_traits.hpp> // for tag<>, is_serializer<>
+#include <makeshift/version.hpp> // for MAKESHIFT_NODISCARD
 
-#include <makeshift/detail/string_compare.hpp>
+#include <makeshift/detail/string.hpp>
 
 
 namespace makeshift
 {
 
-inline namespace serialize
-{
-
-
-    // To customize string serialization for arbitrary types, define your own serializer type along with `to_string_impl()`, `from_string_impl()`
-    // overloads discoverable by ADL.
+    //ᅟ
+    // Specifies a string comparison mode.
     //
-    // To override parts of the behavior of an existing serializer, define a new serializer that handles only the types you want to customize, and
-    // chain it with the existing serializer using `chain()`.
-
-
-    //ᅟ
-    // Serializes the given value as string using the provided serializer.
-    //ᅟ
-    //ᅟ    std::string s = to_string(42, mySerializer); // returns "42"s
-    //
-template <typename T, typename SerializerT>
-    std::string to_string(const T& value, SerializerT& serializer)
+enum class string_comparison : int
 {
-    return to_string_impl(value, serializer, serializer);
-}
-
-
     //ᅟ
-    // Deserializes the given value from a string using the provided serializer.
-    //ᅟ
-    //ᅟ    int i = from_string<int>("42", mySerializer); // returns 42
+    // Compares strings using ordinal (binary) ordering rules.
     //
-template <typename T, typename SerializerT,
-          typename = std::enable_if_t<is_serializer_v<std::decay_t<SerializerT>>>>
-    T from_string(std::string_view string, SerializerT& serializer, tag<T> = { })
+    ordinal,
+
+    //ᅟ
+    // Compares strings using ordinal (binary) ordering rules. Ignores case of ASCII characters.
+    //
+    ordinal_ignore_case
+};
+
+
+struct string_comparer_options
 {
-    return from_string_impl(tag_v<T>, string, serializer, serializer);
-}
+    string_comparison comparison = string_comparison::ordinal;
+};
 
 
-} // inline namespace serialize
+    //ᅟ
+    // Configurable string equality comparer.
+    //
+class string_equal_to
+{
+private:
+    string_comparer_options options_;
+
+public:
+    constexpr string_equal_to(string_comparer_options _options)
+        : options_(_options)
+    {
+    }
+
+    MAKESHIFT_NODISCARD bool operator ()(std::string_view lhs, std::string_view rhs) const noexcept
+    {
+        return makeshift::detail::string_equal_to(options_, lhs, rhs);
+    }
+};
+
+
+    //ᅟ
+    // Configurable string ordering comparer.
+    //
+class string_less
+{
+private:
+    string_comparer_options options_;
+
+public:
+    constexpr string_less(string_comparer_options _options)
+        : options_(_options)
+    {
+    }
+
+    MAKESHIFT_NODISCARD bool operator ()(std::string_view lhs, std::string_view rhs) const noexcept
+    {
+        return makeshift::detail::string_less(options_, lhs, rhs);
+    }
+};
+
+
+    //ᅟ
+    // Configurable string hasher.
+    //
+class string_hash
+{
+private:
+    string_comparer_options options_;
+
+public:
+    constexpr string_hash(string_comparer_options _options)
+        : options_(_options)
+    {
+    }
+
+    MAKESHIFT_NODISCARD std::size_t operator ()(std::string_view obj) const noexcept
+    {
+        return makeshift::detail::string_hash(options_, obj);
+    }
+};
+
 
 } // namespace makeshift
-
-
-#ifdef INCLUDED_MAKESHIFT_STREAMABLE_HPP_
- #include <makeshift/detail/streamable-string.hpp>
-#endif // INCLUDED_MAKESHIFT_STREAMABLE_HPP_
-
-
-#ifdef INCLUDED_MAKESHIFT_QUANTITY_HPP_
- #include <makeshift/detail/quantity-string.hpp>
-#endif // INCLUDED_MAKESHIFT_QUANTITY_HPP_
 
 
 #endif // INCLUDED_MAKESHIFT_STRING_HPP_

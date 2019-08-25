@@ -11,7 +11,6 @@
 
 #include <gsl/gsl-lite.hpp> // for Expects()
 
-#include <makeshift/type_traits.hpp>  // for tag<>
 #include <makeshift/type_traits2.hpp> // for flags_base, unwrap_enum_tag, type<>, type_sequence<>
 #include <makeshift/version.hpp>      // for MAKESHIFT_NODISCARD
 
@@ -52,14 +51,6 @@ public:
     static constexpr flags none = flags::none;
 
     friend constexpr type<FlagsT> flag_type_of_(flags, makeshift::detail::unwrap_enum_tag) { return { }; }
-
-        // We just forward the metadata defined for the derived type.
-        // TODO: ensure that have_metadata<flag> is false if no metadata is defined for FlagsT.
-    template <typename MetadataTagT>
-        friend constexpr auto reflect(tag<flags>, MetadataTagT) -> decltype(reflect(tag<FlagsT>{ }, MetadataTagT{ }))
-    {
-        return reflect(tag<FlagsT>{ }, MetadataTagT{ });
-    }
 
         // We just forward the metadata defined for the derived type.
         // TODO: ensure that have_metadata<flag> is false if no metadata is defined for FlagsT.

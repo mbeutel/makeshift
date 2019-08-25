@@ -19,16 +19,10 @@ add_executable(test-makeshift
     "test-new.cpp"
     "test-buffer.cpp"
     "test-constval.cpp"
-    "test-quantity.cpp"
-    "test-tuple.cpp"
     "test-tuple2.cpp"
     "test-reflect2.cpp"
-    "test-variant.cpp"
     "test-variant2.cpp"
-    "test-utility.cpp"
     "test-utility2.cpp"
-    "test-metadata.cpp"
-#    "demo.cpp"
 )
 
 # compiler settings

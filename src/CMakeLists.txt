@@ -14,16 +14,7 @@ find_package(gsl-lite REQUIRED)
 add_library(makeshift
     "new.cpp"
     "memory.cpp"
-    "quantity.cpp"
-    "serialize.cpp"
-    "serialize_enum.cpp"
-    "serializer_bool.cpp"
-    "serializer_quantity.cpp"
-    "serializer_string.cpp"
-    "serializer_stream.cpp"
-    "streamable-string.cpp"
-    "string_compare.cpp"
-    "constrained.cpp")
+    "string.cpp")
 
 # library version header file
 configure_file("${PROJECT_SOURCE_DIR}/cmake/detail_version.hpp.in"
