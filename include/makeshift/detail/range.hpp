@@ -4,15 +4,13 @@
 
 
 #include <cstddef>     // for size_t, ptrdiff_t
-#include <utility>     // for tuple_size<>, integer_sequence<>
+#include <utility>     // for move(), integer_sequence<>
 #include <iterator>    // for iterator_traits<>, random_access_iterator_tag
-#include <type_traits> // for is_base_of<>
+#include <type_traits> // for is_base_of<>, declval<>(), integral_constant<>
 
 #include <gsl/gsl-lite.hpp> // for Expects()
 
-#include <makeshift/constval.hpp>     // for is_constval<>
-#include <makeshift/type_traits2.hpp> // for can_instantiate<>
-#include <makeshift/version.hpp>      // for MAKESHIFT_NODISCARD
+#include <makeshift/macros.hpp> // for MAKESHIFT_NODISCARD
 
 
 namespace makeshift
@@ -22,68 +20,115 @@ namespace detail
 {
 
 
-struct range_base { };
-
-template <typename RangeT>
-    struct random_access_range_base : range_base
+template <typename It, typename EndIt, typename IteratorTagT, std::ptrdiff_t Extent>
+    class range_base;
+template <typename It, typename EndIt, typename IteratorTagT>
+    class range_base<It, EndIt, IteratorTagT, -1>
 {
+private:
+    It first_;
+    EndIt last_;
+
+public:
+    constexpr range_base(It first, EndIt last)
+        : first_(std::move(first)), last_(std::move(last))
+    {
+    }
+
+    MAKESHIFT_NODISCARD constexpr It const& begin(void) const noexcept { return first_; }
+    MAKESHIFT_NODISCARD constexpr EndIt const& end(void) const noexcept { return last_; }
+};
+template <typename It, typename EndIt>
+    class range_base<It, EndIt, std::random_access_iterator_tag, -1>
+{
+private:
+    It first_;
+    EndIt last_;
+
+public:
+    constexpr range_base(It first, EndIt last)
+        : first_(std::move(first)), last_(std::move(last))
+    {
+    }
+
+    MAKESHIFT_NODISCARD constexpr It const& begin(void) const noexcept { return first_; }
+    MAKESHIFT_NODISCARD constexpr EndIt const& end(void) const noexcept { return last_; }
     MAKESHIFT_NODISCARD constexpr std::size_t size(void) const noexcept
     {
-        return static_cast<const RangeT&>(*this).end() - static_cast<const RangeT&>(*this).begin();
+        return last_ - first_;
     }
-    MAKESHIFT_NODISCARD constexpr decltype(auto) operator [](std::ptrdiff_t i) const noexcept
+    MAKESHIFT_NODISCARD constexpr decltype(auto) operator [](std::size_t i) const noexcept
     {
-        return static_cast<const RangeT&>(*this).begin()[i];
+        Expects(i < last_ - first_);
+        return first_[i];
+    }
+};
+template <typename It, std::ptrdiff_t Extent>
+    class range_base<It, It, std::random_access_iterator_tag, Extent>
+{
+    static_assert(Extent >= 0, "range extent must be non-negative");
+
+private:
+    It first_;
+
+public:
+    constexpr range_base(It first, It last)
+        : first_(std::move(first))
+    {
+    }
+
+    MAKESHIFT_NODISCARD constexpr It const& begin(void) const noexcept { return first_; }
+    MAKESHIFT_NODISCARD constexpr It const& end(void) const noexcept { return first_ + Extent; }
+    MAKESHIFT_NODISCARD constexpr std::size_t size(void) const noexcept
+    {
+        return Extent;
+    }
+    MAKESHIFT_NODISCARD constexpr decltype(auto) operator [](std::size_t i) const noexcept
+    {
+        Expects(i < std::size_t(Extent));
+        return first_[i];
     }
 };
 
-template <typename RangeT, bool IsRandomAccessIterator> struct range_base_0_;
-template <typename RangeT> struct range_base_0_<RangeT, false> { using type = range_base; };
-template <typename RangeT> struct range_base_0_<RangeT, true> { using type = random_access_range_base<RangeT>; };
-template <typename It, typename RangeT> struct range_base_ : range_base_0_<RangeT, std::is_base_of<std::random_access_iterator_tag, typename std::iterator_traits<It>::iterator_category>::value> { };
+template <typename It> using range_iterator_tag = std::conditional_t<
+    std::is_base_of<std::random_access_iterator_tag, typename std::iterator_traits<It>::iterator_category>::value,
+    std::random_access_iterator_tag,
+    std::input_iterator_tag>;
 
-
-template <typename It, std::size_t Size>
-    struct fixed_random_access_range
+template <typename ExtentC>
+    constexpr std::ptrdiff_t range_extent_from_constval(ExtentC)
 {
-    It first;
-
-    constexpr fixed_random_access_range(It _first, It _last)
-        : first(std::move(_first))
-    {
-        Expects(first + Size == _last);
-    }
-
-    MAKESHIFT_NODISCARD constexpr const It& begin(void) const noexcept { return first; }
-    MAKESHIFT_NODISCARD constexpr const It& end(void) const noexcept { return first + Size; }
-    MAKESHIFT_NODISCARD constexpr std::size_t size(void) const noexcept
-    {
-        return Size;
-    }
-    MAKESHIFT_NODISCARD constexpr decltype(auto) operator [](std::ptrdiff_t i) const noexcept
-    {
-        return first[i];
-    }
-};
-
-
-template <typename It, typename ExtentC, template <typename, typename> class RangeT, bool IsConstval> struct range_by_extent_0_;
-template <typename It, typename ExtentC, template <typename, typename> class RangeT> struct range_by_extent_0_<It, ExtentC, RangeT, false> { using type = RangeT<It, It>; };
-template <typename It, typename ExtentC, template <typename, typename> class RangeT> struct range_by_extent_0_<It, ExtentC, RangeT, true> { using type = fixed_random_access_range<It, constval_value<ExtentC>>; };
-template <typename It, typename ExtentC, template <typename, typename> class RangeT> struct range_by_extent_ : range_by_extent_0_<It, ExtentC, RangeT, is_constval_v<ExtentC>> { };
-
-
-    // Implement tuple-like protocol for `fixed_random_access_range<>`.
-template <std::size_t I, typename It, std::size_t Size>
-    MAKESHIFT_NODISCARD constexpr decltype(auto) get(fixed_random_access_range<It, Size>& range) noexcept
+    return -1;
+}
+template <typename T, T V>
+    constexpr std::ptrdiff_t range_extent_from_constval(std::integral_constant<T, V>)
 {
-    static_assert(I < Size, "index out of range");
+    return V;
+}
+
+template <typename T>
+    constexpr bool check_buffer_extents(std::true_type /*dynamicExtent*/, std::size_t expectedExtent, std::size_t actualExtent)
+{
+    Expects(expectedExtent == actualExtent);
+}
+template <typename T>
+    constexpr bool check_buffer_extents(std::false_type /*dynamicExtent*/, std::size_t expectedExtent, std::size_t actualExtent)
+{
+}
+
+    // Implement tuple-like protocol for `range<>`.
+template <std::size_t I, typename It, std::ptrdiff_t Extent>
+    MAKESHIFT_NODISCARD constexpr std::enable_if_t<(Extent >= 0), decltype(*std::declval<It>())>
+    get(range_base<It, It, std::random_access_iterator_tag, Extent>& range) noexcept
+{
+    static_assert(I < std::size_t(Extent), "index out of range");
     return range[I];
 }
-template <std::size_t I, typename It, std::size_t Size>
-    MAKESHIFT_NODISCARD constexpr decltype(auto) get(const fixed_random_access_range<It, Size>& range) noexcept
+template <std::size_t I, typename It, std::ptrdiff_t Extent>
+    MAKESHIFT_NODISCARD constexpr std::enable_if_t<(Extent >= 0), decltype(std::as_const(*std::declval<It>()))>
+    get(range_base<It, It, std::random_access_iterator_tag, Extent> const& range) noexcept
 {
-    static_assert(I < Size, "index out of range");
+    static_assert(I < std::size_t(Extent), "index out of range");
     return range[I];
 }
 
@@ -91,18 +136,6 @@ template <std::size_t I, typename It, std::size_t Size>
 } // namespace detail
 
 } // namespace makeshift
-
-
-namespace std
-{
-
-
-    // Implement tuple-like protocol for `fixed_random_access_range<>`.
-template <typename It, std::size_t Size> struct tuple_size<makeshift::detail::fixed_random_access_range<It, Size>> : public std::integral_constant<std::size_t, Size> { };
-template <std::size_t I, typename It, std::size_t Size> struct tuple_element<I, makeshift::detail::fixed_random_access_range<It, Size>> { using type = std::decay_t<decltype(*std::declval<It>())>; };
-
-
-} // namespace std
 
 
 #endif // INCLUDED_MAKESHIFT_DETAIL_RANGE_HPP_
