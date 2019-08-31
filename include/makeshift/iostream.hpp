@@ -3,8 +3,7 @@
 #define INCLUDED_MAKESHIFT_IOSTREAM_HPP_
 
 
-#include <iosfwd>      // for istream, ostream
-#include <type_traits> // for declval<>()
+#include <iosfwd> // for istream, ostream
 
 
 namespace makeshift
@@ -19,11 +18,11 @@ struct to_stream
         //ᅟ
         // Writes the argument to the given stream by calling `stream << arg`.
         //
-    template <typename T,
-              typename = decltype(std::declval<std::ostream&>() << std::declval<const T&>())>
-        void operator ()(std::ostream& stream, const T& arg)
+    template <typename T>
+        auto operator ()(std::ostream& stream, T const& arg)
+            -> decltype(stream << arg)
     {
-        stream << arg;
+        return stream << arg;
     }
 };
 
@@ -36,11 +35,11 @@ struct from_stream
         //ᅟ
         // Reads the argument from the given stream by calling `stream >> arg`.
         //
-    template <typename T,
-              typename = decltype(std::declval<std::istream&>() >> std::declval<T&>())>
-        void operator ()(std::istream& stream, T& arg)
+    template <typename T>
+        auto operator ()(std::istream& stream, T& arg)
+            -> decltype(stream >> arg)
     {
-        stream >> arg;
+        return stream >> arg;
     }
 };
 
