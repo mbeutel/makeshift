@@ -4,8 +4,8 @@
 #include <type_traits> // for integral_constant<>, is_same<>
 #include <functional>  // for plus<>
 
-#include <makeshift/array2.hpp>   // for array<>
-#include <makeshift/utility2.hpp>
+#include <makeshift/array.hpp>   // for array<>
+#include <makeshift/utility.hpp>
 #include <makeshift/constval.hpp>
 
 #include <catch2/catch.hpp>
@@ -37,13 +37,13 @@ template <typename T, T... Vs>
 template <typename T, T... Vs>
     void expect_nested_array_constval_normalization(mk::array_constant<T, Vs...>)
 {
-    (expect_array_constval_normalization(mk::constval<Vs>), ...);
+    (expect_array_constval_normalization(mk::c<T, Vs>), ...);
 }
 
-template <auto... Vs>
-    void expect_array_tuple_constval_normalization(mk::tuple_constant<Vs...>)
+template <typename... Cs>
+    void expect_array_tuple_constval_normalization(mk::tuple_constant<Cs...>)
 {
-    (expect_array_constval_normalization(mk::constval<Vs>), ...);
+    (expect_array_constval_normalization(Cs{ }), ...);
 }
 
 template <typename T>
@@ -159,13 +159,13 @@ TEST_CASE("constval")
         cCT);
     expect_tuple_like(cCTV);
 
-    auto cCT2 = mk::ref_constval<SomeClass::ct>;
+    auto cCT2 = mk::ref_c<SomeClass::ct>;
     static constexpr CustomType c2 = cCT2();
     (void) c2;
-    auto cA2 = mk::ref_constval<SomeClass::ca>;
+    auto cA2 = mk::ref_c<SomeClass::ca>;
     expect_array_constval_normalization(cA2);
-    //auto iCT = mk::ref_constval<SomeClass::ct.i>; // this doesn't work because arg doesn't have linkage
-    //auto cCT3 = mk::ref_constval<c2>; // this doesn't work either, for the same reason
+    //auto iCT = mk::ref_c<SomeClass::ct.i>; // this doesn't work because arg doesn't have linkage
+    //auto cCT3 = mk::ref_c<c2>; // this doesn't work either, for the same reason
     auto iCT = mk::make_constval([]{ return SomeClass::ct.i; });
     expect_constval_normalization<int>(iCT);
 }
