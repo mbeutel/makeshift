@@ -39,6 +39,11 @@ namespace makeshift
 
 
     //ᅟ
+    // Reports the operating system's large page size in bytes, or 0 if large pages are not available or supported.
+    //
+MAKESHIFT_PUBLIC std::size_t hardware_large_page_size(void) noexcept;
+
+    //ᅟ
     // Reports the operating system's page size in bytes.
     //
 MAKESHIFT_PUBLIC std::size_t hardware_page_size(void) noexcept;

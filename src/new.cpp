@@ -15,6 +15,8 @@
 #elif defined(__linux__)
  #include <unistd.h>
  #include <stdio.h>
+ #include <hugetlbfs.h>
+ int gethugepagesizes(long pagesizes[], int n_elem);
 #elif defined(__APPLE__)
  #include <unistd.h>
  #include <sys/types.h>
@@ -27,6 +29,29 @@
 namespace makeshift
 {
 
+
+std::size_t hardware_large_page_size(void) noexcept
+{
+    static std::size_t result = []
+    {
+#if defined(_WIN32)
+        return GetLargePageMinimum();
+#elif defined(__linux__)
+        long hugePageSize = gethugepagesize();
+        if (hugePageSize < 0 && errno == ENOSYS)
+        {
+            return 0;
+        }
+        Expects(hugePageSize > 0);
+        return static_cast<std::size_t>(hugePageSize);
+#elif defined(__APPLE__)
+        return 0; // MacOS does support huge pages ("superpages") but we currently didn't write any code to support them
+#else
+ #error Unsupported operating system.
+#endif
+    }();
+    return result;
+}
 
 std::size_t hardware_page_size(void) noexcept
 {
