@@ -4,6 +4,7 @@
 
 
 #include <cstddef>     // for size_t, ptrdiff_t
+#include <utility>     // for forward<>()
 #include <type_traits> // for integral_constant<>
 #include <memory>      // for allocator_traits<>
 
@@ -14,7 +15,7 @@ namespace makeshift
 {
 
 
-enum class alignment : std::ptrdiff_t;
+enum class alignment : std::size_t;
 
 
 namespace detail
@@ -93,6 +94,13 @@ template <typename T, typename A, typename SizeC>
 
 MAKESHIFT_PUBLIC std::size_t alignment_in_bytes(alignment a, std::size_t alignOfT) noexcept;
 MAKESHIFT_PUBLIC std::size_t alignment_in_elements(alignment a, std::size_t sizeOfT, std::size_t alignOfT) noexcept;
+
+template <typename T>
+    constexpr bool is_alignment_power_of_2(T value) noexcept
+{
+    return value > 0
+        && (value & (value - 1)) == 0;
+}
 
 
 } // namespace detail

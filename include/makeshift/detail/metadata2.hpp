@@ -7,11 +7,11 @@
 #include <cstddef> // for size_t
 #include <utility> // for move(), integer_sequence<>
 
-#include <makeshift/type_traits2.hpp> // for type_sequence<>
-#include <makeshift/version.hpp>      // for MAKESHIFT_NODISCARD, MAKESHIFT_CXX17, MAKESHIFT_EMPTY_BASES
+#include <makeshift/type_traits.hpp> // for ??
+#include <makeshift/utility.hpp>     // for type_sequence<>
+#include <makeshift/macros.hpp>      // for MAKESHIFT_NODISCARD, MAKESHIFT_CXX17, MAKESHIFT_DETAIL_EMPTY_BASES
 
 #include <makeshift/detail/string_view.hpp>
-#include <makeshift/detail/workaround.hpp>  // for cand()
 
 #ifdef MAKESHIFT_CXX17
  #include <string_view>
@@ -38,7 +38,7 @@ template <typename T, std::size_t N>
 
 
 template <typename... ParamsT>
-    struct MAKESHIFT_EMPTY_BASES parameter_set : ParamsT...
+    struct MAKESHIFT_DETAIL_EMPTY_BASES parameter_set : ParamsT...
 {
     using parameter_categories = type_sequence_cat_t<typename ParamsT::parameter_categories...>;
 
@@ -110,7 +110,7 @@ public:
 template <typename TagsT, typename T, std::size_t N, typename... ParamsT>
     struct values_parameter;
 template <typename... TagsT, typename T, std::size_t N, typename... ParamsT>
-    struct MAKESHIFT_EMPTY_BASES values_parameter<type_sequence<TagsT...>, T, N, ParamsT...>
+    struct MAKESHIFT_DETAIL_EMPTY_BASES values_parameter<type_sequence<TagsT...>, T, N, ParamsT...>
         : define_parameter<values_parameter<type_sequence<TagsT...>, T, N, ParamsT...>, TagsT...>,
           parameter_array<ParamsT, N>...
 {
@@ -146,7 +146,7 @@ struct heterogeneous_values_tag { };
 template <typename TagsT, typename Ts, typename... ParamsT>
     struct heterogeneous_values_parameter;
 template <typename... TagsT, template <typename...> class TupleT, typename... Ts, typename... ParamsT>
-    struct MAKESHIFT_EMPTY_BASES heterogeneous_values_parameter<type_sequence<TagsT...>, TupleT<Ts...>, ParamsT...>
+    struct MAKESHIFT_DETAIL_EMPTY_BASES heterogeneous_values_parameter<type_sequence<TagsT...>, TupleT<Ts...>, ParamsT...>
         : define_parameter<heterogeneous_values_parameter<type_sequence<TagsT...>, TupleT<Ts...>, ParamsT...>, TagsT..., heterogeneous_values_tag>,
           parameter_array<ParamsT, sizeof...(Ts)>...
 {

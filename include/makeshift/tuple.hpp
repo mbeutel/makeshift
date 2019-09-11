@@ -1,6 +1,6 @@
 ﻿
-#ifndef INCLUDED_MAKESHIFT_TUPLE2_HPP_
-#define INCLUDED_MAKESHIFT_TUPLE2_HPP_
+#ifndef INCLUDED_MAKESHIFT_TUPLE_HPP_
+#define INCLUDED_MAKESHIFT_TUPLE_HPP_
 
 
 #include <array>
@@ -9,10 +9,10 @@
 #include <utility>     // for forward<>()
 #include <type_traits> // for decay<>
 
-#include <makeshift/type_traits2.hpp> // for can_instantiate<>
-#include <makeshift/version.hpp>      // for MAKESHIFT_NODISCARD
+#include <makeshift/type_traits.hpp> // for can_instantiate<>
+#include <makeshift/macros.hpp>      // for MAKESHIFT_NODISCARD
 
-#include <makeshift/detail/tuple2.hpp>
+#include <makeshift/detail/tuple.hpp>
 
 
 namespace makeshift
@@ -20,12 +20,12 @@ namespace makeshift
 
 
     //ᅟ
-    // Pass `tuple_index` to `array_transform()`, `tuple_foreach()`, or `tuple_transform()` to have the tuple element index passed as a functor argument.
+    // Pass `tuple_index` to `array_transform()`, `template_for()`, or `tuple_transform()` to have the tuple element index passed as a functor argument.
     // The argument is of type `integral_constant<index, I>`.
     //ᅟ
     //ᅟ        // print all alternatives of a variant
     //ᅟ    constexpr auto numAlternatives = std::variant_size_v<MyVariant>;
-    //ᅟ    tuple_foreach<numAlternatives>(
+    //ᅟ    template_for<numAlternatives>(
     //ᅟ        [](auto idxC)
     //ᅟ        {
     //ᅟ            using T = std::variant_alternative_t<idxC(), MyVariant>;
@@ -36,12 +36,12 @@ using tuple_index_t = makeshift::detail::tuple_index_t;
 
 
     //ᅟ
-    // Pass `tuple_index` to `array_transform()`, `tuple_foreach()`, or `tuple_transform()` to have the tuple element index passed as a functor argument.
+    // Pass `tuple_index` to `array_transform()`, `template_for()`, or `tuple_transform()` to have the tuple element index passed as a functor argument.
     // The argument is of type `integral_constant<index, I>`.
     //ᅟ
     //ᅟ        // print all alternatives of a variant
     //ᅟ    constexpr auto numAlternatives = std::variant_size_v<MyVariant>;
-    //ᅟ    tuple_foreach<numAlternatives>(
+    //ᅟ    template_for<numAlternatives>(
     //ᅟ        [](auto idxC)
     //ᅟ        {
     //ᅟ            using T = std::variant_alternative_t<idxC(), MyVariant>;
@@ -52,53 +52,38 @@ constexpr tuple_index_t tuple_index{ };
 
 
     //ᅟ
-    // Determines whether a type has a tuple-like interface.
-    //ᅟ
-    // A type `T` has a tuple-like interface if `std::tuple_size<T>::value`, `std::tuple_element_t<I, T>`, and `get<I>(t)` are well-formed. This trait only checks `std::tuple_size<T>::value`.
-    //
-template <typename T> struct is_tuple_like : can_instantiate<makeshift::detail::is_tuple_like_r, T> { };
-
-    //ᅟ
-    // Determines whether a type has a tuple-like interface.
-    //ᅟ
-    // A type `T` has a tuple-like interface if `std::tuple_size<T>::value`, `std::tuple_element_t<I, T>`, and `get<I>(t)` are well-formed. This trait only checks `std::tuple_size<T>::value`.
-    //
-template <typename T> constexpr bool is_tuple_like_v = is_tuple_like<T>::value;
-
-
-    //ᅟ
     // Takes a scalar procedure (i.e. a function of non-tuple arguments which returns nothing) and calls the procedure for every element in the given tuples.
     //ᅟ
-    //ᅟ    tuple_foreach(
+    //ᅟ    template_for(
     //ᅟ        [](auto name, auto elem) { std::cout << name << ": " << elem << '\n'; },
     //ᅟ        std::make_tuple("a", "b"), std::make_tuple(1, 2.3f));
     //ᅟ    // prints "a: 1\nb: 2.3\n"
     //
 template <typename F, typename... Ts>
     constexpr void
-    tuple_foreach2(F&& func, Ts&&... args)
+    template_for(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
     constexpr std::size_t size = makeshift::detail::tuple_transform_size<-1, Ts...>();
-    makeshift::detail::tuple_foreach_impl(std::make_index_sequence<size>{ }, std::forward<F>(func), std::forward<Ts>(args)...);
+    makeshift::detail::template_for_impl(std::make_index_sequence<size>{ }, std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
 
     //ᅟ
     // Takes a scalar procedure (i.e. a function of non-tuple arguments which returns nothing) and calls the procedure for every element in the given tuples.
     //ᅟ
-    //ᅟ    tuple_foreach<3>(
+    //ᅟ    template_for<3>(
     //ᅟ        [](index i) { std::cout << i << '\n'; },
-    //ᅟ        array_index
-    //ᅟ    ); // prints "0\n1\n2\n"
+    //ᅟ        array_index);
+    //ᅟ    // prints "0\n1\n2\n"
     //
 template <std::size_t N, typename F, typename... Ts>
     constexpr void
-    tuple_foreach2(F&& func, Ts&&... args)
+    template_for(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
     constexpr std::size_t size = makeshift::detail::tuple_transform_size<N, Ts...>();
-    return makeshift::detail::tuple_foreach_impl(std::make_index_sequence<size>{ }, std::forward<F>(func), std::forward<Ts>(args)...);
+    return makeshift::detail::template_for_impl(std::make_index_sequence<size>{ }, std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
 
@@ -112,7 +97,7 @@ template <std::size_t N, typename F, typename... Ts>
     //
 template <typename F, typename... Ts>
     MAKESHIFT_NODISCARD constexpr auto
-    tuple_transform2(F&& func, Ts&&... args)
+    tuple_transform(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
     constexpr std::size_t size = makeshift::detail::tuple_transform_size<-1, Ts...>();
@@ -131,7 +116,7 @@ template <typename F, typename... Ts>
     //
 template <template<typename...> class TupleT, typename F, typename... Ts>
     MAKESHIFT_NODISCARD constexpr auto
-    tuple_transform2(F&& func, Ts&&... args)
+    tuple_transform(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
     constexpr std::size_t size = makeshift::detail::tuple_transform_size<-1, Ts...>();
@@ -149,7 +134,7 @@ template <template<typename...> class TupleT, typename F, typename... Ts>
     //
 template <std::size_t N, typename F, typename... Ts>
     MAKESHIFT_NODISCARD constexpr auto
-    tuple_transform2(F&& func, Ts&&... args)
+    tuple_transform(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
     constexpr std::size_t size = makeshift::detail::tuple_transform_size<N, Ts...>();
@@ -168,7 +153,7 @@ template <std::size_t N, typename F, typename... Ts>
     //
 template <template <typename...> class TupleT, std::size_t N, typename F, typename... Ts>
     MAKESHIFT_NODISCARD constexpr auto
-    tuple_transform2(F&& func, Ts&&... args)
+    tuple_transform(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
     constexpr std::size_t size = makeshift::detail::tuple_transform_size<N, Ts...>();
@@ -281,4 +266,4 @@ template <typename TupleT, typename P>
 } // namespace makeshift
 
 
-#endif // INCLUDED_MAKESHIFT_TUPLE2_HPP_
+#endif // INCLUDED_MAKESHIFT_TUPLE_HPP_

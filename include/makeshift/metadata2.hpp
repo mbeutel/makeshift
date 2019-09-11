@@ -6,7 +6,7 @@
 #include <array> // for decay<>
 #include <type_traits> // for decay<>
 
-#include <makeshift/version.hpp> // for MAKESHIFT_NODISCARD
+#include <makeshift/macros.hpp> // for MAKESHIFT_NODISCARD
 
 #include <makeshift/detail/string_view.hpp>
 #include <makeshift/detail/metadata2.hpp>

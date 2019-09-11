@@ -740,5 +740,7 @@
             </ArrayItems>
         </Expand>
     </Type>
+    
+    <!-- TODO: add visualizer for range<> -->
 
 </AutoVisualizer>

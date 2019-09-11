@@ -1,16 +1,14 @@
 ﻿
-#ifndef INCLUDED_MAKESHIFT_VARIANT2_HPP_
-#define INCLUDED_MAKESHIFT_VARIANT2_HPP_
+#ifndef INCLUDED_MAKESHIFT_VARIANT_HPP_
+#define INCLUDED_MAKESHIFT_VARIANT_HPP_
 
 
-#include <utility>     // for forward<>()
-#include <functional>  // for equal_to<>
-#include <stdexcept>   // for runtime_error
+#include <makeshift/macros.hpp> // for MAKESHIFT_CXX, MAKESHIFT_NODISCARD, MAKESHIFT_INTELLISENSE
 
-#include <makeshift/functional.hpp> // for hash<>
-#include <makeshift/macros.hpp>     // for MAKESHIFT_CXX17, MAKESHIFT_NODISCARD, MAKESHIFT_INTELLISENSE
+#if MAKESHIFT_CXX >= 17
+ #include <variant>
 
-#include <makeshift/detail/variant2.hpp>
+ #include <makeshift/detail/variant.hpp>
 
 
 namespace makeshift
@@ -18,27 +16,13 @@ namespace makeshift
 
 
     //ᅟ
-    // Determines whether a type has a variant-like interface (i.e. whether `std::variant_size<T>::value` is well-formed).
-    //
-template <typename T> struct is_variant_like : can_instantiate<makeshift::detail::is_variant_like_r, T> { };
-
-    //ᅟ
-    // Determines whether a type has a variant-like interface (i.e. whether `std::variant_size<T>::value` is well-formed).
-    //
-template <typename T> constexpr bool is_variant_like_v = is_variant_like<T>::value;
-
-
-    //ᅟ
-    // Exception class thrown by `expand_or_throw()` if the runtime value to be expanded is not among the values listed.
+    // Exception thrown by `expand_or_throw()` if the runtime value to be expanded is not among the values listed.
     //
 class unsupported_runtime_value : public std::runtime_error
 {
 public:
     using std::runtime_error::runtime_error;
 };
-
-
-constexpr inline makeshift::detail::member_values_name member_values = { };
 
 
 #ifdef MAKESHIFT_CXX17
@@ -59,7 +43,8 @@ constexpr inline makeshift::detail::member_values_name member_values = { };
     //ᅟ        bitsVO.value());
     //
 template <typename T, typename C, typename HashT, typename EqualToT>
-    MAKESHIFT_NODISCARD constexpr auto try_expand2(const T& value, const C& valuesC, HashT&& hash, EqualToT&& equal)
+    MAKESHIFT_NODISCARD constexpr auto
+    try_expand(T const& value, C const& valuesC, HashT&& hash, EqualToT&& equal)
 {
     return makeshift::detail::expand2_impl0<makeshift::detail::result_handler_optional>(value, valuesC, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
 }
@@ -80,7 +65,7 @@ template <typename T, typename C, typename HashT, typename EqualToT>
     //ᅟ        bitsVO.value());
     //
 template <typename T, typename C>
-    MAKESHIFT_NODISCARD constexpr auto try_expand2(const T& value, const C& valuesC)
+    MAKESHIFT_NODISCARD constexpr auto try_expand2(T const& value, C const& valuesC)
 {
     return makeshift::try_expand2(value, valuesC, hash<>{ }, std::equal_to<>{ });
 }
@@ -104,7 +89,7 @@ template <typename T, typename C>
     //ᅟ        bitsV);
     //
 template <typename T, typename C, typename HashT, typename EqualToT>
-    MAKESHIFT_NODISCARD constexpr auto expand2_or_throw(const T& value, const C& valuesC, HashT&& hash, EqualToT&& equal)
+    MAKESHIFT_NODISCARD constexpr auto expand2_or_throw(T const& value, C const& valuesC, HashT&& hash, EqualToT&& equal)
 {
     return makeshift::detail::expand2_impl0<makeshift::detail::result_handler_throw>(value, valuesC, std::forward<HashT>(hash), std::forward<EqualToT>(equal));
 }
@@ -125,7 +110,7 @@ template <typename T, typename C, typename HashT, typename EqualToT>
     //ᅟ        bitsV);
     //
 template <typename T, typename C>
-    MAKESHIFT_NODISCARD constexpr auto expand2_or_throw(const T& value, const C& valuesC)
+    MAKESHIFT_NODISCARD constexpr auto expand2_or_throw(T const& value, C const& valuesC)
 {
     return makeshift::expand2_or_throw(value, valuesC, hash<>{ }, std::equal_to<>{ });
 }
@@ -147,7 +132,7 @@ template <typename T, typename C>
     //ᅟ        paramsV);
     //
 template <typename T, typename C>
-    MAKESHIFT_NODISCARD constexpr auto expand2(const T& value, const C& valuesC)
+    MAKESHIFT_NODISCARD constexpr auto expand2(T const& value, C const& valuesC)
 {
     static_assert(makeshift::detail::is_exhaustive_v<C>, "use try_expand() or expand_or_throw() if the list of values is non-exhaustive");
 
@@ -173,51 +158,9 @@ template <typename T, typename C>
     //ᅟ        precisionV);
     //
 template <typename T>
-    MAKESHIFT_NODISCARD constexpr auto expand2(const T& value)
+    MAKESHIFT_NODISCARD constexpr auto expand2(T const& value)
 {
     return makeshift::expand2(value, makeshift::detail::make_constval_t<makeshift::detail::metadata_values_retriever<T>>{ });
-}
-
-
-    //ᅟ
-    // Like `std::visit()`, but supports variant-like types and implicitly expands expandable non-variant arguments.
-    //ᅟ
-    //ᅟ    bool flag = ...;
-    //ᅟ    visit(
-    //ᅟ        [](auto flagC)
-    //ᅟ        {
-    //ᅟ            constexpr bool flag = flagC();
-    //ᅟ            ...
-    //ᅟ        },
-    //ᅟ        flag);
-    //
-template <typename F, typename... Vs>
-    constexpr decltype(auto) visit(F&& func, Vs&&... args)
-{
-#ifndef MAKESHIFT_INTELLISENSE
-    return makeshift::detail::visit_impl_0(std::forward<F>(func), makeshift::detail::maybe_expand(std::forward<Vs>(args))...);
-#endif // MAKESHIFT_INTELLISENSE
-}
-
-
-    //ᅟ
-    // Like `std::visit<>()`, but supports variant-like types and implicitly expands expandable non-variant arguments.
-    //ᅟ
-    //ᅟ    bool flag = ...;
-    //ᅟ    visit<R>(
-    //ᅟ        [](auto flagC)
-    //ᅟ        {
-    //ᅟ            constexpr bool flag = flagC();
-    //ᅟ            ...
-    //ᅟ        },
-    //ᅟ        flag);
-    //
-template <typename R, typename F, typename... Vs>
-    constexpr R visit(F&& func, Vs&&... args)
-{
-#ifndef MAKESHIFT_INTELLISENSE
-    return makeshift::detail::visit_impl_0(std::forward<F>(func), makeshift::detail::maybe_expand(std::forward<Vs>(args))...);
-#endif // MAKESHIFT_INTELLISENSE
 }
 
 
@@ -226,7 +169,8 @@ template <typename R, typename F, typename... Vs>
     // `variant_transform()` merges identical result types, i.e. every distinct result type appears only once in the resulting variant type.
     //
 template <typename F, typename... Vs>
-    MAKESHIFT_NODISCARD constexpr decltype(auto) variant_transform(F&& func, Vs&&... args)
+    MAKESHIFT_NODISCARD constexpr decltype(auto)
+    variant_transform(F&& func, Vs&&... args)
 {
     // Currently we merge identical results, i.e. if two functor invocations both return the same type, the type appears only once in the result variant.
     // Although `std::variant<>` is explicitly designed to permit multiple alternatives of identical type, it seems reasonable to merge identically typed alternatives here because identically typed alternatives
@@ -240,6 +184,7 @@ template <typename F, typename... Vs>
 
 
 } // namespace makeshift
+#endif // MAKESHIFT_CXX >= 17
 
 
-#endif // INCLUDED_MAKESHIFT_VARIANT2_HPP_
+#endif // INCLUDED_MAKESHIFT_VARIANT_HPP_

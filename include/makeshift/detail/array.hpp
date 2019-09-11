@@ -1,16 +1,18 @@
 
-#ifndef INCLUDED_MAKESHIFT_DETAIL_ARRAY2_HPP_
-#define INCLUDED_MAKESHIFT_DETAIL_ARRAY2_HPP_
+#ifndef INCLUDED_MAKESHIFT_DETAIL_ARRAY_HPP_
+#define INCLUDED_MAKESHIFT_DETAIL_ARRAY_HPP_
 
 
 #include <array>
 #include <tuple>
-#include <cstddef>     // for size_t, ptrdiff_t
-#include <utility>     // for integer_sequence<>, get<>()
+#include <cstddef> // for size_t, ptrdiff_t
+#include <utility> // for integer_sequence<>, get<>()
 
-#include <makeshift/detail/type_traits2.hpp>     // for can_instantiate_<>
-#include <makeshift/detail/workaround.hpp>       // for cadd<>()
-#include <makeshift/detail/tuple2-transform.hpp> // for transform_element()
+#include <makeshift/utility.hpp> // for type_sequence<>
+#include <makeshift/macros.hpp>  // for MAKESHIFT_CXX
+
+#include <makeshift/detail/type_traits.hpp>     // for can_instantiate_<>, conjunction<>
+#include <makeshift/detail/tuple-transform.hpp> // for transform_element()
 
 
 namespace makeshift
@@ -20,13 +22,13 @@ namespace detail
 {
 
 
-template <typename T> using is_array_r = decltype(std::declval<T>()[std::declval<std::ptrdiff_t>()]);
-template <typename T> struct is_array_ : can_instantiate_<is_array_r, void, T> { };
+template <typename T> using is_array_like_r = decltype(std::declval<T>()[std::declval<std::ptrdiff_t>()]);
+template <typename T> struct is_array_like_ : can_instantiate_<is_array_like_r, void, T> { };
 
-template <typename T> struct is_homogeneous_arg_ : is_array_<T> { };
+template <typename T> struct is_homogeneous_arg_ : is_array_like_<T> { };
 template <> struct is_homogeneous_arg_<array_index_t> : std::true_type { };
 
-template <typename T> struct homogeneous_arg_type_ { using type = std::decay_t<is_array_r<T>>; };
+template <typename T> struct homogeneous_arg_type_ { using type = std::decay_t<is_array_like_r<T>>; };
 template <> struct homogeneous_arg_type_<array_index_t> { using type = std::ptrdiff_t; };
 
 
@@ -42,7 +44,7 @@ template <typename F, std::size_t... Is, typename... Ts>
 
 template <typename R, typename T> struct transfer_ref_ { using type = T; };
 template <typename R, typename T> struct transfer_ref_<R&, T> { using type = T&; };
-template <typename R, typename T> struct transfer_ref_<const R&, T> { using type = const T&; };
+template <typename R, typename T> struct transfer_ref_<R const&, T> { using type = T const&; };
 template <typename R, typename T> struct transfer_ref_<R&&, T> { using type = T; };
 
 template <std::ptrdiff_t N, bool HomogeneousArgs, typename F, typename... Ts>
@@ -70,9 +72,9 @@ template <std::ptrdiff_t N, typename F, typename... Ts>
 };
 
 
-template <std::size_t N, bool IsHomogeneous> struct array_foreach_index_arg;
-template <std::size_t N> struct array_foreach_index_arg<N, true> : std::integral_constant<std::size_t, N> { };
-template <std::size_t N> struct array_foreach_index_arg<N, false> : std::make_index_sequence<N> { };
+template <std::size_t N, bool IsHomogeneous> struct array_for_index_arg;
+template <std::size_t N> struct array_for_index_arg<N, true> : std::integral_constant<std::size_t, N> { };
+template <std::size_t N> struct array_for_index_arg<N, false> : std::make_index_sequence<N> { };
 
 template <typename T>
     constexpr decltype(auto)
@@ -89,7 +91,7 @@ template <typename T>
 
 template <std::size_t N, typename F, typename... Ts>
     constexpr void
-    tuple_foreach_impl(std::integral_constant<std::size_t, N>, F&& func, Ts&&... args)
+    template_for_impl(std::integral_constant<std::size_t, N>, F&& func, Ts&&... args)
 {
     for (std::ptrdiff_t i = 0; i < std::ptrdiff_t(N); ++i)
     {
@@ -103,7 +105,7 @@ template <template <typename, std::size_t> class ArrayT, typename F, typename...
 {
     // extra overload to avoid unused-parameter warning
 
-    static_assert(makeshift::detail::cand(is_homogeneous_arg_<std::decay_t<Ts>>::value...), "cannot infer array element type from empty tuple arguments");
+    static_assert(conjunction<is_homogeneous_arg_<std::decay_t<Ts>>...>::value, "cannot infer array element type from empty tuple arguments");
     using R = typename homogeneous_result_<0, true, F, Ts...>::type;
     return ArrayT<R, 0>{ };
 }
@@ -112,7 +114,7 @@ template <template <typename, std::size_t> class ArrayT, std::size_t... Is, type
     array_transform_impl(std::index_sequence<Is...>, F&& func, Ts&&... args)
 {
     (void) func;
-    using R = typename homogeneous_result_<sizeof...(Is), makeshift::detail::cand(is_homogeneous_arg_<std::decay_t<Ts>>::value...), F, Ts...>::type;
+    using R = typename homogeneous_result_<sizeof...(Is), conjunction<is_homogeneous_arg_<std::decay_t<Ts>>...>::value, F, Ts...>::type;
     return ArrayT<R, sizeof...(Is)>{ makeshift::detail::transform_element<Is>(func, std::forward<Ts>(args)...)... };
 }
 template <template <typename, std::size_t> class ArrayT, typename R, typename F, typename... Ts>
@@ -129,8 +131,27 @@ template <template <typename, std::size_t> class ArrayT, typename R, std::size_t
     return ArrayT<R, sizeof...(Is)>{ makeshift::detail::transform_element<Is>(func, std::forward<Ts>(args)...)... };
 }
 
+#if MAKESHIFT_CXX >= 17
+template <typename R, typename... Ts>
+    constexpr inline R cadd(Ts... vs) noexcept
+{
+    auto term = R{ 0 };
+    return (vs + ... + term);
+}
+#else // MAKESHIFT_CXX >= 17
+template <typename R>
+    constexpr inline R cadd(void) noexcept
+{
+    return R{ 0 };
+}
+template <typename R, typename T0, typename... Ts>
+    constexpr inline R cadd(T0 v0, Ts... vs) noexcept
+{
+    return v0 + cadd(vs...);
+}
+#endif // MAKESHIFT_CXX >= 17
 
-    // borrowing the 2-d indexing technique that first appeared in the `tuple_cat()` implementation of Microsoft's STL
+    // Borrowing the 2-d indexing technique that first appeared in the `tuple_cat()` implementation of Microsoft's STL.
 template <std::size_t... Ns>
     struct indices_2d_
 {
@@ -167,9 +188,9 @@ template <template <typename, std::size_t> class ArrayT, typename T, std::size_t
 }
 
 
-template <typename T, std::size_t... Dims> struct array_;
-template <typename T> struct array_<T> { using type = T; };
-template <typename T, std::size_t Dim0, std::size_t... Dims> struct array_<T, Dim0, Dims...> { using type = std::array<typename array_<T, Dims...>::type, Dim0>; };
+template <typename T, std::size_t... Dims> struct mdarray_;
+template <typename T> struct mdarray_<T> { using type = T; };
+template <typename T, std::size_t Dim0, std::size_t... Dims> struct mdarray_<T, Dim0, Dims...> { using type = std::array<typename mdarray_<T, Dims...>::type, Dim0>; };
 
 
 } // namespace detail
@@ -177,4 +198,4 @@ template <typename T, std::size_t Dim0, std::size_t... Dims> struct array_<T, Di
 } // namespace makeshift
 
 
-#endif // INCLUDED_MAKESHIFT_DETAIL_ARRAY2_HPP_
+#endif // INCLUDED_MAKESHIFT_DETAIL_ARRAY_HPP_

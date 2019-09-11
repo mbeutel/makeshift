@@ -1,6 +1,6 @@
 ﻿
-#ifndef INCLUDED_MAKESHIFT_DETAIL_TUPLE2_HPP_
-#define INCLUDED_MAKESHIFT_DETAIL_TUPLE2_HPP_
+#ifndef INCLUDED_MAKESHIFT_DETAIL_TUPLE_HPP_
+#define INCLUDED_MAKESHIFT_DETAIL_TUPLE_HPP_
 
 
 #include <tuple>       // for make_tuple()
@@ -8,7 +8,7 @@
 #include <utility>     // for forward<>(), integer_sequence<>, tuple_size<>, get<>()
 #include <type_traits> // for decay<>
 
-#include <makeshift/detail/tuple2-transform.hpp>
+#include <makeshift/detail/tuple-transform.hpp>
 
 
 namespace makeshift
@@ -88,4 +88,4 @@ template <typename FoldT, typename TupleT, typename T, typename F>
 } // namespace makeshift
 
 
-#endif // INCLUDED_MAKESHIFT_DETAIL_TUPLE2_HPP_
+#endif // INCLUDED_MAKESHIFT_DETAIL_TUPLE_HPP_

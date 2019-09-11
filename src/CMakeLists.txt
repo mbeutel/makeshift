@@ -9,17 +9,12 @@ cmake_minimum_required(VERSION 3.14)
 # dependencies
 find_package(CMakeshift 3.5 REQUIRED)
 find_package(gsl-lite REQUIRED)
-find_package(Hedley REQUIRED)
 
 # library target
 add_library(makeshift
-    "new.cpp"
     "memory.cpp"
+    "new.cpp"
     "string.cpp")
-
-# library version header file
-configure_file("${PROJECT_SOURCE_DIR}/cmake/detail_version.hpp.in"
-    "${PROJECT_BINARY_DIR}/include/makeshift/detail/version.hpp" @ONLY)
 
 # library export header
 include(GenerateExportHeader)
@@ -52,15 +47,13 @@ cmakeshift_target_library_version(makeshift ${PROJECT_VERSION} ${makeshift_APIVE
 # library dependencies
 target_link_libraries(makeshift
     PUBLIC
-        gsl::gsl-lite
-        Hedley::Hedley)
+        gsl::gsl-lite)
 
 # installation: public header files, generated header files, target
 install(
-    DIRECTORY "${PROJECT_SOURCE_DIR}/include/" # the trailing '/' is significant
-    TYPE INCLUDE)
-install(
-    DIRECTORY "${PROJECT_BINARY_DIR}/include/" # the trailing '/' is significant
+    DIRECTORY
+        "${PROJECT_SOURCE_DIR}/include/" # the trailing '/' is significant
+        "${PROJECT_BINARY_DIR}/include/" # the trailing '/' is significant
     TYPE INCLUDE)
 install(
     TARGETS makeshift

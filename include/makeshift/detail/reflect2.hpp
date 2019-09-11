@@ -8,10 +8,10 @@
 #include <cstdint>     // for [u]int[8|16|32|64]_t
 #include <type_traits> // for is_base_of<>, integral_constant<>, conjunction<>, disjunction<>
 
-#include <makeshift/type_traits2.hpp> // for can_instantiate<>, type<>
+#include <makeshift/type_traits.hpp> // for can_instantiate<>, type<>
 #include <makeshift/metadata2.hpp>    // for named_t<>
-#include <makeshift/array2.hpp>       // for array_transform()
-#include <makeshift/version.hpp>      // for MAKESHIFT_EMPTY_BASES
+#include <makeshift/array.hpp>       // for array_transform()
+#include <makeshift/macros.hpp>      // for MAKESHIFT_DETAIL_EMPTY_BASES
 
 
 namespace makeshift
@@ -60,7 +60,7 @@ template <typename NewParamsT, typename OldParamsT, typename... CategoriesT>
 template <typename NewParamsT, typename OldParamsT, typename CategoriesT, typename ParametersT>
     struct override_params_0_;
 template <typename NewParamsT, typename OldParamsT, typename... CategoriesT, typename... ParametersT>
-    struct MAKESHIFT_EMPTY_BASES override_params_0_<NewParamsT, OldParamsT, type_sequence<CategoriesT...>, type_sequence<ParametersT...>>
+    struct MAKESHIFT_DETAIL_EMPTY_BASES override_params_0_<NewParamsT, OldParamsT, type_sequence<CategoriesT...>, type_sequence<ParametersT...>>
         : ParametersT...
 {
     constexpr override_params_0_(const NewParamsT& newMetadata, const OldParamsT& oldMetadata)
@@ -132,7 +132,7 @@ struct metadata_tag { };
 template <typename T, bool RawMetadata>
     struct metadata_of_0;
 template <typename T>
-    struct MAKESHIFT_EMPTY_BASES metadata_of_0<T, true> : override_params<declared_metadata_t<T>, default_metadata<T>>, metadata_tag
+    struct MAKESHIFT_DETAIL_EMPTY_BASES metadata_of_0<T, true> : override_params<declared_metadata_t<T>, default_metadata<T>>, metadata_tag
 {
     constexpr metadata_of_0(void)
         : override_params<declared_metadata_t<T>, default_metadata<T>>(reflect(type_t<T>{ }), { })
@@ -140,7 +140,7 @@ template <typename T>
     }
 };
 template <typename T>
-    struct MAKESHIFT_EMPTY_BASES metadata_of_0<T, false> : default_metadata<T>, metadata_tag
+    struct MAKESHIFT_DETAIL_EMPTY_BASES metadata_of_0<T, false> : default_metadata<T>, metadata_tag
 {
 };
 

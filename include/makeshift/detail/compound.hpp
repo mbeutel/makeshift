@@ -9,10 +9,10 @@
 #include <utility>     // for move(), integer_sequence<>
 #include <functional>  // for equal_to<>, less<>
 
-#include <makeshift/reflect2.hpp>    // for compound_members_of()
-#include <makeshift/tuple2.hpp>      // for tuple_all_of(), tuple_reduce()
-#include <makeshift/functional2.hpp> // for hash<>
-#include <makeshift/version.hpp>     // for MAKESHIFT_NODISCARD, MAKESHIFT_EMPTY_BASES
+#include <makeshift/reflect2.hpp>   // for compound_members_of()
+#include <makeshift/tuple.hpp>      // for tuple_all_of(), tuple_reduce()
+#include <makeshift/functional.hpp> // for hash<>
+#include <makeshift/macros.hpp>     // for MAKESHIFT_NODISCARD, MAKESHIFT_DETAIL_EMPTY_BASES
 
 
 namespace makeshift
@@ -33,7 +33,7 @@ static constexpr inline std::size_t hash_combine2(std::size_t seed, std::size_t 
     // Equality comparer for compound types which determines equivalence by comparing members for equality.
     //
 template <typename CompoundMembersT, typename EqualToT = std::equal_to<>>
-    struct MAKESHIFT_EMPTY_BASES compound2_equal_to : CompoundMembersT, EqualToT
+    struct MAKESHIFT_DETAIL_EMPTY_BASES compound2_equal_to : CompoundMembersT, EqualToT
 {
     constexpr compound2_equal_to(void) = default;
     constexpr compound2_equal_to(CompoundMembersT _compoundMembers, EqualToT _equal) : CompoundMembersT(std::move(_compoundMembers)), EqualToT(std::move(_equal)) { }
@@ -56,8 +56,8 @@ template <typename CompoundMembersT, typename EqualToT = std::equal_to<>>
     //ᅟ
     // Hasher for compound types which computes a hash by combining the hashes of the members.
     //
-template <typename CompoundMembersT, typename HashT = hash2<>>
-    struct MAKESHIFT_EMPTY_BASES compound2_hash : CompoundMembersT, HashT
+template <typename CompoundMembersT, typename HashT = hash<>>
+    struct MAKESHIFT_DETAIL_EMPTY_BASES compound2_hash : CompoundMembersT, HashT
 {
     constexpr compound2_hash(void) = default;
     constexpr compound2_hash(CompoundMembersT _compoundMembers, HashT _hash) : CompoundMembersT(std::move(_compoundMembers)), HashT(std::move(_hash)) { }
@@ -83,7 +83,7 @@ template <typename CompoundMembersT, typename HashT = hash2<>>
     // Ordering comparer for compound types which determines order by lexicographically comparing members.
     //
 template <typename CompoundMembersT, typename LessT = std::less<>>
-    struct MAKESHIFT_EMPTY_BASES compound2_less : CompoundMembersT, LessT
+    struct MAKESHIFT_DETAIL_EMPTY_BASES compound2_less : CompoundMembersT, LessT
 {
     constexpr compound2_less(void) = default;
     constexpr compound2_less(CompoundMembersT _compoundMembers, LessT _less) : CompoundMembersT(std::move(_compoundMembers)), LessT(std::move(_less)) { }

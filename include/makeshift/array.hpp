@@ -1,14 +1,14 @@
 ﻿
-#ifndef INCLUDED_MAKESHIFT_ARRAY2_HPP_
-#define INCLUDED_MAKESHIFT_ARRAY2_HPP_
+#ifndef INCLUDED_MAKESHIFT_ARRAY_HPP_
+#define INCLUDED_MAKESHIFT_ARRAY_HPP_
 
 
 #include <array>
 #include <cstddef> // for size_t
 
-#include <makeshift/version.hpp> // for MAKESHIFT_NODISCARD
+#include <makeshift/macros.hpp> // for MAKESHIFT_NODISCARD
 
-#include <makeshift/detail/array2.hpp>
+#include <makeshift/detail/array.hpp>
 
 
 namespace makeshift
@@ -16,7 +16,7 @@ namespace makeshift
 
 
     //ᅟ
-    // Pass `array_index` to `array_transform()`, `tuple_foreach()`, or `tuple_transform()` to have the array element index passed as a functor argument.
+    // Pass `array_index` to `array_transform()`, `template_for()`, or `tuple_transform()` to have the array element index passed as a functor argument.
     // The argument is of type `index`.
     //ᅟ
     //ᅟ    auto indices = array_transform<3>(
@@ -28,7 +28,7 @@ using array_index_t = makeshift::detail::array_index_t;
 
 
     //ᅟ
-    // Pass `array_index` to `array_transform()`, `tuple_foreach()`, or `tuple_transform()` to have the array element index passed as a functor argument.
+    // Pass `array_index` to `array_transform()`, `template_for()`, or `tuple_transform()` to have the array element index passed as a functor argument.
     // The argument is of type `index`.
     //ᅟ
     //ᅟ    auto indices = array_transform<3>(
@@ -41,29 +41,29 @@ constexpr array_index_t array_index{ };
 
 
     //ᅟ
-    // `array<T, N1, ..., Nd>` is an alias for `std::array<...std::array<T, Nd>..., N1>`, i.e. the modern equivalent of `T[N1]...[Nd]`.
-    // Note that `array<>` is defined such that the type arguments of `array<>` cannot be deduced.
+    // `mdarray<T, N1, ..., Nd>` is an alias for `std::array<...std::array<T, Nd>..., N1>`, i.e. the modern equivalent of `T[N1]...[Nd]`.
+    // Note that `mdarray<>` is defined as a dependent type, i.e. the type arguments of `mdarray<>` cannot be deduced.
     //
-template <typename T, std::size_t... Dims> using array = typename makeshift::detail::array_<T, Dims...>::type;
+template <typename T, std::size_t... Dims> using mdarray = typename makeshift::detail::mdarray_<T, Dims...>::type;
 
 
     //ᅟ
     // Takes a scalar procedure (i.e. a function of non-tuple arguments which returns nothing) and calls the procedure for every element in the given tuples.
-    // `array_foreach()` is implemented with a loop if all arguments are homogeneous, and in terms of `tuple_foreach()` otherwise.
+    // `array_for()` is implemented with a loop if all arguments are homogeneous, and in terms of `template_for()` otherwise.
     //ᅟ
-    //ᅟ    array_foreach(
+    //ᅟ    array_for(
     //ᅟ        [](index i, int val) { std::cout << "array[" << i << "]: " << val << '\n'; },
     //ᅟ        array_index, std::array{ 1, 2, 3 });
     //ᅟ    // prints "array[0]: 1\narray[1]: 2\narray[2]: 3\n"
     //
 template <typename F, typename... Ts>
     constexpr void
-    array_foreach(F&& func, Ts&&... args)
+    array_for(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
     constexpr std::size_t size = makeshift::detail::tuple_transform_size<-1, Ts...>();
     constexpr bool areArgsHomogeneous = makeshift::detail::cand(makeshift::detail::is_homogeneous_arg_<std::decay_t<Ts>>::value...);
-    return makeshift::detail::tuple_foreach_impl(makeshift::detail::array_foreach_index_arg<size, areArgsHomogeneous>{ },
+    return makeshift::detail::template_for_impl(makeshift::detail::array_for_index_arg<size, areArgsHomogeneous>{ },
         std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
@@ -71,18 +71,18 @@ template <typename F, typename... Ts>
     //ᅟ
     // Takes a scalar procedure (i.e. a function of non-tuple arguments which returns nothing) and calls the procedure for every element in the given tuples.
     //ᅟ
-    //ᅟ    array_foreach<3>(
+    //ᅟ    array_for<3>(
     //ᅟ        [](index i) { std::cout << i << '\n'; },
-    //ᅟ        array_index
-    //ᅟ    ); // prints "0\n1\n2\n"
+    //ᅟ        array_index);
+    //ᅟ    // prints "0\n1\n2\n"
     //
 template <std::size_t N, typename F, typename... Ts>
     constexpr void
-    array_foreach(F&& func, Ts&&... args)
+    array_for(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
     constexpr std::size_t size = makeshift::detail::tuple_transform_size<N, Ts...>();
-    return makeshift::detail::tuple_foreach_impl(std::make_index_sequence<size>{ }, std::forward<F>(func), std::forward<Ts>(args)...);
+    return makeshift::detail::template_for_impl(std::make_index_sequence<size>{ }, std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
 
@@ -270,4 +270,4 @@ template <template <typename, std::size_t> class ArrayT, typename T, typename...
 } // namespace makeshift
 
 
-#endif // INCLUDED_MAKESHIFT_ARRAY2_HPP_
+#endif // INCLUDED_MAKESHIFT_ARRAY_HPP_

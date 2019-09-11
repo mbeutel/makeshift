@@ -8,8 +8,8 @@
 
 #include <gsl/gsl-lite.hpp> // for Expects()
 
-#include <makeshift/type_traits2.hpp> // for can_instantiate<>
-#include <makeshift/version.hpp>      // for MAKESHIFT_NODISCARD
+#include <makeshift/type_traits.hpp> // for can_instantiate<>
+#include <makeshift/macros.hpp>      // for MAKESHIFT_NODISCARD
 
 #include <makeshift/detail/constval.hpp>
 

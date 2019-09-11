@@ -9,21 +9,21 @@
 
 #include <gsl/gsl-lite.hpp> // for Expects()
 
-#include <makeshift/type_traits2.hpp> // for is_instantiation_of<>
-#include <makeshift/version.hpp>      // for MAKESHIFT_NODISCARD, MAKESHIFT_CXX17
+#include <makeshift/type_traits.hpp> // for is_instantiation_of<>
+#include <makeshift/macros.hpp>      // for MAKESHIFT_NODISCARD, MAKESHIFT_CXX17
 
 #include <makeshift/detail/workaround.hpp> // for cand()
 
-#ifdef MAKESHIFT_CXX17
+#if MAKESHIFT_CXXLEVEL >= 17
  #include <variant> // for monostate, variant_size<>, variant_alternative<>
-#endif // MAKESHIFT_CXX17
+#endif // MAKESHIFT_CXXLEVEL >= 17
 
 
 namespace makeshift
 {
 
 
-#ifdef MAKESHIFT_CXX17
+#if MAKESHIFT_CXXLEVEL >= 17
 using monostate = std::monostate;
 template <typename T> using variant_size = std::variant_size<T>;
 template <std::size_t I, typename T> using variant_alternative = std::variant_alternative<I, T>;
@@ -54,7 +54,7 @@ template <std::size_t I>
 {
     explicit in_place_index_t(void) = default;
 };
-#endif // MAKESHIFT_CXX17
+#endif // MAKESHIFT_CXXLEVEL >= 17
 constexpr inline in_place_t in_place{ };
 template <typename T> constexpr inline in_place_type_t<T> in_place_type{ };
 template <std::size_t I> constexpr inline in_place_index_t<I> in_place_index{ };
@@ -248,13 +248,13 @@ template <typename T, typename... Ts>
 } // namespace makeshift
 
 
-#ifdef MAKESHIFT_CXX17
+#if MAKESHIFT_CXXLEVEL >= 17
 namespace std
 {
 #else // MAKESHIFT_CXX17
 namespace makeshift
 {
-#endif // MAKESHIFT_CXX17
+#endif // MAKESHIFT_CXXLEVEL >= 17
 
 
     // Specialize `variant_size<>` and `variant_alternative<>` for `unit_variant<>`.
@@ -262,11 +262,11 @@ template <typename... Ts> struct variant_size<makeshift::detail::unit_variant<Ts
 template <std::size_t I, typename... Ts> struct variant_alternative<I, makeshift::detail::unit_variant<Ts...>> : public makeshift::detail::nth_type_<I, Ts...> { };
 
 
-#ifdef MAKESHIFT_CXX17
+#if MAKESHIFT_CXXLEVEL >= 17
 } // namespace std
 #else // MAKESHIFT_CXX17
 } // namespace makeshift
-#endif // MAKESHIFT_CXX17
+#endif // MAKESHIFT_CXXLEVEL >= 17
 
 
 #endif // INCLUDED_MAKESHIFT_DETAIL_UNIT_VARIANT_HPP_

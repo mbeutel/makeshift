@@ -5,14 +5,9 @@
 
 #include <array>
 #include <iosfwd>       // for ostream
-#include <exception>    // for terminate()
-#include <stdexcept>    // for runtime_error
-#include <type_traits>  // for integral_constant
 #include <system_error> // for errc
 
-#include <gsl/gsl-lite.hpp> // for Expects()
-
-#include <makeshift/version.hpp>  // for MAKESHIFT_NODISCARD, MAKESHIFT_CONSTEXPR_CXX20
+#include <makeshift/macros.hpp> // for MAKESHIFT_NODISCARD, MAKESHIFT_CONSTEXPR20
 
 #include <makeshift/detail/arithmetic.hpp>
 
@@ -28,18 +23,18 @@ template <typename V>
     V exponent;
 
         // equivalence
-    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR_CXX20 friend bool operator ==(const factor& lhs, const factor& rhs) noexcept
+    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR20 friend bool operator ==(factor const& lhs, factor const& rhs) noexcept
     {
         return lhs.base == rhs.base
             && lhs.exponent == rhs.exponent;
     }
-    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR_CXX20 friend bool operator !=(const factor& lhs, const factor& rhs) noexcept
+    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR20 friend bool operator !=(factor const& lhs, factor const& rhs) noexcept
     {
         return !(lhs == rhs);
     }
 
         // string conversion
-    friend std::ostream& operator <<(std::ostream& stream, const factor& f)
+    friend std::ostream& operator <<(std::ostream& stream, factor const& f)
     {
         return stream << f.base << '^' << f.exponent;
     }
@@ -52,18 +47,18 @@ template <typename V, int NumFactors>
     std::array<factor<V>, NumFactors> factors;
 
         // equivalence
-    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR_CXX20 friend bool operator ==(const factorization& lhs, const factorization& rhs) noexcept
+    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR20 friend bool operator ==(factorization const& lhs, factorization const& rhs) noexcept
     {
         return lhs.remainder == rhs.remainder
             && lhs.factors == rhs.factors;
     }
-    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR_CXX20 friend bool operator !=(const factorization& lhs, const factorization& rhs) noexcept
+    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR20 friend bool operator !=(factorization const& lhs, factorization const& rhs) noexcept
     {
         return !(lhs == rhs);
     }
 
         // string conversion
-    friend std::ostream& operator <<(std::ostream& stream, const factorization& f)
+    friend std::ostream& operator <<(std::ostream& stream, factorization const& f)
     {
         bool first = true;
         for (auto&& factor : f.factors)

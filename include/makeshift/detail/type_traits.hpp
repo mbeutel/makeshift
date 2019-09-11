@@ -1,12 +1,18 @@
 ﻿
-#ifndef INCLUDED_MAKESHIFT_DETAIL_TYPE_TRAITS2_HPP_
-#define INCLUDED_MAKESHIFT_DETAIL_TYPE_TRAITS2_HPP_
+#ifndef INCLUDED_MAKESHIFT_DETAIL_TYPE_TRAITS_HPP_
+#define INCLUDED_MAKESHIFT_DETAIL_TYPE_TRAITS_HPP_
 
+
+#include <makeshift/macros.hpp> // for MAKESHIFT_CXX
+
+#if MAKESHIFT_CXX < 17
+ #include <tuple> // tuple_size<>
+#endif // MAKESHIFT_CXX < 17
 
 #include <cstddef>     // for size_t
 #include <iterator>    // for begin(), end()
-#include <utility>     // for integer_sequence<>, tuple_size<>
-#include <type_traits> // for declval<>(), integral_constant<>, disjunction<>, is_convertible<>
+#include <utility>     // for integer_sequence<>, tuple_size<> (C++17)
+#include <type_traits> // for declval<>(), integral_constant<>, is_convertible<>
 
 
 namespace makeshift
@@ -15,6 +21,7 @@ namespace makeshift
 namespace detail
 {
 
+// TODO: remove?
 namespace is_iterable_ns
 {
 
@@ -29,13 +36,24 @@ template <typename T> using is_iterable_r = decltype(begin(std::declval<T&>()) !
 } // is_iterable_ns
 
 
+template <bool V0, typename T0, typename... Ts> struct disjunction_ { using type = T0; };
+template <typename T0, typename T1, typename... Ts> struct disjunction_<false, T0, T1, Ts...> : disjunction_<T1::value, T1, Ts...> { };
+template <bool V0, typename T0, typename... Ts> struct conjunction_ { using type = T0; };
+template <typename T0, typename T1, typename... Ts> struct conjunction_<true, T0, T1, Ts...> : conjunction_<T1::value, T1, Ts...> { };
+template <typename... Ts> struct disjunction;
+template <> struct disjunction<> : std::false_type { };
+template <typename T0, typename... Ts> struct disjunction<T0, Ts...> : makeshift::detail::disjunction_<T0::value, T0, Ts...>::type { };
+template <typename... Ts> struct conjunction;
+template <> struct conjunction<> : std::true_type { };
+template <typename T0, typename... Ts> struct conjunction<T0, Ts...> : makeshift::detail::conjunction_<T0::value, T0, Ts...>::type { };
+
+
 struct type_enum_base { };
 
-struct flags_base { };
 struct unwrap_enum_tag { };
 
 
-template <typename...> using void_t = void; // ICC doesn't have std::void_t<> yet
+template <typename...> using void_t = void;
 template <template <typename...> class, typename, typename...> struct can_instantiate_ : std::false_type { };
 template <template <typename...> class Z, typename... Ts> struct can_instantiate_<Z, void_t<Z<Ts...>>, Ts...> : std::true_type { };
 
@@ -98,21 +116,13 @@ template <std::size_t I, typename... Ts> using nth_type_ = type_pack_element_<I,
 
 #undef MAKESHIFT_BUILTIN_TYPE_PACK_ELEMENT_
 
-
-template <typename RSeqT, typename... Ts> struct type_sequence_cat_;
-template <typename RSeqT> struct type_sequence_cat_<RSeqT> { using type = RSeqT; };
-template <template <typename...> class TypeSeq1T, template <typename...> class TypeSeq2T, typename... RSeqT, typename... NSeqT, typename... Ts>
-    struct type_sequence_cat_<TypeSeq1T<RSeqT...>, TypeSeq2T<NSeqT...>, Ts...>
-        : type_sequence_cat_<TypeSeq1T<RSeqT..., NSeqT...>, Ts...> 
-{
-};
+template <typename T, typename... Ts> using try_index_of_type = std::integral_constant<std::size_t, makeshift::detail::try_type_pack_index_<T, Ts...>::value>;
 
 template <template <typename...> class Z, typename SeqT> struct instantiate_;
 template <template <typename...> class Z, template <typename...> class SeqT, typename... Ts> struct instantiate_<Z, SeqT<Ts...>> { using type = Z<Ts...>; };
 
 
 template <typename T> struct type_t;
-
 
 template <typename T> struct type_set_leaf_ { };
 template <typename T, std::size_t I> struct type_set_indexed_leaf_ : type_set_leaf_<T> { };
@@ -139,7 +149,7 @@ template <typename... Ts>
     struct any_tag_of
 {
     template <typename T,
-              std::enable_if_t<std::disjunction_v<std::is_convertible<T, Ts>...>, int> = 0>
+              std::enable_if_t<disjunction<std::is_convertible<T, Ts>...>::value, int> = 0>
         constexpr any_tag_of(const T&) noexcept
     {
     }
@@ -158,21 +168,37 @@ struct constval_tag { };
 template <typename C> struct is_integral_constant_ : std::false_type { };
 template <typename T, T V> struct is_integral_constant_<std::integral_constant<T, V>> : std::true_type { };
 
-template <typename T> struct is_constval_ : std::disjunction<std::is_base_of<constval_tag, T>, is_integral_constant_<T>> { };
+template <typename T> struct is_constval_ : disjunction<std::is_base_of<constval_tag, T>, is_integral_constant_<T>> { };
 
 template <typename C, typename R> struct is_nullary_functor_of_type_ : std::is_same<R, decltype(std::declval<C>()())> { };
-template <typename T, typename R> struct is_constval_of_type_ : std::conjunction<is_constval_<T>, is_nullary_functor_of_type_<T, R>> { };
+template <typename T, typename R> struct is_constval_of_type_ : conjunction<is_constval_<T>, is_nullary_functor_of_type_<T, R>> { };
 
 
 template <typename T> struct as_dependent_type_ { using type = T; };
 
 
 template <typename T> using is_tuple_like_r = decltype(std::tuple_size<T>::value);
+template <typename T> struct is_tuple_like : can_instantiate_<is_tuple_like_r, void, T> { };
 
+
+template <typename T, typename V1, typename V2, typename V3, typename V4, typename R1, typename R2, typename R3> struct is_bitmask_type_result : std::false_type { };
+template <typename T> struct is_bitmask_type_result<T, T, T, T, T, T&, T&, T&> : std::true_type { };
+
+template <typename T> using is_bitmask_type_r = is_bitmask_type_result<T,
+    decltype(~std::declval<T const&>()),
+    decltype(std::declval<T const&>() | std::declval<T const&>()),
+    decltype(std::declval<T const&>() & std::declval<T const&>()),
+    decltype(std::declval<T const&>() ^ std::declval<T const&>()),
+    decltype(std::declval<T&>() |= std::declval<T const&>()),
+    decltype(std::declval<T&>() &= std::declval<T const&>()),
+    decltype(std::declval<T&>() ^= std::declval<T const&>())>;
+
+template <typename T> struct is_bitmask_type_0_ : is_bitmask_type_r<T> { };
+template <typename T> using is_bitmask_type = conjunction<can_instantiate_<is_bitmask_type_r, void, T>, is_bitmask_type_0_<T>>;
 
 } // namespace detail
 
 } // namespace makeshift
 
 
-#endif // INCLUDED_MAKESHIFT_DETAIL_TYPE_TRAITS2_HPP_
+#endif // INCLUDED_MAKESHIFT_DETAIL_TYPE_TRAITS_HPP_

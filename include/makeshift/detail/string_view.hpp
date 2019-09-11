@@ -5,11 +5,11 @@
 
 #include <cstddef> // for size_t
 
-#include <makeshift/version.hpp> // for MAKESHIFT_NODISCARD, MAKESHIFT_CXX17
+#include <makeshift/macros.hpp> // for MAKESHIFT_NODISCARD, MAKESHIFT_CXX17
 
-#ifdef MAKESHIFT_CXX17
+#if MAKESHIFT_CXX >= 17
  #include <string_view>
-#endif // MAKESHIFT_CXX17
+#endif // MAKESHIFT_CXX >= 17
 
 
 namespace makeshift
@@ -52,6 +52,13 @@ public:
     {
     }
 
+#if MAKESHIFT_CXX >= 17
+    constexpr string_view(std::string_view sv) noexcept
+        : data_(sv.data()),
+          size_(sv.size())
+    {
+    }
+#endif // MAKESHIFT_CXX >= 17
     constexpr string_view(const char* str, const std::size_t _size) noexcept
         : data_(str),
           size_(_size)

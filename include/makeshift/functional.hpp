@@ -1,22 +1,23 @@
 ﻿
-#ifndef INCLUDED_MAKESHIFT_FUNCTIONAL2_HPP_
-#define INCLUDED_MAKESHIFT_FUNCTIONAL2_HPP_
+#ifndef INCLUDED_MAKESHIFT_FUNCTIONAL_HPP_
+#define INCLUDED_MAKESHIFT_FUNCTIONAL_HPP_
 
 
 #include <utility>     // for move(), forward<>()
 #include <cstddef>     // for size_t
 #include <functional>  // for hash<>
-#include <type_traits> // for decay<>
+#include <type_traits> // for decay<>, declval<>()
 
-#include <makeshift/version.hpp>  // for MAKESHIFT_NODISCARD, MAKESHIFT_EMPTY_BASES
+#include <makeshift/macros.hpp>  // for MAKESHIFT_CXX, MAKESHIFT_NODISCARD, MAKESHIFT_DETAIL_EMPTY_BASES
 
-#include <makeshift/detail/functional2.hpp>
+#include <makeshift/detail/functional.hpp>
 
 
 namespace makeshift
 {
 
 
+#if MAKESHIFT_CXX >= 17
     //ᅟ
     // Constructs a functor wrapper that selects the matching overload among a number of given functors.
     //ᅟ
@@ -27,13 +28,14 @@ namespace makeshift
     //ᅟ    );
     //
 template <typename... Fs>
-    struct MAKESHIFT_EMPTY_BASES overload2 : Fs...
+    struct MAKESHIFT_DETAIL_EMPTY_BASES overload : Fs...
 {
-    constexpr overload2(Fs... fs) : Fs(std::move(fs))... { }
-    using Fs::operator ()...;
+    constexpr overload(Fs... fs) : Fs(std::move(fs))... { }
+    using Fs::operator ()...; // requires C++17
 };
 template <typename... Ts>
-    overload2(Ts&&...) -> overload2<std::decay_t<Ts>...>;
+    overload(Ts&&...) -> overload<std::decay_t<Ts>...>;
+#endif // MAKESHIFT_CXX >= 17
 
 
     //ᅟ
@@ -70,32 +72,34 @@ public:
     template <typename... ArgsT>
         constexpr decltype(auto) operator()(ArgsT&&... args) const
     {
-        return func_(makeshift::detail::y_combinator_func_ref<const F&>{ func_ }, std::forward<ArgsT>(args)...);
+        return func_(makeshift::detail::y_combinator_func_ref<F const&>{ func_ }, std::forward<ArgsT>(args)...);
     }
 };
+#if MAKESHIFT_CXX >= 17
 template <typename F>
     y_combinator(F&& func) -> y_combinator<std::decay_t<F>>;
+#endif // MAKESHIFT_CXX >= 17
 
 
     //ᅟ
-    // Similar to `std::hash<>` but permits omitting the type argument and conditional specialization with `enable_if<>`.
+    // Similar to `std::hash<>` but permits omitting the type argument and supports conditional specialization with `enable_if<>`.
     //
 template <typename KeyT = void, typename = void>
-    struct hash2 : std::hash<KeyT>
+    struct hash : std::hash<KeyT> // TODO: do we still need/want this?
 {
     using std::hash<KeyT>::hash;
 };
 template <>
-    struct hash2<void>
+    struct hash<void>
 {
         //ᅟ
         // Computes a hash value of the given argument.
         //
-    template <typename T,
-              typename = decltype(hash2<T>{ }(std::declval<const T&>()))>
-        MAKESHIFT_NODISCARD constexpr std::size_t operator ()(const T& arg) const noexcept
+    template <typename T>
+        MAKESHIFT_NODISCARD constexpr decltype(hash<T>{ }(std::declval<T const&>())) // SFINAE
+        operator ()(T const& arg) const noexcept
     {
-        return hash2<T>{ }(arg);
+        return hash<T>{ }(arg);
     }
 };
 
@@ -103,4 +107,4 @@ template <>
 } // namespace makeshift
 
 
-#endif // INCLUDED_MAKESHIFT_FUNCTIONAL2_HPP_
+#endif // INCLUDED_MAKESHIFT_FUNCTIONAL_HPP_

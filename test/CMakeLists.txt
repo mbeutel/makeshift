@@ -15,15 +15,24 @@ find_package(gsl-lite REQUIRED)
 add_executable(test-makeshift
     "main.cpp"
     "test-arithmetic.cpp"
-    "test-array2.cpp"
-    "test-new.cpp"
+    "test-array.cpp"
     "test-buffer.cpp"
     "test-constval.cpp"
-    "test-tuple2.cpp"
-    "test-reflect2.cpp"
-    "test-variant2.cpp"
-    "test-utility2.cpp"
-)
+    "test-enum.cpp"
+    "test-functional.cpp"
+    "test-iostream.cpp"
+    "test-iterator.cpp"
+    "test-memory.cpp"
+    "test-new.cpp"
+    "test-range.cpp"
+    "test-reflect.cpp"
+    #"test-reflect2.cpp"
+    "test-string.cpp"
+    "test-tuple.cpp"
+    "test-type_traits.cpp"
+    "test-utility.cpp"
+    "test-variant.cpp")
+    #"test-variant2.cpp")
 
 # compiler settings
 include(CMakeshift/TargetCompileSettings)

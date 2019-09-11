@@ -15,9 +15,9 @@
 #include <makeshift/constval.hpp>     // for constval<>, constval_transform()
 #include <makeshift/metadata2.hpp>    // for values<>
 #include <makeshift/reflect2.hpp>     // for metadata2_of<>
-#include <makeshift/type_traits2.hpp> // for type_sequence<>
-#include <makeshift/array2.hpp>       // for array_transform()
-#include <makeshift/version.hpp>      // for MAKESHIFT_NODISCARD, MAKESHIFT_CXX17
+#include <makeshift/type_traits.hpp> // for type_sequence<>
+#include <makeshift/array.hpp>       // for array_transform()
+#include <makeshift/macros.hpp>      // for MAKESHIFT_NODISCARD, MAKESHIFT_CXX17
 
 #include <makeshift/detail/constval.hpp>     // for constval_value<>
 #include <makeshift/detail/compound.hpp>     // for compound_hash<>, compound_equal_to<>
@@ -251,7 +251,7 @@ template <std::size_t... Is, bool Exhaustive, typename... FactorsT>
 template <bool Exhaustive, typename... FactorsT>
     constexpr auto members(const value_product_t<Exhaustive, FactorsT...>& product) noexcept
 {
-    return makeshift::tuple_transform2(member_transform_functor{ }, makeshift::detail::members_impl(std::index_sequence_for<FactorsT...>{ }, product));
+    return makeshift::tuple_transform(member_transform_functor{ }, makeshift::detail::members_impl(std::index_sequence_for<FactorsT...>{ }, product));
 }
 template <typename MemberT>
     constexpr std::tuple<member_functor<MemberT>> members(const members_t<MemberT>& product) noexcept
@@ -581,7 +581,7 @@ template <std::size_t N, typename... MembersT> struct is_exhaustive_1_<member_va
 template <typename MemberT> struct is_exhaustive_1_<members_t<MemberT>> : std::true_type { };
 template <typename T, std::size_t N> struct is_exhaustive_1_<values_t<T, N>> : std::false_type { };
 template <typename T, std::size_t N> struct is_exhaustive_1_<std::array<T, N>> : std::false_type { };
-template <typename T> using is_exhaustive_0_ = std::disjunction<std::is_base_of<metadata_tag, T>, is_exhaustive_1_<T>>;
+template <typename T> using is_exhaustive_0_ = disjunction<std::is_base_of<metadata_tag, T>, is_exhaustive_1_<T>>;
 template <typename C> constexpr bool is_exhaustive_v = is_exhaustive_0_<decltype(std::declval<C>()())>::value;
 
 
@@ -733,7 +733,7 @@ template <typename V>
 template <typename T>
     constexpr decltype(auto) maybe_expand_impl(std::false_type /*isVariant*/, T&& expandable)
 {
-    return makeshift::detail::expand2_impl0<result_handler_terminate>(expandable, make_constval_t<metadata_values_retriever<std::decay_t<T>>>{ }, hash2<>{ }, std::equal_to<>{ });
+    return makeshift::detail::expand2_impl0<result_handler_terminate>(expandable, make_constval_t<metadata_values_retriever<std::decay_t<T>>>{ }, hash<>{ }, std::equal_to<>{ });
 }
 template <typename T>
     constexpr decltype(auto) maybe_expand(T&& arg)

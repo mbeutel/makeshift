@@ -5,7 +5,7 @@
 
 #include <string_view>
 
-#include <makeshift/version.hpp> // for MAKESHIFT_NODISCARD
+#include <makeshift/macros.hpp> // for MAKESHIFT_NODISCARD
 
 #include <makeshift/detail/string.hpp>
 

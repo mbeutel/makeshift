@@ -1,8 +1,8 @@
 
 #include <tuple>
 
-#include <makeshift/tuple2.hpp>
-#include <makeshift/utility2.hpp> // for index
+#include <makeshift/tuple.hpp>
+#include <makeshift/stdint.hpp> // for index
 
 #include <catch2/catch.hpp>
 
@@ -10,18 +10,18 @@
 namespace mk = makeshift;
 
 
-TEST_CASE("tuple2", "[flags]")
+TEST_CASE("tuple", "[flags]")
 {
     constexpr auto numbers = std::tuple{ 2, 3u };
     SECTION("foreach")
     {
         int sum = 0;
-        mk::tuple_foreach2([&](auto x) { sum += int(x); }, numbers);
+        mk::template_for([&](auto x) { sum += int(x); }, numbers);
         CHECK(sum == 5);
     }
     SECTION("transform")
     {
-        auto square = mk::tuple_transform2([](auto x) { return x*x; }, numbers);
+        auto square = mk::tuple_transform([](auto x) { return x*x; }, numbers);
         CHECK(square == std::tuple{ 4, 9u });
     }
     SECTION("index")
@@ -30,7 +30,7 @@ TEST_CASE("tuple2", "[flags]")
         auto result_tuple = std::tuple{ 0, 0, 0 };
         auto lhs_tuple = std::tuple{ 10, 20, 30 };
         auto rhs_scalar = 1;
-        mk::tuple_foreach2([offset, rhs = rhs_scalar](auto& result, auto lhs, auto indexC)
+        mk::template_for([offset, rhs = rhs_scalar](auto& result, auto lhs, auto indexC)
         {
             constexpr mk::index index = indexC();
             result = lhs + rhs + int(index*offset);

@@ -7,13 +7,14 @@
 #include <utility>     // for move(), forward<>()
 #include <type_traits> // for decay<>, declval<>()
 
-#include <makeshift/version.hpp> // for MAKESHIFT_NODISCARD
+#include <makeshift/macros.hpp> // for MAKESHIFT_NODISCARD
 
 
 namespace makeshift
 {
 
 
+    // TODO: are these too special for makeshift? should they go to asc-*?
 template <typename F>
     class callback_input_iterator
 {

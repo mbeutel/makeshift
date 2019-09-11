@@ -5,7 +5,7 @@
 
 #include <type_traits> // for integral_constant<>
 
-#include <makeshift/version.hpp> // for MAKESHIFT_NODISCARD
+#include <makeshift/macros.hpp> // for MAKESHIFT_NODISCARD
 
 #include <makeshift/detail/reflect2.hpp>
 

@@ -3,7 +3,7 @@
 #include <iostream>
 #include <exception>
 
-#include <makeshift/utility2.hpp>
+#include <makeshift/enum.hpp>
 #include <makeshift/metadata2.hpp>
 #include <makeshift/variant2.hpp>
 

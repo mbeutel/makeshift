@@ -13,10 +13,9 @@
 
 #include <gsl/gsl-lite.hpp> // for Expects()
 
-#include <makeshift/type_traits2.hpp> // for can_instantiate<>
-#include <makeshift/version.hpp>      // for MAKESHIFT_CXX17, MAKESHIFT_NODISCARD
+#include <makeshift/type_traits.hpp> // for can_instantiate<>
+#include <makeshift/macros.hpp>      // for MAKESHIFT_CXXLEVEL, MAKESHIFT_NODISCARD
 
-#include <makeshift/detail/utility2.hpp> // for is_power_of_2()
 #include <makeshift/detail/memory.hpp>
 
 
@@ -98,7 +97,7 @@ template <class T, class U>
 
     //ᅟ
     // Represents an alignment to use for aligned allocations.
-    // In addition to the special values, any positive integer that is a power of 2 may be casted to `alignment`.
+    // In addition to the special values, any positive integer that is a power of 2 may be cast to `alignment`.
     //
 enum class alignment : std::ptrdiff_t
 {
@@ -114,7 +113,7 @@ enum class alignment : std::ptrdiff_t
 template <typename T, alignment Alignment, typename A = std::allocator<T>>
     class aligned_allocator : public A
 {
-    static_assert(Alignment == alignment::page || Alignment == alignment::cache_line || makeshift::detail::is_power_of_2(std::ptrdiff_t(Alignment)));
+    static_assert(Alignment == alignment::page || Alignment == alignment::cache_line || makeshift::detail::is_alignment_power_of_2(std::ptrdiff_t(Alignment)));
 
 public:
     using A::A;
@@ -161,8 +160,7 @@ public:
         std::allocator_traits<A>::deallocate(*this, static_cast<T*>(mem), nAlloc);
     }
 };
-
-#ifdef MAKESHIFT_CXX17
+#if MAKESHIFT_CXXLEVEL >= 17
 template <typename T, alignment Alignment>
     class aligned_allocator<T, Alignment, std::allocator<T>> : public std::allocator<T>
 {
@@ -195,7 +193,7 @@ template <typename T, alignment Alignment>
 public:
     using default_init_allocator<T, aligned_allocator<T, Alignment, std::allocator<T>>>::default_init_allocator;
 };
-#endif // MAKESHIFT_CXX17
+#endif // MAKESHIFT_CXXLEVEL >= 17
 
 
     //ᅟ
@@ -273,9 +271,8 @@ public:
     //ᅟ    auto p = allocate_unique<float>(MyAllocator<float>{ }, 3.14159f);
     //ᅟ    // returns `std::unique_ptr<float, allocator_deleter<float, MyAllocator<float>>>`
     //
-template <typename T, typename A, typename... ArgsT,
-          std::enable_if_t<!can_instantiate_v<makeshift::detail::remove_extent_only_t, T>, int> = 0>
-    std::unique_ptr<T, allocator_deleter<T, A>>
+template <typename T, typename A, typename... ArgsT>
+    std::enable_if_t<!can_instantiate_v<makeshift::detail::remove_extent_only_t, T>, std::unique_ptr<T, allocator_deleter<T, A>>>
     allocate_unique(A alloc, ArgsT&&... args)
 {
     using NCVT = std::remove_cv_t<T>;
@@ -291,9 +288,8 @@ template <typename T, typename A, typename... ArgsT,
     //ᅟ    auto p = allocate_unique<float[42]>(MyAllocator<float>{ });
     //ᅟ    // returns `std::unique_ptr<float[42], allocator_deleter<float[42], MyAllocator<float>>>`
     //
-template <typename ArrayT, typename A,
-          std::enable_if_t<makeshift::detail::extent_only<ArrayT>::value != 0, int> = 0>
-    std::unique_ptr<ArrayT, allocator_deleter<ArrayT, A>>
+template <typename ArrayT, typename A>
+    std::enable_if_t<makeshift::detail::extent_only<ArrayT>::value != 0, std::unique_ptr<ArrayT, allocator_deleter<ArrayT, A>>>
     allocate_unique(A alloc)
 {
     using T = std::remove_cv_t<makeshift::detail::remove_extent_only_t<ArrayT>>;
@@ -309,9 +305,8 @@ template <typename ArrayT, typename A,
     //ᅟ    auto p = allocate_unique<float[]>(MyAllocator<float>{ }, 42);
     //ᅟ    // returns `std::unique_ptr<float[], allocator_deleter<float[], MyAllocator<float>>>`
     //
-template <typename ArrayT, typename A,
-          std::enable_if_t<makeshift::detail::extent_only<ArrayT>::value == 0, int> = 0>
-    std::unique_ptr<ArrayT, allocator_deleter<ArrayT, A>>
+template <typename ArrayT, typename A>
+    std::enable_if_t<makeshift::detail::extent_only<ArrayT>::value == 0, std::unique_ptr<ArrayT, allocator_deleter<ArrayT, A>>>
     allocate_unique(A alloc, std::size_t size)
 {
     using T = std::remove_cv_t<makeshift::detail::remove_extent_only_t<ArrayT>>;

@@ -110,12 +110,12 @@ TEST_CASE("constval")
 
     auto cA = mk::make_constval([]{ return std::array{ 4, 2 }; });
     expect_array_constval_normalization<int, 4, 2>(cA);
-    mk::array<int, 2> ncA = cA;
+    mk::mdarray<int, 2> ncA = cA;
     (void) ncA;
 
     auto cAA = mk::make_constval([]{ return std::array{ std::array{ 4 }, std::array{ 2 } }; });
     expect_nested_array_constval_normalization(cAA);
-    mk::array<int, 2, 1> ncAA = cAA;
+    mk::mdarray<int, 2, 1> ncAA = cAA;
     (void) ncAA;
 
     auto cTA = mk::make_constval([]{ return std::tuple{ std::array{ 3 }, std::array{ 1, 4 } }; });
