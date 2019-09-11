@@ -4,15 +4,13 @@
 
 
 #include <array>
-#include <utility>     // for forward<>()
-#include <type_traits> // for is_empty<>, is_default_constructible<>, integral_constant<>, declval<>(), is_base_of<>, disjunction<>
+#include <tuple>
+#include <cstddef>     // for size_t
+#include <utility>     // for forward<>(), get<>(), integer_sequence<>
+#include <type_traits> // for integral_constant<>, declval<>(), is_base_of<>, is_integral<>, is_enum<>, is_member_pointer<>, is_null_pointer<>, is_empty<>, is_default_constructible<>
 
-#ifdef MAKESHIFT_CXX17
- #include <tuple>
-#endif // MAKESHIFT_CXX17
-
-#include <makeshift/type_traits2.hpp> // for constval_tag, can_instantiate<>
-#include <makeshift/version.hpp>      // for MAKESHIFT_NODISCARD
+#include <makeshift/type_traits.hpp> // for constval_tag, can_instantiate<>
+#include <makeshift/macros.hpp>      // for MAKESHIFT_NODISCARD
 
 
 namespace makeshift
@@ -21,42 +19,19 @@ namespace makeshift
 
 template <typename T, T... Vs>
     struct array_constant;
-
-#ifdef MAKESHIFT_CXX17
-template <auto... Vs>
+template <typename... Cs>
     struct tuple_constant;
-#endif // MAKESHIFT_CXX17
 
 
 namespace detail
 {
 
 
-template <typename C> struct make_constval_;
-
-
-template <typename C, std::size_t I>
-    struct array_accessor_functor
-{
-    constexpr auto operator ()(void) const
-    {
-        return C{ }()[I];
-    }
-};
-
-template <typename C, std::size_t I>
-    struct tuple_accessor_functor
-{
-    constexpr auto operator ()(void) const
-    {
-        return std::get<I>(C{ }());
-    }
-};
-
-
-#if defined(MAKESHIFT_CXX17) && !(defined(_MSC_VER) && _MSVC_LANG > 201703L)
+#if MAKESHIFT_CXX == 17
+ // The workaround is not legal in C++14 and no longer needed in C++20.
+ // We risk ODR violation by permitting divergent paths here, but it shouldn't matter because it only affects compile-time evaluation.
  #define MAKESHIFT_NEED_LAMBDA_DEFAULT_CTR_WORKAROUND_
-#endif // defined(MAKESHIFT_CXX17) && !(defined(_MSC_VER) && _MSVC_LANG > 201703L)
+#endif // MAKESHIFT_CXX == 17
 
 
     // Workaround for non-default-constructible lambdas in C++17.
@@ -96,9 +71,8 @@ template <typename F> struct stateless_functor_0_<F, false> { using type = state
 template <typename F> using stateless_functor_t = typename stateless_functor_0_<F, std::is_default_constructible<F>::value>::type;
 template <typename F> constexpr stateless_functor_t<F> stateless_functor_v = { };
 
-
 template <typename T, typename F>
-    struct functor_constval_base : constval_tag
+    struct constval_base : constval_tag
 {
     static_assert(std::is_empty<F>::value, "lambda must be empty");
 
@@ -138,10 +112,15 @@ public:
     }
 };
 
+    // Returns the canonical constval representation of the given proto-constval.
+template <typename C> struct make_constval_;
+template <typename C> using make_constval = typename make_constval_<C>::type;
+
+    // Represents an object as a constval.
 template <typename T, typename F>
-    struct functor_constval : functor_constval_base<T, F>
+    struct constval : constval_base<T, F>
 {
-    static constexpr T value = functor_constval_base<T, F>{ }();
+    static constexpr T value = constval_base<T, F>{ }();
 
 private:
 #if defined(_MSC_VER) && !defined(NDEBUG)
@@ -150,20 +129,32 @@ private:
 #endif // defined(_MSC_VER) && !defined(NDEBUG)
 };
 
-template <typename T, typename F>
-    struct tuple_functor_constval : functor_constval<T, F>
+template <std::size_t I, typename C>
+    struct tuple_accessor_functor
 {
-    template <std::size_t I>
-        MAKESHIFT_NODISCARD friend constexpr
-        typename make_constval_<tuple_accessor_functor<tuple_functor_constval, I>>::type
-        get(tuple_functor_constval) noexcept
+    constexpr auto operator ()(void) const
     {
-        static_assert(I < std::tuple_size<T>::value, "index out of range");
-        return { };
+        using std::get;
+        return get<I>(C{ }());
     }
 };
 
-template <typename T, const T& Ref>
+    // Represents an object of tuple-like type as a constval, preserving tuple-likeness.
+template <typename T, typename F>
+    struct tuple_like_constval : constval<T, F>
+{
+};
+template <std::size_t I, typename T, typename F>
+    MAKESHIFT_NODISCARD constexpr
+    make_constval<tuple_accessor_functor<I, tuple_like_constval<T, F>>>
+    get(tuple_like_constval<T, F>) noexcept
+{
+    static_assert(I < std::tuple_size<T>::value, "index out of range");
+    return { };
+}
+
+    // Represents a constexpr object captured by const reference as a constval.
+template <typename T, T const& Ref>
     struct ref_constval : constval_tag
 {
 public:
@@ -181,144 +172,96 @@ public:
     constexpr value_type operator ()(void) const noexcept { return value; }
 };
 
-template <typename T, typename F, bool IsTupleLike> struct constval_functor_2_;
-template <typename T, typename F> struct constval_functor_2_<T, F, true> { using type = tuple_functor_constval<T, F>; };
-template <typename T, typename F> struct constval_functor_2_<T, F, false> { using type = functor_constval<T, F>; };
-template <typename T, typename F> struct constval_functor_1_ : constval_functor_2_<T, F, can_instantiate_v<is_tuple_like_r, T>> { };
-template <typename C, bool IsConstval> struct constval_functor_0_;
-template <typename C> struct constval_functor_0_<C, true> { using type = C; };
-template <typename C> struct constval_functor_0_<C, false> : constval_functor_1_<decltype(std::declval<C>()()), C> { };
-template <typename C> using constval_functor_t = typename constval_functor_0_<C, is_constval_<C>::value>::type;
+    // Determines if a given type makes a valid C++14 non-type template parameter.
+template <typename T> struct is_valid_nttp_ : disjunction<std::is_integral<T>, std::is_enum<T>, std::is_member_pointer<T>, std::is_null_pointer<T>> { };
 
-    // determines if a given type makes a valid C++14 non-type template parameter
-template <typename T> struct is_valid_nttp_ : std::disjunction<std::is_integral<T>, std::is_enum<T>, std::is_member_pointer<T>, std::is_null_pointer<T>> { };
-
-template <typename T> struct is_tag_type_ : std::integral_constant<bool, std::is_empty<T>::value && std::is_default_constructible<T>::value> { };
-template <typename T> struct is_constval_tag_type_ : std::conjunction<is_tag_type_<T>, std::is_base_of<constval_tag, T>> { };
-
-template <typename T> struct can_normalize_constval_ : std::disjunction<is_valid_nttp_<T>, is_constval_tag_type_<T>> { };
-template <typename T, std::size_t N> struct can_normalize_constval_<std::array<T, N>> : can_normalize_constval_<T> { };
-#ifdef MAKESHIFT_CXX17
-template <typename... Ts> struct can_normalize_constval_<std::tuple<Ts...>> : std::conjunction<can_normalize_constval_<Ts>...> { };
-#endif // MAKESHIFT_CXX17
-
-template <typename T>
-    struct normalize_constval_;
-
-#ifdef MAKESHIFT_CXX17
-template <typename T, typename C>
-    struct nttp_wrapper_
+    // Represent constvals of type `std::array<>` as `array_constant<>` of the array values if the array element type is a valid NTTP type,
+    // or as an `array_constant<>` of const references to constexpr objects otherwise. This way, syntax for `array_constant<>` users can be
+    // agnostic of the NTTP-ness, except perhaps for having to `decay<>` the element type and to use `c<>` to construct a constval for an
+    // array element in the general case.
+template <std::size_t I, typename C>
+    struct array_accessor_functor
 {
-    enum class type { };
-    friend constexpr T makeshift_nttp_unwrap(type)
+    constexpr auto operator ()(void) const
     {
-        return C{ }();
-    }
-    friend constexpr C makeshift_nttp_constval(std::integral_constant<type, type{ }>)
-    {
-        return { };
+        return C{ }()[I];
     }
 };
-
-template <typename T, std::size_t I, typename C, bool IsNTTP>
-    struct normalize_constval_tuple_element_0_;
-template <typename T, std::size_t I, typename C>
-    struct normalize_constval_tuple_element_0_<T, I, C, true>
+template <bool IsElementValidNTTP, typename T, typename Is, typename C>
+    struct make_array_constval_;
+template <typename T, std::size_t... Is, typename C>
+    struct make_array_constval_<true, T, std::index_sequence<Is...>, C>
 {
-    static constexpr T invoke(void)
-    {
-        return std::get<I>(C{ }());
-    }
+    using type = array_constant<T, C{ }()[Is]...>;
 };
-template <typename T, std::size_t I, typename C>
-    struct normalize_constval_tuple_element_0_<T, I, C, false>
+template <typename T, std::size_t... Is, typename C>
+    struct make_array_constval_<false, T, std::index_sequence<Is...>, C>
 {
-    static constexpr typename nttp_wrapper_<T, tuple_accessor_functor<C, I>>::type invoke(void) noexcept
-    {
-        return { };
-    }
-};
-template <typename Ts, typename Is>
-    struct normalize_constval_tuple_;
-template <typename... Ts, std::size_t... Is>
-    struct normalize_constval_tuple_<std::tuple<Ts...>, std::index_sequence<Is...>>
-{
-    template <typename C> using type = tuple_constant<normalize_constval_tuple_element_0_<Ts, Is, C, is_valid_nttp_<Ts>::value>::invoke()...>;
-};
-#endif // MAKESHIFT_CXX17
-
-template <typename T, typename C>
-    struct nttp_array_wrapper_
-{
-    enum class type : std::size_t { };
-    friend constexpr T makeshift_nttp_unwrap(type i)
-    {
-        return C{ }()[std::size_t(i)];
-    }
-    template <type I>
-        friend constexpr array_accessor_functor<C, std::size_t(I)> makeshift_nttp_constval(std::integral_constant<type, I>)
-    {
-        return { };
-    }
+        // For types which are not valid NTTP types, we pass constexpr const references instead.
+    using type = array_constant<T const&, make_constval<array_accessor_functor<Is, C>>::value...>;
 };
 
-template <typename T, typename Is, bool IsNTTP>
-    struct normalize_constval_array_0_;
-template <typename T, std::size_t... Is>
-    struct normalize_constval_array_0_<T, std::index_sequence<Is...>, true>
+    // Represent constvals of type `std::tuple<>` as `tuple_constant<>` of the constval types of the elements.
+template <typename Is, typename C>
+    struct make_tuple_constval_;
+template <std::size_t... Is, typename C>
+    struct make_tuple_constval_<std::index_sequence<Is...>, C>
 {
-    template <typename C> using type = array_constant<T, C{ }()[Is]...>;
+    using type = tuple_constant<make_constval<tuple_accessor_functor<Is, C>>...>;
 };
-template <typename T, std::size_t... Is>
-    struct normalize_constval_array_0_<T, std::index_sequence<Is...>, false>
-{
-    template <typename C> using type = array_constant<typename nttp_array_wrapper_<T, C>::type, typename nttp_array_wrapper_<T, C>::type(Is)...>;
-};
-template <typename T, typename Is> using normalize_constval_array_ = normalize_constval_array_0_<T, Is, is_valid_nttp_<T>::value>;
 
-template <typename T, bool IsConstvalTagType>
-    struct normalize_constval_0_;
-template <typename T>
-    struct normalize_constval_0_<T, false>
-{
-    template <typename C> using type = std::integral_constant<decltype(std::declval<C>()()), C{ }()>;
-};
-template <typename T>
-    struct normalize_constval_0_<T, true>
-{
-    template <typename C> using type = T;
-};
-template <typename T>
-    struct normalize_constval_ : normalize_constval_0_<T, is_constval_tag_type_<T>::value>
-{
-};
-template <typename T, std::size_t N>
-    struct normalize_constval_<std::array<T, N>> : normalize_constval_array_<T, std::make_index_sequence<N>>
-{
-};
-#ifdef MAKESHIFT_CXX17
-template <typename... Ts>
-    struct normalize_constval_<std::tuple<Ts...>> : normalize_constval_tuple_<std::tuple<Ts...>, std::make_index_sequence<sizeof...(Ts)>>
-{
-};
-#endif // MAKESHIFT_CXX17
+    // Normalize constvals of tuple-like type.
+template <bool IsTupleLike, typename T, typename C> struct make_constval_3_;
+template <typename T, typename C> struct make_constval_3_<true, T, C> { using type = tuple_like_constval<T, C>; };
+template <typename T, typename C> struct make_constval_3_<false, T, C> { using type = constval<T, C>; };
+template <typename T, T const& Ref> struct make_constval_3_<false, T, ref_constval<T, Ref>> { using type = ref_constval<T, Ref>; }; // shortcut: use ref_constval<> directly if no normalization applies
 
-template <bool CanNormalize, typename T, typename C> struct make_constval_1_;
-template <typename T, typename C> struct make_constval_1_<true, T, C> { using type = typename normalize_constval_<T>::template type<C>; };
-template <typename T, typename C> struct make_constval_1_<false, T, C> { using type = C; };
-template <typename T, typename C> struct make_constval_0_ : make_constval_1_<can_normalize_constval_<T>::value, T, constval_functor_t<C>> { };
-template <typename C> struct make_constval_ : make_constval_0_<decltype(std::declval<C>()()), C> { };
-template <typename T, T V> struct make_constval_<std::integral_constant<T, V>> { using type = std::integral_constant<T, V>; }; // shortcut
-template <typename C> using make_constval_t = typename make_constval_<C>::type;
+    // Return constval tag types unaltered.
+template <bool IsConstval, typename C> struct make_tag_constval_;
+template <typename C> struct make_tag_constval_<true, C> { using type = C; };
+template <typename C> struct make_tag_constval_<false, C> : make_constval_3_<is_tuple_like<C>::value, C, C> { };
 
+    // Normalize NTTP constvals.
+template <bool IsValidNTTP, typename T, typename C> struct make_constval_2_;
+template <typename T, typename C> struct make_constval_2_<true, T, C> { using type = std::integral_constant<T, C{ }()>; };
+template <typename T, typename C> struct make_constval_2_<false, T, C> : make_constval_3_<is_tuple_like<T>::value, T, C> { };
 
-template <typename T> using unwrap_constval_r = decltype(makeshift_nttp_constval(std::declval<T>()));
-template <typename T, T V, bool IsWrapped> struct unwrap_constval_0_;
-template <typename T, T V> struct unwrap_constval_0_<T, V, true> { using type = make_constval_t<decltype(makeshift_nttp_constval(std::integral_constant<T, V>{ }))>; };
-template <typename T, T V> struct unwrap_constval_0_<T, V, false> { using type = std::integral_constant<T, V>; };
-template <typename T, T V> struct unwrap_constval_ : unwrap_constval_0_<T, V, can_instantiate_v<unwrap_constval_r, std::integral_constant<T, V>>> { };
+    // Normalize constvals of type `std::array<>` and `std::tuple<>` to `array_constant<>` and `tuple_constant<>`, and handle constval tag types.
+template <typename T, typename C> struct make_constval_1_ : make_constval_2_<is_valid_nttp_<T>::value, T, C> { };
+template <typename C> struct make_constval_1_<C, C> : make_tag_constval_<std::is_base_of<constval_tag, C>::value, C> { };
+template <typename T, std::size_t N, typename C> struct make_constval_1_<std::array<T, N>, C> : make_array_constval_<is_valid_nttp_<T>::value, T, std::make_index_sequence<N>, C> { };
+template <typename... Ts, typename C> struct make_constval_1_<std::tuple<Ts...>, C> : make_tuple_constval_<std::make_index_sequence<sizeof...(Ts)>, C> { };
 
-template <typename C> constexpr auto constval_value = C{ }(); // workaround for EDG
+    // Return known constval types unaltered.
+template <typename C> struct make_constval_ : make_constval_1_<decltype(std::declval<C>()()), C> { };
+template <typename T, T V> struct make_constval_<std::integral_constant<T, V>> { using type = std::integral_constant<T, V>; };
+template <typename T, T... Vs> struct make_constval_<array_constant<T, Vs...>> { using type = array_constant<T, Vs...>; };
+template <typename... Cs> struct make_constval_<tuple_constant<Cs...>> { using type = tuple_constant<Cs...>; };
+template <typename T, typename C> struct make_constval_<constval<T, C>> { using type = constval<T, C>; };
+template <typename T, T const& Ref> struct make_constval_<ref_constval<T, Ref>> { using type = ref_constval<T, Ref>; };
+template <typename T, typename C> struct make_constval_<tuple_like_constval<T, C>> { using type = tuple_like_constval<T, C>; };
+
+template <bool IsRef, typename ConstRefT, ConstRefT Ref>
+    struct constant_0_
+{
+         // We use `make_constval_1_<>` directly to skip the short-circuiting of `ref_constval<>` here.
+    using T = std::remove_const_t<std::remove_reference_t<ConstRefT>>;
+    using type = typename make_constval_1_<T, ref_constval<T, Ref>>::type;
+};
+template <typename T, T V>
+    struct constant_0_<false, T, V>
+{
+        // Currently, "`T` being a non-ref type" is equivalent to "`T` is a valid NTTP".
+    using type = std::integral_constant<T, V>;
+};
+template <typename T, T V> struct constant_ : constant_0_<std::is_reference<T>::value, T, V> { };
+
+template <bool IsValidNTTP, typename T> struct array_constant_element_type_0_;
+template <typename T> struct array_constant_element_type_0_<true, T> { using type = T; };
+template <typename T> struct array_constant_element_type_0_<false, T> { using type = T const&; };
+template <typename T> struct array_constant_element_type_ : array_constant_element_type_0_<is_valid_nttp_<T>::value, T> { };
+
+template <typename C> constexpr auto constval_value = C{ }(); // workaround for EDG (TODO: remove)
 
 
     // idea taken from Ben Deane & Jason Turner, "constexpr ALL the things!", C++Now 2017
@@ -329,17 +272,17 @@ template <typename F> using is_constexpr_functor_r = decltype(std::declval<F>()(
 
 
 template <typename C>
-    constexpr auto get_hvalue_impl(std::true_type /*constvalArg*/, const C&)
+    constexpr auto get_hvalue_impl(std::true_type /*constvalArg*/, C const&)
 {
     return constval_value<C>;
 }
 template <typename V>
-    constexpr V get_hvalue_impl(std::false_type /*constvalArg*/, const V& arg)
+    constexpr V get_hvalue_impl(std::false_type /*constvalArg*/, V const& arg)
 {
     return arg;
 }
 template <typename H>
-    constexpr auto get_hvalue(const H& arg)
+    constexpr auto get_hvalue(H const& arg)
 {
     return makeshift::detail::get_hvalue_impl(is_constval_<H>{ }, arg);
 }
@@ -355,12 +298,12 @@ template <typename F, typename... Cs>
 };
 
 template <typename F, typename... Cs>
-    constexpr auto constval_transform_impl(std::true_type /*constvalArgs*/, const Cs&...) noexcept
+    constexpr auto constval_transform_impl(std::true_type /*constvalArgs*/, Cs const&...) noexcept
 {
-    return make_constval_t<constval_transform_functor<F, Cs...>>{ };
+    return make_constval<constval_transform_functor<F, Cs...>>{ };
 }
 template <typename F, typename... Cs>
-    constexpr auto constval_transform_impl(std::false_type /*constvalArgs*/, const Cs&... args)
+    constexpr auto constval_transform_impl(std::false_type /*constvalArgs*/, Cs const&... args)
 {
     return stateless_functor_v<F>(makeshift::detail::get_hvalue(args)...);
 }
@@ -371,29 +314,29 @@ template <typename CF, typename... Cs>
 {
     constexpr auto operator ()(void) const
     {
-        return stateless_functor_v<CF>(make_constval_t<Cs>{ }...);
+        return stateless_functor_v<CF>(make_constval<Cs>{ }...);
     }
 };
 
 template <typename CF, typename... Cs>
-    constexpr auto constval_extend_impl(std::true_type /*constvalArgs*/, const Cs&...) noexcept
+    constexpr auto constval_extend_impl(std::true_type /*constvalArgs*/, Cs const&...) noexcept
 {
-    return make_constval_t<constval_extend_functor<CF, Cs...>>{ };
+    return make_constval<constval_extend_functor<CF, Cs...>>{ };
 }
 template <typename CF, typename... Cs>
-    constexpr auto constval_extend_impl(std::false_type /*constvalArgs*/, const Cs&... args)
+    constexpr auto constval_extend_impl(std::false_type /*constvalArgs*/, Cs const&... args)
 {
     return stateless_functor_v<CF>(args...);
 }
 
 
 template <typename C>
-    constexpr auto constval_extract_impl(std::true_type /*isConstval*/, const C&) noexcept
+    constexpr auto constval_extract_impl(std::true_type /*isConstval*/, C const&) noexcept
 {
     return constval_value<C>;
 }
 template <typename C>
-    constexpr C constval_extract_impl(std::false_type /*isConstval*/, const C& value)
+    constexpr C constval_extract_impl(std::false_type /*isConstval*/, C const& value)
 {
     return value;
 }
@@ -410,28 +353,6 @@ static constexpr void constval_assert_impl(std::false_type /*isConstval*/, bool 
 }
 
 
-namespace non_adl
-{
-
-
-template <typename T>
-    constexpr T makeshift_nttp_unwrap(T arg)
-{
-    return arg;
-}
-
-
-} // namespace non_adl
-
-
-template <typename T>
-    constexpr auto nttp_unwrap(T arg)
-{
-    using makeshift::detail::non_adl::makeshift_nttp_unwrap;
-    return makeshift_nttp_unwrap(arg);
-}
-
-
 } // namespace detail
 
 } // namespace makeshift
@@ -441,12 +362,12 @@ namespace std
 {
 
 
-    // Implement tuple-like protocol for `tuple_functor_constval<>`.
-template <typename T, typename F> struct tuple_size<makeshift::detail::tuple_functor_constval<T, F>> : tuple_size<T> { };
+    // Implement tuple-like protocol for `tuple_like_constval<>`.
+template <typename T, typename F> struct tuple_size<makeshift::detail::tuple_like_constval<T, F>> : tuple_size<T> { };
 template <std::size_t I, typename T, typename F>
-    struct tuple_element<I, makeshift::detail::tuple_functor_constval<T, F>>
+    struct tuple_element<I, makeshift::detail::tuple_like_constval<T, F>>
 {
-    using type = makeshift::detail::make_constval_t<makeshift::detail::tuple_accessor_functor<makeshift::detail::tuple_functor_constval<T, F>, I>>;
+    using type = makeshift::detail::make_constval<makeshift::detail::tuple_accessor_functor<I, makeshift::detail::tuple_like_constval<T, F>>>;
 };
 
 
