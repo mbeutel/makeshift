@@ -127,7 +127,7 @@ template <std::size_t I, typename... Ts>
 template <typename T, typename... Ts>
     constexpr type<T> get(type_sequence<Ts...> const&) noexcept
 {
-	constexpr std::size_t index = try_index_of_type<T, Ts...>::value;
+	constexpr std::size_t index = makeshift::detail::try_index_of_type<T, Ts...>::value;
     static_assert(index != std::size_t(-1), "type T does not appear in type sequence");
     return { };
 }

@@ -129,18 +129,19 @@ public:
 
     MAKESHIFT_NODISCARD T* allocate(std::size_t n)
     {
-        std::size_t alignment = makeshift::detail::alignment_in_bytes(Alignment | alignment(alignof(T)));
+        std::size_t a = makeshift::detail::alignment_in_bytes(Alignment | alignment(alignof(T)));
         if (n >= std::numeric_limits<std::size_t>::max() / sizeof(T)) throw std::bad_alloc{ }; // overflow
         std::size_t nbData = n * sizeof(T);
-        std::size_t nbAlloc = nbData + alignment + sizeof(void*) - 1;
+        std::size_t nbAlloc = nbData + a + sizeof(void*) - 1;
         if (nbAlloc < nbData) throw std::bad_alloc{ }; // overflow
 
         using ByteAllocator = typename rebind<char>::other;
         auto byteAllocator = ByteAllocator(*this); // may not throw
         void* mem = std::allocator_traits<ByteAllocator>::allocate(byteAllocator, nbAlloc);
         void* alignedMem = mem;
-        void* alignResult = std::align(alignment, nbAlloc, alignedMem, nbData + sizeof(void*));
-        Expects(alignResult != nullptr); // should not happen
+        std::size_t nbDataAndPointer = nbData + sizeof(void*);
+        void* alignResult = std::align(a, nbAlloc, alignedMem, nbDataAndPointer);
+        Expects(alignResult != nullptr && nbDataAndPointer >= nbData + sizeof(void*)); // should not happen
 
             // Store pointer to actual allocation at end of buffer. Use `memcpy()` so we don't have to worry about alignment.
         std::memcpy(static_cast<char*>(alignResult) + nbData, &mem, sizeof(void*));
@@ -149,9 +150,9 @@ public:
     }
     void deallocate(T* ptr, std::size_t n) noexcept
     {
-        std::size_t alignment = makeshift::detail::alignment_in_bytes(Alignment | alignment(alignof(T)));
+        std::size_t a = makeshift::detail::alignment_in_bytes(Alignment | alignment(alignof(T)));
         std::size_t nbData = n * sizeof(T); // cannot overflow due to preceding check in allocate()
-        std::size_t nbAlloc = nbData + alignment + sizeof(void*) - 1; // cannot overflow due to preceding check in allocate()
+        std::size_t nbAlloc = nbData + a + sizeof(void*) - 1; // cannot overflow due to preceding check in allocate()
 
             // Retrieve pointer to actual allocation from end of buffer. Use `memcpy()` so we don't have to worry about alignment.
         void* mem;
@@ -182,16 +183,16 @@ public:
 
     MAKESHIFT_NODISCARD T* allocate(std::size_t n)
     {
-        std::size_t alignment = makeshift::detail::alignment_in_bytes(Alignment | alignment(alignof(T)));
+        std::size_t a = makeshift::detail::alignment_in_bytes(Alignment | alignment(alignof(T)));
         if (n >= std::numeric_limits<std::size_t>::max() / sizeof(T)) throw std::bad_alloc{ }; // overflow
         std::size_t nbData = n * sizeof(T);
-        return static_cast<T*>(makeshift::detail::aligned_alloc(nbData, alignment));
+        return static_cast<T*>(makeshift::detail::aligned_alloc(nbData, a));
     }
     void deallocate(T* ptr, std::size_t n) noexcept
     {
-        std::size_t alignment = makeshift::detail::alignment_in_bytes(Alignment | alignment(alignof(T)));
+        std::size_t a = makeshift::detail::alignment_in_bytes(Alignment | alignment(alignof(T)));
         std::size_t nbData = n * sizeof(T); // cannot overflow due to preceding check in allocate()
-        makeshift::detail::aligned_free(ptr, nbData, alignment);
+        makeshift::detail::aligned_free(ptr, nbData, a);
     }
 };
 

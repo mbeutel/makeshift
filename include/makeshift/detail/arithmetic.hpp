@@ -603,7 +603,7 @@ template <typename EH, typename X, typename S>
         // Note that we fail when shifting negative integers.
     Expects(x >= 0 && s >= 0);
 
-    if (s >= sizeof(X)*8) return EH::make_error(std::errc::value_too_large);
+    if (s >= gsl::narrow_cast<integral_value_type<S>>(sizeof(X)*8)) return EH::make_error(std::errc::value_too_large);
     return EH::make_result(V0(x >> s));
 }
 
@@ -616,7 +616,7 @@ template <typename EH, typename X, typename S>
         // Note that we fail when shifting negative integers.
     Expects(x >= 0 && s >= 0);
 
-    if (s >= sizeof(V0)*8
+    if (s >= gsl::narrow_cast<integral_value_type<S>>(sizeof(V0)*8)
      || x > (std::numeric_limits<V0>::max() >> s))
     {
         return EH::make_error(std::errc::value_too_large);
@@ -859,8 +859,6 @@ template <typename EH, typename X, typename B>
 template <typename X, typename B>
     constexpr common_integral_value_type<X, B> log_floori(X x, B b)
 {
-    using V = common_integral_value_type<X, B>;
-
     auto fac = factorize_floori(x, b);
     return fac.factors[0].exponent;
 }

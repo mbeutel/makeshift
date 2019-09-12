@@ -107,16 +107,21 @@ template <typename T, T V>
 }
 
 template <typename T>
-    constexpr bool check_buffer_extents(std::true_type /*dynamicExtent*/, std::size_t expectedExtent, std::size_t actualExtent)
+    constexpr void check_buffer_extents(std::true_type /*dynamicExtent*/, std::size_t expectedExtent, std::size_t actualExtent)
 {
     Expects(expectedExtent == actualExtent);
 }
 template <typename T>
-    constexpr bool check_buffer_extents(std::false_type /*dynamicExtent*/, std::size_t expectedExtent, std::size_t actualExtent)
+    constexpr void check_buffer_extents(std::false_type /*dynamicExtent*/, std::size_t expectedExtent, std::size_t actualExtent)
 {
 }
 
     // Implement tuple-like protocol for `range<>`.
+template <class T>
+    constexpr T const& as_const(T& t) noexcept
+{
+    return t;
+}
 template <std::size_t I, typename It, std::ptrdiff_t Extent>
     MAKESHIFT_NODISCARD constexpr std::enable_if_t<(Extent >= 0), decltype(*std::declval<It>())>
     get(range_base<It, It, std::random_access_iterator_tag, Extent>& range) noexcept
@@ -125,7 +130,7 @@ template <std::size_t I, typename It, std::ptrdiff_t Extent>
     return range[I];
 }
 template <std::size_t I, typename It, std::ptrdiff_t Extent>
-    MAKESHIFT_NODISCARD constexpr std::enable_if_t<(Extent >= 0), decltype(std::as_const(*std::declval<It>()))>
+    MAKESHIFT_NODISCARD constexpr std::enable_if_t<(Extent >= 0), decltype(makeshift::detail::as_const(*std::declval<It>()))>
     get(range_base<It, It, std::random_access_iterator_tag, Extent> const& range) noexcept
 {
     static_assert(I < std::size_t(Extent), "index out of range");

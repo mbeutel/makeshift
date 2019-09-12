@@ -132,10 +132,10 @@ private:
  #endif // MAKESHIFT_CXX >= 17
 #endif // defined(_MSC_VER) && !defined(NDEBUG)
 };
-#if MAKESHIFT_CXX < 17
+#if defined(_MSC_VER) && !defined(NDEBUG) && MAKESHIFT_CXX < 17
 template <typename T, typename F>
     const T constval<T, F>::value_ = constval<T, F>::value;
-#endif // MAKESHIFT_CXX < 17
+#endif // defined(_MSC_VER) && !defined(NDEBUG) && MAKESHIFT_CXX < 17
 
 template <std::size_t I, typename C>
     struct tuple_accessor_functor
@@ -183,10 +183,10 @@ public:
     constexpr operator T(void) const noexcept { return value; }
     constexpr value_type operator ()(void) const noexcept { return value; }
 };
-#if MAKESHIFT_CXX < 17
+#if defined(_MSC_VER) && !defined(NDEBUG) && MAKESHIFT_CXX < 17
 template <typename T, T const& Ref>
     const T ref_constval<T, Ref>::value_ = ref_constval<T, Ref>::value;
-#endif // MAKESHIFT_CXX < 17
+#endif // defined(_MSC_VER) && !defined(NDEBUG) && MAKESHIFT_CXX < 17
 
     // Determines if a given type makes a valid C++14 non-type template parameter.
 template <typename T> struct is_valid_nttp_ : disjunction<std::is_integral<T>, std::is_enum<T>, std::is_member_pointer<T>, std::is_null_pointer<T>> { };
@@ -235,24 +235,24 @@ template <std::size_t... Is, typename C>
 };
 
     // Normalize constvals of tuple-like type.
-template <bool IsTupleLike, typename T, typename C> struct make_constval_3_;
-template <typename T, typename C> struct make_constval_3_<true, T, C> { using type = tuple_like_constval<T, C>; };
-template <typename T, typename C> struct make_constval_3_<false, T, C> { using type = constval<T, C>; };
-template <typename T, T const& Ref> struct make_constval_3_<false, T, ref_constval<T, Ref>> { using type = ref_constval<T, Ref>; }; // shortcut: use ref_constval<> directly if no normalization applies
+template <bool IsTupleLike, typename T, typename C> struct make_constval_4_;
+template <typename T, typename C> struct make_constval_4_<true, T, C> { using type = tuple_like_constval<T, C>; };
+template <typename T, typename C> struct make_constval_4_<false, T, C> { using type = constval<T, C>; };
+template <typename T, T const& Ref> struct make_constval_4_<false, T, ref_constval<T, Ref>> { using type = ref_constval<T, Ref>; }; // shortcut: use ref_constval<> directly if no normalization applies
 
     // Return constval tag types unaltered.
-template <bool IsConstval, typename C> struct make_tag_constval_;
-template <typename C> struct make_tag_constval_<true, C> { using type = C; };
-template <typename C> struct make_tag_constval_<false, C> : make_constval_3_<is_tuple_like<C>::value, C, C> { };
+template <bool IsConstval, typename T, typename C> struct make_constval_3_;
+template <typename T, typename C> struct make_constval_3_<true, T, C> { using type = T; };
+template <typename T, typename C> struct make_constval_3_<false, T, C> : make_constval_4_<is_tuple_like<T>::value, T, C> { };
 
     // Normalize NTTP constvals.
 template <bool IsValidNTTP, typename T, typename C> struct make_constval_2_;
 template <typename T, typename C> struct make_constval_2_<true, T, C> { using type = std::integral_constant<T, stateless_functor_v<C>()>; };
-template <typename T, typename C> struct make_constval_2_<false, T, C> : make_constval_3_<is_tuple_like<T>::value, T, C> { };
+template <typename T, typename C> struct make_constval_2_<false, T, C> : make_constval_3_<std::is_base_of<constval_tag, T>::value, T, C> { };
 
     // Normalize constvals of type `std::array<>` and `std::tuple<>` to `array_constant<>` and `tuple_constant<>`, and handle constval tag types.
 template <typename T, typename C> struct make_constval_1_ : make_constval_2_<is_valid_nttp_<T>::value, T, C> { };
-template <typename C> struct make_constval_1_<C, C> : make_tag_constval_<std::is_base_of<constval_tag, C>::value, C> { };
+template <typename C> struct make_constval_1_<C, C> : make_constval_3_<std::is_base_of<constval_tag, C>::value, C, C> { }; // shortcut
 template <typename T, std::size_t N, typename C> struct make_constval_1_<std::array<T, N>, C> : make_array_constval_<is_valid_nttp_<T>::value, T, std::make_index_sequence<N>, C> { };
 template <typename... Ts, typename C> struct make_constval_1_<std::tuple<Ts...>, C> : make_tuple_constval_<std::make_index_sequence<sizeof...(Ts)>, C> { };
 

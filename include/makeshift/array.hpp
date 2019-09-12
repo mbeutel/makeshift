@@ -62,7 +62,7 @@ template <typename F, typename... Ts>
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
     constexpr std::size_t size = makeshift::detail::tuple_transform_size<-1, Ts...>();
-    constexpr bool areArgsHomogeneous = makeshift::detail::cand(makeshift::detail::is_homogeneous_arg_<std::decay_t<Ts>>::value...);
+    constexpr bool areArgsHomogeneous = makeshift::detail::conjunction<makeshift::detail::is_homogeneous_arg_<std::decay_t<Ts>>...>::value;
     return makeshift::detail::template_for_impl(makeshift::detail::array_for_index_arg<size, areArgsHomogeneous>{ },
         std::forward<F>(func), std::forward<Ts>(args)...);
 }
