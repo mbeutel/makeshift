@@ -1,5 +1,6 @@
 ﻿
 #include <memory>    // for unique_ptr<>
+#include <cstdio>
 #include <cstddef>   // for size_t, ptrdiff_t
 #include <exception> // for terminate()
 
@@ -15,7 +16,6 @@
 #elif defined(__linux__)
  #include <unistd.h>
  #include <stdio.h>
- #include <hugetlbfs.h>
 #elif defined(__APPLE__)
  #include <unistd.h>
  #include <sys/types.h>
@@ -36,13 +36,30 @@ std::size_t hardware_large_page_size(void) noexcept
 #if defined(_WIN32)
         return GetLargePageMinimum();
 #elif defined(__linux__)
-        long hugePageSize = gethugepagesize();
-        if (hugePageSize < 0 && errno == ENOSYS)
+            // I can't believe that parsing /proc/meminfo is the accepted way to query the default hugepage size and other parameters.
+        std::FILE* f = std::fopen("/proc/meminfo", "r");
+        if (f == nullptr) return std::size_t(0); // something is really wrong, but the best we can do is to pretend there is no hugepage support
+        char line[128];
+        long hugePageSize = 0;
+        char unit[16+1];
+        for (;;)
         {
-            return 0;
+            if (std::fgets(line, sizeof line, f) == nullptr) break; // either EOF or error, we don't distinguish here
+            int nFields = std::sscanf(line, "Hugepagesize: %ld %16s", &hugePageSize, unit);
+            if (nFields == 2)
+            {
+                if (std::strcmp(unit, "kB") == 0) hugePageSize *= 1024l; // this is the only unit the kernel currently emits, so I don't bother with speculative M[i]B etc.
+                else hugePageSize = 0; // we don't understand this unit; fall back to no hugepage support
+                break;
+            }
+            else
+            {
+                hugePageSize = 0; // just in case
+                // ...and keep going
+            }
         }
-        Expects(hugePageSize > 0);
-        return static_cast<std::size_t>(hugePageSize);
+        std::fclose(f);
+        return gsl::narrow_cast<std::size_t>(hugePageSize);
 #elif defined(__APPLE__)
         return 0; // MacOS does support huge pages ("superpages") but we currently didn't write any code to support them
 #else
