@@ -8,6 +8,7 @@
  #include <new> // `hardware_{constructive|destructive}_interference_size` currently only provided by VC++
 #endif // _MSC_VER
 
+#include <makeshift/macros.hpp>        // for MAKESHIFT_CXX
 #include <makeshift/detail/export.hpp> // for MAKESHIFT_PUBLIC
 
 
@@ -25,17 +26,19 @@ namespace makeshift
     // the ABI implications. However, note that it would be possible to run into ODR violations if we defined different values for different
     // sub-architectures, so the constexpr value defined here should depend only on architecture (e.g. x64), not on sub-architecture (e.g. Intel "Penryn").
 
-#ifdef _MSC_VER
-    constexpr inline std::size_t hardware_constructive_interference_size = std::hardware_constructive_interference_size;
-    constexpr inline std::size_t hardware_destructive_interference_size = std::hardware_destructive_interference_size;
-#else // _MSC_VER
- #if defined(__i386__) || defined(__x86_64__)
-    constexpr inline std::size_t hardware_constructive_interference_size = 64;
-    constexpr inline std::size_t hardware_destructive_interference_size = 64;
- #else // defined(__i386__) || defined(__x86_64__)
-  #error Unsupported architecture.
- #endif // defined(__i386__) || defined(__x86_64__)
-#endif // _MSC_VER
+#if MAKESHIFT_CXX >= 17
+ #ifdef _MSC_VER
+    constexpr std::size_t hardware_constructive_interference_size = std::hardware_constructive_interference_size;
+    constexpr std::size_t hardware_destructive_interference_size = std::hardware_destructive_interference_size;
+ #else // _MSC_VER
+  #if defined(__i386__) || defined(__x86_64__)
+    constexpr std::size_t hardware_constructive_interference_size = 64;
+    constexpr std::size_t hardware_destructive_interference_size = 64;
+  #else // defined(__i386__) || defined(__x86_64__)
+   #error Unsupported architecture.
+  #endif // defined(__i386__) || defined(__x86_64__)
+ #endif // _MSC_VER
+#endif // MAKESHIFT_CXX >= 17
 
 
     //ᅟ

@@ -34,21 +34,28 @@
 
     //ᅟ
     // `MAKESHIFT_IF_CXX(L,...)` expands to `...` if the language support matches the value given by `L`, and to nothing otherwise.
+    // `MAKESHIFT_IF_NOT_CXX(L,...)` expands to nothing if the language support matches the value given by `L`, and to `...` otherwise.
     // Possible values for L: 14, 17, 20.
     //
 #if MAKESHIFT_CXX >= 20
- #define MAKESHIFT_IF_CXX_20_(...)  __VA_ARGS__
+ #define MAKESHIFT_IF_CXX_20_(...)      __VA_ARGS__
+ #define MAKESHIFT_IF_NOT_CXX_20_(...)
 #else
  #define MAKESHIFT_IF_CXX_20_(...)
+ #define MAKESHIFT_IF_NOT_CXX_20_(...)  __VA_ARGS__
 #endif
 #if MAKESHIFT_CXX >= 17
- #define MAKESHIFT_IF_CXX_17_(...)  __VA_ARGS__
+ #define MAKESHIFT_IF_CXX_17_(...)      __VA_ARGS__
+ #define MAKESHIFT_IF_NOT_CXX_17_(...)
 #else
  #define MAKESHIFT_IF_CXX_17_(...)
+ #define MAKESHIFT_IF_NOT_CXX_17_(...)  __VA_ARGS__
 #endif
-#define MAKESHIFT_IF_CXX_14_(...)   __VA_ARGS__
-#define MAKESHIFT_IF_CXX_(F,...)    F(__VA_ARGS__)
-#define MAKESHIFT_IF_CXX(L,...)     MAKESHIFT_IF_CXX_(MAKESHIFT_IF_CXX_##L##_,__VA_ARGS__)
+#define MAKESHIFT_IF_CXX_14_(...)       __VA_ARGS__
+#define MAKESHIFT_IF_NOT_CXX_14_(...)
+#define MAKESHIFT_IF_CXX_(F,...)        F(__VA_ARGS__)
+#define MAKESHIFT_IF_CXX(L,...)         MAKESHIFT_IF_CXX_(MAKESHIFT_IF_CXX_##L##_,__VA_ARGS__)
+#define MAKESHIFT_IF_NOT_CXX(L,...)     MAKESHIFT_IF_CXX_(MAKESHIFT_IF_NOT_CXX_##L##_,__VA_ARGS__)
 
 
     //ᅟ

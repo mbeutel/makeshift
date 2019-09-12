@@ -3,9 +3,13 @@
 #define INCLUDED_MAKESHIFT_STRING_HPP_
 
 
-#include <string_view>
+#include <makeshift/macros.hpp> // for MAKESHIFT_CXX, MAKESHIFT_NODISCARD
 
-#include <makeshift/macros.hpp> // for MAKESHIFT_NODISCARD
+#if MAKESHIFT_CXX < 17
+ #error Header <makeshift/string.hpp> requires C++17 mode or higher.
+#endif // MAKESHIFT_CXX < 17
+
+#include <string_view>
 
 #include <makeshift/detail/string.hpp>
 

@@ -65,7 +65,7 @@ template <typename T1, typename T2>
     //ᅟ
     // Use `type_c<T>` as a value representation of `T` for tag dispatching.
     //
-template <typename T> constexpr inline type<T> type_c { };
+template <typename T> MAKESHIFT_IF_NOT_CXX(17,static) constexpr MAKESHIFT_IF_CXX(17,inline) type<T> type_c { };
 
 
     //ᅟ
@@ -100,7 +100,7 @@ template <typename... Ts>
     //ᅟ
     // Type sequence, i.e. type list and tuple of `type<>` arguments.
     //
-template <typename... Ts> constexpr inline type_sequence<Ts...> type_sequence_c { };
+template <typename... Ts> MAKESHIFT_IF_NOT_CXX(17,static) constexpr MAKESHIFT_IF_CXX(17,inline) type_sequence<Ts...> type_sequence_c { };
 
     //ᅟ
     // Return a type sequence that represents the types of the given values.
@@ -192,9 +192,9 @@ template <typename T, std::ptrdiff_t N>
     // Returns the size of an array, range, tuple-like or container as a constval if known at compile time, or as a value if not.
     //
 template <typename ContainerT>
-    MAKESHIFT_NODISCARD constexpr auto csize(const ContainerT& c)
+    MAKESHIFT_NODISCARD constexpr auto csize(ContainerT const& c)
 {
-    return makeshift::detail::csize_impl(can_instantiate<makeshift::detail::is_tuple_like_r, ContainerT>{ }, c);
+    return makeshift::detail::csize_impl(makeshift::detail::can_instantiate_<makeshift::detail::is_tuple_like_r, void, ContainerT>{ }, c);
 }
 
     //ᅟ
@@ -211,9 +211,9 @@ template <typename T, std::size_t N>
     // Returns the signed size of an array, range, tuple-like or container as a constval if known at compile time, or as a value if not.
     //
 template <typename ContainerT>
-    MAKESHIFT_NODISCARD constexpr auto cssize(const ContainerT& c)
+    MAKESHIFT_NODISCARD constexpr auto cssize(ContainerT const& c)
 {
-    return makeshift::detail::cssize_impl(can_instantiate<makeshift::detail::is_tuple_like_r, ContainerT>{ }, c);
+    return makeshift::detail::cssize_impl(makeshift::detail::can_instantiate_<makeshift::detail::is_tuple_like_r, void, ContainerT>{ }, c);
 }
 
     //ᅟ

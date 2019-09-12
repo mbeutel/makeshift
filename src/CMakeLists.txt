@@ -29,7 +29,9 @@ target_include_directories(makeshift
         "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
         "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>")
 target_compile_features(makeshift
-    PUBLIC
+    INTERFACE
+        cxx_std_14
+    PRIVATE
         cxx_std_17)
 
 # compiler settings

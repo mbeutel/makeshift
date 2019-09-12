@@ -6,13 +6,13 @@
 #include <makeshift/macros.hpp> // for MAKESHIFT_CXX
 
 #if MAKESHIFT_CXX < 17
- #include <tuple> // tuple_size<>
+ #include <tuple>      // tuple_size<>
 #endif // MAKESHIFT_CXX < 17
 
 #include <cstddef>     // for size_t
 #include <iterator>    // for begin(), end()
 #include <utility>     // for integer_sequence<>, tuple_size<> (C++17)
-#include <type_traits> // for declval<>(), integral_constant<>, is_convertible<>
+#include <type_traits> // for declval<>(), integral_constant<>, is_convertible<>, void_t<>
 
 
 namespace makeshift
@@ -53,9 +53,15 @@ struct type_enum_base { };
 struct unwrap_enum_tag { };
 
 
-template <typename...> using void_t = void;
 template <template <typename...> class, typename, typename...> struct can_instantiate_ : std::false_type { };
+#if MAKESHIFT_CXX < 17
+    // Cf. https://en.cppreference.com/w/cpp/types/void_t
+template<typename... Ts> struct make_void { using type = void; };
+template<typename... Ts> using void_t = typename make_void<Ts...>::type;
 template <template <typename...> class Z, typename... Ts> struct can_instantiate_<Z, void_t<Z<Ts...>>, Ts...> : std::true_type { };
+#else // MAKESHIFT_CXX < 17
+template <template <typename...> class Z, typename... Ts> struct can_instantiate_<Z, std::void_t<Z<Ts...>>, Ts...> : std::true_type { };
+#endif // MAKESHIFT_CXX < 17
 
 
     // taken from http://ldionne.com/2015/11/29/efficient-parameter-pack-indexing/

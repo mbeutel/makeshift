@@ -7,12 +7,12 @@
 cmake_minimum_required(VERSION 3.14)
 
 # dependencies
-find_package(Catch2 2.4 REQUIRED)
+find_package(Catch2 2.7 REQUIRED)
 find_package(CMakeshift 3.5 REQUIRED)
 find_package(gsl-lite REQUIRED)
 
-# test target
-add_executable(test-makeshift
+# test targets
+add_executable(test-makeshift-cxx14
     "main.cpp"
     "test-arithmetic.cpp"
     "test-array.cpp"
@@ -27,33 +27,51 @@ add_executable(test-makeshift
     "test-range.cpp"
     "test-reflect.cpp"
     #"test-reflect2.cpp"
-    "test-string.cpp"
     "test-tuple.cpp"
     "test-type_traits.cpp"
     "test-utility.cpp"
     "test-variant.cpp")
     #"test-variant2.cpp")
+add_executable(test-makeshift-cxx17
+    "main.cpp"
+    "test-constval.cpp"
+    "test-string.cpp")
 
 # compiler settings
 include(CMakeshift/TargetCompileSettings)
-cmakeshift_target_compile_settings(test-makeshift
+cmakeshift_target_compile_settings(
+    TARGETS
+        test-makeshift-cxx14 test-makeshift-cxx17
     PRIVATE
         default
         diagnostics
         $<$<CONFIG:Debug>:runtime-checks>)
-target_compile_features(test-makeshift
+target_compile_features(test-makeshift-cxx14
     PUBLIC
-        cxx_std_20)
+        cxx_std_14)
+target_compile_features(test-makeshift-cxx17
+    PUBLIC
+        cxx_std_17)
 
 # test properties
-target_compile_definitions(test-makeshift
+target_compile_definitions(test-makeshift-cxx14
+    PRIVATE
+        CATCH_CONFIG_CONSOLE_WIDTH=120
+        CATCH_CLARA_CONFIG_CONSOLE_WIDTH=120
+        gsl_CONFIG_CONTRACT_VIOLATION_THROWS) # so we can check programmatically if violations are caught
+target_compile_definitions(test-makeshift-cxx17
     PRIVATE
         CATCH_CONFIG_CONSOLE_WIDTH=120
         CATCH_CLARA_CONFIG_CONSOLE_WIDTH=120
         gsl_CONFIG_CONTRACT_VIOLATION_THROWS) # so we can check programmatically if violations are caught
 
 # test dependencies
-target_link_libraries(test-makeshift
+target_link_libraries(test-makeshift-cxx14
+    PRIVATE
+        gsl::gsl-lite
+        Catch2::Catch2
+        makeshift)
+target_link_libraries(test-makeshift-cxx17
     PRIVATE
         gsl::gsl-lite
         Catch2::Catch2
@@ -62,4 +80,5 @@ target_link_libraries(test-makeshift
 # register tests
 include(ParseAndAddCatchTests)
 set(PARSE_CATCH_TESTS_ADD_TO_CONFIGURE_DEPENDS CACHE BOOL ON)
-ParseAndAddCatchTests(test-makeshift)
+ParseAndAddCatchTests(test-makeshift-cxx14)
+ParseAndAddCatchTests(test-makeshift-cxx17)

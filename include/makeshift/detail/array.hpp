@@ -147,7 +147,7 @@ template <typename R>
 template <typename R, typename T0, typename... Ts>
     constexpr inline R cadd(T0 v0, Ts... vs) noexcept
 {
-    return v0 + cadd(vs...);
+    return v0 + cadd<R>(vs...);
 }
 #endif // MAKESHIFT_CXX >= 17
 

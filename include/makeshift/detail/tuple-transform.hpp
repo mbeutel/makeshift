@@ -3,6 +3,12 @@
 #define INCLUDED_MAKESHIFT_DETAIL_TUPLE_TRANSFORM_HPP_
 
 
+#include <makeshift/macros.hpp> // for MAKESHIFT_CXX
+
+#if MAKESHIFT_CXX < 17
+ #include <tuple>      // for tuple_size<>
+#endif // MAKESHIFT_CXX < 17
+
 #include <cstddef>     // for size_t, ptrdiff_t
 #include <utility>     // for forward<>(), integer_sequence<>, tuple_size<>, get<>()
 #include <type_traits> // for decay<>, integral_constant<>

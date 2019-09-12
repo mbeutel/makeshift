@@ -29,7 +29,7 @@ namespace detail
 
 #if MAKESHIFT_CXX == 17
  // The workaround is not legal in C++14 and no longer needed in C++20.
- // We risk ODR violation by permitting divergent paths here, but it shouldn't matter because it only affects compile-time evaluation.
+ // Permitting divergent class layouts is generally a dangerous thing to do, but it shouldn't matter here because it only affects compile-time evaluation.
  #define MAKESHIFT_NEED_LAMBDA_DEFAULT_CTR_WORKAROUND_
 #endif // MAKESHIFT_CXX == 17
 
@@ -125,9 +125,17 @@ template <typename T, typename F>
 private:
 #if defined(_MSC_VER) && !defined(NDEBUG)
         // for Natvis support
+ #if MAKESHIFT_CXX >= 17
     static inline const T value_ = value;
+ #else // MAKESHIFT_CXX >= 17
+    static const T value_;
+ #endif // MAKESHIFT_CXX >= 17
 #endif // defined(_MSC_VER) && !defined(NDEBUG)
 };
+#if MAKESHIFT_CXX < 17
+template <typename T, typename F>
+    const T constval<T, F>::value_ = constval<T, F>::value;
+#endif // MAKESHIFT_CXX < 17
 
 template <std::size_t I, typename C>
     struct tuple_accessor_functor
@@ -135,7 +143,7 @@ template <std::size_t I, typename C>
     constexpr auto operator ()(void) const
     {
         using std::get;
-        return get<I>(C{ }());
+        return get<I>(stateless_functor_v<C>());
     }
 };
 
@@ -164,13 +172,21 @@ public:
 private:
 #if defined(_MSC_VER) && !defined(NDEBUG)
         // for Natvis support
-    static inline const value_type value_ = value;
+ #if MAKESHIFT_CXX >= 17
+    static inline const T value_ = value;
+ #else // MAKESHIFT_CXX >= 17
+    static const T value_;
+ #endif // MAKESHIFT_CXX >= 17
 #endif // defined(_MSC_VER) && !defined(NDEBUG)
 
 public:
     constexpr operator T(void) const noexcept { return value; }
     constexpr value_type operator ()(void) const noexcept { return value; }
 };
+#if MAKESHIFT_CXX < 17
+template <typename T, T const& Ref>
+    const T ref_constval<T, Ref>::value_ = ref_constval<T, Ref>::value;
+#endif // MAKESHIFT_CXX < 17
 
     // Determines if a given type makes a valid C++14 non-type template parameter.
 template <typename T> struct is_valid_nttp_ : disjunction<std::is_integral<T>, std::is_enum<T>, std::is_member_pointer<T>, std::is_null_pointer<T>> { };
@@ -184,7 +200,11 @@ template <std::size_t I, typename C>
 {
     constexpr auto operator ()(void) const
     {
-        return C{ }()[I];
+#if MAKESHIFT_CXX < 17
+        return std::get<I>(C{ }());
+#else // MAKESHIFT_CXX < 17
+        return stateless_functor_v<C>()[I];
+#endif // MAKESHIFT_CXX < 17
     }
 };
 template <bool IsElementValidNTTP, typename T, typename Is, typename C>
@@ -192,7 +212,11 @@ template <bool IsElementValidNTTP, typename T, typename Is, typename C>
 template <typename T, std::size_t... Is, typename C>
     struct make_array_constval_<true, T, std::index_sequence<Is...>, C>
 {
-    using type = array_constant<T, C{ }()[Is]...>;
+#if MAKESHIFT_CXX < 17
+    using type = array_constant<T, std::get<Is>(C{ }())...>;
+#else // MAKESHIFT_CXX < 17
+    using type = array_constant<T, stateless_functor_v<C>()[Is]...>;
+#endif // MAKESHIFT_CXX < 17
 };
 template <typename T, std::size_t... Is, typename C>
     struct make_array_constval_<false, T, std::index_sequence<Is...>, C>
@@ -223,7 +247,7 @@ template <typename C> struct make_tag_constval_<false, C> : make_constval_3_<is_
 
     // Normalize NTTP constvals.
 template <bool IsValidNTTP, typename T, typename C> struct make_constval_2_;
-template <typename T, typename C> struct make_constval_2_<true, T, C> { using type = std::integral_constant<T, C{ }()>; };
+template <typename T, typename C> struct make_constval_2_<true, T, C> { using type = std::integral_constant<T, stateless_functor_v<C>()>; };
 template <typename T, typename C> struct make_constval_2_<false, T, C> : make_constval_3_<is_tuple_like<T>::value, T, C> { };
 
     // Normalize constvals of type `std::array<>` and `std::tuple<>` to `array_constant<>` and `tuple_constant<>`, and handle constval tag types.

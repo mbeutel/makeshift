@@ -49,8 +49,10 @@ public:
         return *this;
     }
 };
+#if MAKESHIFT_CXX >= 17
 template <typename F>
     callback_input_iterator(F&&) -> callback_input_iterator<std::decay_t<F>>;
+#endif // MAKESHIFT_CXX >= 17
 
 template <typename F>
     MAKESHIFT_NODISCARD constexpr callback_input_iterator<std::decay_t<F>> make_callback_input_iterator(F&& func)
@@ -111,8 +113,10 @@ public:
         return *this;
     }
 };
+#if MAKESHIFT_CXX >= 17
 template <typename F>
     callback_output_iterator(F&&) -> callback_output_iterator<std::decay_t<F>>;
+#endif // MAKESHIFT_CXX >= 17
 
 template <typename F>
     MAKESHIFT_NODISCARD constexpr callback_output_iterator<std::decay_t<F>> make_callback_output_iterator(F&& func)

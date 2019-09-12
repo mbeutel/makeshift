@@ -12,7 +12,7 @@ namespace mk = makeshift;
 
 TEST_CASE("tuple", "[flags]")
 {
-    constexpr auto numbers = std::tuple{ 2, 3u };
+    constexpr auto numbers = std::make_tuple(2, 3u);
     SECTION("foreach")
     {
         int sum = 0;
@@ -22,20 +22,20 @@ TEST_CASE("tuple", "[flags]")
     SECTION("transform")
     {
         auto square = mk::tuple_transform([](auto x) { return x*x; }, numbers);
-        CHECK(square == std::tuple{ 4, 9u });
+        CHECK(square == std::make_tuple(4, 9u));
     }
     SECTION("index")
     {
         int offset = 100;
-        auto result_tuple = std::tuple{ 0, 0, 0 };
-        auto lhs_tuple = std::tuple{ 10, 20, 30 };
+        auto result_tuple = std::make_tuple(0, 0, 0);
+        auto lhs_tuple = std::make_tuple(10, 20, 30);
         auto rhs_scalar = 1;
         mk::template_for([offset, rhs = rhs_scalar](auto& result, auto lhs, auto indexC)
         {
             constexpr mk::index index = indexC();
             result = lhs + rhs + int(index*offset);
         }, result_tuple, lhs_tuple, mk::tuple_index);
-        CHECK(result_tuple == std::tuple{ 11, 121, 231 });
+        CHECK(result_tuple == std::make_tuple(11, 121, 231));
     }
     SECTION("fold")
     {
