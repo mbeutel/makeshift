@@ -16,7 +16,6 @@
  #include <unistd.h>
  #include <stdio.h>
  #include <hugetlbfs.h>
- int gethugepagesizes(long pagesizes[], int n_elem);
 #elif defined(__APPLE__)
  #include <unistd.h>
  #include <sys/types.h>

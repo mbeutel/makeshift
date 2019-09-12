@@ -24,10 +24,8 @@ endif()
 ## Install.
 find_package(CMakeshift 3.5 REQUIRED)
 include(CMakeshift/InstallBasicPackageFiles)
-install_basic_package_files(makeshift
+cmakeshift_install_basic_package_files(makeshift
     EXPORT makeshift
     COMPATIBILITY SameMajorVersion
     DEPENDENCIES
-        "CMakeshift 3.5"
-        "gsl-lite"
-        "Hedley")
+        "gsl-lite")

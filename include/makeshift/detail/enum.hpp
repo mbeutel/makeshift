@@ -36,19 +36,19 @@
     {                                                                                                   \
         return ENUM(makeshift::underlying_type_t<ENUM>(lhs) ^ makeshift::underlying_type_t<ENUM>(rhs)); \
     }                                                                                                   \
-    MAKESHIFT_NODISCARD constexpr inline ENUM&                                                          \
+    constexpr inline ENUM&                                                                              \
     operator |=(ENUM& lhs, ENUM rhs) noexcept                                                           \
     {                                                                                                   \
         lhs = lhs | rhs;                                                                                \
         return lhs;                                                                                     \
     }                                                                                                   \
-    MAKESHIFT_NODISCARD constexpr inline ENUM&                                                          \
+    constexpr inline ENUM&                                                                              \
     operator &=(ENUM& lhs, ENUM rhs) noexcept                                                           \
     {                                                                                                   \
         lhs = lhs & rhs;                                                                                \
         return lhs;                                                                                     \
     }                                                                                                   \
-    MAKESHIFT_NODISCARD constexpr inline ENUM&                                                          \
+    constexpr inline ENUM&                                                                              \
     operator ^=(ENUM& lhs, ENUM rhs) noexcept                                                           \
     {                                                                                                   \
         lhs = lhs ^ rhs;                                                                                \
