@@ -4,6 +4,7 @@
 
 
 #include <new>         // for align_val_t, bad_alloc
+#include <limits>
 #include <cstddef>     // for size_t, ptrdiff_t
 #include <cstdlib>     // for calloc(), free()
 #include <cstring>     // for memcpy()
@@ -14,6 +15,7 @@
 #include <gsl/gsl-lite.hpp> // for Expects()
 
 #include <makeshift/type_traits.hpp> // for can_instantiate<>
+#include <makeshift/enum.hpp>        // for MAKESHIFT_DEFINE_BITMASK_OPERATORS()
 #include <makeshift/macros.hpp>      // for MAKESHIFT_CXXLEVEL, MAKESHIFT_NODISCARD
 
 #include <makeshift/detail/memory.hpp>
@@ -84,12 +86,12 @@ public:
 };
 
 template <typename T, typename U>
-    MAKESHIFT_NODISCARD bool operator==(zero_init_allocator<T> const&, zero_init_allocator<U> const&) noexcept
+    MAKESHIFT_NODISCARD bool operator ==(zero_init_allocator<T> const&, zero_init_allocator<U> const&) noexcept
 {
     return true;
 }
-template <class T, class U>
-    MAKESHIFT_NODISCARD bool operator!=(zero_init_allocator<T> const& x, zero_init_allocator<U> const& y) noexcept
+template <typename T, typename U>
+    MAKESHIFT_NODISCARD bool operator !=(zero_init_allocator<T> const& x, zero_init_allocator<U> const& y) noexcept
 {
     return !(x == y);
 }
@@ -98,23 +100,24 @@ template <class T, class U>
     //ᅟ
     // Represents an alignment to use for aligned allocations.
     // In addition to the special values, any positive integer that is a power of 2 may be cast to `alignment`.
+    // Multiple alignment requirements can be combined using bitmask operations, e.g. `alignment::cache_line | alignment(sizeof(T))`.
     //
-enum class alignment : std::ptrdiff_t
+enum class alignment : std::size_t
 {
-    page = -2,
-    cache_line = -1,
+    large_page = std::size_t(1) << (sizeof(std::size_t) * 8u - 1u),
+    page       = std::size_t(1) << (sizeof(std::size_t) * 8u - 2u),
+    cache_line = std::size_t(1) << (sizeof(std::size_t) * 8u - 3u),
     none = 1
 };
+MAKESHIFT_DEFINE_BITMASK_OPERATORS(alignment)
 
 
     //ᅟ
     // Allocator adaptor that aligns memory allocations by the given size.
     //
-template <typename T, alignment Alignment, typename A = std::allocator<T>>
+template <typename T, alignment Alignment, typename A>
     class aligned_allocator : public A
 {
-    static_assert(Alignment == alignment::page || Alignment == alignment::cache_line || makeshift::detail::is_alignment_power_of_2(std::ptrdiff_t(Alignment)));
-
 public:
     using A::A;
 
@@ -126,74 +129,82 @@ public:
 
     MAKESHIFT_NODISCARD T* allocate(std::size_t n)
     {
-        constexpr std::size_t nExtra = (sizeof(void*) - 1) / sizeof(T) + 1; // = ⌈sizeof(void*) ÷ sizeof(T)⌉
+        std::size_t alignment = makeshift::detail::alignment_in_bytes(Alignment | alignment(alignof(T)));
+        if (n >= std::numeric_limits<std::size_t>::max() / sizeof(T)) throw std::bad_alloc{ }; // overflow
+        std::size_t nbData = n * sizeof(T);
+        std::size_t nbAlloc = nbData + alignment + sizeof(void*) - 1;
+        if (nbAlloc < nbData) throw std::bad_alloc{ }; // overflow
 
-        std::size_t nAlign = makeshift::detail::alignment_in_elements(Alignment, sizeof(T), alignof(T));
-        std::size_t nAlloc = (n + nExtra) + nAlign;
-        if (nAlloc <= n) throw std::bad_alloc{ }; // overflow
-
-        void* mem = std::allocator_traits<A>::allocate(*this, nAlloc);
-
-        std::size_t allocSize = nAlloc * sizeof(T); // cannot overflow, otherwise upstream `allocate()` would have thrown
-        std::size_t size = (n + nExtra) * sizeof(T); // cannot overflow either because `nAlloc >= n + nExtra`
-        std::size_t alignment = nAlign * sizeof(T); // cannot overflow, otherwise `alignment_in_elements()` would have failed
+        using ByteAllocator = typename rebind<char>::other;
+        auto byteAllocator = ByteAllocator(*this); // may not throw
+        void* mem = std::allocator_traits<ByteAllocator>::allocate(byteAllocator, nbAlloc);
         void* alignedMem = mem;
-        void* alignResult = std::align(alignment, size, alignedMem, allocSize);
+        void* alignResult = std::align(alignment, nbAlloc, alignedMem, nbData + sizeof(void*));
         Expects(alignResult != nullptr); // should not happen
 
             // Store pointer to actual allocation at end of buffer. Use `memcpy()` so we don't have to worry about alignment.
-        std::memcpy(static_cast<char*>(alignResult) + sizeof(T) * n, &mem, sizeof(void*));
+        std::memcpy(static_cast<char*>(alignResult) + nbData, &mem, sizeof(void*));
 
         return static_cast<T*>(alignResult);
     }
     void deallocate(T* ptr, std::size_t n) noexcept
     {
-        constexpr std::size_t nExtra = (sizeof(void*) - 1) / sizeof(T) + 1; // = ⌈sizeof(void*) ÷ sizeof(T)⌉
+        std::size_t alignment = makeshift::detail::alignment_in_bytes(Alignment | alignment(alignof(T)));
+        std::size_t nbData = n * sizeof(T); // cannot overflow due to preceding check in allocate()
+        std::size_t nbAlloc = nbData + alignment + sizeof(void*) - 1; // cannot overflow due to preceding check in allocate()
 
             // Retrieve pointer to actual allocation from end of buffer. Use `memcpy()` so we don't have to worry about alignment.
         void* mem;
-        std::memcpy(&mem, reinterpret_cast<char*>(ptr) + sizeof(T) * n, sizeof(void*));
-
-        std::size_t nAlign = makeshift::detail::alignment_in_elements(Alignment, sizeof(T), alignof(T));
-        std::size_t nAlloc = (n + nExtra) + nAlign; // we already checked for overflow in `allocate()`, so here we assume there is no overflow
-
-        std::allocator_traits<A>::deallocate(*this, static_cast<T*>(mem), nAlloc);
+        std::memcpy(&mem, reinterpret_cast<char*>(ptr) + nbData, sizeof(void*));
+        
+        using ByteAllocator = typename rebind<char>::other;
+        auto byteAllocator = ByteAllocator(*this); // may not throw
+        std::allocator_traits<ByteAllocator>::deallocate(byteAllocator, static_cast<char*>(mem), nbAlloc);
     }
 };
-#if MAKESHIFT_CXXLEVEL >= 17
+
+    //ᅟ
+    // Allocator that aligns memory allocations by the given size using the default allocator, i.e. global `operator new()` with `std::align_val_t`.
+    //
 template <typename T, alignment Alignment>
-    class aligned_allocator<T, Alignment, std::allocator<T>> : public std::allocator<T>
+    class aligned_default_allocator
 {
-    static_assert(Alignment == alignment::page || Alignment == alignment::cache_line || makeshift::detail::is_power_of_2(std::ptrdiff_t(Alignment)));
-
 public:
-    using std::allocator<T>::allocator;
+    using value_type = T;
 
-    template <typename U>
-        struct rebind
+    constexpr aligned_default_allocator(void) noexcept
     {
-        using other = aligned_allocator<U, Alignment, typename std::allocator_traits<std::allocator<T>>::template rebind_alloc<U>>;
-    };
+    }
+    template <typename U>
+        constexpr aligned_default_allocator(aligned_default_allocator<U, Alignment> const&) noexcept
+    {
+    }
 
     MAKESHIFT_NODISCARD T* allocate(std::size_t n)
     {
-            // When adapting the default allocator, make use of `operator new()` with alignment support.
-        std::size_t size = n * sizeof(T);
-        if (size / sizeof(T) != n) throw std::bad_alloc{ }; // overflow
-        return static_cast<T*>(::operator new(size, std::align_val_t(makeshift::detail::alignment_in_bytes(Alignment, alignof(T)))));
+        std::size_t alignment = makeshift::detail::alignment_in_bytes(Alignment | alignment(alignof(T)));
+        if (n >= std::numeric_limits<std::size_t>::max() / sizeof(T)) throw std::bad_alloc{ }; // overflow
+        std::size_t nbData = n * sizeof(T);
+        return static_cast<T*>(makeshift::detail::aligned_alloc(nbData, alignment));
     }
-    void deallocate(T* ptr, std::size_t /*n*/) noexcept
+    void deallocate(T* ptr, std::size_t n) noexcept
     {
-        ::operator delete(ptr, std::align_val_t(makeshift::detail::alignment_in_bytes(Alignment, alignof(T))));
+        std::size_t alignment = makeshift::detail::alignment_in_bytes(Alignment | alignment(alignof(T)));
+        std::size_t nbData = n * sizeof(T); // cannot overflow due to preceding check in allocate()
+        makeshift::detail::aligned_free(ptr, nbData, alignment);
     }
 };
-template <typename T, alignment Alignment>
-    class aligned_allocator<T, Alignment, default_init_allocator<T, std::allocator<T>>> : public default_init_allocator<T, aligned_allocator<T, Alignment, std::allocator<T>>>
+
+template <typename T, typename U, alignment Alignment1, alignment Alignment2>
+    MAKESHIFT_NODISCARD bool operator ==(aligned_default_allocator<T, Alignment1> const&, aligned_default_allocator<U, Alignment2> const&) noexcept
 {
-public:
-    using default_init_allocator<T, aligned_allocator<T, Alignment, std::allocator<T>>>::default_init_allocator;
-};
-#endif // MAKESHIFT_CXXLEVEL >= 17
+    return Alignment1 == Alignment2;
+}
+template <typename T, typename U, alignment Alignment1, alignment Alignment2>
+    MAKESHIFT_NODISCARD bool operator !=(aligned_default_allocator<T, Alignment1> const& x, aligned_default_allocator<U, Alignment2> const& y) noexcept
+{
+    return !(x == y);
+}
 
 
     //ᅟ
@@ -204,63 +215,54 @@ public:
     //ᅟ    auto p3 = allocate_unique<float[42]>(MyAllocator<float>{ }); // returns `std::unique_ptr<float[42], allocator_deleter<float[42], MyAllocator<float>>>`
     //
 template <typename T, typename A>
-    class allocator_deleter
+    class allocator_deleter : private A // for EBO
 {
-private:
-    A alloc_;
-
 public:
     allocator_deleter(const A& _alloc)
-        : alloc_(_alloc)
+        : A(_alloc)
     {
     }
     void operator ()(T* ptr)
     {
-        std::allocator_traits<A>::destroy(alloc_, ptr);
-        std::allocator_traits<A>::deallocate(alloc_, ptr, 1);
+        std::allocator_traits<A>::destroy(*this, ptr);
+        std::allocator_traits<A>::deallocate(*this, ptr, 1);
     }
 };
-
 template <typename T, typename A>
-    class allocator_deleter<T[], A>
+    class allocator_deleter<T[], A> : private A // for EBO
 {
 private:
-    A alloc_;
     std::size_t size_;
 
 public:
     allocator_deleter(const A& _alloc, std::size_t _size)
-        : alloc_(_alloc), size_(_size)
+        : A(_alloc), size_(_size)
     {
     }
     void operator ()(T* ptr)
     {
         for (std::ptrdiff_t i = 0, n = std::ptrdiff_t(size_); i != n; ++i)
         {
-            std::allocator_traits<A>::destroy(alloc_, &ptr[i]);
+            std::allocator_traits<A>::destroy(*this, &ptr[i]);
         }
-        std::allocator_traits<A>::deallocate(alloc_, ptr, size_);
+        std::allocator_traits<A>::deallocate(*this, ptr, size_);
     }
 };
-
 template <typename T, std::ptrdiff_t N, typename A>
-    class allocator_deleter<T[N], A>
+    class allocator_deleter<T[N], A> : private A // for EBO
 {
-private:
-    A alloc_;
-
 public:
     allocator_deleter(const A& _alloc)
-        : alloc_(_alloc)
+        : A(_alloc)
     {
     }
     void operator ()(T* ptr)
     {
         for (std::ptrdiff_t i = 0; i != N; ++i)
         {
-            std::allocator_traits<A>::destroy(alloc_, &ptr[i]);
+            std::allocator_traits<A>::destroy(*this, &ptr[i]);
         }
-        std::allocator_traits<A>::deallocate(alloc_, ptr, N);
+        std::allocator_traits<A>::deallocate(*this, ptr, N);
     }
 };
 

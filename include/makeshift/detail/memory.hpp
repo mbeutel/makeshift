@@ -92,8 +92,14 @@ template <typename T, typename A, typename SizeC>
 }
 
 
-MAKESHIFT_PUBLIC std::size_t alignment_in_bytes(alignment a, std::size_t alignOfT) noexcept;
-MAKESHIFT_PUBLIC std::size_t alignment_in_elements(alignment a, std::size_t sizeOfT, std::size_t alignOfT) noexcept;
+MAKESHIFT_PUBLIC void* aligned_alloc(std::size_t size, std::size_t alignment);
+MAKESHIFT_PUBLIC void aligned_free(void* data, std::size_t size, std::size_t alignment) noexcept;
+
+//#ifdef __linux__
+//MAKESHIFT_PUBLIC void advise_large_pages(void* addr, std::size_t size);
+//#endif // __linux__
+
+MAKESHIFT_PUBLIC std::size_t alignment_in_bytes(alignment a) noexcept;
 
 template <typename T>
     constexpr bool is_alignment_power_of_2(T value) noexcept
