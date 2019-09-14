@@ -173,6 +173,12 @@ template <typename T, alignment Alignment>
 public:
     using value_type = T;
 
+    template <typename U>
+        struct rebind
+    {
+        using other = aligned_default_allocator<U, Alignment>;
+    };
+
     constexpr aligned_default_allocator(void) noexcept
     {
     }
