@@ -19,8 +19,10 @@
  #define MAKESHIFT_CXX  20
 #elif MAKESHIFT_CPLUSPLUS >= 201703L
  #define MAKESHIFT_CXX  17
-#else
+#elif MAKESHIFT_CPLUSPLUS >= 201402L
  #define MAKESHIFT_CXX  14
+#else
+ #error makeshift requires compiler support for C++14 or newer.
 #endif
 
 
