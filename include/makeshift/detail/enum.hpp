@@ -73,9 +73,7 @@ template <typename T>
 template <typename TypeEnumT, typename... Ts>
     struct define_type_enum_base : makeshift::detail::type_enum_base
 {
-        // TODO: it may be desirable to relax this requirement for reasons of generality
-    static_assert(sizeof...(Ts) > 0, "type enumeration must contain at least one type");
-    static_assert(sizeof...(Ts) < 24, "type enumeration may not contain more than 23 types");
+    static_assert(sizeof...(Ts) < 24, "type enumeration may not contain more than 24 types");
 
 private:
     static constexpr std::int32_t n = sizeof...(Ts);
@@ -123,6 +121,29 @@ public:
     friend constexpr bool operator ==(define_type_enum_base lhs, define_type_enum_base rhs) noexcept
     {
         return lhs.value_ == rhs.value_;
+    }
+    friend constexpr bool operator !=(define_type_enum_base lhs, define_type_enum_base rhs) noexcept
+    {
+        return !(lhs == rhs);
+    }
+};
+template <typename TypeEnumT>
+    struct define_type_enum_base<TypeEnumT> : makeshift::detail::type_enum_base
+{
+public:
+    using underlying_type = void;
+
+    using types = type_sequence<>;
+    static constexpr std::size_t size = 0;
+
+    constexpr define_type_enum_base(const define_type_enum_base&) = default;
+    constexpr define_type_enum_base& operator =(const define_type_enum_base&) = default;
+
+    explicit operator bool(void) const = delete;
+
+    friend constexpr bool operator ==(define_type_enum_base, define_type_enum_base) noexcept
+    {
+        return true;
     }
     friend constexpr bool operator !=(define_type_enum_base lhs, define_type_enum_base rhs) noexcept
     {
