@@ -82,7 +82,7 @@ template <typename F>
 
 
     //ᅟ
-    // Similar to `std::hash<>` but permits omitting the type argument and supports conditional specialization with `enable_if<>`.
+    // Similar to `std::hash<>` but permits omitting the type argument and supports conditional specialization with `enable_if_t<>` or `void_t<>`.
     //
 template <typename KeyT = void, typename = void>
     struct hash : std::hash<KeyT> // TODO: do we still need/want this?

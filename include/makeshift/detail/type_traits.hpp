@@ -60,6 +60,7 @@ template<typename... Ts> struct make_void { using type = void; };
 template<typename... Ts> using void_t = typename make_void<Ts...>::type;
 template <template <typename...> class Z, typename... Ts> struct can_instantiate_<Z, void_t<Z<Ts...>>, Ts...> : std::true_type { };
 #else // MAKESHIFT_CXX < 17
+template<typename... Ts> using void_t = std::void_t<Ts...>;
 template <template <typename...> class Z, typename... Ts> struct can_instantiate_<Z, std::void_t<Z<Ts...>>, Ts...> : std::true_type { };
 #endif // MAKESHIFT_CXX < 17
 

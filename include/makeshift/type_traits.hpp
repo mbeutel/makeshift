@@ -13,8 +13,6 @@ namespace makeshift
 {
 
 
-
-
     //ᅟ
     // Represents an integral constval.
     //
@@ -124,6 +122,12 @@ template <typename T, typename... Ts> struct index_of_type : std::integral_const
     // Determines the index of the type `T` in the variadic type sequence.
     //
 template <typename T, typename... Ts> constexpr std::size_t index_of_type_v = index_of_type<T, Ts...>::value;
+
+    //ᅟ
+    // SFINAE helper for template specializations.
+    //
+template <typename... Ts> using void_t = makeshift::detail::void_t<Ts...>;
+
     //ᅟ
     // Determines whether the template instantiation `Z<Ts...>` would be valid.
     //

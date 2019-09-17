@@ -89,7 +89,11 @@ template <typename TypeEnumT, typename... Ts>
     using base = define_type_enum;
 };
 
-template <typename TypeEnumT> struct underlying_type<TypeEnumT, void_t<std::enable_if_t<std::is_base_of<makeshift::detail::type_enum_base, TypeEnumT>::value>>> { using type = typename TypeEnumT::underlying_type; };
+template <typename TypeEnumT>
+    struct underlying_type<TypeEnumT, std::enable_if_t<std::is_base_of<makeshift::detail::type_enum_base, TypeEnumT>::value>>
+{
+    using type = typename TypeEnumT::underlying_type;
+};
 
 
     //ᅟ
