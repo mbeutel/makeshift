@@ -151,6 +151,23 @@ public:
     }
 };
 
+template <typename TypeEnumT, typename TypesT>
+    struct type_enum_default_values;
+template <typename TypeEnumT, typename... Ts>
+    struct type_enum_default_values<TypeEnumT, type_sequence<Ts...>>
+{
+    constexpr std::array<TypeEnumT, sizeof...(Ts)> operator ()(void) const
+    {
+        return { type_c<Ts>... };
+    }
+};
+
+template <typename TypeEnumT>
+    struct default_values<TypeEnumT, std::enable_if_t<std::is_base_of<makeshift::detail::type_enum_base, TypeEnumT>::value>>
+        : type_enum_default_values<TypeEnumT, typename TypeEnumT::types>
+{
+};
+
 template <typename TypeEnumT, typename... Ts, typename T>
     constexpr std::enable_if_t<try_index_of_type_v<T, Ts...> != -1, bool>
     operator ==(define_type_enum_base<TypeEnumT, Ts...> lhs, type<T>) noexcept
