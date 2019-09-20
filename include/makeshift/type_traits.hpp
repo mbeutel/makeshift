@@ -124,7 +124,8 @@ template <typename T, typename... Ts> struct index_of_type : std::integral_const
 template <typename T, typename... Ts> constexpr std::size_t index_of_type_v = index_of_type<T, Ts...>::value;
 
     //ᅟ
-    // SFINAE helper for template specializations.
+    // Helper alias for SFINAE in specializations.
+    // Equivalent to `std::void_t<>` in C++17.
     //
 template <typename... Ts> using void_t = makeshift::detail::void_t<Ts...>;
 
@@ -174,18 +175,10 @@ template <typename T> constexpr bool is_bitmask_type_v = is_bitmask_type<T>::val
 
 
     //ᅟ
-    // Helper alias for SFINAE in specializations.
-    // Equivalent to `std::void_t<>` in C++17.
-    //
-template <typename...> using void_t = void;
-
-
-    //ᅟ
     // Determines the underlying type of the given enum type.
     // This trait is like `std::underlying_type<>` but permits specialization with SFINAE. It also supports type enums.
     //
 template <typename T, typename = void> struct underlying_type : std::underlying_type<T> { };
-
 
     //ᅟ
     // Determines the underlying type of the given enum type.
