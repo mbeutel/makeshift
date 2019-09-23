@@ -231,6 +231,24 @@ template <typename F, typename... Vs>
 #endif // MAKESHIFT_INTELLISENSE
 }
 
+    //ᅟ
+    // Similar to `variant_transform()`, but unwraps variants of variants.
+    // Suppresses any template instantiations for intellisense parsers to improve responsivity.
+    //
+template <typename F, typename... Vs>
+    MAKESHIFT_NODISCARD constexpr decltype(auto)
+    variant_transform_many(F&& func, Vs&&... args)
+{
+    // Currently we merge identical results, i.e. if two functor invocations both return the same type, the type appears only once in the result variant.
+    // Although `std::variant<>` is explicitly designed to permit multiple alternatives of identical type, it seems reasonable to merge identically typed alternatives here because identically typed alternatives
+    // cannot be distinguished by the visitor functor anyway, and because the choice of identically typed alternatives depends on the strides of the specialization table built by `visit()` (which is an implementation
+    // detail) and hence cannot be reliably predicted by the caller.
+
+#ifndef MAKESHIFT_INTELLISENSE
+    return makeshift::detail::variant_transform_impl_0(std::forward<F>(func), makeshift::detail::maybe_expand(std::forward<Vs>(args))...);
+#endif // MAKESHIFT_INTELLISENSE
+}
+
 
 } // namespace makeshift
 
