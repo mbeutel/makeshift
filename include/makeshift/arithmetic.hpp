@@ -254,6 +254,46 @@ template <typename A, typename B>
 
 
     //ᅟ
+    // Computes a ∙ b.
+    // Uses `Expects()` to raise error upon overflow.
+    //
+template <typename V>
+    MAKESHIFT_NODISCARD constexpr makeshift::detail::integral_value_type<V>
+    square(V v)
+{
+    static_assert(makeshift::detail::are_integral_arithmetic_types_v<V>, "arguments must be convertible to an integral type");
+
+    return multiply(v, v);
+}
+
+    //ᅟ
+    // Computes a ∙ b.
+    // Returns error code `std::errc::value_too_large` upon overflow.
+    //
+template <typename V>
+    MAKESHIFT_NODISCARD constexpr arithmetic_result<makeshift::detail::integral_value_type<V>>
+    try_square(V v)
+{
+    static_assert(makeshift::detail::are_integral_arithmetic_types_v<V>, "argument must be convertible to an integral type");
+
+    return try_multiply(v, v);
+}
+
+    //ᅟ
+    // Computes a ∙ b.
+    // Throws `std::system_error` upon overflow.
+    //
+template <typename V>
+    MAKESHIFT_NODISCARD constexpr makeshift::detail::integral_value_type<V>
+    square_or_throw(V v)
+{
+    static_assert(makeshift::detail::are_integral_arithmetic_types_v<V>, "argument must be convertible to an integral type");
+
+    return multiply_or_throw(v, v);
+}
+
+
+    //ᅟ
     // Computes n ÷ d for d ≠ 0.
     // Enforces preconditions with `Expects()`. Uses `Expects()` to raise error upon overflow.
     //
