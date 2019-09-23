@@ -25,11 +25,11 @@ template <typename T, T... Vs>
 {
     using type = std::variant<typename constant_<T, Vs>::type...>; // workaround for VC++ bug, cf. https://developercommunity.visualstudio.com/content/problem/719235/erroneous-c2971-caused-by-using-variadic-by-ref-no.html
     static constexpr type values[] = {
-        type(typename constant_<T, Vs>::type)...
+        type(typename constant_<T, Vs>::type{ })...
     };
 };
 template <typename T, T... Vs>
-    constexpr constval_variant_map<array_constant<T, Vs...>>::type constval_variant_map<array_constant<T, Vs...>>::values[];
+    constexpr typename constval_variant_map<array_constant<T, Vs...>>::type constval_variant_map<array_constant<T, Vs...>>::values[];
 
 template <typename T> using can_order_r = decltype(std::declval<T>() < std::declval<T>());
 template <typename T> struct can_order : can_instantiate<can_order_r, T> { };

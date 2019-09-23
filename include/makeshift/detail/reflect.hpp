@@ -59,11 +59,11 @@ constexpr inline std::array<std::nullptr_t, 1> reflect_values(type<std::nullptr_
     return { nullptr };
 }*/
 
-template <typename T> using values_provider_r = decltype(values_provider<T>{ }());
+template <typename T> using values_provider_r = decltype(values_provider<T, void>{ }());
 template <typename T> using reflect_values_r = decltype(makeshift::detail::reflect_values_check_type<T>(reflect_values(type_c<T>)));
 template <typename T> using default_values_r = decltype(default_values<T>{ }());
 template <typename T> using have_values_provider = can_instantiate<makeshift::detail::values_provider_r, T>;
-template <typename T> using have_reflect_values = can_instantiate<makeshift::detail::values_of_r, T>;
+template <typename T> using have_reflect_values = can_instantiate<makeshift::detail::reflect_values_r, T>;
 template <typename T> using have_default_values = can_instantiate<makeshift::detail::default_values_r, T>;
 
 template <bool HaveReflectValues, typename T> struct values_of_1_;
@@ -75,7 +75,7 @@ template <typename T>
         return reflect_values(type_c<T>);
     }
 };
-template <typename T> struct values_of_1_<false, T> : values_provider<T> { };
+template <typename T> struct values_of_1_<false, T> : values_provider<T, void> { };
 template <bool HaveDefaultValues, typename T> struct values_of_0_;
 template <typename T> struct values_of_0_<true, T> : default_values<T> { };
 template <typename T> struct values_of_0_<false, T> : values_of_1_<have_reflect_values<T>::value, T> { };
