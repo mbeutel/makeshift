@@ -102,7 +102,7 @@ template <typename RepT, typename T, typename ValuesC>
     constexpr auto const& values = valuesC.value;
     constexpr auto r0 = static_cast<RepT>(values[0]);
     auto r = static_cast<RepT>(value);
-    if (r < r0 || r - r0 >= values.size()) return -1;
+    if (r < r0 || std::size_t(r - r0) >= values.size()) return -1;
     return r - r0;
 }
 template <typename RepT, typename T, typename ValuesC>
