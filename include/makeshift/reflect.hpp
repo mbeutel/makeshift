@@ -13,16 +13,37 @@ namespace makeshift
 {
 
 
+    //ᅟ
+    // Specialize `values_provider<>` with `enable_if_t<>` or `void_t<>` to support retrieving values for all types matching a condition.
+    //ᅟ
+    //ᅟ    struct TagBase { };
+    //ᅟ    template <typename T> struct values_provider<T, std::enable_if_t<std::is_base_of_v<TagBase, T>>> {
+    //ᅟ        constexpr auto operator ()(void) const {
+    //ᅟ            return std::array{ T{ } }; // all tags are stateless and have only one possible value
+    //ᅟ        };
+    //ᅟ    };
+    //
 template <typename T, typename = void> struct values_provider { };
 
-template <typename T> struct have_values_of : disjunction<makeshift::detail::have_default_values<T>, makeshift::detail::have_reflect_values<T>, makeshift::detail::have_values_provider<T>> { };
+    //ᅟ
+    // Determines if an `std::array<>` of possible values of type `T` can be retrieved with `values_of<>`.
+    //
+template <typename T> struct have_values_of : can_instantiate<makeshift::detail::values_of_r, T> { };
+
+    //ᅟ
+    // Determines if an `std::array<>` of possible values of type `T` can be retrieved with `values_of<>`.
+    //
 template <typename T> constexpr bool have_values_of_v = have_values_of<T>::value;
 
-template <typename T> using values_of_t = decltype(makeshift::detail::values_of_<T>{ }());
-
-template <typename T> constexpr values_of_t<T> values_of = makeshift::detail::values_of_<T>{ }();
-
-template <typename T> constexpr make_constval_t<makeshift::detail::values_of_<T>> values_of_c{ };
+    //ᅟ
+    // Retrieves an `std::array<>` of possible values of type `T`.
+    //ᅟ
+    // User-defined types can provide a list of admissible values by defining a `reflect_values()` function in the same namespace:
+    //ᅟ
+    //ᅟ    enum Color { red, green, blue };
+    //ᅟ    constexpr inline auto reflect_values(type<Color>) { return std::array{ red, green, blue }; }
+    //
+template <typename T> constexpr makeshift::detail::values_of_r<T> values_of = makeshift::detail::values_of_<T>{ }();
 
 
 } // namespace makeshift

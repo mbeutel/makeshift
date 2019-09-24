@@ -30,8 +30,8 @@ add_executable(test-makeshift-cxx14
     "test-tuple.cpp"
     "test-type_traits.cpp"
     "test-utility.cpp"
-    "test-variant.cpp")
     #"test-variant2.cpp")
+    "test-utility.cpp")
 add_executable(test-makeshift-cxx17
     "main.cpp"
     "test-constval.cpp"

@@ -35,7 +35,7 @@ template <typename C> using make_constval_t = makeshift::detail::make_constval<C
     //ᅟ
     //ᅟ    auto params = make_constval([]
     //ᅟ    {
-    //ᅟ        return PerformanceParams{ 2 };
+    //ᅟ        return PerformanceParams{ .loopUnrollSize = 2 };
     //ᅟ    });
     //ᅟ    // returns constval representing value `PerformanceParams{ 2 }`
     //
@@ -54,9 +54,9 @@ template <typename C>
     //ᅟ
     //ᅟ    struct PerformanceParams { int loopUnrollSize; };
     //ᅟ
-    //ᅟ    constexpr auto& params = make_constref([]
+    //ᅟ    constexpr auto const& params = make_constref([]
     //ᅟ    {
-    //ᅟ        return PerformanceParams{ 2 };
+    //ᅟ        return PerformanceParams{ .loopUnrollSize = 2 };
     //ᅟ    });
     //ᅟ    // returns `PerformanceParams const&` referring to constexpr object with value `PerformanceParams{ 2 }`
     //

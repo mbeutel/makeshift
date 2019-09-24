@@ -5,14 +5,17 @@
 
 #include <makeshift/macros.hpp> // for MAKESHIFT_CXX, MAKESHIFT_NODISCARD, MAKESHIFT_INTELLISENSE
 
+#if MAKESHIFT_CXX < 17
+ #error Header <makeshift/variant.hpp> requires C++17 mode or higher.
+#endif // MAKESHIFT_CXX < 17
 
-#if MAKESHIFT_CXX >= 17
- #include <variant>
- #include <optional>
+#include <variant>
+#include <optional>
 
- #include <makeshift/reflect.hpp> // for have_values_of<>, values_of<>
+#include <makeshift/constval.hpp> // for ref_constval<>
+#include <makeshift/reflect.hpp>  // for have_values_of<>, values_of<>
 
- #include <makeshift/detail/variant.hpp>
+#include <makeshift/detail/variant.hpp>
 
 
 namespace makeshift
@@ -74,7 +77,7 @@ template <typename T>
     expand(T const& value)
 {
     static_assert(have_values_of_v<T>, "expand() cannot find admissible values");
-    return makeshift::expand(value, values_of_c<T>);
+    return makeshift::expand(value, makeshift::make_constval(makeshift::detail::values_of_<T>{ }));
 }
 
     //ᅟ
@@ -124,7 +127,7 @@ template <typename T>
     try_expand(T const& value)
 {
     static_assert(have_values_of_v<T>, "try_expand() cannot find admissible values");
-    return makeshift::try_expand(value, values_of_c<T>);
+    return makeshift::try_expand(value, makeshift::make_constval(makeshift::detail::values_of_<T>{ }));
 }
 
     //ᅟ
@@ -172,7 +175,7 @@ template <typename T>
     expand_or_throw(T const& value)
 {
     static_assert(have_values_of_v<T>, "expand_or_throw() cannot find admissible values");
-    return makeshift::expand_or_throw(value, values_of_c<T>);
+    return makeshift::expand_or_throw(value, makeshift::make_constval(makeshift::detail::values_of_<T>{ }));
 }
 
 
@@ -286,8 +289,6 @@ template <typename F, typename... Vs>
 
 
 } // namespace makeshift
-
-#endif // MAKESHIFT_CXX >= 17
 
 
 #endif // INCLUDED_MAKESHIFT_VARIANT_HPP_

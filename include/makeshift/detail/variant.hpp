@@ -166,14 +166,6 @@ template <std::size_t I, typename SeqT> using nth_variant_type = typename nth_va
 
 template <typename SeqT> struct seq_size_;
 template <template <typename...> class SeqT, typename... Ts> struct seq_size_<SeqT<Ts...>> : std::integral_constant<std::ptrdiff_t, sizeof...(Ts)> { };
-//
-//template <typename SeqT> struct element_refs_;
-//template <template <typename...> class SeqT, typename... Ts> struct element_refs_<SeqT<Ts...>> { using type = type_seq_<Ts...>; };
-//template <template <typename...> class SeqT, typename... Ts> struct element_refs_<SeqT<Ts...>&> { using type = type_seq_<Ts&...>; };
-//template <template <typename...> class SeqT, typename... Ts> struct element_refs_<SeqT<Ts...> const&> { using type = type_seq_<Ts const&...>; };
-//template <template <typename...> class SeqT, typename... Ts> struct element_refs_<SeqT<Ts...>&&> { using type = type_seq_<Ts&&...>; };
-//template <template <typename...> class SeqT, typename... Ts> struct element_refs_<SeqT<Ts...> const&&> { using type = type_seq_<Ts const&&...>; };
-//template <typename SeqT> using element_refs_t = typename element_refs_<SeqT>::type;
 
     // Using a signed type here means we get a compile error on overflow.
 template <std::ptrdiff_t CurStride, typename StridesT, typename ShapeT> struct compute_strides_0_;
