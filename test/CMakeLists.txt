@@ -26,17 +26,15 @@ add_executable(test-makeshift-cxx14
     "test-new.cpp"
     "test-range.cpp"
     "test-reflect.cpp"
-    #"test-reflect2.cpp"
     "test-tuple.cpp"
     "test-type_traits.cpp"
-    "test-utility.cpp"
-    #"test-variant2.cpp")
     "test-utility.cpp")
 add_executable(test-makeshift-cxx17
     "main.cpp"
     "test-constval.cpp"
     "test-string.cpp"
     "test-variant.cpp")
+    #"test-variant2.cpp")
 
 # compiler settings
 include(CMakeshift/TargetCompileSettings)
