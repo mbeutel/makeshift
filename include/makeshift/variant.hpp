@@ -227,25 +227,60 @@ template <typename F, typename... Vs>
     // detail) and hence cannot be reliably predicted by the caller.
 
 #ifndef MAKESHIFT_INTELLISENSE
-    return makeshift::detail::variant_transform_impl_0(std::forward<F>(func), makeshift::detail::maybe_expand(std::forward<Vs>(args))...);
+    using R = makeshift::detail::variant_transform_result<std::variant, F, Vs...>;
+ #if MAKESHIFT_CXX >= 20
+    return std::visit<R>(std::forward<F>(func), std::forward<Vs>(args)...);
+ #else // MAKESHIFT_CXX >= 20
+    return std::visit(
+        [func = std::forward<F>(func)]
+        (auto&&... args) -> R
+        {
+            return func(std::forward<decltype(args)>(args)...);
+        },
+        std::forward<Vs>(args)...);
+ #endif // MAKESHIFT_CXX >= 20
 #endif // MAKESHIFT_INTELLISENSE
 }
 
     //ᅟ
-    // Similar to `variant_transform()`, but unwraps variants of variants.
+    // Similar to `std::visit()`, but permits the functor to map different argument types to different variants and returns an unwrapped variant of the possible results.
+    // `variant_transform_many()` merges identical result types, i.e. every distinct result type appears only once in the resulting variant type.
     // Suppresses any template instantiations for intellisense parsers to improve responsivity.
     //
 template <typename F, typename... Vs>
     MAKESHIFT_NODISCARD constexpr decltype(auto)
     variant_transform_many(F&& func, Vs&&... args)
 {
-    // Currently we merge identical results, i.e. if two functor invocations both return the same type, the type appears only once in the result variant.
-    // Although `std::variant<>` is explicitly designed to permit multiple alternatives of identical type, it seems reasonable to merge identically typed alternatives here because identically typed alternatives
-    // cannot be distinguished by the visitor functor anyway, and because the choice of identically typed alternatives depends on the strides of the specialization table built by `visit()` (which is an implementation
-    // detail) and hence cannot be reliably predicted by the caller.
 
 #ifndef MAKESHIFT_INTELLISENSE
-    return makeshift::detail::variant_transform_impl_0(std::forward<F>(func), makeshift::detail::maybe_expand(std::forward<Vs>(args))...);
+    using R = makeshift::detail::variant_transform_many_result<std::variant, F, Vs...>;
+ #if MAKESHIFT_CXX >= 20
+    return std::visit<R>(
+        [func = std::forward<F>(func)]
+        (auto&&... args) -> R
+        {
+            return std::visit<R>(
+                [](auto&& result) -> R
+                {
+                    return std::forward<decltype(result)>(result);
+                },
+                func(std::forward<decltype(args)>(args)...));
+        },
+        std::forward<Vs>(args)...);
+ #else // MAKESHIFT_CXX >= 20
+    return std::visit(
+        [func = std::forward<F>(func)]
+        (auto&&... args) -> R
+        {
+            return std::visit(
+                [](auto&& result) -> R
+                {
+                    return std::forward<decltype(result)>(result);
+                },
+                func(std::forward<decltype(args)>(args)...));
+        },
+        std::forward<Vs>(args)...);
+ #endif // MAKESHIFT_CXX >= 20
 #endif // MAKESHIFT_INTELLISENSE
 }
 

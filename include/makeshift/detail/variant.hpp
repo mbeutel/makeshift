@@ -149,6 +149,103 @@ template <typename T, typename ValuesC>
     return search_value_index_0<typename has_integral_rep_<T>::rep>(has_integral_rep_<T>{ }, value, valuesC);
 }
 
+template <typename... Ts> struct type_seq_;
+template <std::size_t I, typename SeqT> struct nth_variant_type_;
+template <std::size_t I, template <typename...> class SeqT, typename... Ts> struct nth_variant_type_<I, SeqT<Ts...>> { using type = typename nth_type_<I, Ts...>::type; };
+template <std::size_t I, template <typename...> class SeqT, typename... Ts> struct nth_variant_type_<I, SeqT<Ts...>&> { using type = typename nth_type_<I, Ts...>::type&; };
+template <std::size_t I, template <typename...> class SeqT, typename... Ts> struct nth_variant_type_<I, SeqT<Ts...> const&> { using type = typename nth_type_<I, Ts...>::type const&; };
+template <std::size_t I, template <typename...> class SeqT, typename... Ts> struct nth_variant_type_<I, SeqT<Ts...>&&> { using type = typename nth_type_<I, Ts...>::type&&; };
+template <std::size_t I, template <typename...> class SeqT, typename... Ts> struct nth_variant_type_<I, SeqT<Ts...> const&&> { using type = typename nth_type_<I, Ts...>::type const&&; };
+template <std::size_t I, typename SeqT> using nth_variant_type = typename nth_variant_type_<I, SeqT>::type;
+
+template <typename SeqT> struct seq_size_;
+template <template <typename...> class SeqT, typename... Ts> struct seq_size_<SeqT<Ts...>> : std::integral_constant<std::ptrdiff_t, sizeof...(Ts)> { };
+//
+//template <typename SeqT> struct element_refs_;
+//template <template <typename...> class SeqT, typename... Ts> struct element_refs_<SeqT<Ts...>> { using type = type_seq_<Ts...>; };
+//template <template <typename...> class SeqT, typename... Ts> struct element_refs_<SeqT<Ts...>&> { using type = type_seq_<Ts&...>; };
+//template <template <typename...> class SeqT, typename... Ts> struct element_refs_<SeqT<Ts...> const&> { using type = type_seq_<Ts const&...>; };
+//template <template <typename...> class SeqT, typename... Ts> struct element_refs_<SeqT<Ts...>&&> { using type = type_seq_<Ts&&...>; };
+//template <template <typename...> class SeqT, typename... Ts> struct element_refs_<SeqT<Ts...> const&&> { using type = type_seq_<Ts const&&...>; };
+//template <typename SeqT> using element_refs_t = typename element_refs_<SeqT>::type;
+
+    // Using a signed type here means we get a compile error on overflow.
+template <std::ptrdiff_t CurStride, typename StridesT, typename ShapeT> struct compute_strides_0_;
+template <std::ptrdiff_t CurStride, std::ptrdiff_t... Strides> struct compute_strides_0_<CurStride, std::integer_sequence<std::ptrdiff_t, Strides...>, std::integer_sequence<std::ptrdiff_t>> { using type = std::integer_sequence<std::ptrdiff_t, Strides...>; };
+template <std::ptrdiff_t CurStride, std::ptrdiff_t... Strides, std::ptrdiff_t NextDim, std::ptrdiff_t... Dims> struct compute_strides_0_<CurStride, std::integer_sequence<std::ptrdiff_t, Strides...>, std::integer_sequence<std::ptrdiff_t, NextDim, Dims...>>
+    : compute_strides_0_<CurStride * NextDim, std::integer_sequence<std::ptrdiff_t, Strides..., CurStride>, std::integer_sequence<std::ptrdiff_t, Dims...>> { };
+template <typename ShapeT> using compute_strides_ = compute_strides_0_<1, std::integer_sequence<std::ptrdiff_t>, ShapeT>;
+template <typename ShapeT> using compute_strides_t = typename compute_strides_<ShapeT>::type;
+
+template <typename ShapeT> struct compute_size_;
+//#if MAKESHIFT_CXX >= 17
+//template <std::ptrdiff_t... Is> struct compute_size_<std::integer_sequence<std::ptrdiff_t, Is...>> : std::integral_constant<std::ptrdiff_t, Is * ... * 1> { };
+//#else // MAKESHIFT_CXX >= 17
+template <> struct compute_size_<std::integer_sequence<std::ptrdiff_t>> : std::integral_constant<std::ptrdiff_t, 1> { };
+template <std::ptrdiff_t I0, std::ptrdiff_t... Is> struct compute_size_<std::integer_sequence<std::ptrdiff_t, I0, Is...>> : std::integral_constant<std::ptrdiff_t, I0 * compute_size_<std::integer_sequence<std::ptrdiff_t, Is...>>::value> { };
+//#endif // MAKESHIFT_CXX >= 17
+
+template <typename ShapeT, typename StridesT, typename F, typename... ArgSeqsT>
+    struct variant_transform_result_1_;
+template <std::ptrdiff_t... Dims, std::ptrdiff_t... Strides, typename F, typename... ArgSeqsT>
+    struct variant_transform_result_1_<std::integer_sequence<std::ptrdiff_t, Dims...>, std::integer_sequence<std::ptrdiff_t, Strides...>, F, ArgSeqsT...>
+{
+    template <std::size_t I>
+        struct for_idx
+    {
+        using type = decltype(std::declval<F>()(std::declval<nth_variant_type<(I / std::size_t(Strides)) % std::size_t(Dims), ArgSeqsT>>()...));
+    };
+};
+
+template <typename LinearIndices, typename ShapeT, typename StridesT, typename F, typename... ArgSeqsT>
+    struct variant_transform_results_0_;
+template <std::size_t... Is, typename ShapeT, typename StridesT, typename F, typename... ArgSeqsT>
+    struct variant_transform_results_0_<std::index_sequence<Is...>, ShapeT, StridesT, F, ArgSeqsT...>
+{
+    using V1 = variant_transform_result_1_<ShapeT, StridesT, F, ArgSeqsT...>;
+    using type = type_seq_<typename V1::template for_idx<Is>::type...>;
+};
+
+template <template <typename...> class VariantT, typename F, typename... Vs>
+    struct variant_transform_result_
+{
+    using shape_ = std::integer_sequence<std::ptrdiff_t, seq_size_<std::remove_const_t<std::remove_reference_t<Vs>>>::value...>;
+    using strides_ = compute_strides_t<shape_>;
+    static constexpr std::size_t numOptions_ = std::size_t(compute_size_<shape_>::value);
+    using result_seq_ = typename variant_transform_results_0_<std::make_index_sequence<numOptions_>, shape_, strides_, F, Vs...>::type;
+    using unique_result_seq_ = typename unique_sequence_<result_seq_>::type;
+    using type = typename instantiate_<VariantT, unique_result_seq_>::type;
+};
+template <template <typename...> class VariantT, typename F, typename... Vs>
+    using variant_transform_result = typename variant_transform_result_<VariantT, F, Vs...>::type;
+
+template <template <typename...> class VariantT, typename Rs, typename Vs>
+    struct flatten_variant_;
+template <template <typename...> class VariantT, typename Rs>
+    struct flatten_variant_<VariantT, Rs, type_seq_<>>
+{
+    using type = Rs;
+};
+template <template <typename...> class VariantT, typename... Rs, typename... V0Ts, typename... Vs>
+    struct flatten_variant_<VariantT, type_seq_<Rs...>, type_seq_<VariantT<V0Ts...>, Vs...>>
+        : flatten_variant_<VariantT, type_seq_<Rs..., V0Ts...>, type_seq_<Vs...>>
+{
+};
+
+template <template <typename...> class VariantT, typename F, typename... Vs>
+    struct variant_transform_many_result_
+{
+    using shape_ = std::integer_sequence<std::ptrdiff_t, seq_size_<std::remove_const_t<std::remove_reference_t<Vs>>>::value...>;
+    using strides_ = compute_strides_t<shape_>;
+    static constexpr std::size_t numOptions_ = std::size_t(compute_size_<shape_>::value);
+    using result_seq_ = typename variant_transform_results_0_<std::make_index_sequence<numOptions_>, shape_, strides_, F, Vs...>::type;
+    using flat_result_seq_ = typename flatten_variant_<VariantT, type_seq_<>, result_seq_>::type;
+    using unique_result_seq_ = typename unique_sequence_<flat_result_seq_>::type;
+    using type = typename instantiate_<VariantT, unique_result_seq_>::type;
+};
+template <template <typename...> class VariantT, typename F, typename... Vs>
+    using variant_transform_many_result = typename variant_transform_many_result_<VariantT, F, Vs...>::type;
+
 
 } // namespace detail
 

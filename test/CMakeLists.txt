@@ -35,7 +35,8 @@ add_executable(test-makeshift-cxx14
 add_executable(test-makeshift-cxx17
     "main.cpp"
     "test-constval.cpp"
-    "test-string.cpp")
+    "test-string.cpp"
+    "test-variant.cpp")
 
 # compiler settings
 include(CMakeshift/TargetCompileSettings)
