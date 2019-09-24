@@ -44,12 +44,12 @@ public:
     //ᅟ        bitsV);
     //
 template <typename T, typename ValuesC>
-    MAKESHIFT_NODISCARD constexpr typename makeshift::detail::constval_variant_map<ValuesC>::type
+    MAKESHIFT_NODISCARD constexpr typename makeshift::detail::constval_variant_map<std::variant, ValuesC>::type
     expand(T const& value, ValuesC valuesC)
 {
     std::ptrdiff_t index = makeshift::detail::search_value_index(value, valuesC);
     Expects(index >= 0);
-    return makeshift::detail::constval_variant_map<ValuesC>::values[index];
+    return makeshift::detail::constval_variant_map<std::variant, ValuesC>::values[index];
 }
 
     //ᅟ
@@ -93,12 +93,12 @@ template <typename T>
     //ᅟ        bitsVO.value());
     //
 template <typename T, typename ValuesC>
-    MAKESHIFT_NODISCARD constexpr std::optional<typename makeshift::detail::constval_variant_map<ValuesC>::type>
+    MAKESHIFT_NODISCARD constexpr std::optional<typename makeshift::detail::constval_variant_map<std::variant, ValuesC>::type>
     try_expand(T const& value, ValuesC valuesC)
 {
     std::ptrdiff_t index = makeshift::detail::search_value_index(value, valuesC);
     if (index < 0) return std::nullopt;
-    return { makeshift::detail::constval_variant_map<ValuesC>::values[index] };
+    return { makeshift::detail::constval_variant_map<std::variant, ValuesC>::values[index] };
 }
 
     //ᅟ
@@ -142,12 +142,12 @@ template <typename T>
     //ᅟ        bitsV);
     //
 template <typename T, typename ValuesC>
-    MAKESHIFT_NODISCARD constexpr typename makeshift::detail::constval_variant_map<ValuesC>::type
+    MAKESHIFT_NODISCARD constexpr typename makeshift::detail::constval_variant_map<std::variant, ValuesC>::type
     expand_or_throw(T const& value, ValuesC valuesC)
 {
     std::ptrdiff_t index = makeshift::detail::search_value_index(value, valuesC);
     if (index < 0) throw unsupported_runtime_value{ };
-    return makeshift::detail::constval_variant_map<ValuesC>::values[index];
+    return makeshift::detail::constval_variant_map<std::variant, ValuesC>::values[index];
 }
 
     //ᅟ
