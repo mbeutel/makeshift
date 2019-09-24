@@ -129,7 +129,7 @@ template <template <typename...> class Z, typename SeqT> struct instantiate_;
 template <template <typename...> class Z, template <typename...> class SeqT, typename... Ts> struct instantiate_<Z, SeqT<Ts...>> { using type = Z<Ts...>; };
 
 
-template <typename T> struct type_t;
+template <typename T> struct type_t; // TODO: remove when variant2/reflect2 are gone
 
 template <typename T> struct type_set_leaf_ { };
 template <typename T, std::size_t I> struct type_set_indexed_leaf_ : type_set_leaf_<T> { };
