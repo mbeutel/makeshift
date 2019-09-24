@@ -11,7 +11,7 @@ find_package(CMakeshift 3.5 REQUIRED)
 find_package(gsl-lite REQUIRED)
 
 # library target
-add_library(makeshift
+add_library(makeshift STATIC
     "memory.cpp"
     "new.cpp"
     "string.cpp")
