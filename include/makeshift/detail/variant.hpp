@@ -67,14 +67,15 @@ template <typename T, std::size_t N>
         std::ptrdiff_t half = first + (last - first) / 2;
         if (values[half] < value)
         {
-            first = half;
+            first = half + 1;
         }
         else if (value < values[half])
         {
             last = half;
         }
-        else
+        else // value == values[half]
         {
+            if (half + 1 == last) return half;
             last = half + 1;
         }
     }
