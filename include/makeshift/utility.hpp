@@ -43,7 +43,7 @@ template <typename T>
         // This must be a proxy type to work around the problem that a class cannot have a static constexpr member of its own type.
     static constexpr makeshift::detail::type_tag_proxy<T> value{ };
 };
-template <typename T> constexpr makeshift::detail::type_tag_proxy<T> type_tag<T>::value = { };
+template <typename T> constexpr makeshift::detail::type_tag_proxy<T> type_tag<T>::value;
 
     //ᅟ
     // Generic type tag.
