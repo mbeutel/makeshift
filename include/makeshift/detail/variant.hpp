@@ -178,12 +178,12 @@ template <typename ShapeT> using compute_strides_ = compute_strides_0_<1, std::i
 template <typename ShapeT> using compute_strides_t = typename compute_strides_<ShapeT>::type;
 
 template <typename ShapeT> struct compute_size_;
-//#if MAKESHIFT_CXX >= 17
-//template <std::ptrdiff_t... Is> struct compute_size_<std::integer_sequence<std::ptrdiff_t, Is...>> : std::integral_constant<std::ptrdiff_t, Is * ... * 1> { };
-//#else // MAKESHIFT_CXX >= 17
+#if MAKESHIFT_CXX >= 17
+template <std::ptrdiff_t... Is> struct compute_size_<std::integer_sequence<std::ptrdiff_t, Is...>> : std::integral_constant<std::ptrdiff_t, (Is * ... * 1)> { };
+#else // MAKESHIFT_CXX >= 17
 template <> struct compute_size_<std::integer_sequence<std::ptrdiff_t>> : std::integral_constant<std::ptrdiff_t, 1> { };
 template <std::ptrdiff_t I0, std::ptrdiff_t... Is> struct compute_size_<std::integer_sequence<std::ptrdiff_t, I0, Is...>> : std::integral_constant<std::ptrdiff_t, I0 * compute_size_<std::integer_sequence<std::ptrdiff_t, Is...>>::value> { };
-//#endif // MAKESHIFT_CXX >= 17
+#endif // MAKESHIFT_CXX >= 17
 
 template <typename ShapeT, typename StridesT, typename F, typename... ArgSeqsT>
     struct variant_transform_result_1_;
@@ -207,12 +207,18 @@ template <std::size_t... Is, typename ShapeT, typename StridesT, typename F, typ
 };
 
 template <template <typename...> class VariantT, typename F, typename... Vs>
-    struct variant_transform_result_
+    struct variant_transform_result_0_
 {
     using shape_ = std::integer_sequence<std::ptrdiff_t, seq_size_<std::remove_const_t<std::remove_reference_t<Vs>>>::value...>;
     using strides_ = compute_strides_t<shape_>;
     static constexpr std::size_t numOptions_ = std::size_t(compute_size_<shape_>::value);
-    using result_seq_ = typename variant_transform_results_0_<std::make_index_sequence<numOptions_>, shape_, strides_, F, Vs...>::type;
+    using type = typename variant_transform_results_0_<std::make_index_sequence<numOptions_>, shape_, strides_, F, Vs...>::type;
+};
+
+template <template <typename...> class VariantT, typename F, typename... Vs>
+    struct variant_transform_result_
+{
+    using result_seq_ = typename variant_transform_result_0_<VariantT, F, Vs...>::type;
     using unique_result_seq_ = typename unique_sequence_<result_seq_>::type;
     using type = typename instantiate_<VariantT, unique_result_seq_>::type;
 };
@@ -235,10 +241,7 @@ template <template <typename...> class VariantT, typename... Rs, typename... V0T
 template <template <typename...> class VariantT, typename F, typename... Vs>
     struct variant_transform_many_result_
 {
-    using shape_ = std::integer_sequence<std::ptrdiff_t, seq_size_<std::remove_const_t<std::remove_reference_t<Vs>>>::value...>;
-    using strides_ = compute_strides_t<shape_>;
-    static constexpr std::size_t numOptions_ = std::size_t(compute_size_<shape_>::value);
-    using result_seq_ = typename variant_transform_results_0_<std::make_index_sequence<numOptions_>, shape_, strides_, F, Vs...>::type;
+    using result_seq_ = typename variant_transform_result_0_<VariantT, F, Vs...>::type;
     using flat_result_seq_ = typename flatten_variant_<VariantT, type_seq_<>, result_seq_>::type;
     using unique_result_seq_ = typename unique_sequence_<flat_result_seq_>::type;
     using type = typename instantiate_<VariantT, unique_result_seq_>::type;

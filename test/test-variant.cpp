@@ -2,9 +2,22 @@
 #include <makeshift/variant.hpp>
 #include <makeshift/macros.hpp>  // for MAKESHIFT_CXX
 
+#if MAKESHIFT_CXX >= 17
+ #include <variant>
+#endif // MAKESHIFT_CXX >= 17
+
 #include <type_traits> // for is_same<>
 
 #include <catch2/catch.hpp>
+
+
+template <typename A, typename B>
+    struct IsSame
+{
+    static constexpr bool value = std::is_same<A, B>::value;
+    static_assert(value, "static assertion failed");
+};
+
 
 #if MAKESHIFT_CXX >= 17
 
@@ -30,18 +43,11 @@ struct NestedVarTransformer
     V1 operator ()(int i, int) const { return i; }
     V1 operator ()(int i, char const*) const { return i; }
 };
-
-
-template <typename A, typename B>
-    struct IsSame
-{
-    static constexpr bool value = std::is_same<A, B>::value;
-    static_assert(value, "static assertion failed");
-};
-
+#endif // MAKESHIFT_CXX >= 17
 
 TEST_CASE("variant")
 {
+#if MAKESHIFT_CXX >= 17
     using VT12 = std::variant<int, char const*>;
     using VTM12 = std::variant<float, char const*, int>;
 
@@ -49,5 +55,5 @@ TEST_CASE("variant")
     static_assert(IsSame<decltype(vt12), VT12>::value);
     auto vtm12 = mk::variant_transform_many(NestedVarTransformer{ }, V1{ 42 }, V2{ "there" });
     static_assert(IsSame<decltype(vtm12), VTM12>::value);
-}
 #endif // MAKESHIFT_CXX >= 17
+}
