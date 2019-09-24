@@ -248,6 +248,25 @@ template <template <typename...> class VariantT, typename F, typename... Vs>
 template <template <typename...> class VariantT, typename F, typename... Vs>
     using variant_transform_many_result = typename variant_transform_many_result_<VariantT, F, Vs...>::type;
 
+template <template <typename...> class VariantT, typename MonostateT, typename V> struct with_monostate_;
+template <template <typename...> class VariantT, typename MonostateT, typename... Vs> struct with_monostate_<VariantT, MonostateT, VariantT<Vs...>> { using type = VariantT<MonostateT, Vs...>; };
+template <template <typename...> class VariantT, typename MonostateT, typename V> struct without_monostate_;
+template <template <typename...> class VariantT, typename MonostateT, typename... Vs> struct without_monostate_<VariantT, MonostateT, VariantT<MonostateT, Vs...>> { using type = VariantT<Vs...>; };
+
+template <typename MonostateT, typename R>
+    struct monostate_filtering_visitor
+{
+    [[noreturn]] R operator ()(MonostateT) const
+    {
+        std::terminate();
+    }
+    template <typename T>
+        constexpr R operator ()(T&& arg) const
+    {
+        return std::forward<T>(arg);
+    }
+};
+
 
 } // namespace detail
 
