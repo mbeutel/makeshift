@@ -146,7 +146,7 @@ template <typename T, typename ValuesC>
 
 template <bool IsEnum, typename T> struct has_integral_rep_0_;
 template <typename T> struct has_integral_rep_0_<true, T> : std::true_type { using rep = std::underlying_type_t<T>; };
-template <typename T> struct has_integral_rep_0_<false, T> : std::false_type { using rep = T; };
+template <typename T> struct has_integral_rep_0_<false, T> : std::is_integral<T> { using rep = T; };
 template <typename T> struct has_integral_rep_ : has_integral_rep_0_<std::is_enum<T>::value, T> { };
 template <> struct has_integral_rep_<bool> : std::true_type { using rep = int; };
 
