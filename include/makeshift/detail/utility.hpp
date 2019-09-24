@@ -13,6 +13,11 @@
 namespace makeshift
 {
 
+
+template <typename T>
+    struct type_tag;
+
+
 namespace detail
 {
 
@@ -62,6 +67,17 @@ template <typename ContainerT>
     using R = std::common_type_t<std::ptrdiff_t, std::make_signed_t<decltype(c.size())>>;
     return static_cast<R>(c.size());
 }
+
+
+template <typename T>
+    struct type_tag_proxy
+{
+    constexpr operator type_tag<T> const&(void) const noexcept;
+    constexpr type_tag<T> const* operator &(void) const noexcept
+    {
+        return &static_cast<type_tag<T> const&>(*this);
+    }
+};
 
 
 } // namespace detail

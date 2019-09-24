@@ -39,7 +39,11 @@ template <typename T>
     {
         return EnumT(int(makeshift::detail::try_index_of_type_in<T, typename TypeEnumTypeT::type::types>::value));
     }
+
+        // This must be a proxy type to work around the problem that a class cannot have a static constexpr member of its own type.
+    static constexpr makeshift::detail::type_tag_proxy<T> value{ };
 };
+template <typename T> constexpr makeshift::detail::type_tag_proxy<T> type_tag<T>::value = { };
 
     //ᅟ
     // Generic type tag.
@@ -225,6 +229,31 @@ template <typename T, std::ptrdiff_t N>
     return { };
 }
 
+
+} // namespace makeshift
+
+
+namespace makeshift
+{
+
+namespace detail
+{
+
+
+template <typename T>
+    struct type_tag_inst
+{
+    static constexpr type_tag<T> value{ };
+};
+template <typename T> constexpr type_tag<T> type_tag_inst<T>::value;
+template <typename T>
+    constexpr inline type_tag_proxy<T>::operator type_tag<T> const&(void) const noexcept
+{
+    return type_tag_inst<T>::value;
+}
+
+
+} // namespace detail
 
 } // namespace makeshift
 
