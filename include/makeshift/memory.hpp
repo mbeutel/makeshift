@@ -135,7 +135,7 @@ public:
         std::size_t nbAlloc = nbData + a + sizeof(void*) - 1;
         if (nbAlloc < nbData) throw std::bad_alloc{ }; // overflow
 
-        using ByteAllocator = typename rebind<char>::other;
+        using ByteAllocator = typename std::allocator_traits<A>::template rebind_alloc<char>;
         auto byteAllocator = ByteAllocator(*this); // may not throw
         void* mem = std::allocator_traits<ByteAllocator>::allocate(byteAllocator, nbAlloc);
         void* alignedMem = mem;
@@ -158,7 +158,7 @@ public:
         void* mem;
         std::memcpy(&mem, reinterpret_cast<char*>(ptr) + nbData, sizeof(void*));
         
-        using ByteAllocator = typename rebind<char>::other;
+        using ByteAllocator = typename std::allocator_traits<A>::template rebind_alloc<char>;
         auto byteAllocator = ByteAllocator(*this); // may not throw
         std::allocator_traits<ByteAllocator>::deallocate(byteAllocator, static_cast<char*>(mem), nbAlloc);
     }
