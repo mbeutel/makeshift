@@ -114,7 +114,8 @@ template <typename RepT, typename T, typename ValuesC>
 template <typename RepT, typename T, std::size_t N>
     constexpr bool are_values_contiguous(std::array<T, N> const& values)
 {
-    if (N == 0) return false;
+    static_assert(N > 0, "overload resolution failed");
+
     auto r = static_cast<RepT>(values[0]);
     for (std::size_t i = 1; i < N; ++i)
     {
@@ -123,6 +124,11 @@ template <typename RepT, typename T, std::size_t N>
         r = rNext;
     }
     return true;
+}
+template <typename RepT, typename T>
+    constexpr bool are_values_contiguous(std::array<T, 0> const& values)
+{
+    return false;
 }
 
 template <typename RepT, typename T, typename ValuesC>

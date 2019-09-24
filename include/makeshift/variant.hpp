@@ -74,7 +74,7 @@ template <typename T>
     expand(T const& value)
 {
     static_assert(have_values_of_v<T>, "expand() cannot find admissible values");
-    return expand(value, values_of<T>);
+    return makeshift::expand(value, values_of_c<T>);
 }
 
     //ᅟ
@@ -124,7 +124,7 @@ template <typename T>
     try_expand(T const& value)
 {
     static_assert(have_values_of_v<T>, "try_expand() cannot find admissible values");
-    return try_expand(value, values_of<T>);
+    return makeshift::try_expand(value, values_of_c<T>);
 }
 
     //ᅟ
@@ -172,7 +172,7 @@ template <typename T>
     expand_or_throw(T const& value)
 {
     static_assert(have_values_of_v<T>, "expand_or_throw() cannot find admissible values");
-    return expand_or_throw(value, values_of<T>);
+    return makeshift::expand_or_throw(value, values_of_c<T>);
 }
 
 
