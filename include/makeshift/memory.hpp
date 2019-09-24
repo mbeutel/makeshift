@@ -139,9 +139,8 @@ public:
         auto byteAllocator = ByteAllocator(*this); // may not throw
         void* mem = std::allocator_traits<ByteAllocator>::allocate(byteAllocator, nbAlloc);
         void* alignedMem = mem;
-        std::size_t nbDataAndPointer = nbData + sizeof(void*);
-        void* alignResult = std::align(a, nbAlloc, alignedMem, nbDataAndPointer);
-        Expects(alignResult != nullptr && nbDataAndPointer >= nbData + sizeof(void*)); // should not happen
+        void* alignResult = std::align(a, nbData + sizeof(void*), alignedMem, nbAlloc);
+        Expects(alignResult != nullptr && nbAlloc >= nbData + sizeof(void*)); // should not happen
 
             // Store pointer to actual allocation at end of buffer. Use `memcpy()` so we don't have to worry about alignment.
         std::memcpy(static_cast<char*>(alignResult) + nbData, &mem, sizeof(void*));
