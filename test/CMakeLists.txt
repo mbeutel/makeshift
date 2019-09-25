@@ -27,7 +27,7 @@ add_executable(test-makeshift-cxx14
     "test-new.cpp"
     "test-range.cpp"
     "test-reflect.cpp"
-    "test-mpark-variant.cpp"
+    "test-variant-mpark.cpp"
     "test-tuple.cpp"
     "test-type_traits.cpp"
     "test-utility.cpp")

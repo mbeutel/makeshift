@@ -1,6 +1,6 @@
 
-#ifndef INCLUDED_MAKESHIFT_MPARK_VARIANT_HPP_
-#define INCLUDED_MAKESHIFT_MPARK_VARIANT_HPP_
+#ifndef INCLUDED_MAKESHIFT_VARIANT_MPARK_HPP_
+#define INCLUDED_MAKESHIFT_VARIANT_MPARK_HPP_
 
 
 #include <type_traits> // for remove_cv<>, remove_reference<>
@@ -322,4 +322,4 @@ template <typename F, typename... Vs>
 } // namespace makeshift
 
 
-#endif // INCLUDED_MAKESHIFT_MPARK_VARIANT_HPP_
+#endif // INCLUDED_MAKESHIFT_VARIANT_MPARK_HPP_
