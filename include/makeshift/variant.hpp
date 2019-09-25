@@ -201,13 +201,8 @@ template <typename F, typename... Vs>
     // Suppresses any template instantiations for intellisense parsers to improve responsivity.
     //
 template <typename R, typename F, typename... Vs>
-    MAKESHIFT_NODISCARD constexpr auto
+    MAKESHIFT_NODISCARD constexpr R
     visit(F&& func, Vs&&... args)
- #ifdef MAKESHIFT_INTELLISENSE
-        -> R
- #else // MAKESHIFT_INTELLISENSE
-        -> decltype(std::visit<R>(std::forward<F>(func), std::forward<Vs>(args)...))
- #endif // MAKESHIFT_INTELLISENSE
 {
 #ifndef MAKESHIFT_INTELLISENSE
  #if MAKESHIFT_CXX >= 20
@@ -339,7 +334,6 @@ template <typename F, typename... Vs>
     MAKESHIFT_NODISCARD constexpr decltype(auto)
     variant_transform_many(F&& func, Vs&&... args)
 {
-
 #ifndef MAKESHIFT_INTELLISENSE
     using R = makeshift::detail::variant_transform_many_result<std::variant, F, Vs...>;
  #if MAKESHIFT_CXX >= 20
