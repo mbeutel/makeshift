@@ -278,6 +278,19 @@ template <typename MonostateT, typename R>
     }
 };
 
+template <template <typename...> class VariantT, typename... Vs>
+    struct variant_cat_;
+template <template <typename...> class VariantT, typename... Ts>
+    struct variant_cat_<VariantT, VariantT<Ts...>>
+{
+    using type = VariantT<Ts...>;
+};
+template <template <typename...> class VariantT, typename... V0Ts, typename... V1Ts, typename... Vs>
+    struct variant_cat_<VariantT, VariantT<V0Ts...>, VariantT<V1Ts...>, Vs...>
+        : variant_cat_<VariantT, VariantT<V0Ts..., V1Ts...>>
+{
+};
+
 
 } // namespace detail
 

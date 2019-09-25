@@ -169,7 +169,7 @@ template <typename T>
 
 
     //ᅟ
-    // Equivalent to `::mpark::visit()`.
+    // Equivalent to `mpark::visit()`.
     // Suppresses any template instantiations for intellisense parsers to improve responsivity.
     //
 template <typename F, typename... Vs>
@@ -185,7 +185,7 @@ template <typename F, typename... Vs>
 }
 
     //ᅟ
-    // Equivalent to `::mpark::visit<>()`.
+    // Equivalent to `mpark::visit<>()`.
     // Suppresses any template instantiations for intellisense parsers to improve responsivity.
     //
 template <typename R, typename F, typename... Vs>
@@ -204,17 +204,17 @@ template <typename R, typename F, typename... Vs>
 }
 
     //ᅟ
-    // Given an argument of type `::mpark::variant<Ts...>`, this is `::mpark::variant<::mpark::monostate, Ts...>`.
+    // Given an argument of type `mpark::variant<Ts...>`, this is `mpark::variant<::mpark::monostate, Ts...>`.
     //
 template <typename V> using with_monostate = typename makeshift::detail::with_monostate_<::mpark::variant, ::mpark::monostate, V>::type;
 
     //ᅟ
-    // Given an argument of type `::mpark::variant<::mpark::monostate, Ts...>`, this is `::mpark::variant<Ts...>`.
+    // Given an argument of type `mpark::variant<::mpark::monostate, Ts...>`, this is `mpark::variant<Ts...>`.
     //
 template <typename V> using without_monostate = typename makeshift::detail::without_monostate_<::mpark::variant, ::mpark::monostate, V>::type;
 
     //ᅟ
-    // Casts an argument of type `::mpark::variant<Ts...>` to the given variant type.
+    // Casts an argument of type `mpark::variant<Ts...>` to the given variant type.
     //
 template <typename DstV, typename SrcV>
     MAKESHIFT_NODISCARD constexpr DstV
@@ -231,7 +231,7 @@ template <typename DstV, typename SrcV>
 }
 
     //ᅟ
-    // Converts an argument of type `::mpark::variant<::mpark::monostate, Ts...>` to `std::optional<::mpark::variant<Ts...>>`.
+    // Converts an argument of type `mpark::variant<::mpark::monostate, Ts...>` to `std::optional<::mpark::variant<Ts...>>`.
     //
 //template <typename V>
 //    MAKESHIFT_NODISCARD constexpr decltype(auto)
@@ -250,7 +250,7 @@ template <typename DstV, typename SrcV>
 //}
 
     //ᅟ
-    // Converts an argument of type `std::optional<::mpark::variant<Ts...>>` to `::mpark::variant<::mpark::monostate, Ts...>`.
+    // Converts an argument of type `std::optional<::mpark::variant<Ts...>>` to `mpark::variant<::mpark::monostate, Ts...>`.
     //
 //template <typename VO>
 //    MAKESHIFT_NODISCARD constexpr decltype(auto)
@@ -265,7 +265,7 @@ template <typename DstV, typename SrcV>
 //}
 
     //ᅟ
-    // Similar to `::mpark::visit()`, but permits the functor to map different argument types to different result types and returns a variant of the possible results.
+    // Similar to `mpark::visit()`, but permits the functor to map different argument types to different result types and returns a variant of the possible results.
     // `variant_transform()` merges identical result types, i.e. every distinct result type appears only once in the resulting variant type.
     // Suppresses any template instantiations for intellisense parsers to improve responsivity.
     //
@@ -274,7 +274,7 @@ template <typename F, typename... Vs>
     variant_transform(F&& func, Vs&&... args)
 {
     // Currently we merge identical results, i.e. if two functor invocations both return the same type, the type appears only once in the result variant.
-    // Although `::mpark::variant<>` is explicitly designed to permit multiple alternatives of identical type, it seems reasonable to merge identically typed alternatives here because identically typed alternatives
+    // Although `mpark::variant<>` is explicitly designed to permit multiple alternatives of identical type, it seems reasonable to merge identically typed alternatives here because identically typed alternatives
     // cannot be distinguished by the visitor functor anyway, and because the choice of identically typed alternatives depends on the strides of the specialization table built by `visit()` (which is an implementation
     // detail) and hence cannot be reliably predicted by the caller.
 
@@ -291,7 +291,7 @@ template <typename F, typename... Vs>
 }
 
     //ᅟ
-    // Similar to `::mpark::visit()`, but permits the functor to map different argument types to different variants and returns an unwrapped variant of the possible results.
+    // Similar to `mpark::visit()`, but permits the functor to map different argument types to different variants and returns an unwrapped variant of the possible results.
     // `variant_transform_many()` merges identical result types, i.e. every distinct result type appears only once in the resulting variant type.
     // Suppresses any template instantiations for intellisense parsers to improve responsivity.
     //
@@ -315,6 +315,12 @@ template <typename F, typename... Vs>
         std::forward<Vs>(args)...);
 #endif // MAKESHIFT_INTELLISENSE
 }
+
+
+    //ᅟ
+    // Concatenates the alternatives in the given variants.
+    //
+template <typename... Vs> using variant_cat_t = typename makeshift::detail::variant_cat_<mpark::variant, Vs...>::type;
 
 
 } // namespace mpark

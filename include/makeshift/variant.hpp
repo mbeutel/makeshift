@@ -357,6 +357,12 @@ template <typename F, typename... Vs>
 }
 
 
+    //ᅟ
+    // Concatenates the alternatives in the given variants.
+    //
+template <typename... Vs> using variant_cat_t = typename makeshift::detail::variant_cat_<std::variant, Vs...>::type;
+
+
 } // namespace makeshift
 
 
