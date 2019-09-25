@@ -10,6 +10,7 @@ cmake_minimum_required(VERSION 3.14)
 find_package(Catch2 2.7 REQUIRED)
 find_package(CMakeshift 3.5 REQUIRED)
 find_package(gsl-lite REQUIRED)
+find_package(mpark_variant REQUIRED)
 
 # test targets
 add_executable(test-makeshift-cxx14
@@ -26,6 +27,7 @@ add_executable(test-makeshift-cxx14
     "test-new.cpp"
     "test-range.cpp"
     "test-reflect.cpp"
+    "test-mpark-variant.cpp"
     "test-tuple.cpp"
     "test-type_traits.cpp"
     "test-utility.cpp")
@@ -68,6 +70,7 @@ target_compile_definitions(test-makeshift-cxx17
 target_link_libraries(test-makeshift-cxx14
     PRIVATE
         gsl::gsl-lite
+        mpark_variant
         Catch2::Catch2
         makeshift)
 target_link_libraries(test-makeshift-cxx17
