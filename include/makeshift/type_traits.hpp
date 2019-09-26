@@ -199,6 +199,28 @@ template <typename T> constexpr bool is_type_enum_v = is_type_enum<T>::value;
 
 
     //ᅟ
+    // Determines whether the given type is in the list of types.
+    //
+template <typename T, typename... Ts> struct is_in : makeshift::detail::is_in_<T, Ts...> { };
+
+    //ᅟ
+    // Determines whether the given type is in the list of types.
+    //
+template <typename T, typename... Ts> constexpr bool is_in_v = is_in<T>::value;
+
+
+    //ᅟ
+    // Given a type sequence `T<Ts...>`, returns a type sequence `T<Us...>` such that every type `Us` is in `Ts...` and no type in `Us...` appears more than once.
+    //
+template <typename Ts> struct unique_sequence : makeshift::detail::unique_sequence_<Ts> { };
+
+    //ᅟ
+    // Given a type sequence `T<Ts...>`, returns a type sequence `T<Us...>` such that every type `Us` is in `Ts...` and no type in `Us...` appears more than once.
+    //
+template <typename Ts> using unique_sequence_t = typename unique_sequence<Ts>::type;
+
+
+    //ᅟ
     // Determines whether a type has a tuple-like interface.
     //ᅟ
     // A type `T` has a tuple-like interface if `std::tuple_size<T>::value`, `std::tuple_element_t<I, T>`, and `get<I>(t)` are well-formed. This trait only checks `std::tuple_size<T>::value`.
