@@ -20,6 +20,7 @@ add_executable(test-makeshift-cxx14
     "test-buffer.cpp"
     "test-constval.cpp"
     "test-enum.cpp"
+    "test-fenv.cpp"
     "test-functional.cpp"
     "test-iostream.cpp"
     "test-iterator.cpp"

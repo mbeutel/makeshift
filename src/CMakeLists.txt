@@ -12,6 +12,7 @@ find_package(gsl-lite REQUIRED)
 
 # library target
 add_library(makeshift STATIC
+    "fenv.cpp"
     "memory.cpp"
     "new.cpp"
     "string.cpp")
