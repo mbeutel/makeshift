@@ -32,6 +32,8 @@ TODO: document
 
 ## License
 
+### BSD 2-Clause License
+
 Copyright (c) 2018-2019, Moritz Beutel  
 All rights reserved.
 
