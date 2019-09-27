@@ -17,25 +17,57 @@ namespace makeshift
 {
 
 
-#if MAKESHIFT_CXX >= 17
+#if MAKESHIFT_CXXLEVEL >= 17
     //ᅟ
     // Constructs a functor wrapper that selects the matching overload among a number of given functors.
     //ᅟ
-    //ᅟ    auto type_name_func = overload(
+    //ᅟ    auto type_name_func = overloaded(
     //ᅟ        [](int)   { return "int"; },
     //ᅟ        [](float) { return "float"; },
     //ᅟ        [](auto)  { return "unknown"; }
     //ᅟ    );
     //
 template <typename... Fs>
-    struct MAKESHIFT_DETAIL_EMPTY_BASES overload : Fs...
+    struct MAKESHIFT_DETAIL_EMPTY_BASES overloaded : Fs...
 {
-    constexpr overload(Fs... fs) : Fs(std::move(fs))... { }
-    using Fs::operator ()...; // requires C++17
+    using Fs::operator ()...;
 };
+#else // MAKESHIFT_CXXLEVEL >= 17
+    //ᅟ
+    // Constructs a functor wrapper that selects the matching overload among a number of given functors.
+    //ᅟ
+    //ᅟ    auto type_name_func = overloaded(
+    //ᅟ        [](int)   { return "int"; },
+    //ᅟ        [](float) { return "float"; },
+    //ᅟ        [](auto)  { return "unknown"; }
+    //ᅟ    );
+    //
+template <typename... Fs>
+    struct overloaded;
+template <typename F0>
+    struct MAKESHIFT_DETAIL_EMPTY_BASES overloaded<F0> : F0
+{
+    using F0::F0;
+};
+template <typename F0, typename... Fs>
+    struct MAKESHIFT_DETAIL_EMPTY_BASES overloaded<F0, Fs...> : F0, overloaded<Fs...>
+{
+    constexpr overloaded(F0 f0, Fs... fs) : F0(std::move(f0)), overloaded<Fs...>(std::move(fs)...) { }
+    using F0::operator ();
+    using overloaded<Fs...>::operator ();
+};
+#endif // MAKESHIFT_CXXLEVEL >= 17
+
+#if MAKESHIFT_CXX >= 17
 template <typename... Ts>
-    overload(Ts&&...) -> overload<std::decay_t<Ts>...>;
+    overloaded(Ts...) -> overloaded<Ts...>;
 #endif // MAKESHIFT_CXX >= 17
+
+template <typename... Fs>
+    constexpr overloaded<Fs...> make_overloaded(Fs... fs)
+{
+    return { std::move(fs)... };
+}
 
 
     //ᅟ
