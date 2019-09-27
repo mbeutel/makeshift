@@ -320,7 +320,7 @@ template <typename F, typename... Vs>
     //ᅟ
     // Concatenates the alternatives in the given variants.
     //
-template <typename... Vs> using variant_cat_t = typename makeshift::detail::variant_cat_<mpark::variant, Vs...>::type;
+template <typename... Vs> using variant_cat_t = typename makeshift::detail::variant_cat_<::mpark::variant, Vs...>::type;
 
 
 } // namespace mpark
