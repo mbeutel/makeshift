@@ -1,5 +1,5 @@
 
-#include <cfenv>    // for FE_*
+#include <cfenv> // for FE_*
 
 #include <gsl/gsl-lite.hpp> // for Expects()
 

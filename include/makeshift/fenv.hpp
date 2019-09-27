@@ -15,12 +15,14 @@ namespace makeshift
 
     //ᅟ
     // Sets hardware exception traps for the floating-point exceptions specified by the given mask value.
+    // The admissible mask values are defined as `FE_*` in standard header <cfenv>.
     // If an exception flag bit is on, the corresponding exception will be trapped; if the bit is clear, the exception will be masked.
     //
 MAKESHIFT_PUBLIC MAKESHIFT_NODISCARD bool try_set_trapping_fe_exceptions(int excepts) noexcept;
 
     //ᅟ
     // Disables hardware exception traps for the floating-point exceptions specified by the given mask value.
+    // The admissible mask values are defined as `FE_*` in standard header <cfenv>.
     //
 inline void set_trapping_fe_exceptions(int excepts)
 {
@@ -30,6 +32,7 @@ inline void set_trapping_fe_exceptions(int excepts)
 
     //ᅟ
     // Returns the bitmask of all floating-point exceptions for which trapping is currently enabled.
+    // The admissible mask values are defined as `FE_*` in standard header <cfenv>.
     //
 MAKESHIFT_PUBLIC int get_trapping_fe_exceptions(void) noexcept;
 
