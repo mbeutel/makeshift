@@ -11,6 +11,8 @@
 
 #include <gsl/gsl-lite.hpp> // for Expects()
 
+//#include <makeshift/macros.hpp> // for MAKESHIFT_CXX
+
 #include <makeshift/detail/buffer.hpp>
 
 
@@ -21,7 +23,20 @@ namespace makeshift
 constexpr std::ptrdiff_t dynamic_extent = -1;
 
 
-template <typename T, std::ptrdiff_t Extent = dynamic_extent, std::ptrdiff_t MaxStaticBufferExtent = dynamic_extent>
+    //ᅟ
+    // Array-like class with configurable small-buffer optimization.
+    // The buffer stores `Extent` elements. If `Extent == dynamic_extent`, the number of elements is determined at runtime.
+    // The buffer allocates the elements in-place if the number of elements is smaller than `MaxStaticBufferExtent`, and on the heap otherwise.
+    // If `MaxStaticBufferExtent == -1`, the elements are allocated in-place if `Extent != dynamic_extent`, and on the heap otherwise.
+    //ᅟ
+    //ᅟ    std::size_t numElements = ...;
+    //ᅟ    auto buf = make_buffer<float>(numElements); // returns `buffer<float, dynamic_extent>`; allocates on the heap
+    //ᅟ    auto buf = make_buffer<float, 16>(numElements); // returns `buffer<float, dynamic_extent, 16>`; allocates on the heap if `numElements > 16`
+    //ᅟ    auto numElementsC = std::integral_constant<std::size_t, N>{ };
+    //ᅟ    auto buf = make_buffer<float>(numElementsC); // returns `buffer<float, N>`; allocates in-place
+    //ᅟ    auto buf = make_buffer<float, 16>(numElementsC); // returns `buffer<float, N, 16>`; allocates on the heap if `N > 16`
+    //
+template <typename T, std::ptrdiff_t Extent = dynamic_extent, std::ptrdiff_t MaxStaticBufferExtent = -1>
     class buffer
         : public makeshift::detail::buffer_base<T, Extent, MaxStaticBufferExtent, makeshift::detail::determine_memory_location(Extent, MaxStaticBufferExtent)>
 {
@@ -56,7 +71,20 @@ public:
         return *this;
     }
 };
+//#if MAKESHIFT_CXX >= 17
+//template <std::ptrdiff_t Extent, typename T>
+//    buffer(T (&&)[Extent]) -> buffer<T, Extent>;
+//#endif // MAKESHIFT_CXX >= 17
 
+    //ᅟ
+    // Construct array-like class with configurable small-buffer optimization.
+    // The number of elements is allocated in-place if `size` is a constval, and on the heap otherwise.
+    //ᅟ
+    //ᅟ    std::size_t numElements = ...;
+    //ᅟ    auto buf = make_buffer<float>(numElements); // returns `buffer<float, dynamic_extent>`; allocates on the heap
+    //ᅟ    auto numElementsC = std::integral_constant<std::size_t, N>{ };
+    //ᅟ    auto buf = make_buffer<float>(numElementsC); // returns `buffer<float, N>`; allocates in-place
+    //
 template <typename T,
           typename C>
     MAKESHIFT_NODISCARD constexpr
@@ -66,6 +94,16 @@ template <typename T,
     return buffer<T, makeshift::detail::buffer_extent_from_constval(C{ })>(size);
 }
 
+    //ᅟ
+    // Construct array-like class with configurable small-buffer optimization.
+    // If `MaxStaticBufferExtent >= 0`, the elements are allocated in-place if `size <= MaxStaticBufferExtent`, and on the heap otherwise.
+    // If `MaxStaticBufferExtent == -1`, the elements are allocated in-place if `size` is a constval, and on the heap otherwise.
+    //ᅟ
+    //ᅟ    std::size_t numElements = ...;
+    //ᅟ    auto buf = make_buffer<float, 16>(numElements); // returns `buffer<float, dynamic_extent, 16>`; allocates on the heap if `numElements > 16`
+    //ᅟ    auto numElementsC = std::integral_constant<std::size_t, N>{ };
+    //ᅟ    auto buf = make_buffer<float, 16>(numElementsC); // returns `buffer<float, N, 16>`; allocates on the heap if `N > 16`
+    //
 template <typename T, std::ptrdiff_t MaxStaticBufferExtent,
           typename C>
     MAKESHIFT_NODISCARD constexpr
@@ -76,6 +114,17 @@ template <typename T, std::ptrdiff_t MaxStaticBufferExtent,
 }
 
 
+    //ᅟ
+    // Array-like class with in-place storage.
+    // The buffer stores `Extent` elements. If `Extent == dynamic_extent`, the number of elements is determined at runtime.
+    // Buffer construction fails if the number of elements exceeds `MaxStaticBufferExtent`.
+    //ᅟ
+    //ᅟ    std::size_t numElements = ...;
+    //ᅟ    auto buf = make_fixed_buffer<float, 16>(numElements); // returns `fixed_buffer<float, dynamic_extent, 16>`; asserts that `numElements <= 16`
+    //ᅟ    auto numElementsC = std::integral_constant<std::size_t, N>{ };
+    //ᅟ    auto buf = make_fixed_buffer<float>(numElementsC); // returns `fixed_buffer<float, N, N>`
+    //ᅟ    auto buf = make_fixed_buffer<float, 16>(numElementsC); // returns `fixed_buffer<float, N, 16>`; asserts at compile-time that `N <= 16`
+    //
 template <typename T, std::ptrdiff_t Extent, std::ptrdiff_t MaxBufferExtent>
     class fixed_buffer
         : public makeshift::detail::static_buffer_base<T, Extent, MaxBufferExtent>
@@ -115,7 +164,17 @@ public:
         return *this;
     }
 };
+//#if MAKESHIFT_CXX >= 17
+//template <std::ptrdiff_t Extent, typename T>
+//    buffer(T (&&)[Extent]) -> buffer<T, Extent>;
+//#endif // MAKESHIFT_CXX >= 17
 
+    //ᅟ
+    // Array-like class with in-place storage of `Size` elements.
+    //ᅟ
+    //ᅟ    auto numElementsC = std::integral_constant<std::size_t, N>{ };
+    //ᅟ    auto buf = make_fixed_buffer<float>(numElementsC); // returns `fixed_buffer<float, N, N>`
+    //
 template <typename T, typename SizeT, SizeT Size>
     MAKESHIFT_NODISCARD constexpr
     fixed_buffer<T, Size, Size>
@@ -124,6 +183,15 @@ template <typename T, typename SizeT, SizeT Size>
     return fixed_buffer<T, Size, Size>(std::integral_constant<SizeT, Size>{ });
 }
 
+    //ᅟ
+    // Array-like class with in-place storage of `size` elements.
+    // Asserts that `size <= MaxBufferExtent`.
+    //ᅟ
+    //ᅟ    std::size_t numElements = ...;
+    //ᅟ    auto buf = make_fixed_buffer<float, 16>(numElements); // returns `fixed_buffer<float, dynamic_extent, 16>`; asserts that `numElements <= 16`
+    //ᅟ    auto numElementsC = std::integral_constant<std::size_t, N>{ };
+    //ᅟ    auto buf = make_fixed_buffer<float, 16>(numElementsC); // returns `fixed_buffer<float, N, 16>`; asserts at compile-time that `N <= 16`
+    //
 template <typename T, std::ptrdiff_t MaxBufferExtent,
           typename C>
     MAKESHIFT_NODISCARD constexpr
