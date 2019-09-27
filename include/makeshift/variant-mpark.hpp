@@ -9,7 +9,7 @@
 
 #include <makeshift/constval.hpp> // for ref_constval<>
 #include <makeshift/reflect.hpp>  // for have_values_of<>, values_of<>
-#include <makeshift/macros.hpp> // for MAKESHIFT_CXX, MAKESHIFT_NODISCARD, MAKESHIFT_INTELLISENSE
+#include <makeshift/macros.hpp>   // for MAKESHIFT_CXX, MAKESHIFT_NODISCARD, MAKESHIFT_INTELLISENSE
 
 #include <makeshift/detail/variant.hpp>
 
@@ -206,29 +206,29 @@ template <typename R, typename F, typename... Vs>
     //ᅟ
     // Given an argument of type `mpark::variant<Ts...>`, this is `mpark::variant<::mpark::monostate, Ts...>`.
     //
-template <typename V> using with_monostate = typename makeshift::detail::with_monostate_<::mpark::variant, ::mpark::monostate, V>::type;
+//template <typename V> using with_monostate = typename makeshift::detail::with_monostate_<::mpark::variant, ::mpark::monostate, V>::type;
 
     //ᅟ
     // Given an argument of type `mpark::variant<::mpark::monostate, Ts...>`, this is `mpark::variant<Ts...>`.
     //
-template <typename V> using without_monostate = typename makeshift::detail::without_monostate_<::mpark::variant, ::mpark::monostate, V>::type;
+//template <typename V> using without_monostate = typename makeshift::detail::without_monostate_<::mpark::variant, ::mpark::monostate, V>::type;
 
     //ᅟ
     // Casts an argument of type `mpark::variant<Ts...>` to the given variant type.
     //
-template <typename DstV, typename SrcV>
-    MAKESHIFT_NODISCARD constexpr DstV
-    variant_cast(SrcV&& variant)
-{
-#ifndef MAKESHIFT_INTELLISENSE
-    return ::mpark::visit(
-        [](auto&& arg) -> DstV
-        {
-            return std::forward<decltype(arg)>(arg);
-        },
-        std::forward<SrcV>(variant));
-#endif // MAKESHIFT_INTELLISENSE
-}
+//template <typename DstV, typename SrcV>
+//    MAKESHIFT_NODISCARD constexpr DstV
+//    variant_cast(SrcV&& variant)
+//{
+//#ifndef MAKESHIFT_INTELLISENSE
+//    return ::mpark::visit(
+//        [](auto&& arg) -> DstV
+//        {
+//            return std::forward<decltype(arg)>(arg);
+//        },
+//        std::forward<SrcV>(variant));
+//#endif // MAKESHIFT_INTELLISENSE
+//}
 
     //ᅟ
     // Converts an argument of type `mpark::variant<::mpark::monostate, Ts...>` to `std::optional<::mpark::variant<Ts...>>`.
@@ -320,7 +320,7 @@ template <typename F, typename... Vs>
     //ᅟ
     // Concatenates the alternatives in the given variants.
     //
-template <typename... Vs> using variant_cat_t = typename makeshift::detail::variant_cat_<mpark::variant, Vs...>::type;
+//template <typename... Vs> using variant_cat_t = typename makeshift::detail::variant_cat_<mpark::variant, Vs...>::type;
 
 
 } // namespace mpark

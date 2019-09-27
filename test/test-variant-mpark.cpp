@@ -1,6 +1,6 @@
 
 #include <makeshift/variant-mpark.hpp>
-#include <makeshift/macros.hpp>  // for MAKESHIFT_CXX
+#include <makeshift/macros.hpp>        // for MAKESHIFT_CXX
 
 #include <mpark/variant.hpp>
 

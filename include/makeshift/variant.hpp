@@ -212,78 +212,78 @@ template <typename R, typename F, typename... Vs>
     //ᅟ
     // Given an argument of type `std::variant<Ts...>`, this is `std::variant<std::monostate, Ts...>`.
     //
-template <typename V> using with_monostate = typename makeshift::detail::with_monostate_<std::variant, std::monostate, V>::type;
+//template <typename V> using with_monostate = typename makeshift::detail::with_monostate_<std::variant, std::monostate, V>::type;
 
     //ᅟ
     // Given an argument of type `std::variant<std::monostate, Ts...>`, this is `std::variant<Ts...>`.
     //
-template <typename V> using without_monostate = typename makeshift::detail::without_monostate_<std::variant, std::monostate, V>::type;
+//template <typename V> using without_monostate = typename makeshift::detail::without_monostate_<std::variant, std::monostate, V>::type;
 
     //ᅟ
     // Casts an argument of type `std::variant<Ts...>` to the given variant type.
     //
-template <typename DstV, typename SrcV>
-    MAKESHIFT_NODISCARD constexpr DstV
-    variant_cast(SrcV&& variant)
-{
-#ifndef MAKESHIFT_INTELLISENSE
- #if MAKESHIFT_CXX >= 20
-    return std::visit<DstV>(
-        [](auto&& arg) -> DstV
-        {
-            return std::forward<decltype(arg)>(arg);
-        },
-        std::forward<SrcV>(variant));
- #else // MAKESHIFT_CXX >= 20
-    return std::visit(
-        [](auto&& arg) -> DstV
-        {
-            return std::forward<decltype(arg)>(arg);
-        },
-        std::forward<SrcV>(variant));
- #endif // MAKESHIFT_CXX >= 20}
-#endif // MAKESHIFT_INTELLISENSE
-}
+//template <typename DstV, typename SrcV>
+//    MAKESHIFT_NODISCARD constexpr DstV
+//    variant_cast(SrcV&& variant)
+//{
+//#ifndef MAKESHIFT_INTELLISENSE
+// #if MAKESHIFT_CXX >= 20
+//    return std::visit<DstV>(
+//        [](auto&& arg) -> DstV
+//        {
+//            return std::forward<decltype(arg)>(arg);
+//        },
+//        std::forward<SrcV>(variant));
+// #else // MAKESHIFT_CXX >= 20
+//    return std::visit(
+//        [](auto&& arg) -> DstV
+//        {
+//            return std::forward<decltype(arg)>(arg);
+//        },
+//        std::forward<SrcV>(variant));
+// #endif // MAKESHIFT_CXX >= 20}
+//#endif // MAKESHIFT_INTELLISENSE
+//}
 
     //ᅟ
     // Converts an argument of type `std::variant<std::monostate, Ts...>` to `std::optional<std::variant<Ts...>>`.
     //
-template <typename V>
-    MAKESHIFT_NODISCARD constexpr decltype(auto)
-    variant_to_optional(V&& variantWithMonostate)
-{
-    using R = without_monostate<std::remove_cv_t<std::remove_reference_t<V>>>;
-    if (std::holds_alternative<std::monostate>(variantWithMonostate))
-    {
-        return std::optional<R>(std::nullopt);
-    }
-#ifndef MAKESHIFT_INTELLISENSE
- #if MAKESHIFT_CXX >= 20
-    return std::optional<R>(std::visit<R>(
-        makeshift::detail::monostate_filtering_visitor<std::monostate, R>{ },
-        std::forward<V>(variantWithMonostate)));
- #else // MAKESHIFT_CXX >= 20
-    return std::optional<R>(std::visit(
-        makeshift::detail::monostate_filtering_visitor<std::monostate, R>{ },
-        std::forward<V>(variantWithMonostate)));
- #endif // MAKESHIFT_CXX >= 20}
-#endif // MAKESHIFT_INTELLISENSE
-}
+//template <typename V>
+//    MAKESHIFT_NODISCARD constexpr decltype(auto)
+//    variant_to_optional(V&& variantWithMonostate)
+//{
+//    using R = without_monostate<std::remove_cv_t<std::remove_reference_t<V>>>;
+//    if (std::holds_alternative<std::monostate>(variantWithMonostate))
+//    {
+//        return std::optional<R>(std::nullopt);
+//    }
+//#ifndef MAKESHIFT_INTELLISENSE
+// #if MAKESHIFT_CXX >= 20
+//    return std::optional<R>(std::visit<R>(
+//        makeshift::detail::monostate_filtering_visitor<std::monostate, R>{ },
+//        std::forward<V>(variantWithMonostate)));
+// #else // MAKESHIFT_CXX >= 20
+//    return std::optional<R>(std::visit(
+//        makeshift::detail::monostate_filtering_visitor<std::monostate, R>{ },
+//        std::forward<V>(variantWithMonostate)));
+// #endif // MAKESHIFT_CXX >= 20}
+//#endif // MAKESHIFT_INTELLISENSE
+//}
 
     //ᅟ
     // Converts an argument of type `std::optional<std::variant<Ts...>>` to `std::variant<std::monostate, Ts...>`.
     //
-template <typename VO>
-    MAKESHIFT_NODISCARD constexpr decltype(auto)
-    optional_to_variant(VO&& optionalVariant)
-{
-    using R = with_monostate<typename std::remove_cv_t<std::remove_reference_t<VO>>::value_type>;
-    if (!optionalVariant.has_value())
-    {
-        return R{ std::monostate{ } };
-    }
-    return variant_cast<R>(*std::forward<VO>(optionalVariant));
-}
+//template <typename VO>
+//    MAKESHIFT_NODISCARD constexpr decltype(auto)
+//    optional_to_variant(VO&& optionalVariant)
+//{
+//    using R = with_monostate<typename std::remove_cv_t<std::remove_reference_t<VO>>::value_type>;
+//    if (!optionalVariant.has_value())
+//    {
+//        return R{ std::monostate{ } };
+//    }
+//    return variant_cast<R>(*std::forward<VO>(optionalVariant));
+//}
 
     //ᅟ
     // Similar to `std::visit()`, but permits the functor to map different argument types to different result types and returns a variant of the possible results.
@@ -360,7 +360,7 @@ template <typename F, typename... Vs>
     //ᅟ
     // Concatenates the alternatives in the given variants.
     //
-template <typename... Vs> using variant_cat_t = typename makeshift::detail::variant_cat_<std::variant, Vs...>::type;
+//template <typename... Vs> using variant_cat_t = typename makeshift::detail::variant_cat_<std::variant, Vs...>::type;
 
 
 } // namespace makeshift
