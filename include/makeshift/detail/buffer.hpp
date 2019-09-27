@@ -327,8 +327,8 @@ public:
     using base_::base_;
 };
 
-template <typename ExtentC>
-    constexpr std::ptrdiff_t buffer_extent_from_constval(ExtentC)
+template <typename ExtentT>
+    constexpr std::ptrdiff_t buffer_extent_from_constval(ExtentT)
 {
     return -1;
 }

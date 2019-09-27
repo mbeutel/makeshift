@@ -23,7 +23,6 @@ add_executable(test-makeshift-cxx14
     "test-fenv.cpp"
     "test-functional.cpp"
     "test-iostream.cpp"
-    "test-iterator.cpp"
     "test-memory.cpp"
     "test-new.cpp"
     "test-range.cpp"

@@ -10,6 +10,8 @@
     // `MAKESHIFT_CXX` specifies the level of language support available.
     // Possible values: 14, 17, 20.
     //
+    // (TODO: replace with gsl_CPLUSPLUS?)
+    //
 #if defined(_MSVC_LANG ) && !defined(__clang__)
  #define MAKESHIFT_CPLUSPLUS _MSVC_LANG
 #else
@@ -38,6 +40,8 @@
     // `MAKESHIFT_IF_CXX(L,...)` expands to `...` if the language support matches the value given by `L`, and to nothing otherwise.
     // `MAKESHIFT_IF_NOT_CXX(L,...)` expands to nothing if the language support matches the value given by `L`, and to `...` otherwise.
     // Possible values for L: 14, 17, 20.
+    //
+    // (TODO: move to gsl-lite?)
     //
 #if MAKESHIFT_CXX >= 20
  #define MAKESHIFT_IF_CXX_20_(...)      __VA_ARGS__

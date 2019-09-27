@@ -445,7 +445,7 @@
         </Expand>
     </Type>
 
-    <Type Name="makeshift::detail::type_t&lt;*&gt;">
+    <Type Name="makeshift::type_tag&lt;*&gt;">
         <DisplayString>{ "$T1",sb }</DisplayString>
     </Type>
     <Type Name="makeshift::type_sequence&lt;&gt;">
@@ -668,15 +668,8 @@
         </Expand>
     </Type>
 
-    <Type Name="makeshift::detail::functor_constval&lt;*,*&gt;">
+    <Type Name="makeshift::detail::constval&lt;*,*&gt;">
         <DisplayString>{ "$T1",sb }{ value_ } constval</DisplayString>
-        <Expand>
-            <Item Name="Type">"$T1",sb</Item>
-            <ExpandedItem>value_</ExpandedItem>
-        </Expand>
-    </Type>
-    <Type Name="makeshift::detail::tuple_functor_constval&lt;*,*&gt;">
-        <DisplayString>{ value_ } constval</DisplayString>
         <Expand>
             <Item Name="Type">"$T1",sb</Item>
             <ExpandedItem>value_</ExpandedItem>

@@ -91,7 +91,7 @@ public:
 };
 
 template <typename It> using range_iterator_tag = std::conditional_t<
-    std::is_base_of<std::random_access_iterator_tag, typename std::iterator_traits<It>::iterator_category>::value,
+    std::is_base_of<std::random_access_iterator_tag, typename std::iterator_traits<It>::iterator_category>::value, // TODO: in C++20 we should use concepts to also permit non-legacy random-access iterators
     std::random_access_iterator_tag,
     std::input_iterator_tag>;
 

@@ -78,7 +78,7 @@ template <typename TypeEnumT, typename... Ts>
 private:
     static constexpr std::int32_t n = sizeof...(Ts);
 
-        // This type exists to permit usage of type enums in switch statements. We define enumerators with suitable values to make use of compiler warnings
+        // This type exists to permit usage of type enums in switch statements. We define enumerators with suitable values so we can get compiler warnings
         // for non-exhaustive switch statements. (We also avoid warning C4063 "case '<integer>' is not a valid value for switch of enum" for VC++ this way.)
     enum class value_t : std::int32_t
     {
@@ -96,7 +96,6 @@ public:
     friend constexpr type<TypeEnumT> type_enum_type_of_(value_t, makeshift::detail::unwrap_enum_tag) { return { }; }
 
     using types = type_sequence<Ts...>;
-    static constexpr std::size_t size = sizeof...(Ts); // TODO: ??
 
     constexpr define_type_enum_base(const define_type_enum_base&) = default;
     constexpr define_type_enum_base& operator =(const define_type_enum_base&) = default;
@@ -134,7 +133,6 @@ public:
     using underlying_type = void;
 
     using types = type_sequence<>;
-    static constexpr std::size_t size = 0;
 
     constexpr define_type_enum_base(const define_type_enum_base&) = default;
     constexpr define_type_enum_base& operator =(const define_type_enum_base&) = default;

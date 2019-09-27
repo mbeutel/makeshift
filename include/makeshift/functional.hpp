@@ -3,12 +3,9 @@
 #define INCLUDED_MAKESHIFT_FUNCTIONAL_HPP_
 
 
-#include <utility>     // for move(), forward<>()
-#include <cstddef>     // for size_t
-#include <functional>  // for hash<>
-#include <type_traits> // for decay<>, declval<>()
+#include <utility> // for move(), forward<>()
 
-#include <makeshift/macros.hpp>  // for MAKESHIFT_CXX, MAKESHIFT_NODISCARD, MAKESHIFT_DETAIL_EMPTY_BASES
+#include <makeshift/macros.hpp>  // for MAKESHIFT_CXX, MAKESHIFT_DETAIL_EMPTY_BASES
 
 #include <makeshift/detail/functional.hpp>
 
@@ -91,8 +88,8 @@ private:
     F func_;
 
 public:
-    constexpr explicit y_combinator(F&& _func)
-        : func_(std::forward<F>(_func))
+    constexpr explicit y_combinator(F _func)
+        : func_(std::move(_func))
     {
     }
 
@@ -109,31 +106,8 @@ public:
 };
 #if MAKESHIFT_CXX >= 17
 template <typename F>
-    y_combinator(F&& func) -> y_combinator<std::decay_t<F>>;
+    y_combinator(F) -> y_combinator<F>;
 #endif // MAKESHIFT_CXX >= 17
-
-
-    //ᅟ
-    // Similar to `std::hash<>` but permits omitting the type argument and supports conditional specialization with `enable_if_t<>` or `void_t<>`.
-    //
-template <typename KeyT = void, typename = void>
-    struct hash : std::hash<KeyT> // TODO: do we still need/want this?
-{
-    using std::hash<KeyT>::hash;
-};
-template <>
-    struct hash<void>
-{
-        //ᅟ
-        // Computes a hash value of the given argument.
-        //
-    template <typename T>
-        MAKESHIFT_NODISCARD constexpr decltype(hash<T>{ }(std::declval<T const&>())) // SFINAE
-        operator ()(T const& arg) const noexcept
-    {
-        return hash<T>{ }(arg);
-    }
-};
 
 
 } // namespace makeshift

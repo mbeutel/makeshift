@@ -152,6 +152,8 @@ template <typename... Ts> using type_sequence_cat_t = typename type_sequence_cat
     // Returns the size of an array, range, tuple-like or container.
     // Equivalent to `std::size()` in C++20.
     //
+    // (TODO: move to gsl-lite?)
+    //
 template <typename ContainerT> 
     MAKESHIFT_NODISCARD constexpr auto size(const ContainerT& c) -> decltype(c.size())
 {
@@ -161,6 +163,8 @@ template <typename ContainerT>
     //ᅟ
     // Returns the size of an array, range, tuple-like or container.
     // Equivalent to `std::size()` in C++20.
+    //
+    // (TODO: move to gsl-lite?)
     //
 template <typename T, std::size_t N>
     MAKESHIFT_NODISCARD constexpr std::size_t size(const T (&)[N]) noexcept
@@ -173,6 +177,8 @@ template <typename T, std::size_t N>
     // Returns the signed size of an array, range, tuple-like or container.
     // Equivalent to `std::ssize()` in C++20.
     //
+    // (TODO: move to gsl-lite?)
+    //
 template <typename ContainerT>
     MAKESHIFT_NODISCARD constexpr auto ssize(const ContainerT& c)
         -> std::common_type_t<std::ptrdiff_t, std::make_signed_t<decltype(c.size())>>
@@ -184,6 +190,8 @@ template <typename ContainerT>
     //ᅟ
     // Returns the signed size of an array, range, tuple-like or container.
     // Equivalent to `std::ssize()` in C++20.
+    //
+    // (TODO: move to gsl-lite?)
     //
 template <typename T, std::ptrdiff_t N>
     MAKESHIFT_NODISCARD constexpr std::ptrdiff_t ssize(const T (&)[N]) noexcept

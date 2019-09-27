@@ -238,7 +238,7 @@ template <std::size_t... Is, typename C>
 template <bool IsTupleLike, typename T, typename C> struct make_constval_4_;
 template <typename T, typename C> struct make_constval_4_<true, T, C> { using type = tuple_like_constval<T, C>; };
 template <typename T, typename C> struct make_constval_4_<false, T, C> { using type = constval<T, C>; };
-template <typename T, T const& Ref> struct make_constval_4_<false, T, ref_constval<T, Ref>> { using type = ref_constval<T, Ref>; }; // shortcut: use ref_constval<> directly if no normalization applies
+template <typename T, T const& Ref> struct make_constval_4_<false, T, ref_constval<T, Ref>> { using type = ref_constval<T, Ref>; }; // shortcut: use `ref_constval<>` directly if no normalization applies
 
     // Return constval tag types unaltered.
 template <bool IsConstval, typename T, typename C> struct make_constval_3_;

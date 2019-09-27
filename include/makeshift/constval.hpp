@@ -161,33 +161,6 @@ template <typename CF, typename... Cs>
 
 
     //ᅟ
-    // Generates an assertion for the given condition value which is checked at compile time for constvals, or at runtime for non-constvals.
-    //ᅟ
-    //ᅟ    auto condC = constval_transform([](index idx) { return idx >= 0; }, idxC);
-    //ᅟ    constval_assert(condC);
-    //
-template <typename BoolC>
-    constexpr std::enable_if_t<std::is_convertible<BoolC, bool>::value, void>
-    constval_assert(const BoolC& arg) // TODO: remove
-{
-    return makeshift::detail::constval_assert_impl(is_constval<BoolC>{ }, arg);
-}
-
-    //ᅟ
-    // Generates an assertion for the given condition value which is checked at compile time for constvals, or at runtime for non-constvals.
-    //ᅟ
-    //ᅟ    constval_assert([](index idx) { return idx >= 0; }, idxC);
-    //
-template <typename F, typename... Cs>
-    constexpr std::enable_if_t<!std::is_convertible<F, bool>::value, void>
-    constval_assert(const F& func, const Cs&... args) // TODO: remove
-{
-    static_assert(std::is_empty<F>::value, "transformer must be stateless");
-    makeshift::constval_assert(makeshift::constval_transform(func, args...));
-}
-
-
-    //ᅟ
     // Represents a constval of type `std::array<>` with the given element type and values.
     //
 template <typename T, T... Vs>
@@ -272,7 +245,7 @@ template <typename... Cs>
 
     using value_type = std::tuple<typename Cs::value_type...>;
 
-    static constexpr value_type value = { Cs{ }... }; // TODO: probably VC++ workaround needed
+    static constexpr value_type value = { Cs{ }... };
 
     constexpr tuple_constant(void) noexcept = default;
     constexpr tuple_constant(Cs...) noexcept
@@ -293,7 +266,7 @@ template <>
 {
     using value_type = std::tuple<>;
 
-    static constexpr value_type value = { }; // TODO: probably VC++ workaround needed
+    static constexpr value_type value = { };
 
     constexpr tuple_constant(void) noexcept = default;
 

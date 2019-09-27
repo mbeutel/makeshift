@@ -153,17 +153,6 @@ template <typename T, template <typename...> class U> constexpr bool is_instanti
 
 
     //ᅟ
-    // Determines whether the given type is iterable, i.e. functions `begin()` and `end()` are well-defined for arguments of type `T`.
-    //
-template <typename T> struct is_iterable : can_instantiate<makeshift::detail::is_iterable_ns::is_iterable_r, T> { }; // TODO: remove?
-
-    //ᅟ
-    // Determines whether the given type is iterable, i.e. functions `begin()` and `end()` are well-defined for arguments of type `T`.
-    //
-template <typename T> constexpr bool is_iterable_v = is_iterable<T>::value; // TODO: remove?
-
-
-    //ᅟ
     // Determines whether the given type is a bitmask type, i.e. bitmask operations with `|`, `^`, `~`, and `&` are well-formed.
     //
 template <typename T> struct is_bitmask_type : makeshift::detail::is_bitmask_type<T> { };

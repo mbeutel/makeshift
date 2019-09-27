@@ -21,20 +21,6 @@ namespace makeshift
 namespace detail
 {
 
-// TODO: remove?
-namespace is_iterable_ns
-{
-
-
-using std::begin;
-using std::end;
-
-
-template <typename T> using is_iterable_r = decltype(begin(std::declval<T&>()) != end(std::declval<T&>()));
-
-
-} // is_iterable_ns
-
 
 template <bool V0, typename T0, typename... Ts> struct disjunction_ { using type = T0; };
 template <typename T0, typename T1, typename... Ts> struct disjunction_<false, T0, T1, Ts...> : disjunction_<T1::value, T1, Ts...> { };
@@ -129,8 +115,6 @@ template <template <typename...> class Z, typename SeqT> struct instantiate_;
 template <template <typename...> class Z, template <typename...> class SeqT, typename... Ts> struct instantiate_<Z, SeqT<Ts...>> { using type = Z<Ts...>; };
 
 
-template <typename T> struct type_t; // TODO: remove when variant2/reflect2 are gone
-
 template <typename T> struct type_set_leaf_ { };
 template <typename T, std::size_t I> struct type_set_indexed_leaf_ : type_set_leaf_<T> { };
 template <typename Is, typename... Ts> struct type_set_0_;
@@ -147,20 +131,6 @@ template <typename Rs, typename T0, typename... Ts> struct unique_sequence_0_<Rs
 
 template <typename Ts> struct unique_sequence_;
 template <template <typename...> class TypeSeqT, typename... Ts> struct unique_sequence_<TypeSeqT<Ts...>> : unique_sequence_0_<TypeSeqT<>, type_set_<Ts...>> { };
-
-
-    //ᅟ
-    // Tag argument type compatible with arguments that inherit from at least one of the given tag types.
-    //
-template <typename... Ts>
-    struct any_tag_of
-{
-    template <typename T,
-              std::enable_if_t<disjunction<std::is_convertible<T, Ts>...>::value, int> = 0>
-        constexpr any_tag_of(const T&) noexcept
-    {
-    }
-};
 
 
 template <typename... Ts> struct equal_types_;
