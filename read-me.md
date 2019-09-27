@@ -1,3 +1,37 @@
+# makeshift C++ library
+
+A collection of the things I miss in the C++ standard library.
+
+
+## Dependencies
+
+* [CMakeshift](https://github.com/mbeutel/CMakeshift)
+* [gsl-lite](https://github.com/Microsoft/GSL), an implementation of the [C++ Core Guidelines Support Libraray](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#S-gsl)
+
+
+### Optional Dependencies
+
+* [Catch2](https://github.com/catchorg/Catch2) - for test
+* [MPark.Variant](https://github.com/mpark/variant) - for test
+
+
+## Basics
+
+TODO: briefly introduce project
+
+
+### Quick Example
+
+TODO: give example of usage
+
+
+## Reference
+
+TODO: document
+
+
+## License
+
 Copyright (c) 2018-2019, Moritz Beutel  
 All rights reserved.
 
@@ -23,4 +57,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 The views and conclusions contained in the software and documentation are those  
 of the authors and should not be interpreted as representing official policies,  
+either expressed or implied, of the makeshift project.
+
+The views and conclusions contained in the software and documentation are those
+of the authors and should not be interpreted as representing official policies,
 either expressed or implied, of the makeshift project.
