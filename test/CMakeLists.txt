@@ -58,12 +58,12 @@ target_compile_definitions(test-makeshift-cxx14
     PRIVATE
         CATCH_CONFIG_CONSOLE_WIDTH=120
         CATCH_CLARA_CONFIG_CONSOLE_WIDTH=120
-        gsl_CONFIG_CONTRACT_VIOLATION_THROWS) # so we can check programmatically if violations are caught
+        gsl_CONFIG_CONTRACT_VIOLATION_THROWS) # this makes GSL's Expects()/Ensures() throw `gsl::fail_fast` on failure
 target_compile_definitions(test-makeshift-cxx17
     PRIVATE
         CATCH_CONFIG_CONSOLE_WIDTH=120
         CATCH_CLARA_CONFIG_CONSOLE_WIDTH=120
-        gsl_CONFIG_CONTRACT_VIOLATION_THROWS) # so we can check programmatically if violations are caught
+        gsl_CONFIG_CONTRACT_VIOLATION_THROWS) # this makes GSL's Expects()/Ensures() throw `gsl::fail_fast` on failure
 
 # test dependencies
 target_link_libraries(test-makeshift-cxx14
