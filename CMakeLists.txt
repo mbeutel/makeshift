@@ -25,7 +25,6 @@ endif()
 find_package(CMakeshift 3.5 REQUIRED)
 include(CMakeshift/InstallBasicPackageFiles)
 cmakeshift_install_basic_package_files(makeshift
-    EXPORT makeshift
     COMPATIBILITY SameMajorVersion
     DEPENDENCIES
         "gsl-lite")
