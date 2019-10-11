@@ -21,8 +21,7 @@ namespace makeshift
     //ᅟ    auto type_name_func = overloaded(
     //ᅟ        [](int)   { return "int"; },
     //ᅟ        [](float) { return "float"; },
-    //ᅟ        [](auto)  { return "unknown"; }
-    //ᅟ    );
+    //ᅟ        [](auto)  { return "unknown"; });
     //
 template <typename... Fs>
     struct MAKESHIFT_DETAIL_EMPTY_BASES overloaded : Fs...
@@ -36,8 +35,7 @@ template <typename... Fs>
     //ᅟ    auto type_name_func = overloaded(
     //ᅟ        [](int)   { return "int"; },
     //ᅟ        [](float) { return "float"; },
-    //ᅟ        [](auto)  { return "unknown"; }
-    //ᅟ    );
+    //ᅟ        [](auto)  { return "unknown"; });
     //
 template <typename... Fs>
     struct overloaded;
@@ -71,14 +69,13 @@ template <typename... Fs>
     // Higher-order function for defining recursive lambda functions.
     // Note that the lambda function must explicitly declare a return type.
     //ᅟ
-    //ᅟ    auto fac = y_combinator{ 
+    //ᅟ    auto fac = y_combinator( 
     //ᅟ        [](auto fac, int i) -> int
     //ᅟ        {
     //ᅟ            return i <= 1
     //ᅟ                ? 1
     //ᅟ                : i * fac(i - 1);
-    //ᅟ        }
-    //ᅟ    };
+    //ᅟ        });
     //ᅟ    int i = fac(4); // returns 24
     //
 template <typename F>
