@@ -23,6 +23,17 @@ namespace makeshift
 
 
     //ᅟ
+    // Returns a constval with the value of the given constant expression.
+    //ᅟ
+    //ᅟ    struct PerformanceParams { int loopUnrollSize; };
+    //ᅟ
+    //ᅟ    auto paramsC = MAKESHIFT_CONSTVAL(PerformanceParams{ .loopUnrollSize = 2 });
+    //ᅟ    // returns constval representing value `PerformanceParams{ 2 }`
+    //
+#define MAKESHIFT_CONSTVAL(...) (makeshift::make_constval([] { struct R_ { constexpr auto operator ()(void) const noexcept { return __VA_ARGS__; } }; return R_{ }; }()))
+
+
+    //ᅟ
     // A constval type representing the given nullary constexpr function object type. Applies normalization if applicable.
     //
 template <typename C> using make_constval_t = makeshift::detail::make_constval<C>;
@@ -33,10 +44,10 @@ template <typename C> using make_constval_t = makeshift::detail::make_constval<C
     //ᅟ
     //ᅟ    struct PerformanceParams { int loopUnrollSize; };
     //ᅟ
-    //ᅟ    auto params = make_constval([]
-    //ᅟ    {
-    //ᅟ        return PerformanceParams{ .loopUnrollSize = 2 };
-    //ᅟ    });
+    //ᅟ    auto paramsC = make_constval([]
+    //ᅟ        {
+    //ᅟ            return PerformanceParams{ .loopUnrollSize = 2 };
+    //ᅟ        });
     //ᅟ    // returns constval representing value `PerformanceParams{ 2 }`
     //
 template <typename C>

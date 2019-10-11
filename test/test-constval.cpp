@@ -205,6 +205,10 @@ TEST_CASE("constval")
     std::tuple<std::array<int, 1>, std::array<int, 2>> ncTA2 = cTA2;
     (void) ncTA2;
 #endif // MAKESHIFT_CXX >= 17
+    auto cTA3 = MAKESHIFT_CONSTVAL(std::make_tuple(std::array<int, 1>{ 3 }, std::array<int, 2>{ 1, 4 }));
+    expect_array_tuple_constval_normalization(cTA3);
+    std::tuple<std::array<int, 1>, std::array<int, 2>> ncTA3 = cTA3;
+    (void) ncTA3;
 
     auto cT1 = mk::make_constval(CT{ });
     expect_type_tag<int>(cT1);
