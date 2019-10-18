@@ -1,0 +1,35 @@
+{
+    // See https://go.microsoft.com//fwlink//?linkid=834763 for more information about this file.
+    "configurations": [
+        {
+            "name": "Windows-x64-Debug",
+            "generator": "Ninja",
+            "configurationType": "Debug",
+            "cmakeCommandArgs": "-v",
+            "buildCommandArgs": "",
+            "ctestCommandArgs": "",
+            "variables": [
+                {
+                    "name": "BUILD_TESTS",
+                    "type": "BOOL",
+                    "value": "ON"
+                }
+            ],
+        },
+        {
+            "name": "Windows-x64-Release",
+            "generator": "Ninja",
+            "configurationType": "RelWithDebInfo",
+            "cmakeCommandArgs": "-v",
+            "buildCommandArgs": "",
+            "ctestCommandArgs": "",
+            "variables": [
+                {
+                    "name": "BUILD_TESTS",
+                    "type": "BOOL",
+                    "value": "ON"
+                }
+            ]
+        }
+    ]
+}

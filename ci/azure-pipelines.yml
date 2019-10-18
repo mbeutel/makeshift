@@ -23,15 +23,15 @@ jobs:
       displayName: Run Vcpkg
       inputs:
         vcpkgDirectory: '$(Build.BinariesDirectory)/dependencies/vcpkg'
-        vcpkgArguments: |
-          '--overlay-ports="$(Build.BinariesDirectory)/dependencies/asc-vcpkg-ports"'
-          '@$(Build.SourcesDirectory)/ci/vcpkg_x64-windows.txt'
+        vcpkgArguments: --overlay-ports="$(Build.BinariesDirectory)/dependencies/asc-vcpkg-ports" '@$(Build.SourcesDirectory)/ci/vcpkg_x64-windows.txt'
         vcpkgGitCommitId: $(vcpkgGitRef)
 
     - task: run-cmake@0
       displayName: Run CMake with Ninja
       inputs:
-        cmakeListsTxtPath: 'CMakeLists.txt'
+        cmakeListsOrSettingsJson: CMakeSettingsJson
+        cmakeSettingsJsonPath: '$(Build.SourcesDirectory)/ci/CMakeSettings.json'
         useVcpkgToolchainFile: true
-        vcpkgTriplet: '$(VCPKG_TRIPLET)'
-        buildWithCMakeArgs: '-- -v'
+        buildDirectory: '$(Build.BinariesDirectory)/ninja'
+        cmakeAppendedArgs: '-G Ninja '
+        configurationRegexFilter: 'Windows-x64-.*'
