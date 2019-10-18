@@ -25,7 +25,7 @@ jobs:
           Platform: x64
 
     pool:
-      name: Hosted Windows 2019 with VS2019
+      name: Azure Pipelines
       vmImage: 'windows-2019'
 
     steps:
@@ -71,7 +71,7 @@ jobs:
           Platform: x64
 
     pool:
-      name: Hosted Ubuntu 18.04 with GCC 9.1
+      name: Azure Pipelines
       vmImage: 'ubuntu-18.04'
 
     steps:
