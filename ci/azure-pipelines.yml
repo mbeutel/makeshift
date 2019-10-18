@@ -39,12 +39,12 @@ jobs:
       - script: git clone --depth 1 $(vcpkgPortsOverlayRepo) "$(Build.BinariesDirectory)/dependencies/ports-overlay-repo"
         displayName: Clone ports overlay repository
         failOnStderr: true
-        condition: not($[dependencyCacheHit])
+        condition: not(variables.dependencyCacheHit)
 
       - script: |
           tree -F $(Build.BinariesDirectory)/dependencies
         displayName: Display cache content
-        condition: $[dependencyCacheHit]
+        condition: variables.dependencyCacheHit
         workingDirectory: '$(Build.BinariesDirectory)/build'
 
       - task: run-vcpkg@0
@@ -106,12 +106,12 @@ jobs:
       - script: git clone --depth 1 $(vcpkgPortsOverlayRepo) "$(Build.BinariesDirectory)/dependencies/ports-overlay-repo"
         displayName: Clone ports overlay repository
         failOnStderr: true
-        condition: not($[dependencyCacheHit])
+        condition: not(variables.dependencyCacheHit)
 
       - script: |
           tree -a $(Build.BinariesDirectory)/dependencies
         displayName: Display cache content
-        condition: $[dependencyCacheHit]
+        condition: variables.dependencyCacheHit
         workingDirectory: '$(Build.BinariesDirectory)/build'
 
       - script: |
@@ -124,7 +124,7 @@ jobs:
           sudo sh cmake-$cmake_version.$cmake_build-Linux-x86_64.sh --prefix=/opt/cmake
           sudo ln -s /opt/cmake/bin/cmake /usr/local/bin/cmake
         displayName: Install CMake 3.15
-        condition: not($[dependencyCacheHit])
+        condition: not(variables.dependencyCacheHit)
         failOnStderr: true
 
       - task: run-vcpkg@0
