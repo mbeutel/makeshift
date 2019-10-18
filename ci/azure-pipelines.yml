@@ -42,10 +42,10 @@ jobs:
         condition: not(variables.dependencyCacheHit)
 
       - script: |
-          tree -F $(Build.BinariesDirectory)/dependencies
+          tree -F
         displayName: Display cache content
         condition: variables.dependencyCacheHit
-        workingDirectory: '$(Build.BinariesDirectory)/build'
+        workingDirectory: '$(Pipeline.Workspace)'
 
       - task: run-vcpkg@0
         displayName: Run Vcpkg to install dependencies
@@ -94,7 +94,6 @@ jobs:
           sudo ln -s `which gcc-9` /usr/local/bin/gcc
           sudo ln -s `which g++-9` /usr/local/bin/g++
         displayName: Install GCC 9
-        failOnStderr: true
           
       - task: CacheBeta@0
         displayName: Cache dependencies
@@ -105,7 +104,6 @@ jobs:
 
       - script: git clone --depth 1 $(vcpkgPortsOverlayRepo) "$(Build.BinariesDirectory)/dependencies/ports-overlay-repo"
         displayName: Clone ports overlay repository
-        failOnStderr: true
         condition: not(variables.dependencyCacheHit)
 
       - script: |
