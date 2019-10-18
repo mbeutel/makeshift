@@ -42,7 +42,7 @@ jobs:
         condition: not(variables.dependencyCacheHit)
 
       - script: |
-          tree /F
+          tree /F /A
         displayName: Display cache content
         condition: variables.dependencyCacheHit
         workingDirectory: '$(Pipeline.Workspace)'
@@ -54,6 +54,10 @@ jobs:
           vcpkgGitCommitId: '$(vcpkgGitRef)'
           vcpkgTriplet: '$(Platform)-windows'
           vcpkgArguments: '--overlay-ports="$(Build.BinariesDirectory)/dependencies/ports-overlay-repo/vcpkg/ports" "@$(Build.SourcesDirectory)/ci/vcpkg.txt"'
+          vcpkgArtifactIgnoreEntries: |
+            buildtrees/
+            downloads/
+            packages/
 
       - task: run-cmake@0
         displayName: Build
@@ -107,6 +111,7 @@ jobs:
         condition: not(variables.dependencyCacheHit)
 
       - script: |
+          sudo apt install tree
           tree -a
         displayName: Display cache content
         condition: variables.dependencyCacheHit
@@ -132,6 +137,10 @@ jobs:
           vcpkgGitCommitId: '$(vcpkgGitRef)'
           vcpkgTriplet: '$(Platform)-windows'
           vcpkgArguments: '--overlay-ports="$(Build.BinariesDirectory)/dependencies/ports-overlay-repo/vcpkg/ports" "@$(Build.SourcesDirectory)/ci/vcpkg.txt"'
+          vcpkgArtifactIgnoreEntries: |
+            buildtrees/
+            downloads/
+            packages/
 
       - task: run-cmake@0
         displayName: Build
