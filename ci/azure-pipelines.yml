@@ -16,7 +16,7 @@ jobs:
       - task: CacheBeta@0
         displayName: Cache Vcpkg and ASC portfiles
         inputs:
-          key: $(Build.SourcesDirectory)/ci/vcpkg_x64-windows.txt | "$(vcpkgGitRef)" | "$(vcpkgASCPortsGitRef)" | "$(Agent.OS)"
+          key: $(Build.SourcesDirectory)/ci/vcpkg.txt | "$(vcpkgGitRef)" | "$(vcpkgASCPortsGitRef)" | "$(Agent.OS)"
           path: '$(Build.BinariesDirectory)/dependencies'
   
       - script: git clone --depth 1 https://mp-force.ziti.uni-heidelberg.de/asc/infrastructure/vcpkg-ports.git "$(Build.BinariesDirectory)/dependencies/asc-vcpkg-ports"
