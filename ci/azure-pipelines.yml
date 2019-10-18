@@ -23,7 +23,7 @@ jobs:
       displayName: Run Vcpkg
       inputs:
         vcpkgDirectory: '$(Build.BinariesDirectory)/dependencies/vcpkg'
-        vcpkgArguments: --overlay-ports="$(Build.BinariesDirectory)/dependencies/asc-vcpkg-ports" '@$(Build.SourcesDirectory)/ci/vcpkg_x64-windows.txt'
+        vcpkgArguments: '--overlay-ports="$(Build.BinariesDirectory)/dependencies/asc-vcpkg-ports/vcpkg/ports" "@$(Build.SourcesDirectory)/ci/vcpkg_x64-windows.txt"'
         vcpkgGitCommitId: $(vcpkgGitRef)
 
     - task: run-cmake@0
