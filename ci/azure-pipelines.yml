@@ -1,40 +1,61 @@
 # Azure Pipelines configuration for makeshift
 
 jobs:
-  - job: vs2019_hosted
-  
+  - job: Windows2019_VS2019
+
     pool:
       name: Hosted Windows 2019 with VS2019
-      vmImage: 'windows-latest'
-      
+      vmImage: 'windows-2019'
+
+    strategy:
+      matrix: 
+        Debug_x86:
+          Config: Debug
+          Platform: x86
+          CMakePlatform: Win32
+        Release_x86:
+          Config: RelWithDebInfo
+          Platform: x86
+          CMakePlatform: Win32
+        Debug_x64:
+          Config: Debug
+          Platform: x64
+          CMakePlatform: x64
+        Release_x64:
+          Config: RelWithDebInfo
+          Platform: x64
+          CMakePlatform: x64
+
     variables:
       system.debug: true
       vcpkgGitRef: 2aaf7fd8b3d7dce245c5ce2d41aa3fdb6f0f7438
       vcpkgASCPortsGitRef: 09240a899e6575a217a267b26a7c378d0e7d3374
-  
+
     steps:
       - task: CacheBeta@0
-        displayName: Cache Vcpkg and ASC portfiles
+        displayName: Cache dependencies
         inputs:
-          key: $(Build.SourcesDirectory)/ci/vcpkg.txt | "$(vcpkgGitRef)" | "$(vcpkgASCPortsGitRef)" | "$(Agent.OS)"
+          key: $(Build.SourcesDirectory)/ci/vcpkg.txt | "$(vcpkgGitRef)" | "$(vcpkgASCPortsGitRef)" | "$(Agent.OS)" | "$(Platform)"
           path: '$(Build.BinariesDirectory)/dependencies'
-  
+
       - script: git clone --depth 1 https://mp-force.ziti.uni-heidelberg.de/asc/infrastructure/vcpkg-ports.git "$(Build.BinariesDirectory)/dependencies/asc-vcpkg-ports"
-  
+
       - task: run-vcpkg@0
-        displayName: Run Vcpkg
+        displayName: Run Vcpkg to install dependencies
         inputs:
           vcpkgDirectory: '$(Build.BinariesDirectory)/dependencies/vcpkg'
           vcpkgGitCommitId: '$(vcpkgGitRef)'
-          vcpkgTriplet: 'x64-windows'
+          vcpkgTriplet: '$(Platform)-windows'
           vcpkgArguments: '--overlay-ports="$(Build.BinariesDirectory)/dependencies/asc-vcpkg-ports/vcpkg/ports" "@$(Build.SourcesDirectory)/ci/vcpkg.txt"'
-  
+
       - task: run-cmake@0
-        displayName: Run CMake with Ninja
+        displayName: Build
         inputs:
-          cmakeListsOrSettingsJson: CMakeSettingsJson
-          cmakeSettingsJsonPath: '$(Build.SourcesDirectory)/ci/CMakeSettings.json'
+          cmakeListsOrSettingsJson: 'CMakeListsTxtAdvanced'
           useVcpkgToolchainFile: true
           buildDirectory: '$(Build.BinariesDirectory)/ninja'
-          cmakeAppendedArgs: '-G Ninja '
-          configurationRegexFilter: 'Windows-x64-.*'
+          cmakeAppendedArgs: '-G Ninja -A $(CMakePlatform) -DCMAKE_BUILD_TYPE=$(Config) -DBUILD_TESTS=ON'
+
+      - script: |
+          ctest -V
+        displayName: Run tests
