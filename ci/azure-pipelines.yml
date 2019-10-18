@@ -1,37 +1,40 @@
+# Azure Pipelines configuration for makeshift
 
 jobs:
-
-- job: vs2019_hosted
-  pool:
-    name: Hosted Windows 2019 with VS2019
-
-  variables:
-    system.debug: true
-    vcpkgGitRef: 2aaf7fd8b3d7dce245c5ce2d41aa3fdb6f0f7438
-    vcpkgASCPortsGitRef: 09240a899e6575a217a267b26a7c378d0e7d3374
-
-  steps:
-    - task: CacheBeta@0
-      displayName: Cache Vcpkg and ASC portfiles
-      inputs:
-        key: $(Build.SourcesDirectory)/ci/vcpkg_x64-windows.txt | "$(vcpkgGitRef)" | "$(vcpkgASCPortsGitRef)" | "$(Agent.OS)"
-        path: '$(Build.BinariesDirectory)/dependencies'
-
-    - script: git clone --depth 1 https://mp-force.ziti.uni-heidelberg.de/asc/infrastructure/vcpkg-ports.git "$(Build.BinariesDirectory)/dependencies/asc-vcpkg-ports"
-
-    - task: run-vcpkg@0
-      displayName: Run Vcpkg
-      inputs:
-        vcpkgDirectory: '$(Build.BinariesDirectory)/dependencies/vcpkg'
-        vcpkgArguments: '--overlay-ports="$(Build.BinariesDirectory)/dependencies/asc-vcpkg-ports/vcpkg/ports" "@$(Build.SourcesDirectory)/ci/vcpkg_x64-windows.txt"'
-        vcpkgGitCommitId: $(vcpkgGitRef)
-
-    - task: run-cmake@0
-      displayName: Run CMake with Ninja
-      inputs:
-        cmakeListsOrSettingsJson: CMakeSettingsJson
-        cmakeSettingsJsonPath: '$(Build.SourcesDirectory)/ci/CMakeSettings.json'
-        useVcpkgToolchainFile: true
-        buildDirectory: '$(Build.BinariesDirectory)/ninja'
-        cmakeAppendedArgs: '-G Ninja '
-        configurationRegexFilter: 'Windows-x64-.*'
+  - job: vs2019_hosted
+  
+    pool:
+      name: Hosted Windows 2019 with VS2019
+      vmImage: 'windows-latest'
+      
+    variables:
+      system.debug: true
+      vcpkgGitRef: 2aaf7fd8b3d7dce245c5ce2d41aa3fdb6f0f7438
+      vcpkgASCPortsGitRef: 09240a899e6575a217a267b26a7c378d0e7d3374
+  
+    steps:
+      - task: CacheBeta@0
+        displayName: Cache Vcpkg and ASC portfiles
+        inputs:
+          key: $(Build.SourcesDirectory)/ci/vcpkg_x64-windows.txt | "$(vcpkgGitRef)" | "$(vcpkgASCPortsGitRef)" | "$(Agent.OS)"
+          path: '$(Build.BinariesDirectory)/dependencies'
+  
+      - script: git clone --depth 1 https://mp-force.ziti.uni-heidelberg.de/asc/infrastructure/vcpkg-ports.git "$(Build.BinariesDirectory)/dependencies/asc-vcpkg-ports"
+  
+      - task: run-vcpkg@0
+        displayName: Run Vcpkg
+        inputs:
+          vcpkgDirectory: '$(Build.BinariesDirectory)/dependencies/vcpkg'
+          vcpkgGitCommitId: '$(vcpkgGitRef)'
+          vcpkgTriplet: 'x64-windows'
+          vcpkgArguments: '--overlay-ports="$(Build.BinariesDirectory)/dependencies/asc-vcpkg-ports/vcpkg/ports" "@$(Build.SourcesDirectory)/ci/vcpkg_x64-windows.txt"'
+  
+      - task: run-cmake@0
+        displayName: Run CMake with Ninja
+        inputs:
+          cmakeListsOrSettingsJson: CMakeSettingsJson
+          cmakeSettingsJsonPath: '$(Build.SourcesDirectory)/ci/CMakeSettings.json'
+          useVcpkgToolchainFile: true
+          buildDirectory: '$(Build.BinariesDirectory)/ninja'
+          cmakeAppendedArgs: '-G Ninja '
+          configurationRegexFilter: 'Windows-x64-.*'
