@@ -27,7 +27,7 @@ jobs:
           vcpkgDirectory: '$(Build.BinariesDirectory)/dependencies/vcpkg'
           vcpkgGitCommitId: '$(vcpkgGitRef)'
           vcpkgTriplet: 'x64-windows'
-          vcpkgArguments: '--overlay-ports="$(Build.BinariesDirectory)/dependencies/asc-vcpkg-ports/vcpkg/ports" "@$(Build.SourcesDirectory)/ci/vcpkg_x64-windows.txt"'
+          vcpkgArguments: '--overlay-ports="$(Build.BinariesDirectory)/dependencies/asc-vcpkg-ports/vcpkg/ports" "@$(Build.SourcesDirectory)/ci/vcpkg.txt"'
   
       - task: run-cmake@0
         displayName: Run CMake with Ninja
