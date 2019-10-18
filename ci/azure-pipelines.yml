@@ -84,7 +84,7 @@ jobs:
           sudo ln -s `which gcc-9` /usr/local/bin/gcc
           sudo ln -s `which g++-9` /usr/local/bin/g++
         displayName: Install GCC 9
-        failOnStderr: true
+        failOnStderr: false
           
       - task: CacheBeta@0
         displayName: Cache dependencies
