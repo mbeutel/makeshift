@@ -12,19 +12,15 @@ jobs:
         Debug_x86:
           Config: Debug
           Platform: x86
-          CMakePlatform: Win32
         Release_x86:
           Config: RelWithDebInfo
           Platform: x86
-          CMakePlatform: Win32
         Debug_x64:
           Config: Debug
           Platform: x64
-          CMakePlatform: x64
         Release_x64:
           Config: RelWithDebInfo
           Platform: x64
-          CMakePlatform: x64
 
     variables:
       system.debug: true
@@ -54,7 +50,7 @@ jobs:
           cmakeListsOrSettingsJson: 'CMakeListsTxtAdvanced'
           useVcpkgToolchainFile: true
           buildDirectory: '$(Build.BinariesDirectory)/ninja'
-          cmakeAppendedArgs: '-G Ninja -A $(CMakePlatform) -DCMAKE_BUILD_TYPE=$(Config) -DBUILD_TESTS=ON'
+          cmakeAppendedArgs: '-G Ninja -DCMAKE_BUILD_TYPE=$(Config) -DBUILD_TESTS=ON'
 
       - script: |
           ctest -V
