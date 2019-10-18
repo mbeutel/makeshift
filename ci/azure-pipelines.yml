@@ -42,7 +42,7 @@ jobs:
         condition: not(variables.dependencyCacheHit)
 
       - script: |
-          tree -F
+          tree /F
         displayName: Display cache content
         condition: variables.dependencyCacheHit
         workingDirectory: '$(Pipeline.Workspace)'
@@ -107,10 +107,10 @@ jobs:
         condition: not(variables.dependencyCacheHit)
 
       - script: |
-          tree -a $(Build.BinariesDirectory)/dependencies
+          tree -a
         displayName: Display cache content
         condition: variables.dependencyCacheHit
-        workingDirectory: '$(Build.BinariesDirectory)/build'
+        workingDirectory: '$(Pipeline.Workspace)'
 
       - script: |
           export cmake_version=3.15
