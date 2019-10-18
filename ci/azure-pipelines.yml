@@ -33,7 +33,7 @@ jobs:
       - task: CacheBeta@0
         displayName: Cache dependencies
         inputs:
-          key: '$(Build.SourcesDirectory)/ci/vcpkg.txt | "$(vcpkgGitRef)" | "$(vcpkgPortsOverlayRef)" | "$(Agent.OS)" | "$(Platform)' | "$(revision)"'
+          key: '$(Build.SourcesDirectory)/ci/vcpkg.txt | "$(vcpkgGitRef)" | "$(vcpkgPortsOverlayRef)" | "$(Agent.OS)" | "$(Platform)" | "$(revision)"'
           path: '$(Build.BinariesDirectory)/dependencies'
           cacheHitVar: 'dependencyCacheHit'
 
