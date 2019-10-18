@@ -1,11 +1,13 @@
 # Azure Pipelines configuration for makeshift
 
+variables:
+  system.debug: true
+  vcpkgGitRef: 2aaf7fd8b3d7dce245c5ce2d41aa3fdb6f0f7438
+  vcpkgPortsOverlayRepo: 'https://mp-force.ziti.uni-heidelberg.de/asc/infrastructure/vcpkg-ports.git'
+  vcpkgPortsOverlayRef: 09240a899e6575a217a267b26a7c378d0e7d3374
+
 jobs:
   - job: Windows2019_VS2019
-
-    pool:
-      name: Hosted Windows 2019 with VS2019
-      vmImage: 'windows-2019'
 
     strategy:
       matrix: 
@@ -22,19 +24,18 @@ jobs:
           Config: RelWithDebInfo
           Platform: x64
 
-    variables:
-      system.debug: true
-      vcpkgGitRef: 2aaf7fd8b3d7dce245c5ce2d41aa3fdb6f0f7438
-      vcpkgASCPortsGitRef: 09240a899e6575a217a267b26a7c378d0e7d3374
+    pool:
+      name: Hosted Windows 2019 with VS2019
+      vmImage: 'windows-2019'
 
     steps:
       - task: CacheBeta@0
         displayName: Cache dependencies
         inputs:
-          key: $(Build.SourcesDirectory)/ci/vcpkg.txt | "$(vcpkgGitRef)" | "$(vcpkgASCPortsGitRef)" | "$(Agent.OS)" | "$(Platform)"
+          key: $(Build.SourcesDirectory)/ci/vcpkg.txt | "$(vcpkgGitRef)" | "$(vcpkgPortsOverlayRef)" | "$(Agent.OS)" | "$(Platform)"
           path: '$(Build.BinariesDirectory)/dependencies'
 
-      - script: git clone --depth 1 https://mp-force.ziti.uni-heidelberg.de/asc/infrastructure/vcpkg-ports.git "$(Build.BinariesDirectory)/dependencies/asc-vcpkg-ports"
+      - script: git clone --depth 1 $(vcpkgPortsOverlayRepo) "$(Build.BinariesDirectory)/dependencies/ports-overlay-repo"
 
       - task: run-vcpkg@0
         displayName: Run Vcpkg to install dependencies
@@ -42,16 +43,87 @@ jobs:
           vcpkgDirectory: '$(Build.BinariesDirectory)/dependencies/vcpkg'
           vcpkgGitCommitId: '$(vcpkgGitRef)'
           vcpkgTriplet: '$(Platform)-windows'
-          vcpkgArguments: '--overlay-ports="$(Build.BinariesDirectory)/dependencies/asc-vcpkg-ports/vcpkg/ports" "@$(Build.SourcesDirectory)/ci/vcpkg.txt"'
+          vcpkgArguments: '--overlay-ports="$(Build.BinariesDirectory)/dependencies/ports-overlay-repo/vcpkg/ports" "@$(Build.SourcesDirectory)/ci/vcpkg.txt"'
 
       - task: run-cmake@0
         displayName: Build
         inputs:
           cmakeListsOrSettingsJson: 'CMakeListsTxtAdvanced'
           useVcpkgToolchainFile: true
-          buildDirectory: '$(Build.BinariesDirectory)/ninja'
+          buildDirectory: '$(Build.BinariesDirectory)/build'
           cmakeAppendedArgs: '-G Ninja -DCMAKE_BUILD_TYPE=$(Config) -DBUILD_TESTS=ON'
 
       - script: |
           ctest -V
         displayName: Run tests
+        failOnStderr: true
+        workingDirectory: '$(Build.BinariesDirectory)/build'
+        
+  - job: Ubuntu1808_GCC9
+
+    strategy:
+      matrix: 
+        Debug:
+          Config: Debug
+          Platform: x64
+        Release:
+          Config: RelWithDebInfo
+          Platform: x64
+
+    pool:
+      name: Hosted Ubuntu 18.04 with GCC 9.1
+      vmImage: 'ubuntu-18.04'
+
+    steps:
+      - script: |
+          sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+          sudo apt update
+          sudo apt install gcc-9
+          #export CC=gcc-9
+          #export CXX=g++-9
+          sudo ln -s `which gcc-9` /usr/local/bin/gcc
+          sudo ln -s `which g++-9` /usr/local/bin/g++
+        displayName: Install GCC 9
+        failOnStderr: true
+          
+      - task: CacheBeta@0
+        displayName: Cache dependencies
+        inputs:
+          key: $(Build.SourcesDirectory)/ci/vcpkg.txt | "$(vcpkgGitRef)" | "$(vcpkgPortsOverlayRef)" | "$(Agent.OS)" | "$(Platform)"
+          path: '$(Build.BinariesDirectory)/dependencies'
+
+      - script: |
+          export cmake_version=3.15
+          export cmake_build=4
+          mkdir ~/temp
+          cd ~/temp
+          wget https://cmake.org/files/v$cmake_version/cmake-$cmake_version.$cmake_build-Linux-x86_64.sh 
+          sudo mkdir /opt/cmake
+          sudo sh cmake-$cmake_version.$cmake_build-Linux-x86_64.sh --prefix=/opt/cmake
+          sudo ln -s /opt/cmake/bin/cmake /usr/local/bin/cmake
+        displayName: Install CMake 3.15
+        failOnStderr: true
+
+      - script: git clone --depth 1 $(vcpkgPortsOverlayRepo) "$(Build.BinariesDirectory)/dependencies/ports-overlay-repo"
+
+      - task: run-vcpkg@0
+        displayName: Run Vcpkg to install dependencies
+        inputs:
+          vcpkgDirectory: '$(Build.BinariesDirectory)/dependencies/vcpkg'
+          vcpkgGitCommitId: '$(vcpkgGitRef)'
+          vcpkgTriplet: '$(Platform)-windows'
+          vcpkgArguments: '--overlay-ports="$(Build.BinariesDirectory)/dependencies/ports-overlay-repo/vcpkg/ports" "@$(Build.SourcesDirectory)/ci/vcpkg.txt"'
+
+      - task: run-cmake@0
+        displayName: Build
+        inputs:
+          cmakeListsOrSettingsJson: 'CMakeListsTxtAdvanced'
+          useVcpkgToolchainFile: true
+          buildDirectory: '$(Build.BinariesDirectory)/build'
+          cmakeAppendedArgs: '-DCMAKE_BUILD_TYPE=$(Config) -DBUILD_TESTS=ON'
+
+      - script: |
+          ctest -V
+        displayName: Run tests
+        failOnStderr: true
+        workingDirectory: '$(Build.BinariesDirectory)/build'
