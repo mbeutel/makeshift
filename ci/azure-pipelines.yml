@@ -39,7 +39,6 @@ jobs:
 
       - script: git clone --depth 1 $(vcpkgPortsOverlayRepo) "$(Build.BinariesDirectory)/dependencies/ports-overlay-repo"
         displayName: Clone ports overlay repository
-        failOnStderr: true
         condition: ne(variables.dependencyCacheHit, 'true')
 
       - script: |
@@ -125,7 +124,7 @@ jobs:
           cd ~/temp
           wget https://cmake.org/files/v$cmake_version/cmake-$cmake_version.$cmake_build-Linux-x86_64.sh 
           sudo mkdir /opt/cmake
-          sudo sh cmake-$cmake_version.$cmake_build-Linux-x86_64.sh --prefix=/opt/cmake
+          sudo sh cmake-$cmake_version.$cmake_build-Linux-x86_64.sh --prefix=/opt/cmake --skip-license
           sudo ln -s /opt/cmake/bin/cmake /usr/local/bin/cmake
         displayName: Install CMake 3.15
         condition: ne(variables.dependencyCacheHit, 'true')
