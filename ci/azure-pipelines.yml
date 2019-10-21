@@ -149,16 +149,6 @@ jobs:
           echo "##vso[task.setvariable variable=VCPKG_TRIPLET]$(Platform)-linux"
         displayName: Set environment variables
 
-      - script: |
-          echo "$PATH"
-          echo "$VCPKG_ROOT"
-          echo "$VCPKG_TRIPLET"
-          echo `which cmake`
-          ls -lh "$(Build.BinariesDirectory)/dependencies"
-          ls -lh "$(Build.BinariesDirectory)/dependencies/cmake"
-          ls -lh "$(Build.BinariesDirectory)/dependencies/cmake/bin"
-        displayName: Foobar
-
       - task: run-cmake@0
         displayName: Build
         inputs:
