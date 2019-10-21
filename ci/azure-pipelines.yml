@@ -6,7 +6,7 @@ variables:
   vcpkgPortsOverlayRepo: 'https://mp-force.ziti.uni-heidelberg.de/asc/infrastructure/vcpkg-ports.git'
   vcpkgPortsOverlayRef: 09240a899e6575a217a267b26a7c378d0e7d3374
   cmakeConfigArgs: '-DBUILD_TESTS=ON'
-  revision: 2
+  revision: 3
 
 jobs:
   - job: Windows2019_VS2019
@@ -31,7 +31,7 @@ jobs:
       vmImage: 'windows-2019'
 
     steps:
-      - task: CacheBeta@0
+      - task: CacheBeta@1
         displayName: Cache dependencies
         inputs:
           key: '$(Build.SourcesDirectory)/ci/vcpkg.txt | "$(vcpkgGitRef)" | "$(vcpkgPortsOverlayRef)" | "$(Agent.OS)" | "$(Platform)" | "$(revision)"'
@@ -106,7 +106,7 @@ jobs:
           sudo apt install gcc-9
         displayName: Install GCC 9
 
-      - task: CacheBeta@0
+      - task: CacheBeta@1
         displayName: Cache dependencies
         inputs:
           key: '$(Build.SourcesDirectory)/ci/vcpkg.txt | "$(vcpkgGitRef)" | "$(vcpkgPortsOverlayRef)" | "$(Agent.OS)" | "$(Platform)" | "$(revision)" | "cmake-$(cmakeVersion).$(cmakeBuild)" '
