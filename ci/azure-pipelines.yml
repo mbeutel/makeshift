@@ -97,18 +97,13 @@ jobs:
 
     steps:
       - script: |
-          sudo add-apt-repository ppa:ubuntu-toolchain-r/test
-          sudo apt-get update
-          sudo apt-get install gcc-9
-        displayName: Install GCC 9
-
-      - script: |
-          sudo apt purge --auto-remove cmake
+          wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | sudo apt-key add -
+          #sudo apt remove cmake
+          sudo apt-add-repository ppa:ubuntu-toolchain-r/test
           sudo apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main'
           sudo apt-get update
-          sudo apt-get install apt-transport-https ca-certificates gnupg software-properties-common wget
-          sudo apt-get install cmake
-        displayName: Install recent CMake
+          sudo apt-get install cmake gcc-9
+        displayName: Install GCC 9 and recent CMake
 
       - task: CacheBeta@1
         displayName: Cache dependencies
