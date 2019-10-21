@@ -332,12 +332,12 @@ namespace std
 
 
     // Implement tuple-like protocol for `array_constant<>`.
-template <typename T, T... Vs> struct tuple_size<makeshift::array_constant<T, Vs...>> : public std::integral_constant<std::size_t, sizeof...(Vs)> { };
-template <std::size_t I, typename T, T... Vs> struct tuple_element<I, makeshift::array_constant<T, Vs...>> { using type = makeshift::make_constval_t<makeshift::detail::array_accessor_functor<I, makeshift::array_constant<T, Vs...>>>; };
+template <typename T, T... Vs> class tuple_size<makeshift::array_constant<T, Vs...>> : public std::integral_constant<std::size_t, sizeof...(Vs)> { };
+template <std::size_t I, typename T, T... Vs> class tuple_element<I, makeshift::array_constant<T, Vs...>> { public: using type = makeshift::make_constval_t<makeshift::detail::array_accessor_functor<I, makeshift::array_constant<T, Vs...>>>; };
 
     // Implement tuple-like protocol for `tuple_constant<>`.
-template <typename... Cs> struct tuple_size<makeshift::tuple_constant<Cs...>> : public std::integral_constant<std::size_t, sizeof...(Cs)> { };
-template <std::size_t I, typename... Cs> struct tuple_element<I, makeshift::tuple_constant<Cs...>> { using type = makeshift::make_constval_t<makeshift::detail::tuple_accessor_functor<I, makeshift::tuple_constant<Cs...>>>; };
+template <typename... Cs> class tuple_size<makeshift::tuple_constant<Cs...>> : public std::integral_constant<std::size_t, sizeof...(Cs)> { };
+template <std::size_t I, typename... Cs> class tuple_element<I, makeshift::tuple_constant<Cs...>> { public: using type = makeshift::make_constval_t<makeshift::detail::tuple_accessor_functor<I, makeshift::tuple_constant<Cs...>>>; };
 
 
 } // namespace std

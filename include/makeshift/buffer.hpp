@@ -243,14 +243,14 @@ namespace std
 
 
     // Implement tuple-like protocol for `buffer<>`.
-template <typename T, std::ptrdiff_t Extent, std::ptrdiff_t MaxStaticBufferExtent> struct tuple_size<makeshift::buffer<T, Extent, MaxStaticBufferExtent>> : std::integral_constant<std::size_t, Extent> { };
-template <typename T, std::ptrdiff_t MaxStaticBufferExtent> struct tuple_size<makeshift::buffer<T, -1, MaxStaticBufferExtent>>; // undefined
-template <std::size_t I, typename T, std::ptrdiff_t Extent, std::ptrdiff_t MaxStaticBufferExtent> struct tuple_element<I, makeshift::buffer<T, Extent, MaxStaticBufferExtent>> { using type = T; };
+template <typename T, std::ptrdiff_t Extent, std::ptrdiff_t MaxStaticBufferExtent> class tuple_size<makeshift::buffer<T, Extent, MaxStaticBufferExtent>> : public std::integral_constant<std::size_t, Extent> { };
+template <typename T, std::ptrdiff_t MaxStaticBufferExtent> class tuple_size<makeshift::buffer<T, -1, MaxStaticBufferExtent>>; // undefined
+template <std::size_t I, typename T, std::ptrdiff_t Extent, std::ptrdiff_t MaxStaticBufferExtent> class tuple_element<I, makeshift::buffer<T, Extent, MaxStaticBufferExtent>> { public: using type = T; };
 
     // Implement tuple-like protocol for `fixed_buffer<>`.
-template <typename T, std::ptrdiff_t Extent, std::ptrdiff_t MaxBufferExtent> struct tuple_size<makeshift::fixed_buffer<T, Extent, MaxBufferExtent>> : std::integral_constant<std::size_t, Extent> { };
-template <typename T, std::ptrdiff_t MaxBufferExtent> struct tuple_size<makeshift::fixed_buffer<T, -1, MaxBufferExtent>>; // undefined
-template <std::size_t I, typename T, std::ptrdiff_t Extent, std::ptrdiff_t MaxBufferExtent> struct tuple_element<I, makeshift::fixed_buffer<T, Extent, MaxBufferExtent>> { using type = T; };
+template <typename T, std::ptrdiff_t Extent, std::ptrdiff_t MaxBufferExtent> class tuple_size<makeshift::fixed_buffer<T, Extent, MaxBufferExtent>> : public std::integral_constant<std::size_t, Extent> { };
+template <typename T, std::ptrdiff_t MaxBufferExtent> class tuple_size<makeshift::fixed_buffer<T, -1, MaxBufferExtent>>; // undefined
+template <std::size_t I, typename T, std::ptrdiff_t Extent, std::ptrdiff_t MaxBufferExtent> class tuple_element<I, makeshift::fixed_buffer<T, Extent, MaxBufferExtent>> { public: using type = T; };
 
 
 } // namespace std

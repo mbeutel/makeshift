@@ -83,10 +83,10 @@ namespace std
 
 
     // Implement tuple-like protocol for fixed-size `range<>`.
-template <typename It, std::ptrdiff_t Extent> struct tuple_size<makeshift::range<It, It, Extent>> : public std::integral_constant<std::size_t, Extent> { };
-template <typename It, typename EndIt> struct tuple_size<makeshift::range<It, EndIt, -1>>; // not defined
-template <std::size_t I, typename It, std::ptrdiff_t Extent> struct tuple_element<I, makeshift::range<It, It, Extent>> { using type = std::decay_t<decltype(*std::declval<It>())>; };
-template <std::size_t I, typename It, typename EndIt> struct tuple_element<I, makeshift::range<It, EndIt, -1>>; // not defined
+template <typename It, std::ptrdiff_t Extent> class tuple_size<makeshift::range<It, It, Extent>> : public std::integral_constant<std::size_t, Extent> { };
+template <typename It, typename EndIt> class tuple_size<makeshift::range<It, EndIt, -1>>; // not defined
+template <std::size_t I, typename It, std::ptrdiff_t Extent> class tuple_element<I, makeshift::range<It, It, Extent>> { public: using type = std::decay_t<decltype(*std::declval<It>())>; };
+template <std::size_t I, typename It, typename EndIt> class tuple_element<I, makeshift::range<It, EndIt, -1>>; // not defined
 
 
 } // namespace std

@@ -387,10 +387,11 @@ namespace std
 
 
     // Implement tuple-like protocol for `tuple_like_constval<>`.
-template <typename T, typename F> struct tuple_size<makeshift::detail::tuple_like_constval<T, F>> : tuple_size<T> { };
+template <typename T, typename F> class tuple_size<makeshift::detail::tuple_like_constval<T, F>> : public tuple_size<T> { };
 template <std::size_t I, typename T, typename F>
-    struct tuple_element<I, makeshift::detail::tuple_like_constval<T, F>>
+    class tuple_element<I, makeshift::detail::tuple_like_constval<T, F>>
 {
+public:
     using type = makeshift::detail::make_constval<makeshift::detail::tuple_accessor_functor<I, makeshift::detail::tuple_like_constval<T, F>>>;
 };
 
