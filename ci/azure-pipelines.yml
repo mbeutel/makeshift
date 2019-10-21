@@ -42,12 +42,6 @@ jobs:
         displayName: Clone ports overlay repository
         condition: ne(variables.dependencyCacheHit, 'true')
 
-      - script: |
-          tree /F /A
-        displayName: Display cache content
-        condition: eq(variables.dependencyCacheHit, 'true')
-        workingDirectory: '$(Build.BinariesDirectory)/dependencies/vcpkg/.git'
-
       - task: run-vcpkg@0
         displayName: Run Vcpkg to install dependencies
         inputs:
@@ -55,9 +49,9 @@ jobs:
           vcpkgGitCommitId: '$(vcpkgGitRef)'
           vcpkgTriplet: '$(Platform)-windows'
           vcpkgArguments: '--overlay-ports="$(Build.BinariesDirectory)/dependencies/ports-overlay-repo/vcpkg/ports" "@$(Build.SourcesDirectory)/ci/vcpkg.txt"'
+        condition: ne(variables.dependencyCacheHit, 'true')
             
       - script: |
-          attrib -H "$(Build.BinariesDirectory)/dependencies/vcpkg/.git"
           rmdir /S /Q "$(Build.BinariesDirectory)/dependencies/vcpkg/buildtrees"
           rmdir /S /Q "$(Build.BinariesDirectory)/dependencies/vcpkg/downloads"
           rmdir /S /Q "$(Build.BinariesDirectory)/dependencies/vcpkg/packages"
@@ -103,12 +97,7 @@ jobs:
           sudo apt update
           sudo apt install gcc-9
         displayName: Install GCC 9
-        
-      #- script: |
-      #    echo "##vso[task.setvariable variable=CC]gcc-9"
-      #    echo "##vso[task.setvariable variable=CXX]g++-9"
-      #  displayName: Set GCC 9 as default compiler
-          
+
       - task: CacheBeta@0
         displayName: Cache dependencies
         inputs:
@@ -119,13 +108,6 @@ jobs:
       - script: git clone --depth 1 $(vcpkgPortsOverlayRepo) "$(Build.BinariesDirectory)/dependencies/ports-overlay-repo"
         displayName: Clone ports overlay repository
         condition: ne(variables.dependencyCacheHit, 'true')
-
-      - script: |
-          sudo apt install tree
-          tree -a
-        displayName: Display cache content
-        condition: eq(variables.dependencyCacheHit, 'true')
-        workingDirectory: '$(Pipeline.Workspace)'
 
       - script: |
           mkdir ~/temp
@@ -144,7 +126,8 @@ jobs:
           vcpkgGitCommitId: '$(vcpkgGitRef)'
           vcpkgTriplet: '$(Platform)-linux'
           vcpkgArguments: '--overlay-ports="$(Build.BinariesDirectory)/dependencies/ports-overlay-repo/vcpkg/ports" "@$(Build.SourcesDirectory)/ci/vcpkg.txt"'
-            
+        condition: ne(variables.dependencyCacheHit, 'true')
+
       - script: |
           rm -rf "$(Build.BinariesDirectory)/dependencies/vcpkg/buildtrees"
           rm -rf "$(Build.BinariesDirectory)/dependencies/vcpkg/downloads"
