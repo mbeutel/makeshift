@@ -89,31 +89,31 @@ jobs:
           Platform: x64
           Repository: 'ppa:ubuntu-toolchain-r/test'
           deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-9 main
-          Packages: gcc-9
-          envCC: gcc
-          envCXX: g++
+          Packages: 'gcc-9'
+          envCC: 'gcc'
+          envCXX: 'g++'
         GCC9_Release:
           Config: RelWithDebInfo
           Platform: x64
           Repository: 'ppa:ubuntu-toolchain-r/test'
           deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-9 main
-          Packages: gcc-9
-          envCC: gcc
-          envCXX: g++
+          Packages: 'gcc-9'
+          envCC: 'gcc'
+          envCXX: 'g++'
         Clang9_Debug:
           Config: Debug
           Platform: x64
           Repository: '"deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-9 main"'
-          Packages: clang-9
-          envCC: clang
-          envCXX: clang++
+          Packages: 'clang-9'
+          envCC: 'clang'
+          envCXX: 'clang++'
         Clang9_Release:
           Config: RelWithDebInfo
           Platform: x64
           Repository: '"deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-9 main"'
-          Packages: clang-9
-          envCC: clang
-          envCXX: clang++
+          Packages: 'clang-9'
+          envCC: 'clang'
+          envCXX: 'clang++'
 
     pool:
       name: Azure Pipelines
