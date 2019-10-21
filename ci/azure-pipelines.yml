@@ -6,7 +6,7 @@ variables:
   vcpkgPortsOverlayRepo: 'https://mp-force.ziti.uni-heidelberg.de/asc/infrastructure/vcpkg-ports.git'
   vcpkgPortsOverlayRef: 09240a899e6575a217a267b26a7c378d0e7d3374
   cmakeConfigArgs: '-DBUILD_TESTS=ON'
-  revision: 3
+  revision: 4
 
 jobs:
   - job: Windows2019_VS2019
@@ -82,10 +82,6 @@ jobs:
         
   - job: Ubuntu1808_GCC9
 
-    variables:
-      cmakeVersion: 3.15
-      cmakeBuild: 4
-
     strategy:
       matrix: 
         Debug:
@@ -102,9 +98,17 @@ jobs:
     steps:
       - script: |
           sudo add-apt-repository ppa:ubuntu-toolchain-r/test
-          sudo apt update
-          sudo apt install gcc-9
+          sudo apt-get update
+          sudo apt-get install gcc-9
         displayName: Install GCC 9
+
+      - script: |
+          sudo apt purge --auto-remove cmake
+          sudo apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main'
+          sudo apt-get update
+          sudo apt-get install apt-transport-https ca-certificates gnupg software-properties-common wget
+          sudo apt-get install cmake
+        displayName: Install recent CMake
 
       - task: CacheBeta@1
         displayName: Cache dependencies
@@ -116,15 +120,6 @@ jobs:
       - script: |
           git clone --depth 1 $(vcpkgPortsOverlayRepo) "$(Build.BinariesDirectory)/dependencies/ports-overlay-repo"
         displayName: Clone ports overlay repository
-        condition: ne(variables.dependencyCacheHit, 'true')
-
-      - script: |
-          mkdir ~/temp
-          cd ~/temp
-          wget https://cmake.org/files/v$(cmakeVersion)/cmake-$(cmakeVersion).$(cmakeBuild)-Linux-x86_64.sh 
-          sudo mkdir -p "$(Build.BinariesDirectory)/dependencies/cmake"
-          sudo sh cmake-$(cmakeVersion).$(cmakeBuild)-Linux-x86_64.sh --prefix="$(Build.BinariesDirectory)/dependencies/cmake" --skip-license
-        displayName: 'Install CMake $(cmakeVersion)'
         condition: ne(variables.dependencyCacheHit, 'true')
 
       - task: run-vcpkg@0
@@ -144,7 +139,6 @@ jobs:
         condition: ne(variables.dependencyCacheHit, 'true')
 
       - script: |
-          echo "##vso[task.setvariable variable=PATH]$(Build.BinariesDirectory)/dependencies/cmake/bin:${PATH}"
           echo "##vso[task.setvariable variable=VCPKG_ROOT]$(Build.BinariesDirectory)/dependencies/vcpkg"
           echo "##vso[task.setvariable variable=VCPKG_TRIPLET]$(Platform)-linux"
         displayName: Set environment variables
