@@ -5,6 +5,7 @@ variables:
   vcpkgGitRef: 2aaf7fd8b3d7dce245c5ce2d41aa3fdb6f0f7438
   vcpkgPortsOverlayRepo: 'https://mp-force.ziti.uni-heidelberg.de/asc/infrastructure/vcpkg-ports.git'
   vcpkgPortsOverlayRef: 09240a899e6575a217a267b26a7c378d0e7d3374
+  cmakeConfigArgs: '-DBUILD_TESTS=ON'
   revision: 1
 
 jobs:
@@ -65,7 +66,7 @@ jobs:
           cmakeListsOrSettingsJson: 'CMakeListsTxtAdvanced'
           useVcpkgToolchainFile: true
           buildDirectory: '$(Build.BinariesDirectory)/build'
-          cmakeAppendedArgs: '-G Ninja -DCMAKE_BUILD_TYPE=$(Config) -DBUILD_TESTS=ON'
+          cmakeAppendedArgs: '-G Ninja -DCMAKE_BUILD_TYPE=$(Config) $(cmakeConfigArgs)'
 
       - script: |
           ctest -V
@@ -74,6 +75,10 @@ jobs:
         workingDirectory: '$(Build.BinariesDirectory)/build'
         
   - job: Ubuntu1808_GCC9
+
+    variables:
+      cmakeVersion: 3.15
+      cmakeBuild: 4
 
     strategy:
       matrix: 
@@ -93,16 +98,17 @@ jobs:
           sudo add-apt-repository ppa:ubuntu-toolchain-r/test
           sudo apt update
           sudo apt install gcc-9
-          #export CC=gcc-9
-          #export CXX=g++-9
-          sudo ln -s `which gcc-9` /usr/local/bin/gcc
-          sudo ln -s `which g++-9` /usr/local/bin/g++
         displayName: Install GCC 9
+        
+      - script: |
+          echo "##vso[task.setvariable variable=CC]gcc-9"
+          echo "##vso[task.setvariable variable=CXX]g++-9"
+        displayName: Set GCC 9 as default compiler
           
       - task: CacheBeta@0
         displayName: Cache dependencies
         inputs:
-          key: '$(Build.SourcesDirectory)/ci/vcpkg.txt | "$(vcpkgGitRef)" | "$(vcpkgPortsOverlayRef)" | "$(Agent.OS)" | "$(Platform)" | "$(revision)"'
+          key: '$(Build.SourcesDirectory)/ci/vcpkg.txt | "$(vcpkgGitRef)" | "$(vcpkgPortsOverlayRef)" | "$(Agent.OS)" | "$(Platform)" | "$(revision)" | "cmake-$(cmakeVersion).$(cmakeBuild)" '
           path: '$(Build.BinariesDirectory)/dependencies'
           cacheHitVar: 'dependencyCacheHit'
 
@@ -118,15 +124,13 @@ jobs:
         workingDirectory: '$(Pipeline.Workspace)'
 
       - script: |
-          export cmake_version=3.15
-          export cmake_build=4
           mkdir ~/temp
           cd ~/temp
-          wget https://cmake.org/files/v$cmake_version/cmake-$cmake_version.$cmake_build-Linux-x86_64.sh 
-          sudo mkdir /opt/cmake
-          sudo sh cmake-$cmake_version.$cmake_build-Linux-x86_64.sh --prefix=/opt/cmake --skip-license
-          sudo ln -s /opt/cmake/bin/cmake /usr/local/bin/cmake
-        displayName: Install CMake 3.15
+          wget https://cmake.org/files/v$(cmakeVersion)/cmake-$(cmakeVersion).$(cmakeBuild)-Linux-x86_64.sh 
+          sudo mkdir -p "$(Build.BinariesDirectory)/dependencies/cmake"
+          sudo sh cmake-$(cmakeVersion).$(cmakeBuild)-Linux-x86_64.sh --prefix="$(Build.BinariesDirectory)/dependencies/cmake" --skip-license
+          echo "##vso[task.setvariable variable=PATH]$(Build.BinariesDirectory)/dependencies/cmake/bin:${PATH}"
+        displayName: 'Install CMake $(cmakeVersion)'
         condition: ne(variables.dependencyCacheHit, 'true')
         failOnStderr: true
 
@@ -148,7 +152,7 @@ jobs:
           cmakeListsOrSettingsJson: 'CMakeListsTxtAdvanced'
           useVcpkgToolchainFile: true
           buildDirectory: '$(Build.BinariesDirectory)/build'
-          cmakeAppendedArgs: '-DCMAKE_BUILD_TYPE=$(Config) -DBUILD_TESTS=ON'
+          cmakeAppendedArgs: '-DCMAKE_BUILD_TYPE=$(Config) $(cmakeConfigArgs)'
 
       - script: |
           ctest -V
