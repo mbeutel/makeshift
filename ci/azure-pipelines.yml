@@ -88,7 +88,6 @@ jobs:
           Config: Debug
           Platform: x64
           Repository: 'ppa:ubuntu-toolchain-r/test'
-          deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-9 main
           Packages: 'gcc-9'
           envCC: 'gcc'
           envCXX: 'g++'
@@ -96,7 +95,6 @@ jobs:
           Config: RelWithDebInfo
           Platform: x64
           Repository: 'ppa:ubuntu-toolchain-r/test'
-          deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-9 main
           Packages: 'gcc-9'
           envCC: 'gcc'
           envCXX: 'g++'
