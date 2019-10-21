@@ -58,9 +58,9 @@ jobs:
             
       - script: |
           attrib -H "$(Build.BinariesDirectory)/dependencies/vcpkg/.git"
-          rmdir /S "$(Build.BinariesDirectory)/dependencies/vcpkg/buildtrees"
-          rmdir /S "$(Build.BinariesDirectory)/dependencies/vcpkg/downloads"
-          rmdir /S "$(Build.BinariesDirectory)/dependencies/vcpkg/packages"
+          rmdir /S /Q "$(Build.BinariesDirectory)/dependencies/vcpkg/buildtrees"
+          rmdir /S /Q "$(Build.BinariesDirectory)/dependencies/vcpkg/downloads"
+          rmdir /S /Q "$(Build.BinariesDirectory)/dependencies/vcpkg/packages"
         displayName: Delete temporary files
         condition: ne(variables.dependencyCacheHit, 'true')
 
@@ -159,6 +159,7 @@ jobs:
           useVcpkgToolchainFile: true
           buildDirectory: '$(Build.BinariesDirectory)/build'
           cmakeAppendedArgs: '-DCMAKE_BUILD_TYPE=$(Config) $(cmakeConfigArgs)'
+          buildWithCMakeArgs: '-- -j VERBOSE=1'
 
       - script: |
           ctest -V
