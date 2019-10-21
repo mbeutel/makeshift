@@ -84,34 +84,34 @@ jobs:
 
     strategy:
       matrix: 
-        GCC9_Debug:
+        GCC_Debug:
           Config: Debug
           Platform: x64
           Repository: 'ppa:ubuntu-toolchain-r/test'
           Packages: 'gcc-9'
           envCC: 'gcc'
           envCXX: 'g++'
-        GCC9_Release:
+        GCC_Release:
           Config: RelWithDebInfo
           Platform: x64
           Repository: 'ppa:ubuntu-toolchain-r/test'
           Packages: 'gcc-9'
           envCC: 'gcc'
           envCXX: 'g++'
-        Clang9_Debug:
+        Clang_Debug:
           Config: Debug
           Platform: x64
           Repository: '"deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-9 main"'
           Packages: 'clang-9'
-          envCC: 'clang'
-          envCXX: 'clang++'
-        Clang9_Release:
+          envCC: 'clang-9'
+          envCXX: 'clang++-9'
+        Clang_Release:
           Config: RelWithDebInfo
           Platform: x64
           Repository: '"deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-9 main"'
           Packages: 'clang-9'
-          envCC: 'clang'
-          envCXX: 'clang++'
+          envCC: 'clang-9'
+          envCXX: 'clang++-9'
 
     pool:
       name: Azure Pipelines
@@ -139,7 +139,7 @@ jobs:
       - task: CacheBeta@1
         displayName: Cache dependencies
         inputs:
-          key: '$(Build.SourcesDirectory)/ci/vcpkg.txt | "$(vcpkgGitRef)" | "$(vcpkgPortsOverlayRef)" | "$(Agent.OS)" | "$(Platform)" | "$(revision)" | "cmake-$(cmakeVersion).$(cmakeBuild)" '
+          key: '$(Build.SourcesDirectory)/ci/vcpkg.txt | "$(vcpkgGitRef)" | "$(vcpkgPortsOverlayRef)" | "$(Agent.OS)" | "$(Platform)" | "cmake-$(cmakeVersion).$(cmakeBuild)" | "$(Packages)" | "$(revision)"'
           path: '$(Build.BinariesDirectory)/dependencies'
           cacheHitVar: 'dependencyCacheHit'
 
@@ -179,7 +179,7 @@ jobs:
         failOnStderr: true
         workingDirectory: '$(Build.BinariesDirectory)/build'
 
-#  - job: MacOS1014_Xcode11
+#  - job: MacOS
 #
 #    strategy:
 #      matrix: 
