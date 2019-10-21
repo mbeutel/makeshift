@@ -79,7 +79,7 @@ jobs:
         displayName: Run tests
         failOnStderr: true
         workingDirectory: '$(Build.BinariesDirectory)/build'
-        
+
   - job: Ubuntu1808_GCC9
 
     strategy:
@@ -154,3 +154,18 @@ jobs:
         displayName: Run tests
         failOnStderr: true
         workingDirectory: '$(Build.BinariesDirectory)/build'
+
+#  - job: MacOS1014_Xcode11
+#
+#    strategy:
+#      matrix: 
+#        Debug:
+#          Config: Debug
+#          Platform: x64
+#        Release:
+#          Config: RelWithDebInfo
+#          Platform: x64
+#
+#    pool:
+#      name: Azure Pipelines
+#      vmImage: 'macOS-10.14'
