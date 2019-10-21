@@ -6,7 +6,7 @@ variables:
   vcpkgPortsOverlayRepo: 'https://mp-force.ziti.uni-heidelberg.de/asc/infrastructure/vcpkg-ports.git'
   vcpkgPortsOverlayRef: 09240a899e6575a217a267b26a7c378d0e7d3374
   cmakeConfigArgs: '-DBUILD_TESTS=ON'
-  revision: 1
+  revision: 2
 
 jobs:
   - job: Windows2019_VS2019
@@ -104,10 +104,10 @@ jobs:
           sudo apt install gcc-9
         displayName: Install GCC 9
         
-      - script: |
-          echo "##vso[task.setvariable variable=CC]gcc-9"
-          echo "##vso[task.setvariable variable=CXX]g++-9"
-        displayName: Set GCC 9 as default compiler
+      #- script: |
+      #    echo "##vso[task.setvariable variable=CC]gcc-9"
+      #    echo "##vso[task.setvariable variable=CXX]g++-9"
+      #  displayName: Set GCC 9 as default compiler
           
       - task: CacheBeta@0
         displayName: Cache dependencies
