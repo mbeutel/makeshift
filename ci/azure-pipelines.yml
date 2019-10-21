@@ -105,6 +105,12 @@ jobs:
           sudo apt-get install cmake gcc-9
         displayName: Install GCC 9 and recent CMake
 
+      - script: |
+          /usr/bin/cmake --version
+          echo "$PATH"
+          which cmake
+        displayName: Foobar
+
       - task: CacheBeta@1
         displayName: Cache dependencies
         inputs:
