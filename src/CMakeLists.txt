@@ -43,6 +43,13 @@ cmakeshift_target_compile_settings(makeshift
         diagnostics
         $<$<CONFIG:Debug>:runtime-checks>)
 
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    # Sized deallocation must be explicitly enabled on Clang, cf. https://bcain-llvm.readthedocs.io/projects/clang/en/release_37/ReleaseNotes/#new-compiler-flags.
+    target_compile_options(makeshift
+        PRIVATE
+            -fsized-deallocation)
+endif()
+
 # library version
 include(CMakeshift/TargetLibraryVersion)
 cmakeshift_target_library_version(makeshift ${PROJECT_VERSION} ${makeshift_APIVERSION})
