@@ -38,6 +38,12 @@ jobs:
           path: '$(Build.BinariesDirectory)/dependencies'
           cacheHitVar: 'dependencyCacheHit'
 
+      - powershell: |
+          Write-Host "##vso[task.setvariable variable=Path]$(Build.BinariesDirectory)/dependencies/cmake/bin;${env:Path}"
+          Write-Host "##vso[task.setvariable variable=VCPKG_ROOT]$(Build.BinariesDirectory)/dependencies/vcpkg"
+          Write-Host "##vso[task.setvariable variable=VCPKG_TRIPLET]$(Platform)-windows"
+        displayName: Set environment variables
+
       - script: |
           git clone --depth 1 $(vcpkgPortsOverlayRepo) "$(Build.BinariesDirectory)/dependencies/ports-overlay-repo"
         displayName: Clone ports overlay repository
@@ -58,12 +64,6 @@ jobs:
           rmdir /S /Q "$(Build.BinariesDirectory)/dependencies/vcpkg/packages"
         displayName: Delete temporary files
         condition: ne(variables.dependencyCacheHit, 'true')
-
-      - powershell: |
-          Write-Host "##vso[task.setvariable variable=Path]$(Build.BinariesDirectory)/dependencies/cmake/bin;${env:Path}"
-          Write-Host "##vso[task.setvariable variable=VCPKG_ROOT]$(Build.BinariesDirectory)/dependencies/vcpkg"
-          Write-Host "##vso[task.setvariable variable=VCPKG_TRIPLET]$(Platform)-windows"
-        displayName: Set environment variables
 
       - task: run-cmake@0
         displayName: Build
@@ -104,6 +104,14 @@ jobs:
           sudo apt-get install cmake gcc-9
         displayName: Install GCC 9 and recent CMake
 
+      - script: |
+          mkdir -p ~/bin
+          ln -s /usr/bin/cmake ~/bin/cmake
+          echo "##vso[task.setvariable variable=PATH]$HOME/bin:${PATH}"
+          echo "##vso[task.setvariable variable=VCPKG_ROOT]$(Build.BinariesDirectory)/dependencies/vcpkg"
+          echo "##vso[task.setvariable variable=VCPKG_TRIPLET]$(Platform)-linux"
+        displayName: Set environment variables
+
       - task: CacheBeta@1
         displayName: Cache dependencies
         inputs:
@@ -131,14 +139,6 @@ jobs:
           rm -rf "$(Build.BinariesDirectory)/dependencies/vcpkg/packages"
         displayName: Delete temporary files
         condition: ne(variables.dependencyCacheHit, 'true')
-
-      - script: |
-          mkdir -p ~/bin
-          ln -s /usr/bin/cmake ~/bin/cmake
-          echo "##vso[task.setvariable variable=PATH]$HOME/bin:${PATH}"
-          echo "##vso[task.setvariable variable=VCPKG_ROOT]$(Build.BinariesDirectory)/dependencies/vcpkg"
-          echo "##vso[task.setvariable variable=VCPKG_TRIPLET]$(Platform)-linux"
-        displayName: Set environment variables
 
       - task: run-cmake@0
         displayName: Build
