@@ -11,8 +11,6 @@
 
 #include <gsl/gsl-lite.hpp> // for Expects()
 
-//#include <makeshift/macros.hpp> // for MAKESHIFT_CXX
-
 #include <makeshift/detail/buffer.hpp>
 
 

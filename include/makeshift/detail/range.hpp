@@ -112,7 +112,7 @@ template <typename T>
     Expects(expectedExtent == actualExtent);
 }
 template <typename T>
-    constexpr void check_buffer_extents(std::false_type /*dynamicExtent*/, std::size_t expectedExtent, std::size_t actualExtent)
+    constexpr void check_buffer_extents(std::false_type /*dynamicExtent*/, std::size_t /*expectedExtent*/, std::size_t /*actualExtent*/)
 {
 }
 
