@@ -30,55 +30,13 @@ namespace makeshift
     //ᅟ    auto paramsC = MAKESHIFT_CONSTVAL(PerformanceParams{ .loopUnrollSize = 2 });
     //ᅟ    // returns constval representing value `PerformanceParams{ 2 }`
     //
-#define MAKESHIFT_CONSTVAL(...) (makeshift::make_constval([] { struct R_ { constexpr auto operator ()(void) const noexcept { return __VA_ARGS__; } }; return R_{ }; }()))
+#define MAKESHIFT_CONSTVAL(...) (makeshift::detail::make_constval([] { struct R_ { constexpr auto operator ()(void) const noexcept { return __VA_ARGS__; } }; return R_{ }; }()))
 
 
     //ᅟ
     // A constval type representing the given nullary constexpr function object type. Applies normalization if applicable.
     //
-template <typename C> using make_constval_t = makeshift::detail::make_constval<C>;
-
-
-    //ᅟ
-    // Returns a constval with the value of the given proto-constval.
-    //ᅟ
-    //ᅟ    struct PerformanceParams { int loopUnrollSize; };
-    //ᅟ
-    //ᅟ    auto paramsC = make_constval([]
-    //ᅟ        {
-    //ᅟ            return PerformanceParams{ .loopUnrollSize = 2 };
-    //ᅟ        });
-    //ᅟ    // returns constval representing value `PerformanceParams{ 2 }`
-    //
-template <typename C>
-    constexpr make_constval_t<C> make_constval(C const&)
-{
-    static_assert(std::is_empty<C>::value, "argument must be stateless");
-    static_assert(can_instantiate_v<makeshift::detail::is_constexpr_functor_r, C>, "argument must be constexpr function object");
-
-    return { };
-}
-
-
-    //ᅟ
-    // Returns a const reference to the constexpr object with the value of the given proto-constval.
-    //ᅟ
-    //ᅟ    struct PerformanceParams { int loopUnrollSize; };
-    //ᅟ
-    //ᅟ    constexpr auto const& params = make_constref([]
-    //ᅟ    {
-    //ᅟ        return PerformanceParams{ .loopUnrollSize = 2 };
-    //ᅟ    });
-    //ᅟ    // returns `PerformanceParams const&` referring to constexpr object with value `PerformanceParams{ 2 }`
-    //
-template <typename C>
-    constexpr typename make_constval_t<C>::value_type const& make_constref(C const&)
-{
-    static_assert(std::is_empty<C>::value, "argument must be stateless");
-    static_assert(can_instantiate_v<makeshift::detail::is_constexpr_functor_r, C>, "argument must be constexpr function object");
-
-    return make_constval_t<C>::value;
-}
+template <typename C> using make_constval_t = makeshift::detail::make_constval_t<C>;
 
 
     //ᅟ
@@ -136,8 +94,8 @@ template <typename C>
     //ᅟ
     // Returns the result of the function applied to the values of the given constvals as a constval, or the result value itself if one of the arguments is not a constval.
     //ᅟ
-    //ᅟ    auto baseIndexR = make_constval([]{ return 42; }); // returns `std::integral_constant<int, 42>{ }`
-    //ᅟ    auto offsetR = make_constval([]{ return 3; }); // returns `std::integral_constant<int, 3>{ }`
+    //ᅟ    auto baseIndexR = MAKESHIFT_CONSTVAL(42); // returns `std::integral_constant<int, 42>{ }`
+    //ᅟ    auto offsetR = MAKESHIFT_CONSTVAL(3); // returns `std::integral_constant<int, 3>{ }`
     //ᅟ    auto indexR = constval_transform(std::plus<>, baseIndexR, offsetR); // returns `std::integral_constant<int, 45>{ }`
     //
 template <typename F, typename... Cs>
@@ -152,7 +110,7 @@ template <typename F, typename... Cs>
     //ᅟ
     // Returns the result of the function applied to the given constvals as a constval, or the result value itself if one of the arguments is not a constval.
     //ᅟ
-    //ᅟ    auto variantR = make_constval([]{ return std::variant<int, float>{ 42 }; });
+    //ᅟ    auto variantR = MAKESHIFT_CONSTVAL(std::variant<int, float>{ 42 });
     //ᅟ    auto elementR = constval_extend(
     //ᅟ        [](auto _variantR)
     //ᅟ        {
@@ -160,7 +118,7 @@ template <typename F, typename... Cs>
     //ᅟ            return std::get<variant.index()>(variant);
     //ᅟ        },
     //ᅟ        variantR);
-    //ᅟ    // equivalent to `make_constval([]{ return 42; })`
+    //ᅟ    // equivalent to `MAKESHIFT_CONSTVAL(42)`
     //
 template <typename CF, typename... Cs>
     MAKESHIFT_NODISCARD constexpr auto

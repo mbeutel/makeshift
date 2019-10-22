@@ -101,136 +101,48 @@ struct SomeClass
 enum class Color { red, green, blue };
 
 
-struct C5
-{
-    constexpr auto operator ()(void) const noexcept
-    {
-        return 5;
-    }
-};
-struct CClr
-{
-    constexpr auto operator ()(void) const noexcept
-    {
-        return Color::red;
-    }
-};
-struct CA
-{
-    constexpr auto operator ()(void) const noexcept
-    {
-        return std::array<int, 2>{ 4, 2 };
-    }
-};
-struct CAA
-{
-    constexpr auto operator ()(void) const noexcept
-    {
-        return std::array<std::array<int, 1>, 2>{ std::array<int, 1>{ 4 }, std::array<int, 1>{ 2 } };
-    }
-};
-struct CTA
-{
-    constexpr auto operator ()(void) const noexcept
-    {
-        return std::make_tuple(std::array<int, 1>{ 3 }, std::array<int, 2>{ 1, 4 });
-    }
-};
-struct CT
-{
-    constexpr auto operator ()(void) const noexcept
-    {
-        return mk::type_c<int>;
-    }
-};
-struct CTS
-{
-    constexpr auto operator ()(void) const noexcept
-    {
-        return mk::type_sequence<int, float>{ };
-    }
-};
-
 TEST_CASE("constval")
 {
     auto c1 = std::integral_constant<int, 1>{ };
-    auto c51 = mk::make_constval(C5{ });
+    auto c51 = MAKESHIFT_CONSTVAL(5);
     expect_constval_normalization(c51);
-#if MAKESHIFT_CXX >= 17
-    auto c52 = mk::make_constval([]{ return 5; });
-    expect_constval_normalization(c52);
-#endif // MAKESHIFT_CXX >= 17
     auto c42 = 42;
 
-    auto cClr1 = mk::make_constval(CClr{ });
+    auto cClr1 = MAKESHIFT_CONSTVAL(Color::red);
     expect_constval_normalization(cClr1);
-#if MAKESHIFT_CXX >= 17
-    auto cClr2 = mk::make_constval([]{ return Color::red; });
-    expect_constval_normalization(cClr2);
-#endif // MAKESHIFT_CXX >= 17
 
     auto c42R = mk::constval_transform(std::plus<>{ }, c1, c42);
     static_assert(std::is_same<decltype(c42R), int>::value, "wrong type");
     CHECK(c42R == 43);
 
-    auto cA1 = mk::make_constval(CA{ });
+    auto cA1 = MAKESHIFT_CONSTVAL(std::array<int, 2>{ 4, 2 });
     expect_array_constval_normalization<int, 4, 2>(cA1);
     mk::mdarray<int, 2> ncA1 = cA1;
     (void) ncA1;
-#if MAKESHIFT_CXX >= 17
-    auto cA2 = mk::make_constval([]{ return std::array{ 4, 2 }; });
-    expect_array_constval_normalization<int, 4, 2>(cA2);
-    mk::mdarray<int, 2> ncA2 = cA2;
-    (void) ncA2;
-#endif // MAKESHIFT_CXX >= 17
 
-    auto cAA1 = mk::make_constval(CAA{ });
+    auto cAA1 = MAKESHIFT_CONSTVAL(std::array<std::array<int, 1>, 2>{ std::array<int, 1>{ 4 }, std::array<int, 1>{ 2 } });
     expect_nested_array_constval_normalization(cAA1);
     mk::mdarray<int, 2, 1> ncAA1 = cAA1;
     (void) ncAA1;
-#if MAKESHIFT_CXX >= 17
-    auto cAA2 = mk::make_constval([]{ return std::array{ std::array{ 4 }, std::array{ 2 } }; });
-    expect_nested_array_constval_normalization(cAA2);
-    mk::mdarray<int, 2, 1> ncAA2 = cAA2;
-    (void) ncAA2;
-#endif // MAKESHIFT_CXX >= 17
 
-    auto cTA1 = mk::make_constval(CTA{ });
+    auto cTA1 = MAKESHIFT_CONSTVAL(std::make_tuple(std::array<int, 1>{ 3 }, std::array<int, 2>{ 1, 4 }));
     expect_array_tuple_constval_normalization(cTA1);
     std::tuple<std::array<int, 1>, std::array<int, 2>> ncTA1 = cTA1;
     (void) ncTA1;
-#if MAKESHIFT_CXX >= 17
-    auto cTA2 = mk::make_constval([]{ return std::tuple{ std::array{ 3 }, std::array{ 1, 4 } }; });
-    expect_array_tuple_constval_normalization(cTA2);
-    std::tuple<std::array<int, 1>, std::array<int, 2>> ncTA2 = cTA2;
-    (void) ncTA2;
-#endif // MAKESHIFT_CXX >= 17
-    auto cTA3 = MAKESHIFT_CONSTVAL(std::make_tuple(std::array<int, 1>{ 3 }, std::array<int, 2>{ 1, 4 }));
-    expect_array_tuple_constval_normalization(cTA3);
-    std::tuple<std::array<int, 1>, std::array<int, 2>> ncTA3 = cTA3;
-    (void) ncTA3;
 
-    auto cT1 = mk::make_constval(CT{ });
+    auto cT1 = MAKESHIFT_CONSTVAL(mk::type_c<int>);
     expect_type_tag<int>(cT1);
-#if MAKESHIFT_CXX >= 17
-    auto cT2 = mk::make_constval([]{ return mk::type_c<int>; });
-    expect_type_tag<int>(cT2);
-#endif // MAKESHIFT_CXX >= 17
 
     auto cT3 = mk::type_c<float>;
     expect_type_tag<float>(cT3);
 
-    auto cTS1 = mk::make_constval(CTS{ });
+    auto cTS1 = MAKESHIFT_CONSTVAL(mk::type_sequence<int, float>{ });
     expect_type_sequence_tag<int, float>(cTS1);
-#if MAKESHIFT_CXX >= 17
-    auto cTS2 = mk::make_constval([]{ return mk::type_sequence<int, float>{ }; });
-    expect_type_sequence_tag<int, float>(cTS2);
-#endif // MAKESHIFT_CXX >= 17
 
     auto cTS3 = mk::type_sequence<float, int>{ };
     expect_type_sequence_tag<float, int>(cTS3);
 
-#if MAKESHIFT_CXX >= 17
+#if MAKESHIFT_CXX >= 20
     auto cCT = mk::make_constval([]
         {
             return CustomType{
@@ -254,7 +166,7 @@ TEST_CASE("constval")
         },
         cCT);
     expect_tuple_like(cCTV);
-#endif // MAKESHIFT_CXX >= 17
+#endif // MAKESHIFT_CXX >= 20
 
     auto cCT1 = mk::c<CustomType const&, SomeClass::ct>;
     static constexpr CustomType c2 = cCT1();
@@ -272,7 +184,7 @@ TEST_CASE("constval")
 #if MAKESHIFT_CXX >= 17
     //auto iCT = mk::ref_c<SomeClass::ct.i>; // this doesn't work because arg doesn't have linkage
     //auto cCT3 = mk::ref_c<c2>; // this doesn't work either, for the same reason
-    auto iCT = mk::make_constval([]{ return SomeClass::ct.i; });
+    auto iCT = MAKESHIFT_CONSTVAL(SomeClass::ct.i);
     expect_constval_normalization<int>(iCT);
 #endif // MAKESHIFT_CXX >= 17
 }
