@@ -8,7 +8,7 @@
 
 #include <gsl/gsl-lite.hpp> // for Expects()
 
-#include <makeshift/type_traits.hpp> // for can_instantiate<>
+#include <makeshift/type_traits.hpp> // for can_instantiate<>, as_dependent_type<>
 #include <makeshift/macros.hpp>      // for MAKESHIFT_NODISCARD
 
 #include <makeshift/detail/constval.hpp>
@@ -221,7 +221,7 @@ template <typename... Cs>
 #endif // MAKESHIFT_CXX >= 17
 
     // Implement tuple-like protocol for `array_constant<>`.
-template <std::size_t I, typename T, T... Vs>
+template <std::size_t I, typename T, as_dependent_type<T>... Vs>
     MAKESHIFT_NODISCARD constexpr
     make_constval_t<makeshift::detail::array_accessor_functor<I, array_constant<T, Vs...>>>
     get(array_constant<T, Vs...>) noexcept
@@ -332,8 +332,8 @@ namespace std
 
 
     // Implement tuple-like protocol for `array_constant<>`.
-template <typename T, T... Vs> class tuple_size<makeshift::array_constant<T, Vs...>> : public std::integral_constant<std::size_t, sizeof...(Vs)> { };
-template <std::size_t I, typename T, T... Vs> class tuple_element<I, makeshift::array_constant<T, Vs...>> { public: using type = makeshift::make_constval_t<makeshift::detail::array_accessor_functor<I, makeshift::array_constant<T, Vs...>>>; };
+template <typename T, makeshift::as_dependent_type<T>... Vs> class tuple_size<makeshift::array_constant<T, Vs...>> : public std::integral_constant<std::size_t, sizeof...(Vs)> { };
+template <std::size_t I, typename T, makeshift::as_dependent_type<T>... Vs> class tuple_element<I, makeshift::array_constant<T, Vs...>> { public: using type = makeshift::make_constval_t<makeshift::detail::array_accessor_functor<I, makeshift::array_constant<T, Vs...>>>; };
 
     // Implement tuple-like protocol for `tuple_constant<>`.
 template <typename... Cs> class tuple_size<makeshift::tuple_constant<Cs...>> : public std::integral_constant<std::size_t, sizeof...(Cs)> { };
