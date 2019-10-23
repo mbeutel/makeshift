@@ -35,22 +35,22 @@ jobs:
           Config: RelWithDebInfo
           Platform: x64
           Compiler: MSVC
-        Clang_Debug_x86:
-          Config: Debug
-          Platform: x86
-          Compiler: Clang
-        Clang_Release_x86:
-          Config: RelWithDebInfo
-          Platform: x86
-          Compiler: Clang
-        Clang_Debug_x64:
-          Config: Debug
-          Platform: x64
-          Compiler: Clang
-        Clang_Release_x64:
-          Config: RelWithDebInfo
-          Platform: x64
-          Compiler: Clang
+        #Clang_Debug_x86:
+        #  Config: Debug
+        #  Platform: x86
+        #  Compiler: Clang
+        #Clang_Release_x86:
+        #  Config: RelWithDebInfo
+        #  Platform: x86
+        #  Compiler: Clang
+        #Clang_Debug_x64:
+        #  Config: Debug
+        #  Platform: x64
+        #  Compiler: Clang
+        #Clang_Release_x64:
+        #  Config: RelWithDebInfo
+        #  Platform: x64
+        #  Compiler: Clang
 
     pool:
       name: Azure Pipelines
