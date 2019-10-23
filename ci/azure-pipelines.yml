@@ -15,8 +15,8 @@ pr:
 - master
 
 jobs:
-  - template: azure-template-windows.yml
+  - template: azure-pipelines-windows.yml
 
-  - template: azure-template-linux.yml
+  - template: azure-pipelines-linux.yml
 
-  - template: azure-template-macos.yml
+  - template: azure-pipelines-macos.yml
