@@ -34,8 +34,8 @@ jobs:
           echo "##vso[task.setvariable variable=VCPKG_ROOT]$(Build.BinariesDirectory)/dependencies/vcpkg"
           echo "##vso[task.setvariable variable=VCPKG_TRIPLET]$(Platform)-osx"
           if [ "$(Compiler)" == "GCC" ]; then
-            echo "##vso[task.setvariable variable=CC]gcc"
-            echo "##vso[task.setvariable variable=CXX]g++"
+            echo "##vso[task.setvariable variable=CC]gcc-9"
+            echo "##vso[task.setvariable variable=CXX]g++-9"
           fi
         displayName: Set environment variables
 
