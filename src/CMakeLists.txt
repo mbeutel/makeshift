@@ -40,11 +40,9 @@ target_compile_features(makeshift
 include(CMakeshift/TargetCompileSettings)
 cmakeshift_target_compile_settings(makeshift
     PRIVATE
-        default
-        diagnostics
-        $<$<CONFIG:Debug>:runtime-checks>)
+        default)
 
-if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+if (NOT MSVC AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     # Sized deallocation must be explicitly enabled on Clang, cf. https://bcain-llvm.readthedocs.io/projects/clang/en/release_37/ReleaseNotes/#new-compiler-flags.
     target_compile_options(makeshift
         PRIVATE
