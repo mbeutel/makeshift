@@ -186,6 +186,7 @@ jobs:
         workingDirectory: '$(Build.BinariesDirectory)/build'
 
   - job: MacOS
+    condition: false # currently disabled due to https://github.com/microsoft/vcpkg/issues/8627
 
     strategy:
       matrix: 
@@ -201,11 +202,11 @@ jobs:
       vmImage: 'macOS-10.14'
       
     steps:
-      - script: |
-          #/bin/bash -c "sudo xcode-select -s /Applications/Xcode_11.1.app/Contents/Developer"
-          sudo xcode-select -s /Applications/Xcode_11.1.app/Contents/Developer
-          brew install cmake
-        displayName: Install tools
+      #- script: |
+      #    #/bin/bash -c "sudo xcode-select -s /Applications/Xcode_11.1.app/Contents/Developer"
+      #    sudo xcode-select -s /Applications/Xcode_11.1.app/Contents/Developer
+      #    #brew install cmake
+      #  displayName: Install tools
 
       - script: |
           #mkdir -p ~/bin
