@@ -16,7 +16,5 @@ pr:
 
 jobs:
   - template: azure-pipelines-windows.yml
-
   - template: azure-pipelines-linux.yml
-
   - template: azure-pipelines-macos.yml

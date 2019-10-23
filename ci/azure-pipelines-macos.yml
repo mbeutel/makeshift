@@ -1,9 +1,6 @@
 jobs:
   - job: MacOS
 
-    variables:
-      vcpkgGitRef: 2019.09 # HEAD currently doesn't work, cf. https://github.com/microsoft/vcpkg/issues/8627
-      
     strategy:
       matrix: 
         Debug:
@@ -20,8 +17,9 @@ jobs:
     steps:
       - script: |
           #/bin/bash -c "sudo xcode-select -s /Applications/Xcode_11.1.app/Contents/Developer"
-          sudo xcode-select -s /Applications/Xcode_11.1.app/Contents/Developer
-          brew install gcc@6
+          #sudo xcode-select -s /Applications/Xcode_11.1.app/Contents/Developer
+          sudo xcode-select -s /Applications/Xcode_10.3.app/Contents/Developer
+          brew install gcc@9
         displayName: Install tools
 
       - script: |
