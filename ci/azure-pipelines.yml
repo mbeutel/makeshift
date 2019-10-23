@@ -186,8 +186,10 @@ jobs:
         workingDirectory: '$(Build.BinariesDirectory)/build'
 
   - job: MacOS
-    condition: false # currently disabled due to https://github.com/microsoft/vcpkg/issues/8627
 
+    variables:
+      vcpkgGitRef: 2019.09 # HEAD currently doesn't work, cf. https://github.com/microsoft/vcpkg/issues/8627
+      
     strategy:
       matrix: 
         Debug:
