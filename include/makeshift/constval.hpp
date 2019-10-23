@@ -154,6 +154,8 @@ template <typename T, T... Vs>
         return value;
     }
 };
+template <typename T, T... Vs>
+    constexpr typename array_constant<T, Vs...>::value_type array_constant<T, Vs...>::value;
 template <typename T>
     struct array_constant<T> : makeshift::detail::constval_tag
 {
@@ -173,6 +175,8 @@ template <typename T>
         return value;
     }
 };
+template <typename T>
+    constexpr typename array_constant<T>::value_type array_constant<T>::value;
 #if MAKESHIFT_CXX >= 17
 template <typename... Cs>
     array_constant(Cs...) -> array_constant<typename makeshift::detail::array_constant_element_type_<typename makeshift::detail::equal_types_<typename Cs::value_type...>::common_type>::type, Cs::value...>;
@@ -217,7 +221,8 @@ template <typename... Cs>
     static constexpr value_type value = { Cs{ }... };
 
     constexpr tuple_constant(void) noexcept = default;
-    constexpr tuple_constant(Cs...) noexcept
+    template <int N = sizeof...(Cs), std::enable_if_t<N != 0, int> = 0>
+        constexpr tuple_constant(Cs...) noexcept
     {
     }
 
@@ -230,24 +235,8 @@ template <typename... Cs>
         return value;
     }
 };
-template <>
-    struct tuple_constant<> : makeshift::detail::constval_tag
-{
-    using value_type = std::tuple<>;
-
-    static constexpr value_type value = { };
-
-    constexpr tuple_constant(void) noexcept = default;
-
-    MAKESHIFT_NODISCARD constexpr value_type operator ()(void) const noexcept
-    {
-        return value;
-    }
-    MAKESHIFT_NODISCARD constexpr operator value_type(void) const noexcept
-    {
-        return value;
-    }
-};
+template <typename... Cs>
+    constexpr typename tuple_constant<Cs...>::value_type tuple_constant<Cs...>::value;
 #if MAKESHIFT_CXX >= 17
 template <typename... Cs>
     tuple_constant(Cs...) -> tuple_constant<Cs...>;
