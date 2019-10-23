@@ -34,8 +34,9 @@ jobs:
           Write-Host "##vso[task.setvariable variable=VCPKG_TRIPLET]$(Platform)-windows"
         displayName: Set environment variables
 
-      - script: |
-          git clone --depth 1 $(vcpkgPortsOverlayRepo) "$(Build.BinariesDirectory)/dependencies/ports-overlay-repo"
+      - powershell: |
+          if ("$(vcpkgPortsOverlayRepo)") git clone --depth 1 $(vcpkgPortsOverlayRepo) "$(Build.BinariesDirectory)/dependencies/ports-overlay-repo"
+          mkdir -Force "$(Build.BinariesDirectory)/dependencies/ports-overlay-repo/vcpkg/ports"
         displayName: Clone ports overlay repository
         condition: ne(variables.dependencyCacheHit, 'true')
 

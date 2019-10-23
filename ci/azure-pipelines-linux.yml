@@ -63,7 +63,10 @@ jobs:
           cacheHitVar: 'dependencyCacheHit'
 
       - script: |
-          git clone --depth 1 $(vcpkgPortsOverlayRepo) "$(Build.BinariesDirectory)/dependencies/ports-overlay-repo"
+          if [ "$(vcpkgPortsOverlayRepo)" != "" ]; then
+              git clone --depth 1 $(vcpkgPortsOverlayRepo) "$(Build.BinariesDirectory)/dependencies/ports-overlay-repo"
+          fi
+          mkdir -p "$(Build.BinariesDirectory)/dependencies/ports-overlay-repo/vcpkg/ports"
         displayName: Clone ports overlay repository
         condition: ne(variables.dependencyCacheHit, 'true')
 
