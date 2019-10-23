@@ -5,9 +5,13 @@
 
 #include <makeshift/fenv.hpp>
 
+#if defined(__APPLE__) && defined(__MACH__) && (defined(__i386__) || defined(__x86_64__))
+ #define APPLE_INTEL
+#endif // defined(__APPLE__) && defined(__MACH__) && (defined(__i386__) || defined(__x86_64__))
+
 #if defined(_WIN32)
  #include <float.h>
-#elif defined(__linux__)
+#elif defined(__linux__) || defined(APPLE_INTEL)
  #include <fenv.h>
 #else
  #error Unsupported operating system.
@@ -23,18 +27,23 @@ namespace makeshift
 static_assert(FE_DIVBYZERO == _EM_ZERODIVIDE && FE_INEXACT == _EM_INEXACT && FE_INVALID == _EM_INVALID && FE_OVERFLOW == _EM_OVERFLOW && FE_UNDERFLOW == _EM_UNDERFLOW);
 #endif // defined(_WIN32)
 
-#if defined(__APPLE__) && defined(__MACH__) && (defined(__i386__) || defined(__x86_64__))
- #define APPLE_INTEL
-#endif // defined(__APPLE__) && defined(__MACH__) && (defined(__i386__) || defined(__x86_64__))
-
 #ifdef APPLE_INTEL
 // borrowed from http://www-personal.umich.edu/~williams/archive/computation/fe-handling-example.c
+static int fegetexcept(void)
+{
+    fenv_t fenv;
+    if (fegetenv(&fenv))
+    {
+        return -1;
+    }
+    return fenv.__control & FE_ALL_EXCEPT;
+}
 static int feenableexcept(int excepts)
 {
-    static fenv_t fenv;
-    unsigned int new_excepts = excepts & FE_ALL_EXCEPT;
+    fenv_t fenv;
+    int new_excepts = excepts & FE_ALL_EXCEPT;
     // previous masks
-    unsigned int old_excepts;
+    int old_excepts;
 
     if (fegetenv(&fenv))
     {
@@ -50,10 +59,10 @@ static int feenableexcept(int excepts)
 }
 static int fedisableexcept(int excepts)
 {
-    static fenv_t fenv;
-    unsigned int new_excepts = excepts & FE_ALL_EXCEPT;
+    fenv_t fenv;
+    int new_excepts = excepts & FE_ALL_EXCEPT;
     // all previous masks
-    unsigned int old_excepts;
+    int old_excepts;
 
     if (fegetenv(&fenv))
     {
