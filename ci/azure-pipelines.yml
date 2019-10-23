@@ -8,6 +8,12 @@ variables:
   cmakeConfigArgs: '-DBUILD_TESTS=ON'
   revision: 4
 
+trigger:
+- master
+
+pr:
+- master
+
 jobs:
   - job: Windows
 
