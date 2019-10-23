@@ -20,7 +20,8 @@ steps:
         #$vsPath = &"${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"  -latest -prerelease -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
         #$clangClPath = Join-Path $vsPath 'VC\Tools\Llvm\bin\clang-cl.exe'
         $clangClPath = "${env:ProgramFiles}\LLVM\bin\clang-cl.exe"
-        Write-Host "##vso[task.setvariable variable=CMakeCompilerFlag]-DCMAKE_C_COMPILER=`"$clangClPath`" -DCMAKE_CXX_COMPILER=`"$clangClPath`""
+        $clangClCompatPath = $clangClPath -replace '\\','/'
+        Write-Host "##vso[task.setvariable variable=CMakeCompilerFlag]-DCMAKE_C_COMPILER=`"$clangClCompatPath`" -DCMAKE_CXX_COMPILER=`"$clangClCompatPath`""
       } else {
         Write-Host "##vso[task.setvariable variable=CMakeCompilerFlag]"
       }
