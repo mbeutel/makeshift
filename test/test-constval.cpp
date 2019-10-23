@@ -50,6 +50,11 @@ template <typename T, mk::as_dependent_type<T>... Vs>
 }
 
 template <typename... Cs>
+    void expect_tuple_constval_normalization(mk::tuple_constant<Cs...>)
+{
+}
+
+template <typename... Cs>
     void expect_array_tuple_constval_normalization(mk::tuple_constant<Cs...>)
 {
 #if MAKESHIFT_CXX >= 17
@@ -97,9 +102,27 @@ struct SomeClass
     static constexpr CustomType ct = { 4, 1.41421f, { 1, 3 } };
     static constexpr std::array<int, 2> ca = { 2, 4 };
 };
+constexpr CustomType SomeClass::ct;
 
 enum class Color { red, green, blue };
 
+
+struct ToArrayTransform
+{
+    template <typename T>
+        constexpr auto operator ()(T customTypeObj) const
+    {
+        return std::array<T, 2>{ customTypeObj, customTypeObj };
+    }
+};
+struct ToTupleTransform
+{
+    template <typename T>
+        constexpr auto operator ()(T customTypeObj) const
+    {
+        return std::tuple<T, T>{ customTypeObj, customTypeObj };
+    }
+};
 
 TEST_CASE("constval")
 {
@@ -142,31 +165,19 @@ TEST_CASE("constval")
     auto cTS3 = mk::type_sequence<float, int>{ };
     expect_type_sequence_tag<float, int>(cTS3);
 
-#if MAKESHIFT_CXX >= 20
-    auto cCT = mk::make_constval([]
-        {
-            return CustomType{
-                42,
-                13.37f,
-                { 4, 2 }
-            };
+    auto cCT = MAKESHIFT_CONSTVAL(
+        CustomType{
+            42,
+            13.37f,
+            { 4, 2 }
         });
-    auto cCTA = mk::constval_transform(
-        [](auto customTypeObj)
-        {
-            return std::array{ customTypeObj, customTypeObj };
-        },
-        cCT);
+    auto cCTA = mk::constval_transform(ToArrayTransform{ }, cCT);
     expect_tuple_like(cCTA);
+    expect_array_constval_normalization(cCTA);
 
-    auto cCTV = mk::constval_transform(
-        [](auto customTypeObj)
-        {
-            return std::tuple{ customTypeObj, customTypeObj };
-        },
-        cCT);
+    auto cCTV = mk::constval_transform(ToTupleTransform{ }, cCT);
     expect_tuple_like(cCTV);
-#endif // MAKESHIFT_CXX >= 20
+    expect_tuple_constval_normalization(cCTV);
 
     auto cCT1 = mk::c<CustomType const&, SomeClass::ct>;
     static constexpr CustomType c2 = cCT1();
