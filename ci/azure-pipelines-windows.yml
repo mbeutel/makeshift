@@ -1,98 +1,56 @@
-jobs:
-  - job: Windows
+steps:
+  - task: CacheBeta@1
+    displayName: Cache dependencies
+    inputs:
+      key: '$(Build.SourcesDirectory)/ci/vcpkg.txt | "$(vcpkgGitRef)" | "$(vcpkgPortsOverlayRef)" | "$(Agent.OS)" | "$(Platform)" | "$(revision)"'
+      path: '$(Build.BinariesDirectory)/dependencies'
+      cacheHitVar: 'dependencyCacheHit'
 
-    strategy:
-      matrix: 
-        MSVC_Debug_x86:
-          Config: Debug
-          Platform: x86
-          Compiler: MSVC
-        MSVC_Release_x86:
-          Config: RelWithDebInfo
-          Platform: x86
-          Compiler: MSVC
-        MSVC_Debug_x64:
-          Config: Debug
-          Platform: x64
-          Compiler: MSVC
-        MSVC_Release_x64:
-          Config: RelWithDebInfo
-          Platform: x64
-          Compiler: MSVC
-        Clang_Debug_x86:
-          Config: Debug
-          Platform: x86
-          Compiler: Clang
-        Clang_Release_x86:
-          Config: RelWithDebInfo
-          Platform: x86
-          Compiler: Clang
-        Clang_Debug_x64:
-          Config: Debug
-          Platform: x64
-          Compiler: Clang
-        Clang_Release_x64:
-          Config: RelWithDebInfo
-          Platform: x64
-          Compiler: Clang
+  - powershell: |
+      Write-Host "##vso[task.setvariable variable=Path]$(Build.BinariesDirectory)/dependencies/cmake/bin;${env:Path}"
+      Write-Host "##vso[task.setvariable variable=VCPKG_ROOT]$(Build.BinariesDirectory)/dependencies/vcpkg"
+      Write-Host "##vso[task.setvariable variable=VCPKG_TRIPLET]$(Platform)-windows"
+      if ("$(Compiler)" -eq "Clang") {
+        $vsPath = &"${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"  -latest -prerelease -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+        $clangClPath = Join-Path $vsPath 'VC\Tools\Llvm\bin\clang-cl.exe'
+        Write-Host "##vso[task.setvariable variable=CC]$clangClPath"
+        Write-Host "##vso[task.setvariable variable=CXX]$clangClPath"
+      }
+    displayName: Set environment variables
 
-    pool:
-      name: Azure Pipelines
-      vmImage: 'windows-2019'
+  - powershell: |
+      if ("$(vcpkgPortsOverlayRepo)") git clone --depth 1 $(vcpkgPortsOverlayRepo) "$(Build.BinariesDirectory)/dependencies/ports-overlay-repo"
+      mkdir -Force "$(Build.BinariesDirectory)/dependencies/ports-overlay-repo/vcpkg/ports"
+    displayName: Clone ports overlay repository
+    condition: ne(variables.dependencyCacheHit, 'true')
 
-    steps:
-      - task: CacheBeta@1
-        displayName: Cache dependencies
-        inputs:
-          key: '$(Build.SourcesDirectory)/ci/vcpkg.txt | "$(vcpkgGitRef)" | "$(vcpkgPortsOverlayRef)" | "$(Agent.OS)" | "$(Platform)" | "$(revision)"'
-          path: '$(Build.BinariesDirectory)/dependencies'
-          cacheHitVar: 'dependencyCacheHit'
+  - task: run-vcpkg@0
+    displayName: Run Vcpkg to install dependencies
+    inputs:
+      vcpkgDirectory: '$(Build.BinariesDirectory)/dependencies/vcpkg'
+      vcpkgGitCommitId: '$(vcpkgGitRef)'
+      vcpkgTriplet: '$(Platform)-windows'
+      vcpkgArguments: '--overlay-ports="$(Build.BinariesDirectory)/dependencies/ports-overlay-repo/vcpkg/ports" "@$(Build.SourcesDirectory)/ci/vcpkg.txt"'
+    condition: ne(variables.dependencyCacheHit, 'true')
 
-      - powershell: |
-          Write-Host "##vso[task.setvariable variable=Path]$(Build.BinariesDirectory)/dependencies/cmake/bin;${env:Path}"
-          Write-Host "##vso[task.setvariable variable=VCPKG_ROOT]$(Build.BinariesDirectory)/dependencies/vcpkg"
-          Write-Host "##vso[task.setvariable variable=VCPKG_TRIPLET]$(Platform)-windows"
-          if ("$(Compiler)" -eq "Clang") {
-            $vsPath = &"${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"  -latest -prerelease -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
-            $clangClPath = Join-Path $vsPath 'VC\Tools\Llvm\bin\clang-cl.exe'
-            Write-Host "##vso[task.setvariable variable=CC]$clangClPath"
-            Write-Host "##vso[task.setvariable variable=CXX]$clangClPath"
-          }
-        displayName: Set environment variables
+  - script: |
+      rmdir /S /Q "$(Build.BinariesDirectory)/dependencies/vcpkg/buildtrees"
+      rmdir /S /Q "$(Build.BinariesDirectory)/dependencies/vcpkg/downloads"
+      rmdir /S /Q "$(Build.BinariesDirectory)/dependencies/vcpkg/packages"
+    displayName: Delete temporary files
+    condition: ne(variables.dependencyCacheHit, 'true')
 
-      - powershell: |
-          if ("$(vcpkgPortsOverlayRepo)") git clone --depth 1 $(vcpkgPortsOverlayRepo) "$(Build.BinariesDirectory)/dependencies/ports-overlay-repo"
-          mkdir -Force "$(Build.BinariesDirectory)/dependencies/ports-overlay-repo/vcpkg/ports"
-        displayName: Clone ports overlay repository
-        condition: ne(variables.dependencyCacheHit, 'true')
+  - task: run-cmake@0
+    displayName: Build
+    inputs:
+      cmakeListsOrSettingsJson: 'CMakeListsTxtAdvanced'
+      useVcpkgToolchainFile: true
+      buildDirectory: '$(Build.BinariesDirectory)/build'
+      cmakeAppendedArgs: '-G Ninja -DCMAKE_BUILD_TYPE=$(Config) $(cmakeConfigArgs)'
+      buildWithCMakeArgs: '--parallel -- -v'
 
-      - task: run-vcpkg@0
-        displayName: Run Vcpkg to install dependencies
-        inputs:
-          vcpkgDirectory: '$(Build.BinariesDirectory)/dependencies/vcpkg'
-          vcpkgGitCommitId: '$(vcpkgGitRef)'
-          vcpkgTriplet: '$(Platform)-windows'
-          vcpkgArguments: '--overlay-ports="$(Build.BinariesDirectory)/dependencies/ports-overlay-repo/vcpkg/ports" "@$(Build.SourcesDirectory)/ci/vcpkg.txt"'
-        condition: ne(variables.dependencyCacheHit, 'true')
-
-      - script: |
-          rmdir /S /Q "$(Build.BinariesDirectory)/dependencies/vcpkg/buildtrees"
-          rmdir /S /Q "$(Build.BinariesDirectory)/dependencies/vcpkg/downloads"
-          rmdir /S /Q "$(Build.BinariesDirectory)/dependencies/vcpkg/packages"
-        displayName: Delete temporary files
-        condition: ne(variables.dependencyCacheHit, 'true')
-
-      - task: run-cmake@0
-        displayName: Build
-        inputs:
-          cmakeListsOrSettingsJson: 'CMakeListsTxtAdvanced'
-          useVcpkgToolchainFile: true
-          buildDirectory: '$(Build.BinariesDirectory)/build'
-          cmakeAppendedArgs: '-G Ninja -DCMAKE_BUILD_TYPE=$(Config) $(cmakeConfigArgs)'
-          buildWithCMakeArgs: '--parallel -- -v'
-
-      - script: |
-          ctest -V
-        displayName: Run tests
-        failOnStderr: true
-        workingDirectory: '$(Build.BinariesDirectory)/build'
+  - script: |
+      ctest -V
+    displayName: Run tests
+    failOnStderr: true
+    workingDirectory: '$(Build.BinariesDirectory)/build'

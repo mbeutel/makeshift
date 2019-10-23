@@ -1,99 +1,73 @@
-jobs:
-  - job: MacOS
+steps:
+  - script: |
+      sudo xcode-select -s /Applications/Xcode_10.3.app/Contents/Developer
+      brew install gcc@9
+    displayName: Install tools
 
-    strategy:
-      matrix: 
-        GCC_Debug:
-          Config: Debug
-          Platform: x64
-          Compiler: GCC
-        GCC_Release:
-          Config: RelWithDebInfo
-          Platform: x64
-          Compiler: GCC
-        AppleClang_Debug:
-          Config: Debug
-          Platform: x64
-          Compiler: Clang
-        AppleClang_Release:
-          Config: RelWithDebInfo
-          Platform: x64
-          Compiler: Clang
+  - script: |
+      echo "##vso[task.setvariable variable=VCPKG_ROOT]$(Build.BinariesDirectory)/dependencies/vcpkg"
+      echo "##vso[task.setvariable variable=VCPKG_TRIPLET]$(Platform)-osx"
+      if [ "$(Compiler)" == "GCC" ]; then
+        echo "##vso[task.setvariable variable=CXXFLAGS_OLD]$CXXFLAGS"
+        echo "##vso[task.setvariable variable=CXXFLAGS]$CXXFLAGS -fvisibility=hidden -fvisibility-inlines-hidden"
+        echo "##vso[task.setvariable variable=CC]gcc-9"
+        echo "##vso[task.setvariable variable=CXX]g++-9"
+      fi
+    displayName: Set environment variables
 
-    pool:
-      name: Azure Pipelines
-      vmImage: 'macOS-10.14'
+  - task: CacheBeta@1
+    displayName: Cache dependencies
+    inputs:
+      key: '$(Build.SourcesDirectory)/ci/vcpkg.txt | "$(vcpkgGitRef)" | "$(vcpkgPortsOverlayRef)" | "$(Agent.OS)" | "$(Platform)" | "$(revision)"'
+      path: '$(Build.BinariesDirectory)/dependencies'
+      cacheHitVar: 'dependencyCacheHit'
+
+  - script: |
+      if [ "$(vcpkgPortsOverlayRepo)" != "" ]; then
+          git clone --depth 1 $(vcpkgPortsOverlayRepo) "$(Build.BinariesDirectory)/dependencies/ports-overlay-repo"
+      mkdir -p "$(Build.BinariesDirectory)/dependencies/ports-overlay-repo/vcpkg/ports"
+      fi
+    displayName: Clone ports overlay repository
+    condition: ne(variables.dependencyCacheHit, 'true')
       
-    steps:
-      - script: |
-          sudo xcode-select -s /Applications/Xcode_10.3.app/Contents/Developer
-          brew install gcc@9
-        displayName: Install tools
+  - task: run-vcpkg@0
+    displayName: Run Vcpkg to install dependencies
+    inputs:
+      vcpkgDirectory: '$(Build.BinariesDirectory)/dependencies/vcpkg'
+      vcpkgGitCommitId: '$(vcpkgGitRef)'
+      vcpkgTriplet: '$(Platform)-osx'
+      vcpkgArguments: '--overlay-ports="$(Build.BinariesDirectory)/dependencies/ports-overlay-repo/vcpkg/ports" "@$(Build.SourcesDirectory)/ci/vcpkg.txt"'
+    condition: ne(variables.dependencyCacheHit, 'true')
 
-      - script: |
-          echo "##vso[task.setvariable variable=VCPKG_ROOT]$(Build.BinariesDirectory)/dependencies/vcpkg"
-          echo "##vso[task.setvariable variable=VCPKG_TRIPLET]$(Platform)-osx"
-          if [ "$(Compiler)" == "GCC" ]; then
-            echo "##vso[task.setvariable variable=CXXFLAGS_OLD]$CXXFLAGS"
-            echo "##vso[task.setvariable variable=CXXFLAGS]$CXXFLAGS -fvisibility=hidden -fvisibility-inlines-hidden"
-            echo "##vso[task.setvariable variable=CC]gcc-9"
-            echo "##vso[task.setvariable variable=CXX]g++-9"
-          fi
-        displayName: Set environment variables
+  - script: |
+      rm -rf "$(Build.BinariesDirectory)/dependencies/vcpkg/buildtrees"
+      rm -rf "$(Build.BinariesDirectory)/dependencies/vcpkg/downloads"
+      rm -rf "$(Build.BinariesDirectory)/dependencies/vcpkg/packages"
+    displayName: Delete temporary files
+    condition: ne(variables.dependencyCacheHit, 'true')
 
-      - task: CacheBeta@1
-        displayName: Cache dependencies
-        inputs:
-          key: '$(Build.SourcesDirectory)/ci/vcpkg.txt | "$(vcpkgGitRef)" | "$(vcpkgPortsOverlayRef)" | "$(Agent.OS)" | "$(Platform)" | "$(revision)"'
-          path: '$(Build.BinariesDirectory)/dependencies'
-          cacheHitVar: 'dependencyCacheHit'
+  - script: |
+      if [ "$(Compiler)" == "GCC" ]; then
+        echo "##vso[task.setvariable variable=CXXFLAGS]$CXXFLAGS_OLD"
+      fi
+      if [ "$(Compiler)" == "Clang" ]; then
+        sudo xcode-select -s /Applications/Xcode_11.1.app/Contents/Developer
+        echo "##vso[task.setvariable variable=CC]clang"
+        echo "##vso[task.setvariable variable=CXX]clang++"
+      fi
+    displayName: Set environment variables
+    
+  - task: run-cmake@0
+    displayName: Build
+    inputs:
+      cmakeListsOrSettingsJson: 'CMakeListsTxtAdvanced'
+      useVcpkgToolchainFile: true
+      buildDirectory: '$(Build.BinariesDirectory)/build'
+      cmakeAppendedArgs: '-DCMAKE_BUILD_TYPE=$(Config) $(cmakeConfigArgs)'
+      buildWithCMakeArgs: '-- -j VERBOSE=1'
 
-      - script: |
-          if [ "$(vcpkgPortsOverlayRepo)" != "" ]; then
-              git clone --depth 1 $(vcpkgPortsOverlayRepo) "$(Build.BinariesDirectory)/dependencies/ports-overlay-repo"
-          mkdir -p "$(Build.BinariesDirectory)/dependencies/ports-overlay-repo/vcpkg/ports"
-          fi
-        displayName: Clone ports overlay repository
-        condition: ne(variables.dependencyCacheHit, 'true')
-          
-      - task: run-vcpkg@0
-        displayName: Run Vcpkg to install dependencies
-        inputs:
-          vcpkgDirectory: '$(Build.BinariesDirectory)/dependencies/vcpkg'
-          vcpkgGitCommitId: '$(vcpkgGitRef)'
-          vcpkgTriplet: '$(Platform)-osx'
-          vcpkgArguments: '--overlay-ports="$(Build.BinariesDirectory)/dependencies/ports-overlay-repo/vcpkg/ports" "@$(Build.SourcesDirectory)/ci/vcpkg.txt"'
-        condition: ne(variables.dependencyCacheHit, 'true')
-
-      - script: |
-          rm -rf "$(Build.BinariesDirectory)/dependencies/vcpkg/buildtrees"
-          rm -rf "$(Build.BinariesDirectory)/dependencies/vcpkg/downloads"
-          rm -rf "$(Build.BinariesDirectory)/dependencies/vcpkg/packages"
-        displayName: Delete temporary files
-        condition: ne(variables.dependencyCacheHit, 'true')
-
-      - script: |
-          if [ "$(Compiler)" == "GCC" ]; then
-            echo "##vso[task.setvariable variable=CXXFLAGS]$CXXFLAGS_OLD"
-          fi
-          if [ "$(Compiler)" == "Clang" ]; then
-            sudo xcode-select -s /Applications/Xcode_11.1.app/Contents/Developer
-            echo "##vso[task.setvariable variable=CC]clang"
-            echo "##vso[task.setvariable variable=CXX]clang++"
-          fi
-        displayName: Set environment variables
-        
-      - task: run-cmake@0
-        displayName: Build
-        inputs:
-          cmakeListsOrSettingsJson: 'CMakeListsTxtAdvanced'
-          useVcpkgToolchainFile: true
-          buildDirectory: '$(Build.BinariesDirectory)/build'
-          cmakeAppendedArgs: '-DCMAKE_BUILD_TYPE=$(Config) $(cmakeConfigArgs)'
-          buildWithCMakeArgs: '-- -j VERBOSE=1'
-
-      - script: |
-          ctest -V
-        displayName: Run tests
-        failOnStderr: true
-        workingDirectory: '$(Build.BinariesDirectory)/build'
+  - script: |
+      ctest -V
+    displayName: Run tests
+    failOnStderr: true
+    workingDirectory: '$(Build.BinariesDirectory)/build'
