@@ -13,8 +13,9 @@ steps:
       if ("$(Compiler)" -eq "Clang") {
         $vsPath = &"${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"  -latest -prerelease -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
         $clangClPath = Join-Path $vsPath 'VC\Tools\Llvm\bin\clang-cl.exe'
-        Write-Host "##vso[task.setvariable variable=CC]$clangClPath"
-        Write-Host "##vso[task.setvariable variable=CXX]$clangClPath"
+        Write-Host "##vso[task.setvariable variable=CMakeCompilerFlag]-DCMAKE_C_COMPILER=`"$clangClPath`" -DCMAKE_CXX_COMPILER=`"$clangClPath`""
+      } else {
+        Write-Host "##vso[task.setvariable variable=CMakeCompilerFlag]"
       }
     displayName: Set environment variables
 
@@ -46,7 +47,7 @@ steps:
       cmakeListsOrSettingsJson: 'CMakeListsTxtAdvanced'
       useVcpkgToolchainFile: true
       buildDirectory: '$(Build.BinariesDirectory)/build'
-      cmakeAppendedArgs: '-G Ninja -DCMAKE_BUILD_TYPE=$(Config) $(cmakeConfigArgs)'
+      cmakeAppendedArgs: '-G Ninja $(CMakeCompilerFlag) -DCMAKE_BUILD_TYPE=$(Config) $(cmakeConfigArgs)'
       buildWithCMakeArgs: '--parallel -- -v'
 
   - script: |
