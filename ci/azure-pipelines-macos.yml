@@ -67,7 +67,17 @@ steps:
       buildWithCMakeArgs: '-- -j VERBOSE=1'
 
   - script: |
-      ctest -V
+      ctest -V -T Test
     displayName: Run tests
     failOnStderr: true
     workingDirectory: '$(Build.BinariesDirectory)/build'
+
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFormat: 'cTest'
+      testResultsFiles: '$(Build.BinariesDirectory)/build/Testing/*/Test.xml'
+      testRunTitle: '$(Agent.JobName)'
+      #testResultsFiles: '$(Build.BinariesDirectory)/build/**/Test*.xml'
+      #failTaskOnFailedTests: true
+      #buildPlatform: 'Linux $(Platform)'
+      #buildConfiguration: '$(Compiler) $(Config)'
