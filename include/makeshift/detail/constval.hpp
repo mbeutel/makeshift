@@ -65,6 +65,8 @@ private:
  #endif // MAKESHIFT_CXX >= 17
 #endif // defined(_MSC_VER) && !defined(NDEBUG)
 };
+template <typename T, typename F>
+    constexpr T constval<T, F>::value;
 #if defined(_MSC_VER) && !defined(NDEBUG) && MAKESHIFT_CXX < 17
 template <typename T, typename F>
     const T constval<T, F>::value_ = constval<T, F>::value;
@@ -116,6 +118,8 @@ public:
     constexpr operator T(void) const noexcept { return value; }
     constexpr value_type operator ()(void) const noexcept { return value; }
 };
+template <typename T, T const& Ref>
+    constexpr T ref_constval<T, Ref>::value;
 #if defined(_MSC_VER) && !defined(NDEBUG) && MAKESHIFT_CXX < 17
 template <typename T, T const& Ref>
     const T ref_constval<T, Ref>::value_ = ref_constval<T, Ref>::value;
