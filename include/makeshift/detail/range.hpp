@@ -72,7 +72,7 @@ private:
     It first_;
 
 public:
-    constexpr range_base(It first, It last)
+    constexpr range_base(It first, It /*last*/)
         : first_(std::move(first))
     {
     }
