@@ -1,5 +1,8 @@
 # makeshift C++ library
 
+[![Language](https://img.shields.io/badge/language-C%2B%2B14-blue)](https://en.wikipedia.org/wiki/C%2B%2B#Standardization) [![License](https://img.shields.io/badge/license-BSD%202--Clause-green)](https://opensource.org/licenses/BSD-2-Clause) [![Azure DevOps builds](https://img.shields.io/azure-devops/build/moritzbeutel/209b9dd6-7660-43a0-93ae-c9504d026469/2)](https://dev.azure.com/moritzbeutel/makeshift/_build?definitionId=2) [![Azure DevOps tests](https://img.shields.io/azure-devops/tests/moritzbeutel/makeshift/2)](https://dev.azure.com/moritzbeutel/makeshift/_testManagement/runs)
+
+
 A collection of the things I miss in the C++ standard library.
 
 
