@@ -69,10 +69,10 @@ steps:
   - script: |
       ctest -V -T Test
     displayName: Run tests
-    failOnStderr: true
     workingDirectory: '$(Build.BinariesDirectory)/build'
 
   - task: PublishTestResults@2
+    displayName: Publish test results
     inputs:
       testResultsFormat: 'cTest'
       testResultsFiles: '$(Build.BinariesDirectory)/build/Testing/*/Test.xml'
