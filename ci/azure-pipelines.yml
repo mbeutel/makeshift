@@ -145,7 +145,7 @@ jobs:
       - task: CacheBeta@1
         displayName: Cache dependencies
         inputs:
-          key: '$(Build.SourcesDirectory)/ci/vcpkg.txt | "$(vcpkgGitRef)" | "$(vcpkgPortsOverlayRef)" | "$(Agent.OS)" | "$(Platform)" | "cmake-$(cmakeVersion).$(cmakeBuild)" | "$(Packages)" | "$(revision)"'
+          key: '$(Build.SourcesDirectory)/ci/vcpkg.txt | "$(vcpkgGitRef)" | "$(vcpkgPortsOverlayRef)" | "$(Agent.OS)" | "$(Platform)" | "$(Packages)" | "$(revision)"'
           path: '$(Build.BinariesDirectory)/dependencies'
           cacheHitVar: 'dependencyCacheHit'
 
