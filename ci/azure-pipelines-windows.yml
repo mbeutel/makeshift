@@ -54,7 +54,7 @@ jobs:
           Write-Host "##vso[task.setvariable variable=VCPKG_TRIPLET]$(Platform)-windows"
           if ("$(Compiler)" -eq "Clang") {
             $vsPath = &"${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"  -latest -prerelease -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
-            $clangClPath = Join-Path $path 'VC\Tools\Llvm\bin\clang-cl.exe'
+            $clangClPath = Join-Path $vsPath 'VC\Tools\Llvm\bin\clang-cl.exe'
             Write-Host "##vso[task.setvariable variable=CC]$clangClPath"
             Write-Host "##vso[task.setvariable variable=CXX]$clangClPath"
           }
