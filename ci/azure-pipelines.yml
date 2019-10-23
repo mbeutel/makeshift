@@ -207,7 +207,7 @@ jobs:
       - script: |
           #/bin/bash -c "sudo xcode-select -s /Applications/Xcode_11.1.app/Contents/Developer"
           sudo xcode-select -s /Applications/Xcode_11.1.app/Contents/Developer
-          brew install gcc@9
+          #brew install gcc@6
         displayName: Install tools
 
       - script: |
