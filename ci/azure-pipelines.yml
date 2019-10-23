@@ -185,17 +185,77 @@ jobs:
         failOnStderr: true
         workingDirectory: '$(Build.BinariesDirectory)/build'
 
-#  - job: MacOS
-#
-#    strategy:
-#      matrix: 
-#        Debug:
-#          Config: Debug
-#          Platform: x64
-#        Release:
-#          Config: RelWithDebInfo
-#          Platform: x64
-#
-#    pool:
-#      name: Azure Pipelines
-#      vmImage: 'macOS-10.14'
+  - job: MacOS
+
+    strategy:
+      matrix: 
+        Debug:
+          Config: Debug
+          Platform: x64
+        Release:
+          Config: RelWithDebInfo
+          Platform: x64
+
+    pool:
+      name: Azure Pipelines
+      vmImage: 'macOS-10.14'
+      
+    steps:
+      - script: |
+          #/bin/bash -c "sudo xcode-select -s /Applications/Xcode_11.1.app/Contents/Developer"
+          sudo xcode-select -s /Applications/Xcode_11.1.app/Contents/Developer
+          brew install cmake
+        displayName: Install tools
+
+      - script: |
+          #mkdir -p ~/bin
+          #ln -s /usr/bin/cmake ~/bin/cmake
+          #echo "##vso[task.setvariable variable=PATH]$HOME/bin:${PATH}"
+          echo "##vso[task.setvariable variable=VCPKG_ROOT]$(Build.BinariesDirectory)/dependencies/vcpkg"
+          echo "##vso[task.setvariable variable=VCPKG_TRIPLET]$(Platform)-osx"
+          #echo "##vso[task.setvariable variable=CC]$(envCC)"
+          #echo "##vso[task.setvariable variable=CXX]$(envCXX)"
+        displayName: Set environment variables
+
+      - task: CacheBeta@1
+        displayName: Cache dependencies
+        inputs:
+          key: '$(Build.SourcesDirectory)/ci/vcpkg.txt | "$(vcpkgGitRef)" | "$(vcpkgPortsOverlayRef)" | "$(Agent.OS)" | "$(Platform)" | "$(revision)"'
+          path: '$(Build.BinariesDirectory)/dependencies'
+          cacheHitVar: 'dependencyCacheHit'
+
+      - script: |
+          git clone --depth 1 $(vcpkgPortsOverlayRepo) "$(Build.BinariesDirectory)/dependencies/ports-overlay-repo"
+        displayName: Clone ports overlay repository
+        condition: ne(variables.dependencyCacheHit, 'true')
+
+      - task: run-vcpkg@0
+        displayName: Run Vcpkg to install dependencies
+        inputs:
+          vcpkgDirectory: '$(Build.BinariesDirectory)/dependencies/vcpkg'
+          vcpkgGitCommitId: '$(vcpkgGitRef)'
+          vcpkgTriplet: '$(Platform)-osx'
+          vcpkgArguments: '--overlay-ports="$(Build.BinariesDirectory)/dependencies/ports-overlay-repo/vcpkg/ports" "@$(Build.SourcesDirectory)/ci/vcpkg.txt"'
+        condition: ne(variables.dependencyCacheHit, 'true')
+
+      - script: |
+          rm -rf "$(Build.BinariesDirectory)/dependencies/vcpkg/buildtrees"
+          rm -rf "$(Build.BinariesDirectory)/dependencies/vcpkg/downloads"
+          rm -rf "$(Build.BinariesDirectory)/dependencies/vcpkg/packages"
+        displayName: Delete temporary files
+        condition: ne(variables.dependencyCacheHit, 'true')
+
+      - task: run-cmake@0
+        displayName: Build
+        inputs:
+          cmakeListsOrSettingsJson: 'CMakeListsTxtAdvanced'
+          useVcpkgToolchainFile: true
+          buildDirectory: '$(Build.BinariesDirectory)/build'
+          cmakeAppendedArgs: '-DCMAKE_BUILD_TYPE=$(Config) $(cmakeConfigArgs)'
+          buildWithCMakeArgs: '-- -j VERBOSE=1'
+
+      - script: |
+          ctest -V
+        displayName: Run tests
+        failOnStderr: true
+        workingDirectory: '$(Build.BinariesDirectory)/build'
