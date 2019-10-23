@@ -6,31 +6,19 @@ jobs:
         GCC_Debug:
           Config: Debug
           Platform: x64
-          Repository: 'ppa:ubuntu-toolchain-r/test'
-          Packages: 'gcc-9'
-          envCC: 'gcc'
-          envCXX: 'g++'
+          Compiler: GCC
         GCC_Release:
           Config: RelWithDebInfo
           Platform: x64
-          Repository: 'ppa:ubuntu-toolchain-r/test'
-          Packages: 'gcc-9'
-          envCC: 'gcc'
-          envCXX: 'g++'
+          Compiler: GCC
         Clang_Debug:
           Config: Debug
           Platform: x64
-          Repository: '"deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-9 main"'
-          Packages: 'clang-9'
-          envCC: 'clang-9'
-          envCXX: 'clang++-9'
+          Compiler: Clang
         Clang_Release:
           Config: RelWithDebInfo
           Platform: x64
-          Repository: '"deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-9 main"'
-          Packages: 'clang-9'
-          envCC: 'clang-9'
-          envCXX: 'clang++-9'
+          Compiler: Clang
 
     pool:
       name: Azure Pipelines
@@ -39,10 +27,19 @@ jobs:
     steps:
       - script: |
           wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | sudo apt-key add -
-          sudo apt-add-repository $(Repository)
           sudo apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main'
+          if [ "$(Compiler)" = "GCC" ]; then
+            sudo apt-add-repository ppa:ubuntu-toolchain-r/test
+          else
+            sudo apt-add-repository "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-9 main"
+          fi
           sudo apt-get update
-          sudo apt-get install cmake $(Packages)
+          if [ "$(Compiler)" = "GCC" ]; then
+            sudo apt-get install cmake gcc-9
+          else
+            sudo apt-get install cmake clang-9
+          fi
+          
         displayName: Install tools
 
       - script: |
@@ -51,14 +48,19 @@ jobs:
           echo "##vso[task.setvariable variable=PATH]$HOME/bin:${PATH}"
           echo "##vso[task.setvariable variable=VCPKG_ROOT]$(Build.BinariesDirectory)/dependencies/vcpkg"
           echo "##vso[task.setvariable variable=VCPKG_TRIPLET]$(Platform)-linux"
-          echo "##vso[task.setvariable variable=CC]$(envCC)"
-          echo "##vso[task.setvariable variable=CXX]$(envCXX)"
+          if [ "$(Compiler)" = "GCC" ]; then
+            echo "##vso[task.setvariable variable=CC]gcc"
+            echo "##vso[task.setvariable variable=CXX]g++"
+          else
+            echo "##vso[task.setvariable variable=CC]clang"
+            echo "##vso[task.setvariable variable=CXX]clang++"
+          fi
         displayName: Set environment variables
 
       - task: CacheBeta@1
         displayName: Cache dependencies
         inputs:
-          key: '$(Build.SourcesDirectory)/ci/vcpkg.txt | "$(vcpkgGitRef)" | "$(vcpkgPortsOverlayRef)" | "$(Agent.OS)" | "$(Platform)" | "$(Packages)" | "$(revision)"'
+          key: '$(Build.SourcesDirectory)/ci/vcpkg.txt | "$(vcpkgGitRef)" | "$(vcpkgPortsOverlayRef)" | "$(Agent.OS)" | "$(Platform)" | "$(Compiler)" | "$(revision)"'
           path: '$(Build.BinariesDirectory)/dependencies'
           cacheHitVar: 'dependencyCacheHit'
 

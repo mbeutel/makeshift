@@ -6,15 +6,35 @@ jobs:
         MSVC_Debug_x86:
           Config: Debug
           Platform: x86
+          Compiler: MSVC
         MSVC_Release_x86:
           Config: RelWithDebInfo
           Platform: x86
+          Compiler: MSVC
         MSVC_Debug_x64:
           Config: Debug
           Platform: x64
+          Compiler: MSVC
         MSVC_Release_x64:
           Config: RelWithDebInfo
           Platform: x64
+          Compiler: MSVC
+        Clang_Debug_x86:
+          Config: Debug
+          Platform: x86
+          Compiler: Clang
+        Clang_Release_x86:
+          Config: RelWithDebInfo
+          Platform: x86
+          Compiler: Clang
+        Clang_Debug_x64:
+          Config: Debug
+          Platform: x64
+          Compiler: Clang
+        Clang_Release_x64:
+          Config: RelWithDebInfo
+          Platform: x64
+          Compiler: Clang
 
     pool:
       name: Azure Pipelines
@@ -32,6 +52,12 @@ jobs:
           Write-Host "##vso[task.setvariable variable=Path]$(Build.BinariesDirectory)/dependencies/cmake/bin;${env:Path}"
           Write-Host "##vso[task.setvariable variable=VCPKG_ROOT]$(Build.BinariesDirectory)/dependencies/vcpkg"
           Write-Host "##vso[task.setvariable variable=VCPKG_TRIPLET]$(Platform)-windows"
+          if ("$(Compiler) -eq "Clang") {
+            $vsPath = &"${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"  -latest -prerelease -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+            $clangClPath = Join-Path $path 'VC\Tools\Llvm\bin\clang-cl.exe'
+            Write-Host "##vso[task.setvariable variable=CC]$clangClPath"
+            Write-Host "##vso[task.setvariable variable=CXX]$clangClPath"
+          }
         displayName: Set environment variables
 
       - powershell: |
