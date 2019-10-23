@@ -28,7 +28,9 @@ steps:
     displayName: Set environment variables
 
   - powershell: |
-      if ("$(vcpkgPortsOverlayRepo)") git clone --depth 1 $(vcpkgPortsOverlayRepo) "$(Build.BinariesDirectory)/dependencies/ports-overlay-repo"
+      if ("$(vcpkgPortsOverlayRepo)") {
+        & git clone --depth 1 $(vcpkgPortsOverlayRepo) "$(Build.BinariesDirectory)/dependencies/ports-overlay-repo"
+      }
       mkdir -Force "$(Build.BinariesDirectory)/dependencies/ports-overlay-repo/vcpkg/ports"
     displayName: Clone ports overlay repository
     condition: ne(variables.dependencyCacheHit, 'true')
@@ -61,10 +63,10 @@ steps:
   - script: |
       ctest -V -T Test
     displayName: Run tests
-    failOnStderr: true
     workingDirectory: '$(Build.BinariesDirectory)/build'
 
   - task: PublishTestResults@2
+    displayName: Publish test results
     inputs:
       testResultsFormat: 'cTest'
       testResultsFiles: '$(Build.BinariesDirectory)/build/Testing/*/Test.xml'

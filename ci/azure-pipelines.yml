@@ -10,6 +10,7 @@ variables:
 
 trigger:
 - master
+- mr/*
 
 pr:
 - master
