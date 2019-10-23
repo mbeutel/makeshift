@@ -34,7 +34,8 @@ jobs:
           echo "##vso[task.setvariable variable=VCPKG_ROOT]$(Build.BinariesDirectory)/dependencies/vcpkg"
           echo "##vso[task.setvariable variable=VCPKG_TRIPLET]$(Platform)-osx"
           if [ "$(Compiler)" == "GCC" ]; then
-            echo "##vso[task.setvariable variable=CXXFLAGS]-fvisibility=hidden -fvisibility-inlines-hidden"
+            echo "##vso[task.setvariable variable=CXXFLAGS_OLD]$CXXFLAGS"
+            echo "##vso[task.setvariable variable=CXXFLAGS]$CXXFLAGS -fvisibility=hidden -fvisibility-inlines-hidden"
             echo "##vso[task.setvariable variable=CC]gcc-9"
             echo "##vso[task.setvariable variable=CXX]g++-9"
           fi
@@ -74,7 +75,7 @@ jobs:
       - script: |
           sudo xcode-select -s /Applications/Xcode_11.1.app/Contents/Developer
           if [ "$(Compiler)" == "GCC" ]; then
-            echo "##vso[task.setvariable variable=CXXFLAGS]"
+            echo "##vso[task.setvariable variable=CXXFLAGS]$CXXFLAGS_OLD"
           fi
           if [ "$(Compiler)" == "Clang" ]; then
             echo "##vso[task.setvariable variable=CC]clang"
