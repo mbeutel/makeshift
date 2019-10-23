@@ -121,18 +121,18 @@ std::size_t hardware_cache_line_size(void) noexcept
         result = sysconf(_SC_LEVEL1_DCACHE_LINESIZE);
         if (result > 0) return gsl::narrow_cast<std::size_t>(result);
  #endif // _SC_LEVEL1_DCACHE_LINESIZE
-        FILE* f = fopen("/sys/devices/system/cpu/cpu0/cache/index0/coherency_line_size", "r");
+        FILE* f = std::fopen("/sys/devices/system/cpu/cpu0/cache/index0/coherency_line_size", "r");
         Expects(f != nullptr);
-        fscanf(f, "%ld", &result);
-        Expects(result != 0);
-        fclose(f);
+        int nf = std::fscanf(f, "%ld", &result);
+        std::fclose(f);
+        Expects(nf == 1 && result != 0);
         return gsl::narrow_cast<std::size_t>(result);
 
 #elif defined(__APPLE__)
         std::size_t result = 0;
         std::size_t nbResult = sizeof result;
-        int success = sysctlbyname("hw.cachelinesize", &result, &nbResult, 0, 0);
-        Expects(success);
+        int ec = sysctlbyname("hw.cachelinesize", &result, &nbResult, 0, 0);
+        Expects(ec == 0);
         return result;
 #else
  #error Unsupported operating system.

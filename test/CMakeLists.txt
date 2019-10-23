@@ -43,9 +43,7 @@ cmakeshift_target_compile_settings(
     TARGETS
         test-makeshift-cxx14 test-makeshift-cxx17
     PRIVATE
-        default
-        diagnostics
-        $<$<CONFIG:Debug>:runtime-checks>)
+        default)
 target_compile_features(test-makeshift-cxx14
     PUBLIC
         cxx_std_14)

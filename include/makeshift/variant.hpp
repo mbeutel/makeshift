@@ -28,7 +28,7 @@ namespace makeshift
     // `Expects()` is used to ensure that the runtime value is among the values in the array.
     //ᅟ
     //ᅟ    int bits = ...;
-    //ᅟ    auto bitsV = expand(bits, make_constval([]{ return std::array{ 16, 32, 64 }; }));
+    //ᅟ    auto bitsV = expand(bits, MAKESHIFT_CONSTVAL(std::array{ 16, 32, 64 }));
     //ᅟ
     //ᅟ    visit(
     //ᅟ        [](auto bitsC) {
@@ -68,7 +68,7 @@ template <typename T>
     expand(T const& value)
 {
     static_assert(have_values_of_v<T>, "expand() cannot find admissible values");
-    return makeshift::expand(value, makeshift::make_constval(makeshift::detail::values_of_<T>{ }));
+    return makeshift::expand(value, makeshift::make_constval_t<makeshift::detail::values_of_<T>>{ });
 }
 
     //ᅟ
@@ -76,7 +76,7 @@ template <typename T>
     // The result is `std::nullopt` if the runtime value is not among the values in the array.
     //ᅟ
     //ᅟ    int bits = ...;
-    //ᅟ    auto bitsVO = try_expand(bits, make_constval([]{ return std::array{ 16, 32, 64 }; }));
+    //ᅟ    auto bitsVO = try_expand(bits, MAKESHIFT_CONSTVAL(std::array{ 16, 32, 64 }));
     //ᅟ    if (!bitsVO.has_value()) return;
     //ᅟ
     //ᅟ    visit(
@@ -118,7 +118,7 @@ template <typename T>
     try_expand(T const& value)
 {
     static_assert(have_values_of_v<T>, "try_expand() cannot find admissible values");
-    return makeshift::try_expand(value, makeshift::make_constval(makeshift::detail::values_of_<T>{ }));
+    return makeshift::try_expand(value, makeshift::make_constval_t<makeshift::detail::values_of_<T>>{ });
 }
 
     //ᅟ
@@ -126,7 +126,7 @@ template <typename T>
     // An exception of type `unsupported_runtime_value` is thrown if the runtime value is not among the values in the array.
     //ᅟ
     //ᅟ    int bits = ...;
-    //ᅟ    auto bitsV = expand_or_throw(bits, make_constval([]{ return std::array{ 16, 32, 64 }; }));
+    //ᅟ    auto bitsV = expand_or_throw(bits, MAKESHIFT_CONSTVAL(std::array{ 16, 32, 64 }));
     //ᅟ
     //ᅟ    visit(
     //ᅟ        [](auto bitsC) {
@@ -166,7 +166,7 @@ template <typename T>
     expand_or_throw(T const& value)
 {
     static_assert(have_values_of_v<T>, "expand_or_throw() cannot find admissible values");
-    return makeshift::expand_or_throw(value, makeshift::make_constval(makeshift::detail::values_of_<T>{ }));
+    return makeshift::expand_or_throw(value, makeshift::make_constval_t<makeshift::detail::values_of_<T>>{ });
 }
 
 

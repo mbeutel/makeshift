@@ -72,7 +72,7 @@ private:
     It first_;
 
 public:
-    constexpr range_base(It first, It last)
+    constexpr range_base(It first, It /*last*/)
         : first_(std::move(first))
     {
     }
@@ -112,7 +112,7 @@ template <typename T>
     Expects(expectedExtent == actualExtent);
 }
 template <typename T>
-    constexpr void check_buffer_extents(std::false_type /*dynamicExtent*/, std::size_t expectedExtent, std::size_t actualExtent)
+    constexpr void check_buffer_extents(std::false_type /*dynamicExtent*/, std::size_t /*expectedExtent*/, std::size_t /*actualExtent*/)
 {
 }
 

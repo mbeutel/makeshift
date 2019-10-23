@@ -4,8 +4,8 @@
 
 
 #include <array>
-#include <cstddef>   // for size_t, ptrdiff_t
-#include <algorithm> // for 
+#include <cstddef>     // for size_t, ptrdiff_t
+#include <exception>
 #include <type_traits> // for integral_constant<>, underlying_type<>, declval<>()
 
 #include <makeshift/utility.hpp>  // for type_seq_<>
@@ -19,10 +19,10 @@ namespace makeshift
     //ᅟ
     // Exception thrown by `expand_or_throw()` if the runtime value to be expanded is not among the values listed.
     //
-class unsupported_runtime_value : public std::runtime_error
+class unsupported_runtime_value : public std::exception
 {
 public:
-    using std::runtime_error::runtime_error;
+    char const* what(void) const noexcept override;
 };
 
 
@@ -138,7 +138,7 @@ template <typename RepT, typename T, std::size_t N>
     return true;
 }
 template <typename RepT, typename T>
-    constexpr bool are_values_contiguous(std::array<T, 0> const& values)
+    constexpr bool are_values_contiguous(std::array<T, 0> const& /*values*/)
 {
     return false;
 }

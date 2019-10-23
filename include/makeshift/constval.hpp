@@ -8,7 +8,7 @@
 
 #include <gsl/gsl-lite.hpp> // for Expects()
 
-#include <makeshift/type_traits.hpp> // for can_instantiate<>
+#include <makeshift/type_traits.hpp> // for can_instantiate<>, as_dependent_type<>
 #include <makeshift/macros.hpp>      // for MAKESHIFT_NODISCARD
 
 #include <makeshift/detail/constval.hpp>
@@ -30,55 +30,13 @@ namespace makeshift
     //ᅟ    auto paramsC = MAKESHIFT_CONSTVAL(PerformanceParams{ .loopUnrollSize = 2 });
     //ᅟ    // returns constval representing value `PerformanceParams{ 2 }`
     //
-#define MAKESHIFT_CONSTVAL(...) (makeshift::make_constval([] { struct R_ { constexpr auto operator ()(void) const noexcept { return __VA_ARGS__; } }; return R_{ }; }()))
+#define MAKESHIFT_CONSTVAL(...) (makeshift::detail::make_constval([] { struct R_ { constexpr auto operator ()(void) const noexcept { return __VA_ARGS__; } }; return R_{ }; }()))
 
 
     //ᅟ
     // A constval type representing the given nullary constexpr function object type. Applies normalization if applicable.
     //
-template <typename C> using make_constval_t = makeshift::detail::make_constval<C>;
-
-
-    //ᅟ
-    // Returns a constval with the value of the given proto-constval.
-    //ᅟ
-    //ᅟ    struct PerformanceParams { int loopUnrollSize; };
-    //ᅟ
-    //ᅟ    auto paramsC = make_constval([]
-    //ᅟ        {
-    //ᅟ            return PerformanceParams{ .loopUnrollSize = 2 };
-    //ᅟ        });
-    //ᅟ    // returns constval representing value `PerformanceParams{ 2 }`
-    //
-template <typename C>
-    constexpr make_constval_t<C> make_constval(C const&)
-{
-    static_assert(std::is_empty<C>::value, "argument must be stateless");
-    static_assert(can_instantiate_v<makeshift::detail::is_constexpr_functor_r, C>, "argument must be constexpr function object");
-
-    return { };
-}
-
-
-    //ᅟ
-    // Returns a const reference to the constexpr object with the value of the given proto-constval.
-    //ᅟ
-    //ᅟ    struct PerformanceParams { int loopUnrollSize; };
-    //ᅟ
-    //ᅟ    constexpr auto const& params = make_constref([]
-    //ᅟ    {
-    //ᅟ        return PerformanceParams{ .loopUnrollSize = 2 };
-    //ᅟ    });
-    //ᅟ    // returns `PerformanceParams const&` referring to constexpr object with value `PerformanceParams{ 2 }`
-    //
-template <typename C>
-    constexpr typename make_constval_t<C>::value_type const& make_constref(C const&)
-{
-    static_assert(std::is_empty<C>::value, "argument must be stateless");
-    static_assert(can_instantiate_v<makeshift::detail::is_constexpr_functor_r, C>, "argument must be constexpr function object");
-
-    return make_constval_t<C>::value;
-}
+template <typename C> using make_constval_t = makeshift::detail::make_constval_t<C>;
 
 
     //ᅟ
@@ -136,8 +94,8 @@ template <typename C>
     //ᅟ
     // Returns the result of the function applied to the values of the given constvals as a constval, or the result value itself if one of the arguments is not a constval.
     //ᅟ
-    //ᅟ    auto baseIndexR = make_constval([]{ return 42; }); // returns `std::integral_constant<int, 42>{ }`
-    //ᅟ    auto offsetR = make_constval([]{ return 3; }); // returns `std::integral_constant<int, 3>{ }`
+    //ᅟ    auto baseIndexR = MAKESHIFT_CONSTVAL(42); // returns `std::integral_constant<int, 42>{ }`
+    //ᅟ    auto offsetR = MAKESHIFT_CONSTVAL(3); // returns `std::integral_constant<int, 3>{ }`
     //ᅟ    auto indexR = constval_transform(std::plus<>, baseIndexR, offsetR); // returns `std::integral_constant<int, 45>{ }`
     //
 template <typename F, typename... Cs>
@@ -152,7 +110,7 @@ template <typename F, typename... Cs>
     //ᅟ
     // Returns the result of the function applied to the given constvals as a constval, or the result value itself if one of the arguments is not a constval.
     //ᅟ
-    //ᅟ    auto variantR = make_constval([]{ return std::variant<int, float>{ 42 }; });
+    //ᅟ    auto variantR = MAKESHIFT_CONSTVAL(std::variant<int, float>{ 42 });
     //ᅟ    auto elementR = constval_extend(
     //ᅟ        [](auto _variantR)
     //ᅟ        {
@@ -160,7 +118,7 @@ template <typename F, typename... Cs>
     //ᅟ            return std::get<variant.index()>(variant);
     //ᅟ        },
     //ᅟ        variantR);
-    //ᅟ    // equivalent to `make_constval([]{ return 42; })`
+    //ᅟ    // equivalent to `MAKESHIFT_CONSTVAL(42)`
     //
 template <typename CF, typename... Cs>
     MAKESHIFT_NODISCARD constexpr auto
@@ -196,6 +154,8 @@ template <typename T, T... Vs>
         return value;
     }
 };
+template <typename T, T... Vs>
+    constexpr typename array_constant<T, Vs...>::value_type array_constant<T, Vs...>::value;
 template <typename T>
     struct array_constant<T> : makeshift::detail::constval_tag
 {
@@ -215,13 +175,15 @@ template <typename T>
         return value;
     }
 };
+template <typename T>
+    constexpr typename array_constant<T>::value_type array_constant<T>::value;
 #if MAKESHIFT_CXX >= 17
 template <typename... Cs>
     array_constant(Cs...) -> array_constant<typename makeshift::detail::array_constant_element_type_<typename makeshift::detail::equal_types_<typename Cs::value_type...>::common_type>::type, Cs::value...>;
 #endif // MAKESHIFT_CXX >= 17
 
     // Implement tuple-like protocol for `array_constant<>`.
-template <std::size_t I, typename T, T... Vs>
+template <std::size_t I, typename T, as_dependent_type<T>... Vs>
     MAKESHIFT_NODISCARD constexpr
     make_constval_t<makeshift::detail::array_accessor_functor<I, array_constant<T, Vs...>>>
     get(array_constant<T, Vs...>) noexcept
@@ -259,7 +221,8 @@ template <typename... Cs>
     static constexpr value_type value = { Cs{ }... };
 
     constexpr tuple_constant(void) noexcept = default;
-    constexpr tuple_constant(Cs...) noexcept
+    template <int N = sizeof...(Cs), std::enable_if_t<N != 0, int> = 0>
+        constexpr tuple_constant(Cs...) noexcept
     {
     }
 
@@ -272,24 +235,8 @@ template <typename... Cs>
         return value;
     }
 };
-template <>
-    struct tuple_constant<> : makeshift::detail::constval_tag
-{
-    using value_type = std::tuple<>;
-
-    static constexpr value_type value = { };
-
-    constexpr tuple_constant(void) noexcept = default;
-
-    MAKESHIFT_NODISCARD constexpr value_type operator ()(void) const noexcept
-    {
-        return value;
-    }
-    MAKESHIFT_NODISCARD constexpr operator value_type(void) const noexcept
-    {
-        return value;
-    }
-};
+template <typename... Cs>
+    constexpr typename tuple_constant<Cs...>::value_type tuple_constant<Cs...>::value;
 #if MAKESHIFT_CXX >= 17
 template <typename... Cs>
     tuple_constant(Cs...) -> tuple_constant<Cs...>;
@@ -332,12 +279,12 @@ namespace std
 
 
     // Implement tuple-like protocol for `array_constant<>`.
-template <typename T, T... Vs> struct tuple_size<makeshift::array_constant<T, Vs...>> : public std::integral_constant<std::size_t, sizeof...(Vs)> { };
-template <std::size_t I, typename T, T... Vs> struct tuple_element<I, makeshift::array_constant<T, Vs...>> { using type = makeshift::make_constval_t<makeshift::detail::array_accessor_functor<I, makeshift::array_constant<T, Vs...>>>; };
+template <typename T, makeshift::as_dependent_type<T>... Vs> class tuple_size<makeshift::array_constant<T, Vs...>> : public std::integral_constant<std::size_t, sizeof...(Vs)> { };
+template <std::size_t I, typename T, makeshift::as_dependent_type<T>... Vs> class tuple_element<I, makeshift::array_constant<T, Vs...>> { public: using type = makeshift::make_constval_t<makeshift::detail::array_accessor_functor<I, makeshift::array_constant<T, Vs...>>>; };
 
     // Implement tuple-like protocol for `tuple_constant<>`.
-template <typename... Cs> struct tuple_size<makeshift::tuple_constant<Cs...>> : public std::integral_constant<std::size_t, sizeof...(Cs)> { };
-template <std::size_t I, typename... Cs> struct tuple_element<I, makeshift::tuple_constant<Cs...>> { using type = makeshift::make_constval_t<makeshift::detail::tuple_accessor_functor<I, makeshift::tuple_constant<Cs...>>>; };
+template <typename... Cs> class tuple_size<makeshift::tuple_constant<Cs...>> : public std::integral_constant<std::size_t, sizeof...(Cs)> { };
+template <std::size_t I, typename... Cs> class tuple_element<I, makeshift::tuple_constant<Cs...>> { public: using type = makeshift::make_constval_t<makeshift::detail::tuple_accessor_functor<I, makeshift::tuple_constant<Cs...>>>; };
 
 
 } // namespace std

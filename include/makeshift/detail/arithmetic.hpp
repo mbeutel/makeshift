@@ -110,7 +110,7 @@ struct throw_error_handler
         return { };
     }
     template <typename T>
-        static constexpr MAKESHIFT_FORCEINLINE unreachable_wildcard_t passthrough_error(T) noexcept
+        static MAKESHIFT_FORCEINLINE unreachable_wildcard_t passthrough_error(T) noexcept
     {
         std::terminate();
     }
@@ -140,7 +140,7 @@ struct assert_error_handler
         return { };
     }
     template <typename T>
-        static constexpr MAKESHIFT_FORCEINLINE unreachable_wildcard_t passthrough_error(T) noexcept
+        static MAKESHIFT_FORCEINLINE unreachable_wildcard_t passthrough_error(T) noexcept
     {
         std::terminate();
     }

@@ -27,80 +27,22 @@ namespace detail
 {
 
 
-#if MAKESHIFT_CXX == 17
- // The workaround is not legal in C++14 and no longer needed in C++20.
- // Permitting divergent class layouts is generally a dangerous thing to do, but it shouldn't matter here because it only affects compile-time evaluation.
- #define MAKESHIFT_NEED_LAMBDA_DEFAULT_CTR_WORKAROUND_
-#endif // MAKESHIFT_CXX == 17
+template <typename C> constexpr auto constval_value = C{ }(); // workaround for EDG (TODO: remove?)
 
 
-    // Workaround for non-default-constructible lambdas in C++17.
-    // Does not rely on UB (as far as I can tell). Works with GCC 8.2, Clang 7.0, MSVC 19.20, and ICC 19.0 (also `constexpr` evaluation).
-    // Idea taken from http://pfultz2.com/blog/2014/09/02/static-lambda/ and modified to avoid casts.
-    // This construct becomes unnecessary with C++20 which permits stateless lambdas to be default-constructed.
-template <typename F>
-    struct stateless_functor_wrapper
-{
-    static_assert(std::is_empty<F>::value, "lambda must be empty");
+    // Returns the canonical constval representation of the given proto-constval.
+template <typename C> struct make_constval_;
+template <typename C> using make_constval_t = typename make_constval_<C>::type;
 
-private:
-#ifdef MAKESHIFT_NEED_LAMBDA_DEFAULT_CTR_WORKAROUND_
-    union impl
-    {
-        F obj;
-        char dummy;
-
-        constexpr impl(void) noexcept : dummy(0) { }
-    };
-#endif // MAKESHIFT_NEED_LAMBDA_DEFAULT_CTR_WORKAROUND_
-
-public:
-    template <typename... Ts>
-        constexpr decltype(auto) operator ()(Ts&&... args) const
-    {
-#ifdef MAKESHIFT_NEED_LAMBDA_DEFAULT_CTR_WORKAROUND_
-        return impl{ }.obj(std::forward<Ts>(args)...); // we can legally use `obj` even if it wasn't initialized because it is empty
-#else // MAKESHIFT_NEED_LAMBDA_DEFAULT_CTR_WORKAROUND_
-        return F{ }.obj(std::forward<Ts>(args)...); // C++14 doesn't support this trick, which is one of the reasons why lambdas cannot be used to make constvals (the other reason being that they cannot be constexpr)
-#endif // MAKESHIFT_NEED_LAMBDA_DEFAULT_CTR_WORKAROUND_
-    }
-};
-template <typename F, bool IsDefaultConstructible> struct stateless_functor_0_;
-template <typename F> struct stateless_functor_0_<F, true> { using type = F; };
-template <typename F> struct stateless_functor_0_<F, false> { using type = stateless_functor_wrapper<F>; };
-template <typename F> using stateless_functor_t = typename stateless_functor_0_<F, std::is_default_constructible<F>::value>::type;
-template <typename F> constexpr stateless_functor_t<F> stateless_functor_v = { };
-
+    // Represents an object as a constval.
 template <typename T, typename F>
-    struct constval_base : constval_tag
+    struct constval : constval_tag
 {
-    static_assert(std::is_empty<F>::value, "lambda must be empty");
-
-public:
     using value_type = T;
 
-private:
-#ifdef MAKESHIFT_NEED_LAMBDA_DEFAULT_CTR_WORKAROUND_
-        // We can legally use `obj` even if it wasn't initialized because it is empty. Or at least that's what happens to work for GCC, Clang, and VC++ with /std:c++17.
-        // C++14 doesn't support this trick, which is one of the reasons why lambdas cannot be used to make constexpr values (the other reason being that they cannot be constexpr).
-        // C++20 obviates the need for this workaround because it makes stateless lambdas default-constructible.
-    union impl
-    {
-        F obj;
-        char dummy;
-
-        constexpr impl(void) noexcept : dummy(0) { }
-    };
-#endif // MAKESHIFT_NEED_LAMBDA_DEFAULT_CTR_WORKAROUND_
-
-public:
     MAKESHIFT_NODISCARD constexpr value_type operator ()(void) const
     {
-#ifdef MAKESHIFT_NEED_LAMBDA_DEFAULT_CTR_WORKAROUND_
-        return impl{ }.obj();
-#else // MAKESHIFT_NEED_LAMBDA_DEFAULT_CTR_WORKAROUND_
         return F{ }();
-#endif // MAKESHIFT_NEED_LAMBDA_DEFAULT_CTR_WORKAROUND_
     }
 #if defined(_MSC_VER) && !defined(__clang__) && !defined(__INTELLISENSE__)
     MAKESHIFT_NODISCARD constexpr operator auto(void) const -> value_type // workaround for VC++ bug, cf. https://developercommunity.visualstudio.com/content/problem/149701/c2833-with-operator-decltype.html#reply-152822
@@ -110,17 +52,8 @@ public:
     {
         return (*this)();
     }
-};
 
-    // Returns the canonical constval representation of the given proto-constval.
-template <typename C> struct make_constval_;
-template <typename C> using make_constval = typename make_constval_<C>::type;
-
-    // Represents an object as a constval.
-template <typename T, typename F>
-    struct constval : constval_base<T, F>
-{
-    static constexpr T value = constval_base<T, F>{ }();
+    static constexpr T value = constval_value<F>;
 
 private:
 #if defined(_MSC_VER) && !defined(NDEBUG)
@@ -132,6 +65,8 @@ private:
  #endif // MAKESHIFT_CXX >= 17
 #endif // defined(_MSC_VER) && !defined(NDEBUG)
 };
+template <typename T, typename F>
+    constexpr T constval<T, F>::value;
 #if defined(_MSC_VER) && !defined(NDEBUG) && MAKESHIFT_CXX < 17
 template <typename T, typename F>
     const T constval<T, F>::value_ = constval<T, F>::value;
@@ -143,7 +78,7 @@ template <std::size_t I, typename C>
     constexpr auto operator ()(void) const
     {
         using std::get;
-        return get<I>(stateless_functor_v<C>());
+        return get<I>(C{ }());
     }
 };
 
@@ -154,7 +89,7 @@ template <typename T, typename F>
 };
 template <std::size_t I, typename T, typename F>
     MAKESHIFT_NODISCARD constexpr
-    make_constval<tuple_accessor_functor<I, tuple_like_constval<T, F>>>
+    make_constval_t<tuple_accessor_functor<I, tuple_like_constval<T, F>>>
     get(tuple_like_constval<T, F>) noexcept
 {
     static_assert(I < std::tuple_size<T>::value, "index out of range");
@@ -183,6 +118,8 @@ public:
     constexpr operator T(void) const noexcept { return value; }
     constexpr value_type operator ()(void) const noexcept { return value; }
 };
+template <typename T, T const& Ref>
+    constexpr T ref_constval<T, Ref>::value;
 #if defined(_MSC_VER) && !defined(NDEBUG) && MAKESHIFT_CXX < 17
 template <typename T, T const& Ref>
     const T ref_constval<T, Ref>::value_ = ref_constval<T, Ref>::value;
@@ -200,11 +137,7 @@ template <std::size_t I, typename C>
 {
     constexpr auto operator ()(void) const
     {
-#if MAKESHIFT_CXX < 17
         return std::get<I>(C{ }());
-#else // MAKESHIFT_CXX < 17
-        return stateless_functor_v<C>()[I];
-#endif // MAKESHIFT_CXX < 17
     }
 };
 template <bool IsElementValidNTTP, typename T, typename Is, typename C>
@@ -212,17 +145,13 @@ template <bool IsElementValidNTTP, typename T, typename Is, typename C>
 template <typename T, std::size_t... Is, typename C>
     struct make_array_constval_<true, T, std::index_sequence<Is...>, C>
 {
-#if MAKESHIFT_CXX < 17
     using type = array_constant<T, std::get<Is>(C{ }())...>;
-#else // MAKESHIFT_CXX < 17
-    using type = array_constant<T, stateless_functor_v<C>()[Is]...>;
-#endif // MAKESHIFT_CXX < 17
 };
 template <typename T, std::size_t... Is, typename C>
     struct make_array_constval_<false, T, std::index_sequence<Is...>, C>
 {
         // For types which are not valid NTTP types, we pass constexpr const references instead.
-    using type = array_constant<T const&, make_constval<array_accessor_functor<Is, C>>::value...>;
+    using type = array_constant<T const&, make_constval_t<array_accessor_functor<Is, C>>::value...>;
 };
 
     // Represent constvals of type `std::tuple<>` as `tuple_constant<>` of the constval types of the elements.
@@ -231,7 +160,7 @@ template <typename Is, typename C>
 template <std::size_t... Is, typename C>
     struct make_tuple_constval_<std::index_sequence<Is...>, C>
 {
-    using type = tuple_constant<make_constval<tuple_accessor_functor<Is, C>>...>;
+    using type = tuple_constant<make_constval_t<tuple_accessor_functor<Is, C>>...>;
 };
 
     // Normalize constvals of tuple-like type.
@@ -247,7 +176,7 @@ template <typename T, typename C> struct make_constval_3_<false, T, C> : make_co
 
     // Normalize NTTP constvals.
 template <bool IsValidNTTP, typename T, typename C> struct make_constval_2_;
-template <typename T, typename C> struct make_constval_2_<true, T, C> { using type = std::integral_constant<T, stateless_functor_v<C>()>; };
+template <typename T, typename C> struct make_constval_2_<true, T, C> { using type = std::integral_constant<T, constval_value<C>>; };
 template <typename T, typename C> struct make_constval_2_<false, T, C> : make_constval_3_<std::is_base_of<constval_tag, T>::value, T, C> { };
 
     // Normalize constvals of type `std::array<>` and `std::tuple<>` to `array_constant<>` and `tuple_constant<>`, and handle constval tag types.
@@ -285,15 +214,6 @@ template <typename T> struct array_constant_element_type_0_<true, T> { using typ
 template <typename T> struct array_constant_element_type_0_<false, T> { using type = T const&; };
 template <typename T> struct array_constant_element_type_ : array_constant_element_type_0_<is_valid_nttp_<T>::value, T> { };
 
-template <typename C> constexpr auto constval_value = C{ }(); // workaround for EDG (TODO: remove)
-
-
-    // idea taken from Ben Deane & Jason Turner, "constexpr ALL the things!", C++Now 2017
-    // currently not used because VS doesn't reliably support constexpr detection
-    // (...and also because we now expect that constvals are explicitly marked as such)
-//template <typename F> using is_constexpr_functor_r = std::integral_constant<bool, (std::declval<F>()(), true)>;
-template <typename F> using is_constexpr_functor_r = decltype(std::declval<F>()());
-
 
 template <typename C>
     constexpr auto get_hvalue_impl(std::true_type /*constvalArg*/, C const&)
@@ -317,19 +237,19 @@ template <typename F, typename... Cs>
 {
     constexpr auto operator ()(void) const
     {
-        return stateless_functor_v<F>(constval_value<Cs>...);
+        return F{ }(constval_value<Cs>...);
     }
 };
 
 template <typename F, typename... Cs>
     constexpr auto constval_transform_impl(std::true_type /*constvalArgs*/, Cs const&...) noexcept
 {
-    return make_constval<constval_transform_functor<F, Cs...>>{ };
+    return make_constval_t<constval_transform_functor<F, Cs...>>{ };
 }
 template <typename F, typename... Cs>
     constexpr auto constval_transform_impl(std::false_type /*constvalArgs*/, Cs const&... args)
 {
-    return stateless_functor_v<F>(makeshift::detail::get_hvalue(args)...);
+    return F{ }(makeshift::detail::get_hvalue(args)...);
 }
 
 
@@ -338,19 +258,19 @@ template <typename CF, typename... Cs>
 {
     constexpr auto operator ()(void) const
     {
-        return stateless_functor_v<CF>(make_constval<Cs>{ }...);
+        return CF{ }(make_constval_t<Cs>{ }...);
     }
 };
 
 template <typename CF, typename... Cs>
     constexpr auto constval_extend_impl(std::true_type /*constvalArgs*/, Cs const&...) noexcept
 {
-    return make_constval<constval_extend_functor<CF, Cs...>>{ };
+    return make_constval_t<constval_extend_functor<CF, Cs...>>{ };
 }
 template <typename CF, typename... Cs>
     constexpr auto constval_extend_impl(std::false_type /*constvalArgs*/, Cs const&... args)
 {
-    return stateless_functor_v<CF>(args...);
+    return CF{ }(args...);
 }
 
 
@@ -377,6 +297,13 @@ static constexpr void constval_assert_impl(std::false_type /*isConstval*/, bool 
 }
 
 
+template <typename C>
+    constexpr make_constval_t<C> make_constval(C const&)
+{
+    return { };
+}
+
+
 } // namespace detail
 
 } // namespace makeshift
@@ -387,11 +314,12 @@ namespace std
 
 
     // Implement tuple-like protocol for `tuple_like_constval<>`.
-template <typename T, typename F> struct tuple_size<makeshift::detail::tuple_like_constval<T, F>> : tuple_size<T> { };
+template <typename T, typename F> class tuple_size<makeshift::detail::tuple_like_constval<T, F>> : public tuple_size<T> { };
 template <std::size_t I, typename T, typename F>
-    struct tuple_element<I, makeshift::detail::tuple_like_constval<T, F>>
+    class tuple_element<I, makeshift::detail::tuple_like_constval<T, F>>
 {
-    using type = makeshift::detail::make_constval<makeshift::detail::tuple_accessor_functor<I, makeshift::detail::tuple_like_constval<T, F>>>;
+public:
+    using type = makeshift::detail::make_constval_t<makeshift::detail::tuple_accessor_functor<I, makeshift::detail::tuple_like_constval<T, F>>>;
 };
 
 

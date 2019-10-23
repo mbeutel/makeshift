@@ -1,0 +1,116 @@
+# Azure Pipelines configuration for makeshift
+
+variables:
+  system.debug: true
+  vcpkgGitRef: 2aaf7fd8b3d7dce245c5ce2d41aa3fdb6f0f7438
+  vcpkgPortsOverlayRepo: 'https://mp-force.ziti.uni-heidelberg.de/asc/infrastructure/vcpkg-ports.git'
+  vcpkgPortsOverlayRef: 09240a899e6575a217a267b26a7c378d0e7d3374
+  cmakeConfigArgs: '-DBUILD_TESTS=ON'
+  revision: 4
+
+trigger:
+- master
+
+pr:
+- master
+
+jobs:
+  - job: Windows
+
+    strategy:
+      matrix: 
+        MSVC_Debug_x86:
+          Config: Debug
+          Platform: x86
+          Compiler: MSVC
+        MSVC_Release_x86:
+          Config: RelWithDebInfo
+          Platform: x86
+          Compiler: MSVC
+        MSVC_Debug_x64:
+          Config: Debug
+          Platform: x64
+          Compiler: MSVC
+        MSVC_Release_x64:
+          Config: RelWithDebInfo
+          Platform: x64
+          Compiler: MSVC
+        #Clang_Debug_x86:
+        #  Config: Debug
+        #  Platform: x86
+        #  Compiler: Clang
+        #Clang_Release_x86:
+        #  Config: RelWithDebInfo
+        #  Platform: x86
+        #  Compiler: Clang
+        #Clang_Debug_x64:
+        #  Config: Debug
+        #  Platform: x64
+        #  Compiler: Clang
+        #Clang_Release_x64:
+        #  Config: RelWithDebInfo
+        #  Platform: x64
+        #  Compiler: Clang
+
+    pool:
+      name: Azure Pipelines
+      vmImage: 'windows-2019'
+
+    steps:
+      - template: azure-pipelines-windows.yml
+
+  - job: Ubuntu
+
+    strategy:
+      matrix: 
+        GCC_Debug:
+          Config: Debug
+          Platform: x64
+          Compiler: GCC
+        GCC_Release:
+          Config: RelWithDebInfo
+          Platform: x64
+          Compiler: GCC
+        Clang_Debug:
+          Config: Debug
+          Platform: x64
+          Compiler: Clang
+        Clang_Release:
+          Config: RelWithDebInfo
+          Platform: x64
+          Compiler: Clang
+
+    pool:
+      name: Azure Pipelines
+      vmImage: 'ubuntu-18.04'
+
+    steps:
+      - template: azure-pipelines-linux.yml
+
+  - job: MacOS
+
+    strategy:
+      matrix: 
+        GCC_Debug:
+          Config: Debug
+          Platform: x64
+          Compiler: GCC
+        GCC_Release:
+          Config: RelWithDebInfo
+          Platform: x64
+          Compiler: GCC
+        AppleClang_Debug:
+          Config: Debug
+          Platform: x64
+          Compiler: Clang
+        AppleClang_Release:
+          Config: RelWithDebInfo
+          Platform: x64
+          Compiler: Clang
+
+    pool:
+      name: Azure Pipelines
+      vmImage: 'macOS-10.14'
+      
+    steps:
+      - template: azure-pipelines-macos.yml

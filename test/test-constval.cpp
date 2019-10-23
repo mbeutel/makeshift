@@ -34,12 +34,12 @@ template <typename T, T V>
 {
 }
 
-template <typename T, T... Vs>
+template <typename T, mk::as_dependent_type<T>... Vs>
     void expect_array_constval_normalization(mk::array_constant<T, Vs...>)
 {
 }
 
-template <typename T, T... Vs>
+template <typename T, mk::as_dependent_type<T>... Vs>
     void expect_nested_array_constval_normalization(mk::array_constant<T, Vs...>)
 {
 #if MAKESHIFT_CXX >= 17
@@ -47,6 +47,11 @@ template <typename T, T... Vs>
 #else // MAKESHIFT_CXX >= 17
     discard_args((expect_array_constval_normalization(mk::c<T, Vs>), 1)...);
 #endif // MAKESHIFT_CXX >= 17
+}
+
+template <typename... Cs>
+    void expect_tuple_constval_normalization(mk::tuple_constant<Cs...>)
+{
 }
 
 template <typename... Cs>
@@ -97,164 +102,82 @@ struct SomeClass
     static constexpr CustomType ct = { 4, 1.41421f, { 1, 3 } };
     static constexpr std::array<int, 2> ca = { 2, 4 };
 };
+constexpr CustomType SomeClass::ct;
 
 enum class Color { red, green, blue };
 
 
-struct C5
+struct ToArrayTransform
 {
-    constexpr auto operator ()(void) const noexcept
+    template <typename T>
+        constexpr auto operator ()(T customTypeObj) const
     {
-        return 5;
+        return std::array<T, 2>{ customTypeObj, customTypeObj };
     }
 };
-struct CClr
+struct ToTupleTransform
 {
-    constexpr auto operator ()(void) const noexcept
+    template <typename T>
+        constexpr auto operator ()(T customTypeObj) const
     {
-        return Color::red;
-    }
-};
-struct CA
-{
-    constexpr auto operator ()(void) const noexcept
-    {
-        return std::array<int, 2>{ 4, 2 };
-    }
-};
-struct CAA
-{
-    constexpr auto operator ()(void) const noexcept
-    {
-        return std::array<std::array<int, 1>, 2>{ std::array<int, 1>{ 4 }, std::array<int, 1>{ 2 } };
-    }
-};
-struct CTA
-{
-    constexpr auto operator ()(void) const noexcept
-    {
-        return std::make_tuple(std::array<int, 1>{ 3 }, std::array<int, 2>{ 1, 4 });
-    }
-};
-struct CT
-{
-    constexpr auto operator ()(void) const noexcept
-    {
-        return mk::type_c<int>;
-    }
-};
-struct CTS
-{
-    constexpr auto operator ()(void) const noexcept
-    {
-        return mk::type_sequence<int, float>{ };
+        return std::tuple<T, T>{ customTypeObj, customTypeObj };
     }
 };
 
 TEST_CASE("constval")
 {
     auto c1 = std::integral_constant<int, 1>{ };
-    auto c51 = mk::make_constval(C5{ });
+    auto c51 = MAKESHIFT_CONSTVAL(5);
     expect_constval_normalization(c51);
-#if MAKESHIFT_CXX >= 17
-    auto c52 = mk::make_constval([]{ return 5; });
-    expect_constval_normalization(c52);
-#endif // MAKESHIFT_CXX >= 17
     auto c42 = 42;
 
-    auto cClr1 = mk::make_constval(CClr{ });
+    auto cClr1 = MAKESHIFT_CONSTVAL(Color::red);
     expect_constval_normalization(cClr1);
-#if MAKESHIFT_CXX >= 17
-    auto cClr2 = mk::make_constval([]{ return Color::red; });
-    expect_constval_normalization(cClr2);
-#endif // MAKESHIFT_CXX >= 17
 
     auto c42R = mk::constval_transform(std::plus<>{ }, c1, c42);
     static_assert(std::is_same<decltype(c42R), int>::value, "wrong type");
     CHECK(c42R == 43);
 
-    auto cA1 = mk::make_constval(CA{ });
+    auto cA1 = MAKESHIFT_CONSTVAL(std::array<int, 2>{ 4, 2 });
     expect_array_constval_normalization<int, 4, 2>(cA1);
     mk::mdarray<int, 2> ncA1 = cA1;
     (void) ncA1;
-#if MAKESHIFT_CXX >= 17
-    auto cA2 = mk::make_constval([]{ return std::array{ 4, 2 }; });
-    expect_array_constval_normalization<int, 4, 2>(cA2);
-    mk::mdarray<int, 2> ncA2 = cA2;
-    (void) ncA2;
-#endif // MAKESHIFT_CXX >= 17
 
-    auto cAA1 = mk::make_constval(CAA{ });
+    auto cAA1 = MAKESHIFT_CONSTVAL(std::array<std::array<int, 1>, 2>{ std::array<int, 1>{ 4 }, std::array<int, 1>{ 2 } });
     expect_nested_array_constval_normalization(cAA1);
     mk::mdarray<int, 2, 1> ncAA1 = cAA1;
     (void) ncAA1;
-#if MAKESHIFT_CXX >= 17
-    auto cAA2 = mk::make_constval([]{ return std::array{ std::array{ 4 }, std::array{ 2 } }; });
-    expect_nested_array_constval_normalization(cAA2);
-    mk::mdarray<int, 2, 1> ncAA2 = cAA2;
-    (void) ncAA2;
-#endif // MAKESHIFT_CXX >= 17
 
-    auto cTA1 = mk::make_constval(CTA{ });
+    auto cTA1 = MAKESHIFT_CONSTVAL(std::make_tuple(std::array<int, 1>{ 3 }, std::array<int, 2>{ 1, 4 }));
     expect_array_tuple_constval_normalization(cTA1);
     std::tuple<std::array<int, 1>, std::array<int, 2>> ncTA1 = cTA1;
     (void) ncTA1;
-#if MAKESHIFT_CXX >= 17
-    auto cTA2 = mk::make_constval([]{ return std::tuple{ std::array{ 3 }, std::array{ 1, 4 } }; });
-    expect_array_tuple_constval_normalization(cTA2);
-    std::tuple<std::array<int, 1>, std::array<int, 2>> ncTA2 = cTA2;
-    (void) ncTA2;
-#endif // MAKESHIFT_CXX >= 17
-    auto cTA3 = MAKESHIFT_CONSTVAL(std::make_tuple(std::array<int, 1>{ 3 }, std::array<int, 2>{ 1, 4 }));
-    expect_array_tuple_constval_normalization(cTA3);
-    std::tuple<std::array<int, 1>, std::array<int, 2>> ncTA3 = cTA3;
-    (void) ncTA3;
 
-    auto cT1 = mk::make_constval(CT{ });
+    auto cT1 = MAKESHIFT_CONSTVAL(mk::type_c<int>);
     expect_type_tag<int>(cT1);
-#if MAKESHIFT_CXX >= 17
-    auto cT2 = mk::make_constval([]{ return mk::type_c<int>; });
-    expect_type_tag<int>(cT2);
-#endif // MAKESHIFT_CXX >= 17
 
     auto cT3 = mk::type_c<float>;
     expect_type_tag<float>(cT3);
 
-    auto cTS1 = mk::make_constval(CTS{ });
+    auto cTS1 = MAKESHIFT_CONSTVAL(mk::type_sequence<int, float>{ });
     expect_type_sequence_tag<int, float>(cTS1);
-#if MAKESHIFT_CXX >= 17
-    auto cTS2 = mk::make_constval([]{ return mk::type_sequence<int, float>{ }; });
-    expect_type_sequence_tag<int, float>(cTS2);
-#endif // MAKESHIFT_CXX >= 17
 
     auto cTS3 = mk::type_sequence<float, int>{ };
     expect_type_sequence_tag<float, int>(cTS3);
 
-#if MAKESHIFT_CXX >= 17
-    auto cCT = mk::make_constval([]
-        {
-            return CustomType{
-                42,
-                13.37f,
-                { 4, 2 }
-            };
+    auto cCT = MAKESHIFT_CONSTVAL(
+        CustomType{
+            42,
+            13.37f,
+            { 4, 2 }
         });
-    auto cCTA = mk::constval_transform(
-        [](auto customTypeObj)
-        {
-            return std::array{ customTypeObj, customTypeObj };
-        },
-        cCT);
+    auto cCTA = mk::constval_transform(ToArrayTransform{ }, cCT);
     expect_tuple_like(cCTA);
+    expect_array_constval_normalization(cCTA);
 
-    auto cCTV = mk::constval_transform(
-        [](auto customTypeObj)
-        {
-            return std::tuple{ customTypeObj, customTypeObj };
-        },
-        cCT);
+    auto cCTV = mk::constval_transform(ToTupleTransform{ }, cCT);
     expect_tuple_like(cCTV);
-#endif // MAKESHIFT_CXX >= 17
+    expect_tuple_constval_normalization(cCTV);
 
     auto cCT1 = mk::c<CustomType const&, SomeClass::ct>;
     static constexpr CustomType c2 = cCT1();
@@ -272,7 +195,7 @@ TEST_CASE("constval")
 #if MAKESHIFT_CXX >= 17
     //auto iCT = mk::ref_c<SomeClass::ct.i>; // this doesn't work because arg doesn't have linkage
     //auto cCT3 = mk::ref_c<c2>; // this doesn't work either, for the same reason
-    auto iCT = mk::make_constval([]{ return SomeClass::ct.i; });
+    auto iCT = MAKESHIFT_CONSTVAL(SomeClass::ct.i);
     expect_constval_normalization<int>(iCT);
 #endif // MAKESHIFT_CXX >= 17
 }
