@@ -7,12 +7,19 @@ steps:
       cacheHitVar: 'dependencyCacheHit'
 
   - powershell: |
+      if ("$(Compiler)" -eq "Clang") {
+        & choco install -y llvm
+      }
+    displayName: Install tools
+
+  - powershell: |
       Write-Host "##vso[task.setvariable variable=Path]$(Build.BinariesDirectory)/dependencies/cmake/bin;${env:Path}"
       Write-Host "##vso[task.setvariable variable=VCPKG_ROOT]$(Build.BinariesDirectory)/dependencies/vcpkg"
       Write-Host "##vso[task.setvariable variable=VCPKG_TRIPLET]$(Platform)-windows"
       if ("$(Compiler)" -eq "Clang") {
-        $vsPath = &"${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"  -latest -prerelease -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
-        $clangClPath = Join-Path $vsPath 'VC\Tools\Llvm\bin\clang-cl.exe'
+        #$vsPath = &"${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"  -latest -prerelease -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+        #$clangClPath = Join-Path $vsPath 'VC\Tools\Llvm\bin\clang-cl.exe'
+        $clangClPath = "${env:ProgramFiles}\LLVM\bin\clang-cl.exe"
         Write-Host "##vso[task.setvariable variable=CMakeCompilerFlag]-DCMAKE_C_COMPILER=`"$clangClPath`" -DCMAKE_CXX_COMPILER=`"$clangClPath`""
       } else {
         Write-Host "##vso[task.setvariable variable=CMakeCompilerFlag]"
