@@ -804,25 +804,26 @@ template <typename EH, typename B, typename E>
     }
 
         // Factor out sign.
-    V sign = b >= 0
+    V signIn = b >= 0
         ? 1
-        : e % 2 == 0
-            ? 1
-            : -1;
+        : -1;
+    V signOut = e % 2 == 0
+        ? 1
+        : signIn;
 
         // Compute `powi()` for unsigned positive number.
     using U = std::make_unsigned_t<V>;
-    U absPow = powi_unsigned<EH>(U(sign * b), e);
+    U absPow = makeshift::detail::powi_unsigned<EH>(U(signIn * b), e);
 
         // Handle special case where result is smallest representable value.
-    if (sign == -1 && absPow == U(std::numeric_limits<V>::max()) + 1)
+    if (signOut == -1 && absPow == U(std::numeric_limits<V>::max()) + 1)
     {
         return EH::make_result(std::numeric_limits<V>::min()); // assuming two's complement
     }
 
         // Convert back to signed and prefix with sign.
     if (absPow > U(std::numeric_limits<V>::max())) return EH::make_error(std::errc::value_too_large);
-    return EH::make_result(V(sign * V(absPow)));
+    return EH::make_result(signOut * V(absPow));
 }
 #if MAKESHIFT_CXXLEVEL < 17
 template <typename EH, typename B, typename E>
