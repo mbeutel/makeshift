@@ -125,9 +125,9 @@ struct assert_error_handler
     {
         return value;
     }
-    [[noreturn]] static inline unreachable_wildcard_t make_error(std::errc) noexcept
+    static inline unreachable_wildcard_t make_error(std::errc) noexcept
     {
-        std::terminate();
+        Expects(false);
     }
     template <typename T>
         static constexpr MAKESHIFT_FORCEINLINE T get_value(T result) noexcept
@@ -142,7 +142,7 @@ struct assert_error_handler
     template <typename T>
         static MAKESHIFT_FORCEINLINE unreachable_wildcard_t passthrough_error(T) noexcept
     {
-        std::terminate();
+        Expects(false);
     }
 };
 
