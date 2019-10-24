@@ -266,6 +266,19 @@ TEST_CASE("arithmetic")
     {
         SECTION("good")
         {
+            for (int b = 1; b <= 5; ++b)
+            {
+                CAPTURE(b);
+                int r = 1;
+                for (int e = 0; e <= 6; ++e)
+                {
+                    CAPTURE(e);
+                    CHECK(mk::powi_or_throw(b, e) == r);
+                    CHECK(int(mk::powi_or_throw(unsigned(b), unsigned(e))) == r);
+                    r *= b;
+                }
+            }
+
             CHECK(mk::powi_or_throw(size_t(0), size_t(0)) == size_t(1));
             CHECK(mk::powi_or_throw(size_t(2), size_t(0)) == size_t(1));
             CHECK(mk::powi_or_throw(size_t(0), size_t(3)) == size_t(0));
@@ -284,6 +297,8 @@ TEST_CASE("arithmetic")
             CHECK(mk::powi_or_throw(imax, 1) == imax);
             CHECK_NOTHROW(mk::powi_or_throw(2, imaxlog));
             CHECK(mk::powi_or_throw(-2, iminlog) == imin);
+            CHECK_THROWS(mk::powi_or_throw(int8_t(-128), 2));
+            CHECK(mk::powi_or_throw(int8_t(-2), 7) == int8_t(-128));
         }
 
         SECTION("bad")
