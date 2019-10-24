@@ -426,6 +426,71 @@ template <typename A, typename B>
 #endif // MAKESHIFT_CXXLEVEL >= 17
 }
 
+    // This function is implemented with recursion, which is probably unsatisfactory for runtime performance, so we use it only internally, and only for compile-time computations.
+template <typename V>
+    constexpr V sqrti(V v)
+{
+    Expects(v >= 0);
+
+    if (v < 2) return v;
+    V a = sqrti(v / 4) * 2; // a² ≤ v
+    return v - a*a < 2*a + 1 // equivalent to `(a + 1)² > v` but without the possibility of overflow
+        ? a
+        : a + 1;
+}
+
+template <typename EH, typename V>
+    constexpr result_t<EH, integral_value_type<V>> square_unsigned(V v)
+{
+    using V0 = integral_value_type<V>;
+
+    constexpr V0 m = makeshift::detail::sqrti(std::numeric_limits<V0>::max());
+
+    if (v > m) return EH::make_error(std::errc::value_too_large);
+    return EH::make_result(v*v);
+}
+template <typename EH, typename V>
+    constexpr result_t<EH, integral_value_type<V>> square_signed(V v)
+{
+    using V0 = integral_value_type<V>;
+
+    constexpr V0 m = makeshift::detail::sqrti(std::numeric_limits<V0>::max());
+
+    if (v < -m || v > m) return EH::make_error(std::errc::value_too_large);
+    return EH::make_result(v*v);
+}
+#if MAKESHIFT_CXXLEVEL < 17
+template <typename V>
+    constexpr bool square_0(std::false_type /*isSigned*/, V v)
+{
+    return makeshift::detail::square_unsigned(v);
+}
+template <typename V>
+    constexpr bool square_0(std::true_type /*isSigned*/, V v)
+{
+    return makeshift::detail::square_signed(v);
+}
+#endif // MAKESHIFT_CXXLEVEL < 17
+template <typename V>
+    constexpr bool square(V v)
+{
+    using V0 = integral_value_type<V>;
+
+#if MAKESHIFT_CXXLEVEL >= 17
+    if constexpr (std::is_signed_v<V0>)
+    {
+        return makeshift::detail::square_signed(v);
+    }
+    else
+    {
+        return makeshift::detail::square_unsigned(v);
+    }
+#else // MAKESHIFT_CXXLEVEL >= 17
+    return makeshift::detail::square_0(std::is_signed<V0>{ }, v);
+#endif // MAKESHIFT_CXXLEVEL >= 17
+}
+
+
 template <typename EH, typename A, typename B>
     constexpr result_t<EH, common_integral_value_type<A, B>> multiply_narrow(A a, B b)
 {

@@ -263,7 +263,7 @@ template <typename V>
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<V>, "arguments must be convertible to an integral type");
 
-    return multiply(v, v);
+    return makeshift::detail::square<makeshift::detail::assert_error_handler>(v);
 }
 
     //ᅟ
@@ -276,7 +276,7 @@ template <typename V>
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<V>, "argument must be convertible to an integral type");
 
-    return try_multiply(v, v);
+    return makeshift::detail::square<makeshift::detail::try_error_handler>(v, v);
 }
 
     //ᅟ
@@ -289,7 +289,7 @@ template <typename V>
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<V>, "argument must be convertible to an integral type");
 
-    return multiply_or_throw(v, v);
+    return makeshift::detail::square<makeshift::detail::throw_error_handler>(v, v);
 }
 
 
