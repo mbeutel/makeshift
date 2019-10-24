@@ -745,35 +745,49 @@ template <typename N, typename D>
 }
 
 
+template <typename U>
+    static constexpr int bit_scan_reverse(U mask)
+{
+    int result = 0;
+    while (mask >>= 1)
+    {
+        ++result;
+    }
+    return result;
+}
+
+
     // Computes bᵉ for e ∊ ℕ₀.
 template <typename EH, typename B, typename E>
     static constexpr result_t<EH, integral_value_type<B>> powi_unsigned(B b, E e)
 {
     using V = integral_value_type<B>;
+    using E0 = integral_value_type<E>;
 
         // Conventionally, `powi(0,0)` is 1.
-    if (e == 0)
-    {
-        return EH::make_result(V(e != 0 ? 0 : 1));
-    }
-    if (b == 0)
-    {
-        return EH::make_result(V(0));
-    }
+    if (e == 0) return EH::make_result(V(e != 0 ? 0 : 1));
+    if (b <= 1 || e == 1) return EH::make_result(V(b));
 
-        // We assume `b > 0` henceforth.
-    V m = std::numeric_limits<V>::max() / b;
+        // We assume `b > 1 && e > 1` henceforth.
 
-    V result = 1;
-    integral_value_type<E> remainingExponents = e;
-    while (remainingExponents > 0)
+    constexpr V mSq = makeshift::detail::sqrti(std::numeric_limits<V>::max());
+    V mb = std::numeric_limits<V>::max() / b;
+
+    E0 bit = 1;
+    for (; bit < e; bit *= 2) { }
+
+    V cb = 1;
+    for (E0 bit = E0(1) << E0(bit_scan_reverse(e)); bit > 0; bit /= 2)
     {
-            // Ensure the multiplication cannot overflow.
-        if (result > m) return EH::make_error(std::errc::value_too_large);
-        result *= b;
-        --remainingExponents;
+        if (cb > mSq) return EH::make_error(std::errc::value_too_large);
+        cb *= cb;
+        if ((e & bit) != 0)
+        {
+            if (cb > mb) return EH::make_error(std::errc::value_too_large);
+            cb *= b;
+        }
     }
-    return EH::make_result(result);
+    return EH::make_result(V(cb));
 }
     // Computes bᵉ for e ∊ ℕ₀.
 template <typename EH, typename B, typename E>
