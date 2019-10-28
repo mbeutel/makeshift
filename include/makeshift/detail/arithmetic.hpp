@@ -944,7 +944,7 @@ template <typename X, typename B>
 }
 
 
-    // Computes ⌊log x ÷ log b⌋ for x,b ∊ ℕ, x > 0, b > 1.
+    // Computes ⌈log x ÷ log b⌉ for x,b ∊ ℕ, x > 0, b > 1.
 template <typename X, typename B>
     constexpr common_integral_value_type<X, B> log_ceili(X x, B b)
 {
