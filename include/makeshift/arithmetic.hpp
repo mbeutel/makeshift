@@ -470,11 +470,10 @@ template <typename X, typename S>
     // Enforces preconditions with `Expects()`. Uses `Expects()` to raise error upon overflow.
     //
 template <typename B, typename E>
-    MAKESHIFT_NODISCARD constexpr makeshift::detail::common_integral_value_type<B, E>
+    MAKESHIFT_NODISCARD constexpr makeshift::detail::integral_value_type<B>
     powi(B b, E e)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<B, E>, "arguments must be convertible to an integral type");
-    static_assert(makeshift::detail::have_same_signedness_v<B, E>, "argument types must have identical signedness");
 
     return makeshift::detail::powi<makeshift::detail::assert_error_handler>(b, e);
 }
@@ -484,11 +483,10 @@ template <typename B, typename E>
     // Enforces preconditions with `Expects()`. Returns error code `std::errc::value_too_large` upon overflow.
     //
 template <typename B, typename E>
-    MAKESHIFT_NODISCARD constexpr arithmetic_result<makeshift::detail::common_integral_value_type<B, E>>
+    MAKESHIFT_NODISCARD constexpr arithmetic_result<makeshift::detail::integral_value_type<B>>
     try_powi(B b, E e)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<B, E>, "arguments must be convertible to an integral type");
-    static_assert(makeshift::detail::have_same_signedness_v<B, E>, "argument types must have identical signedness");
 
     return makeshift::detail::powi<makeshift::detail::try_error_handler>(b, e);
 }
@@ -498,11 +496,10 @@ template <typename B, typename E>
     // Enforces preconditions with `Expects()`. Throws `std::system_error` upon overflow.
     //
 template <typename B, typename E>
-    MAKESHIFT_NODISCARD constexpr makeshift::detail::common_integral_value_type<B, E>
+    MAKESHIFT_NODISCARD constexpr makeshift::detail::integral_value_type<B>
     powi_or_throw(B b, E e)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<B, E>, "arguments must be convertible to an integral type");
-    static_assert(makeshift::detail::have_same_signedness_v<B, E>, "argument types must have identical signedness");
 
     return makeshift::detail::powi<makeshift::detail::throw_error_handler>(b, e);
 }
