@@ -186,6 +186,53 @@ template <typename EH, typename V> using result_t = typename EH::template result
 
 
 template <typename EH, typename V>
+    constexpr result_t<EH, integral_value_type<V>> absi_unsigned(V v)
+{
+    using V0 = integral_value_type<V>;
+
+    return EH::make_result(V0(v));
+}
+template <typename EH, typename V>
+    constexpr result_t<EH, integral_value_type<V>> absi_signed(V v)
+{
+    using V0 = integral_value_type<V>;
+
+        // This assumes a two's complement representation (it will yield a false negative for one's complement integers).
+    if (v == std::numeric_limits<V0>::min()) return EH::make_error(std::errc::value_too_large);
+    return EH::make_result(V0(v < 0 ? -v : v));
+}
+#if MAKESHIFT_CXXLEVEL < 17
+template <typename EH, typename V>
+    constexpr result_t<EH, integral_value_type<V>> absi_0(std::false_type /*isSigned*/, V v)
+{
+    return makeshift::detail::absi_unsigned<EH>(v);
+}
+template <typename EH, typename V>
+    constexpr result_t<EH, integral_value_type<V>> absi_0(std::true_type /*isSigned*/, V v)
+{
+    return makeshift::detail::absi_signed<EH>(v);
+}
+#endif // MAKESHIFT_CXXLEVEL < 17
+template <typename EH, typename V>
+    constexpr result_t<EH, integral_value_type<V>> absi(V v)
+{
+    using V0 = integral_value_type<V>;
+
+#if MAKESHIFT_CXXLEVEL >= 17
+    if constexpr (std::is_signed_v<V0>)
+    {
+        return makeshift::detail::absi_signed<EH>(v);
+    }
+    else
+    {
+        return makeshift::detail::absi_unsigned<EH>(v);
+    }
+#else // MAKESHIFT_CXXLEVEL >= 17
+    return makeshift::detail::absi_0<EH>(std::is_signed<V0>{ }, v);
+#endif // MAKESHIFT_CXXLEVEL >= 17
+}
+
+template <typename EH, typename V>
     constexpr result_t<EH, integral_value_type<V>> negate_unsigned(V v)
 {
     using V0 = integral_value_type<V>;

@@ -85,6 +85,46 @@ template <typename T>
 
 
     //ᅟ
+    // Computes |v|.
+    // Uses `Expects()` to raise error upon underflow.
+    //
+template <typename V>
+    MAKESHIFT_NODISCARD constexpr makeshift::detail::integral_value_type<V>
+    absi(V v)
+{
+    static_assert(makeshift::detail::are_integral_arithmetic_types_v<V>, "argument must be convertible to an integral type");
+
+    return makeshift::detail::absi<makeshift::detail::assert_error_handler>(v);
+}
+
+    //ᅟ
+    // Computes |v|.
+    // Returns error code `std::errc::value_too_large` upon underflow.
+    //
+template <typename V>
+    MAKESHIFT_NODISCARD constexpr arithmetic_result<makeshift::detail::integral_value_type<V>>
+    try_absi(V v)
+{
+    static_assert(makeshift::detail::are_integral_arithmetic_types_v<V>, "argument must be convertible to an integral type");
+
+    return makeshift::detail::absi<makeshift::detail::try_error_handler>(v);
+}
+
+    //ᅟ
+    // Computes |v|.
+    // Throws `std::system_error` upon underflow.
+    //
+template <typename V>
+    MAKESHIFT_NODISCARD constexpr makeshift::detail::integral_value_type<V>
+    absi_or_throw(V v)
+{
+    static_assert(makeshift::detail::are_integral_arithmetic_types_v<V>, "argument must be convertible to an integral type");
+
+    return makeshift::detail::absi<makeshift::detail::throw_error_handler>(v);
+}
+
+
+    //ᅟ
     // Computes -v.
     // Uses `Expects()` to raise error upon underflow.
     //
