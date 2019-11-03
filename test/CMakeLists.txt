@@ -33,6 +33,7 @@ add_executable(test-makeshift-cxx14
     "test-utility.cpp")
 add_executable(test-makeshift-cxx17
     "main.cpp"
+    "test-arithmetic.cpp"
     "test-constval.cpp"
     "test-string.cpp"
     "test-variant.cpp")

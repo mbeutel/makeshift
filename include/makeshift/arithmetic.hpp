@@ -779,6 +779,94 @@ template <typename X, typename A, typename B>
 }
 
 
+#if MAKESHIFT_CXX >= 17
+    //ᅟ
+    // Computes the greatest common divisor of a and b.
+    // Uses `Expects()` to raise error upon overflow.
+    //
+template <typename A, typename B>
+    MAKESHIFT_NODISCARD constexpr makeshift::detail::common_integral_value_type<A, B>
+    gcd(A a, B b)
+{
+    static_assert(makeshift::detail::are_integral_arithmetic_types_v<A, B>, "arguments must be convertible to an integral type");
+    static_assert(makeshift::detail::have_same_signedness_v<A, B>, "argument types must have identical signedness");
+
+    return makeshift::detail::gcd<makeshift::detail::assert_error_handler>(a, b);
+}
+
+    //ᅟ
+    // Computes the greatest common divisor of a and b.
+    // Returns error code `std::errc::value_too_large` upon overflow.
+    //
+template <typename A, typename B>
+    MAKESHIFT_NODISCARD constexpr arithmetic_result<makeshift::detail::common_integral_value_type<A, B>>
+    try_gcd(A a, B b)
+{
+    static_assert(makeshift::detail::are_integral_arithmetic_types_v<A, B>, "arguments must be convertible to an integral type");
+    static_assert(makeshift::detail::have_same_signedness_v<A, B>, "argument types must have identical signedness");
+
+    return makeshift::detail::gcd<makeshift::detail::try_error_handler>(a, b);
+}
+
+    //ᅟ
+    // Computes the greatest common divisor of a and b.
+    // Throws `std::system_error` upon overflow.
+    //
+template <typename A, typename B>
+    MAKESHIFT_NODISCARD constexpr makeshift::detail::common_integral_value_type<A, B>
+    gcd_or_throw(A a, B b)
+{
+    static_assert(makeshift::detail::are_integral_arithmetic_types_v<A, B>, "arguments must be convertible to an integral type");
+    static_assert(makeshift::detail::have_same_signedness_v<A, B>, "argument types must have identical signedness");
+
+    return makeshift::detail::gcd<makeshift::detail::throw_error_handler>(a, b);
+}
+
+
+    //ᅟ
+    // Computes the least common multiple of a and b.
+    // Uses `Expects()` to raise error upon overflow.
+    //
+template <typename A, typename B>
+    MAKESHIFT_NODISCARD constexpr makeshift::detail::common_integral_value_type<A, B>
+    lcm(A a, B b)
+{
+    static_assert(makeshift::detail::are_integral_arithmetic_types_v<A, B>, "arguments must be convertible to an integral type");
+    static_assert(makeshift::detail::have_same_signedness_v<A, B>, "argument types must have identical signedness");
+
+    return makeshift::detail::lcm<makeshift::detail::assert_error_handler>(a, b);
+}
+
+    //ᅟ
+    // Computes the least common multiple of a and b.
+    // Returns error code `std::errc::value_too_large` upon overflow.
+    //
+template <typename A, typename B>
+    MAKESHIFT_NODISCARD constexpr arithmetic_result<makeshift::detail::common_integral_value_type<A, B>>
+    try_lcm(A a, B b)
+{
+    static_assert(makeshift::detail::are_integral_arithmetic_types_v<A, B>, "arguments must be convertible to an integral type");
+    static_assert(makeshift::detail::have_same_signedness_v<A, B>, "argument types must have identical signedness");
+
+    return makeshift::detail::lcm<makeshift::detail::try_error_handler>(a, b);
+}
+
+    //ᅟ
+    // Computes the least common multiple of a and b.
+    // Throws `std::system_error` upon overflow.
+    //
+template <typename A, typename B>
+    MAKESHIFT_NODISCARD constexpr makeshift::detail::common_integral_value_type<A, B>
+    lcm_or_throw(A a, B b)
+{
+    static_assert(makeshift::detail::are_integral_arithmetic_types_v<A, B>, "arguments must be convertible to an integral type");
+    static_assert(makeshift::detail::have_same_signedness_v<A, B>, "argument types must have identical signedness");
+
+    return makeshift::detail::lcm<makeshift::detail::throw_error_handler>(a, b);
+}
+#endif // MAKESHIFT_CXX >= 17
+
+
 } // namespace makeshift
 
 
