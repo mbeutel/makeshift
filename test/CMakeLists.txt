@@ -35,7 +35,6 @@ add_executable(test-makeshift-cxx17
     "main.cpp"
     "test-arithmetic.cpp"
     "test-constval.cpp"
-    "test-string.cpp"
     "test-variant.cpp")
 
 # compiler settings

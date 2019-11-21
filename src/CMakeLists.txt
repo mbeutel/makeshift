@@ -15,7 +15,6 @@ add_library(makeshift STATIC
     "fenv.cpp"
     "memory.cpp"
     "new.cpp"
-    "string.cpp"
     "variant.cpp")
 
 # library export header
