@@ -15,8 +15,8 @@
 #include <makeshift/detail/type_traits.hpp> // for is_tuple_like_r<>, type_enum_base, unwrap_enum_tag
 
 
-#define MAKESHIFT_DEFINE_BITMASK_OPERATORS_(ENUM)                                                       \
     MAKESHIFT_NODISCARD constexpr inline ENUM                                                           \
+#define MAKESHIFT_DEFINE_ENUM_BITMASK_OPERATORS_(ENUM)                                                  \
     operator ~(ENUM val) noexcept                                                                       \
     {                                                                                                   \
         return ENUM(~makeshift::underlying_type_t<ENUM>(val));                                          \

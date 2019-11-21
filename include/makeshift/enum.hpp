@@ -22,9 +22,22 @@
     //ᅟ        onion    = 0b010,
     //ᅟ        eggplant = 0b100
     //ᅟ    };
-    //ᅟ    MAKESHIFT_DEFINE_BITMASK_OPERATORS(Vegetables)
+    //ᅟ    MAKESHIFT_DEFINE_ENUM_BITMASK_OPERATORS(Vegetables)
     //
-#define MAKESHIFT_DEFINE_BITMASK_OPERATORS(ENUM) MAKESHIFT_DEFINE_BITMASK_OPERATORS_(ENUM)
+#define MAKESHIFT_DEFINE_ENUM_BITMASK_OPERATORS(ENUM) MAKESHIFT_DEFINE_ENUM_BITMASK_OPERATORS_(ENUM)
+
+    //ᅟ
+    // Defines relational operators `<`, `>`, `<=`, `>=` for the given enum type.
+    //ᅟ
+    //ᅟ    enum class OperatorPrecedence
+    //ᅟ    {
+    //ᅟ        additive = 0,
+    //ᅟ        multiplicative = 1,
+    //ᅟ        power = 2
+    //ᅟ    };
+    //ᅟ    MAKESHIFT_DEFINE_ENUM_RELATIONAL_OPERATORS(OperatorPrecedence)
+    //
+#define MAKESHIFT_DEFINE_ENUM_RELATIONAL_OPERATORS(ENUM) MAKESHIFT_DEFINE_ENUM_RELATIONAL_OPERATORS_(ENUM)
 
 
 namespace makeshift
