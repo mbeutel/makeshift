@@ -35,8 +35,8 @@ steps:
     inputs:
       vcpkgDirectory: '$(Build.BinariesDirectory)/dependencies/vcpkg'
       vcpkgGitCommitId: '$(vcpkgGitRef)'
-      vcpkgTriplet: '$(Platform)-osx'
-      vcpkgArguments: '--overlay-ports="$(Build.BinariesDirectory)/dependencies/ports-overlay-repo/vcpkg/ports" "@$(Build.SourcesDirectory)/ci/vcpkg.txt"'
+      vcpkgTriplet: '$(Platform)-osx$(vcpkgTripletSuffix)'
+      vcpkgArguments: '--overlay-ports="$(Build.BinariesDirectory)/dependencies/ports-overlay-repo/vcpkg/ports" --overlay-triplets="$(Build.BinariesDirectory)/dependencies/ports-overlay-repo/vcpkg/triplets" "@$(Build.SourcesDirectory)/ci/vcpkg.txt"'
     condition: ne(variables.dependencyCacheHit, 'true')
 
   - script: |

@@ -18,6 +18,9 @@ pr:
 jobs:
   - job: Windows
 
+    variables:
+        vcpkgTripletSuffix: ''
+
     strategy:
       matrix: 
         MSVC_Debug_x86:
@@ -62,6 +65,9 @@ jobs:
 
   - job: Ubuntu
 
+    variables:
+        vcpkgTripletSuffix: '-sanitize'
+
     strategy:
       matrix: 
         GCC_Debug:
@@ -89,6 +95,9 @@ jobs:
       - template: azure-pipelines-linux.yml
 
   - job: MacOS
+
+    variables:
+        vcpkgTripletSuffix: ''
 
     strategy:
       matrix: 
