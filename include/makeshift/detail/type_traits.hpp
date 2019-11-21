@@ -168,6 +168,7 @@ template <typename T> using is_bitmask_type_r = is_bitmask_type_result<T,
 template <typename T> struct is_bitmask_type_0_ : is_bitmask_type_r<T> { };
 template <typename T> using is_bitmask_type = conjunction<can_instantiate_<is_bitmask_type_r, void, T>, is_bitmask_type_0_<T>>;
 
+
 } // namespace detail
 
 } // namespace makeshift

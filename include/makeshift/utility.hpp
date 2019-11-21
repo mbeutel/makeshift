@@ -5,7 +5,7 @@
 
 #include <cstddef>     // for size_t, ptrdiff_t
 #include <utility>     // for tuple_size<>, tuple_element<>
-#include <type_traits> // for integral_constant<>, enable_if<>, is_same<>, make_signed<>, common_type<>, declval<>()
+#include <type_traits> // for integral_constant<>, enable_if<>, is_same<>, declval<>()
 
 #include <gsl/gsl-lite.hpp> // for gsl_CPP17_OR_GREATER, gsl_NODISCARD
 
@@ -161,59 +161,7 @@ template <typename... Ts> using type_sequence_cat_t = typename type_sequence_cat
 
 
     //ᅟ
-    // Returns the size of an array, range, tuple-like or container.
-    // Equivalent to `std::size()` in C++20.
-    //
-    // (TODO: move to gsl-lite?)
-    //
-template <typename ContainerT> 
-    gsl_NODISCARD constexpr auto size(const ContainerT& c) -> decltype(c.size())
-{
-    return c.size();
-}
-
-    //ᅟ
-    // Returns the size of an array, range, tuple-like or container.
-    // Equivalent to `std::size()` in C++20.
-    //
-    // (TODO: move to gsl-lite?)
-    //
-template <typename T, std::size_t N>
-    gsl_NODISCARD constexpr std::size_t size(const T (&)[N]) noexcept
-{
-    return N;
-}
-
-
-    //ᅟ
-    // Returns the signed size of an array, range, tuple-like or container.
-    // Equivalent to `std::ssize()` in C++20.
-    //
-    // (TODO: move to gsl-lite?)
-    //
-template <typename ContainerT>
-    gsl_NODISCARD constexpr auto ssize(const ContainerT& c)
-        -> std::common_type_t<std::ptrdiff_t, std::make_signed_t<decltype(c.size())>>
-{
-    using R = std::common_type_t<std::ptrdiff_t, std::make_signed_t<decltype(c.size())>>;
-    return static_cast<R>(c.size());
-}
-
-    //ᅟ
-    // Returns the signed size of an array, range, tuple-like or container.
-    // Equivalent to `std::ssize()` in C++20.
-    //
-    // (TODO: move to gsl-lite?)
-    //
-template <typename T, std::ptrdiff_t N>
-    gsl_NODISCARD constexpr std::ptrdiff_t ssize(const T (&)[N]) noexcept
-{
-    return N;
-}
-
-
-    //ᅟ
-    // Returns the size of an array, range, tuple-like or container as a constval if known at compile time, or as a value if not.
+    // Returns the size of an array, range, tuple-like, or container as a constval if known at compile time, or as a value if not.
     //
 template <typename ContainerT>
     gsl_NODISCARD constexpr auto csize(ContainerT const& c)
@@ -222,17 +170,17 @@ template <typename ContainerT>
 }
 
     //ᅟ
-    // Returns the size of an array, range, tuple-like or container as a constval if known at compile time, or as a value if not.
+    // Returns the size of an array, range, tuple-like, or container as a constval if known at compile time, or as a value if not.
     //
 template <typename T, std::size_t N>
-    gsl_NODISCARD constexpr std::integral_constant<std::size_t, N> csize(const T (&)[N]) noexcept
+    gsl_NODISCARD constexpr std::integral_constant<std::size_t, N> csize(T const (&)[N]) noexcept
 {
     return { };
 }
 
 
     //ᅟ
-    // Returns the signed size of an array, range, tuple-like or container as a constval if known at compile time, or as a value if not.
+    // Returns the signed size of an array, range, tuple-like, or container as a constval if known at compile time, or as a value if not.
     //
 template <typename ContainerT>
     gsl_NODISCARD constexpr auto cssize(ContainerT const& c)
@@ -241,10 +189,10 @@ template <typename ContainerT>
 }
 
     //ᅟ
-    // Returns the signed size of an array, range, tuple-like or container as a constval if known at compile time, or as a value if not.
+    // Returns the signed size of an array, range, tuple-like, or container as a constval if known at compile time, or as a value if not.
     //
-template <typename T, std::ptrdiff_t N>
-    gsl_NODISCARD constexpr std::integral_constant<std::ptrdiff_t, N> cssize(const T (&)[N]) noexcept
+template <typename T, std::size_t N>
+    gsl_NODISCARD constexpr std::integral_constant<std::ptrdiff_t, N> cssize(T const (&)[N]) noexcept
 {
     return { };
 }

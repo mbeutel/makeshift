@@ -44,24 +44,24 @@ template <template <typename...> class TypeSeq1T, template <typename...> class T
 
 template <typename ContainerT>
     constexpr std::integral_constant<std::size_t, std::tuple_size<ContainerT>::value>
-    csize_impl(std::true_type /*isConstval*/, const ContainerT&)
+    csize_impl(std::true_type /*isConstval*/, ContainerT const&)
 {
     return { };
 }
 template <typename ContainerT>
-    constexpr auto csize_impl(std::false_type /*isConstval*/, const ContainerT& c)
+    constexpr auto csize_impl(std::false_type /*isConstval*/, ContainerT const& c)
         -> decltype(c.size())
 {
     return c.size();
 }
 
 template <typename ContainerT>
-    constexpr std::integral_constant<std::ptrdiff_t, std::tuple_size<ContainerT>::value> cssize_impl(std::true_type /*isConstval*/, const ContainerT&)
+    constexpr std::integral_constant<std::ptrdiff_t, std::tuple_size<ContainerT>::value> cssize_impl(std::true_type /*isConstval*/, ContainerT const&)
 {
     return { };
 }
 template <typename ContainerT>
-    constexpr auto cssize_impl(std::false_type /*isConstval*/, const ContainerT& c)
+    constexpr auto cssize_impl(std::false_type /*isConstval*/, ContainerT const& c)
         -> std::common_type_t<std::ptrdiff_t, std::make_signed_t<decltype(c.size())>>
 {
     using R = std::common_type_t<std::ptrdiff_t, std::make_signed_t<decltype(c.size())>>;
