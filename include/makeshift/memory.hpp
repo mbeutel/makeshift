@@ -12,11 +12,10 @@
 #include <utility>     // for forward<>()
 #include <type_traits> // for is_nothrow_default_constructible<>, enable_if<>, is_same<>, remove_cv<>
 
-#include <gsl/gsl-lite.hpp> // for Expects()
+#include <gsl/gsl-lite.hpp> // for Expects(), gsl_NODISCARD
 
 #include <makeshift/type_traits.hpp> // for can_instantiate<>
-#include <makeshift/enum.hpp>        // for MAKESHIFT_DEFINE_BITMASK_OPERATORS()
-#include <makeshift/macros.hpp>      // for MAKESHIFT_CXXLEVEL, MAKESHIFT_NODISCARD
+#include <makeshift/enum.hpp>        // for MAKESHIFT_DEFINE_ENUM_BITMASK_OPERATORS()
 
 #include <makeshift/detail/memory.hpp>
 
@@ -72,7 +71,7 @@ public:
     {
     }
 
-    MAKESHIFT_NODISCARD value_type* allocate(std::size_t n)
+    gsl_NODISCARD value_type* allocate(std::size_t n)
     {
         auto mem = std::calloc(n, sizeof(value_type));
         if (mem == nullptr) throw std::bad_alloc{ };
@@ -86,12 +85,12 @@ public:
 };
 
 template <typename T, typename U>
-    MAKESHIFT_NODISCARD bool operator ==(zero_init_allocator<T> const&, zero_init_allocator<U> const&) noexcept
+    gsl_NODISCARD bool operator ==(zero_init_allocator<T> const&, zero_init_allocator<U> const&) noexcept
 {
     return true;
 }
 template <typename T, typename U>
-    MAKESHIFT_NODISCARD bool operator !=(zero_init_allocator<T> const& x, zero_init_allocator<U> const& y) noexcept
+    gsl_NODISCARD bool operator !=(zero_init_allocator<T> const& x, zero_init_allocator<U> const& y) noexcept
 {
     return !(x == y);
 }
@@ -109,7 +108,7 @@ enum class alignment : std::size_t
     cache_line = std::size_t(1) << (sizeof(std::size_t) * 8u - 3u),
     none = 1
 };
-MAKESHIFT_DEFINE_BITMASK_OPERATORS(alignment)
+MAKESHIFT_DEFINE_ENUM_BITMASK_OPERATORS(alignment)
 
 
     //ᅟ
@@ -127,7 +126,7 @@ public:
         using other = aligned_allocator<U, Alignment, typename std::allocator_traits<A>::template rebind_alloc<U>>;
     };
 
-    MAKESHIFT_NODISCARD T* allocate(std::size_t n)
+    gsl_NODISCARD T* allocate(std::size_t n)
     {
         std::size_t a = makeshift::detail::alignment_in_bytes(Alignment | alignment(alignof(T)));
         if (n >= std::numeric_limits<std::size_t>::max() / sizeof(T)) throw std::bad_alloc{ }; // overflow
@@ -186,7 +185,7 @@ public:
     {
     }
 
-    MAKESHIFT_NODISCARD T* allocate(std::size_t n)
+    gsl_NODISCARD T* allocate(std::size_t n)
     {
         std::size_t a = makeshift::detail::alignment_in_bytes(Alignment | alignment(alignof(T)));
         if (n >= std::numeric_limits<std::size_t>::max() / sizeof(T)) throw std::bad_alloc{ }; // overflow
@@ -202,12 +201,12 @@ public:
 };
 
 template <typename T, typename U, alignment Alignment1, alignment Alignment2>
-    MAKESHIFT_NODISCARD bool operator ==(aligned_default_allocator<T, Alignment1> const&, aligned_default_allocator<U, Alignment2> const&) noexcept
+    gsl_NODISCARD bool operator ==(aligned_default_allocator<T, Alignment1> const&, aligned_default_allocator<U, Alignment2> const&) noexcept
 {
     return Alignment1 == Alignment2;
 }
 template <typename T, typename U, alignment Alignment1, alignment Alignment2>
-    MAKESHIFT_NODISCARD bool operator !=(aligned_default_allocator<T, Alignment1> const& x, aligned_default_allocator<U, Alignment2> const& y) noexcept
+    gsl_NODISCARD bool operator !=(aligned_default_allocator<T, Alignment1> const& x, aligned_default_allocator<U, Alignment2> const& y) noexcept
 {
     return !(x == y);
 }

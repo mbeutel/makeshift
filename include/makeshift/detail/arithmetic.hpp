@@ -10,7 +10,7 @@
 #include <type_traits>  // for integral_constant<>, make_unsigned<>, is_signed<>, is_integral<>, is_same<>
 #include <system_error> // for errc, system_error
 
-#include <gsl/gsl-lite.hpp> // for Expects()
+#include <gsl/gsl-lite.hpp> // for Expects(), gsl_CPP17_OR_GREATER
 
 #include <makeshift/macros.hpp> // for MAKESHIFT_FORCEINLINE
 
@@ -66,7 +66,7 @@ struct try_error_handler
     {
         return { value, std::errc{ } };
     }
-    static constexpr inline errc_wildcard_t make_error(std::errc ec) noexcept
+    static constexpr errc_wildcard_t make_error(std::errc ec) noexcept
     {
         return { ec };
     }
@@ -202,7 +202,7 @@ template <typename EH, typename V>
     if (v == std::numeric_limits<V0>::min()) return EH::make_error(std::errc::value_too_large);
     return EH::make_result(V0(v < 0 ? -v : v));
 }
-#if MAKESHIFT_CXXLEVEL < 17
+#if !gsl_CPP17_OR_GREATER
 template <typename EH, typename V>
     constexpr result_t<EH, integral_value_type<V>> absi_0(std::false_type /*isSigned*/, V v)
 {
@@ -213,13 +213,13 @@ template <typename EH, typename V>
 {
     return makeshift::detail::absi_signed<EH>(v);
 }
-#endif // MAKESHIFT_CXXLEVEL < 17
+#endif // !gsl_CPP17_OR_GREATER
 template <typename EH, typename V>
     constexpr result_t<EH, integral_value_type<V>> absi(V v)
 {
     using V0 = integral_value_type<V>;
 
-#if MAKESHIFT_CXXLEVEL >= 17
+#if gsl_CPP17_OR_GREATER
     if constexpr (std::is_signed_v<V0>)
     {
         return makeshift::detail::absi_signed<EH>(v);
@@ -228,9 +228,9 @@ template <typename EH, typename V>
     {
         return makeshift::detail::absi_unsigned<EH>(v);
     }
-#else // MAKESHIFT_CXXLEVEL >= 17
+#else // gsl_CPP17_OR_GREATER
     return makeshift::detail::absi_0<EH>(std::is_signed<V0>{ }, v);
-#endif // MAKESHIFT_CXXLEVEL >= 17
+#endif // gsl_CPP17_OR_GREATER
 }
 
 template <typename EH, typename V>
@@ -250,7 +250,7 @@ template <typename EH, typename V>
     if (v == std::numeric_limits<V0>::min()) return EH::make_error(std::errc::value_too_large);
     return EH::make_result(V0(-v));
 }
-#if MAKESHIFT_CXXLEVEL < 17
+#if !gsl_CPP17_OR_GREATER
 template <typename EH, typename V>
     constexpr result_t<EH, integral_value_type<V>> negate_0(std::false_type /*isSigned*/, V v)
 {
@@ -261,13 +261,13 @@ template <typename EH, typename V>
 {
     return makeshift::detail::negate_signed<EH>(v);
 }
-#endif // MAKESHIFT_CXXLEVEL < 17
+#endif // !gsl_CPP17_OR_GREATER
 template <typename EH, typename V>
     constexpr result_t<EH, integral_value_type<V>> negate(V v)
 {
     using V0 = integral_value_type<V>;
 
-#if MAKESHIFT_CXXLEVEL >= 17
+#if gsl_CPP17_OR_GREATER
     if constexpr (std::is_signed_v<V0>)
     {
         return makeshift::detail::negate_signed<EH>(v);
@@ -276,9 +276,9 @@ template <typename EH, typename V>
     {
         return makeshift::detail::negate_unsigned<EH>(v);
     }
-#else // MAKESHIFT_CXXLEVEL >= 17
+#else // gsl_CPP17_OR_GREATER
     return makeshift::detail::negate_0<EH>(std::is_signed<V0>{ }, v);
-#endif // MAKESHIFT_CXXLEVEL >= 17
+#endif // gsl_CPP17_OR_GREATER
 }
 
 
@@ -315,7 +315,7 @@ template <typename EH, typename A, typename B>
     }
     return EH::make_result(V(result));
 }
-#if MAKESHIFT_CXXLEVEL < 17
+#if !gsl_CPP17_OR_GREATER
 template <typename EH, typename BC, typename A, typename B>
     constexpr result_t<EH, common_integral_value_type<A, B>> add_0(std::true_type /*isNarrow*/, BC /*isSigned*/, A a, B b)
 {
@@ -331,13 +331,13 @@ template <typename EH, typename A, typename B>
 {
     return makeshift::detail::add_wide_signed<EH>(a, b);
 }
-#endif // MAKESHIFT_CXXLEVEL < 17
+#endif // !gsl_CPP17_OR_GREATER
 template <typename EH, typename A, typename B>
     constexpr result_t<EH, common_integral_value_type<A, B>> add(A a, B b)
 {
     using V = common_integral_value_type<A, B>;
 
-#if MAKESHIFT_CXXLEVEL >= 17
+#if gsl_CPP17_OR_GREATER
     if constexpr (has_wider_type_v<V>)
     {
         return makeshift::detail::add_narrow<EH>(a, b);
@@ -350,9 +350,9 @@ template <typename EH, typename A, typename B>
     {
         return makeshift::detail::add_wide_unsigned<EH>(a, b);
     }
-#else // MAKESHIFT_CXXLEVEL >= 17
+#else // gsl_CPP17_OR_GREATER
     return makeshift::detail::add_0<EH>(has_wider_type<V>{ }, std::is_signed<V>{ }, a, b);
-#endif // MAKESHIFT_CXXLEVEL >= 17
+#endif // gsl_CPP17_OR_GREATER
 }
 
 
@@ -376,7 +376,7 @@ template <typename EH, typename A, typename B>
     }
     return EH::make_result(V(a - b));
 }
-#if MAKESHIFT_CXXLEVEL < 17
+#if !gsl_CPP17_OR_GREATER
 template <typename EH, typename A, typename B>
     constexpr result_t<EH, common_integral_value_type<A, B>> subtract_0(std::false_type /*isSigned*/, A a, B b)
 {
@@ -387,13 +387,13 @@ template <typename EH, typename A, typename B>
 {
     return makeshift::detail::subtract_signed<EH>(a, b);
 }
-#endif // MAKESHIFT_CXXLEVEL < 17
+#endif // !gsl_CPP17_OR_GREATER
 template <typename EH, typename A, typename B>
     constexpr result_t<EH, common_integral_value_type<A, B>> subtract(A a, B b)
 {
     using V = common_integral_value_type<A, B>;
 
-#if MAKESHIFT_CXXLEVEL >= 17
+#if gsl_CPP17_OR_GREATER
     if constexpr (std::is_signed_v<V>)
     {
         return makeshift::detail::subtract_signed<EH>(a, b);
@@ -402,9 +402,9 @@ template <typename EH, typename A, typename B>
     {
         return makeshift::detail::subtract_unsigned<EH>(a, b);
     }
-#else // MAKESHIFT_CXXLEVEL >= 17
+#else // gsl_CPP17_OR_GREATER
     return makeshift::detail::subtract_0<EH>(std::is_signed<V>{ }, a, b);
-#endif // MAKESHIFT_CXXLEVEL >= 17
+#endif // gsl_CPP17_OR_GREATER
 }
 
 
@@ -434,7 +434,7 @@ template <typename A, typename B>
         && (a >  0 || ((b <= 0           || a >= std::numeric_limits<V>::min() / b)
                     && (b >  0 || a == 0 || b >= std::numeric_limits<V>::max() / a)));
 }
-#if MAKESHIFT_CXXLEVEL < 17
+#if !gsl_CPP17_OR_GREATER
 template <typename BC, typename A, typename B>
     constexpr bool can_multiply_0(std::true_type /*isNarrow*/, BC /*isSigned*/, A a, B b)
 {
@@ -450,13 +450,13 @@ template <typename A, typename B>
 {
     return makeshift::detail::can_multiply_wide_signed(a, b);
 }
-#endif // MAKESHIFT_CXXLEVEL < 17
+#endif // !gsl_CPP17_OR_GREATER
 template <typename A, typename B>
     constexpr bool can_multiply(A a, B b)
 {
     using V = common_integral_value_type<A, B>;
 
-#if MAKESHIFT_CXXLEVEL >= 17
+#if gsl_CPP17_OR_GREATER
     if constexpr (has_wider_type_v<V>)
     {
         return makeshift::detail::can_multiply_narrow(a, b);
@@ -469,9 +469,9 @@ template <typename A, typename B>
     {
         return makeshift::detail::can_multiply_wide_unsigned(a, b);
     }
-#else // MAKESHIFT_CXXLEVEL >= 17
+#else // gsl_CPP17_OR_GREATER
     return makeshift::detail::can_multiply_0(has_wider_type<V>{ }, std::is_signed<V>{ }, a, b);
-#endif // MAKESHIFT_CXXLEVEL >= 17
+#endif // gsl_CPP17_OR_GREATER
 }
 
     // This function is implemented with recursion, which is probably unsatisfactory for runtime performance, so we use it only internally, and only for compile-time computations.
@@ -480,8 +480,9 @@ template <typename V>
 {
     Expects(v >= 0);
 
+    V a = 0;
     if (v < 2) return v;
-    V a = sqrti(v / 4) * 2; // a² ≤ v
+    a = sqrti<V>(v / 4) * 2; // a² ≤ v
     return v - a*a < 2*a + 1 // equivalent to `(a + 1)² > v` but without the possibility of overflow
         ? a
         : a + 1;
@@ -507,7 +508,7 @@ template <typename EH, typename V>
     if (v < -m || v > m) return EH::make_error(std::errc::value_too_large);
     return EH::make_result(v*v);
 }
-#if MAKESHIFT_CXXLEVEL < 17
+#if !gsl_CPP17_OR_GREATER
 template <typename V>
     constexpr bool square_0(std::false_type /*isSigned*/, V v)
 {
@@ -518,13 +519,13 @@ template <typename V>
 {
     return makeshift::detail::square_signed(v);
 }
-#endif // MAKESHIFT_CXXLEVEL < 17
+#endif // !gsl_CPP17_OR_GREATER
 template <typename V>
     constexpr bool square(V v)
 {
     using V0 = integral_value_type<V>;
 
-#if MAKESHIFT_CXXLEVEL >= 17
+#if gsl_CPP17_OR_GREATER
     if constexpr (std::is_signed_v<V0>)
     {
         return makeshift::detail::square_signed(v);
@@ -533,9 +534,9 @@ template <typename V>
     {
         return makeshift::detail::square_unsigned(v);
     }
-#else // MAKESHIFT_CXXLEVEL >= 17
+#else // gsl_CPP17_OR_GREATER
     return makeshift::detail::square_0(std::is_signed<V0>{ }, v);
-#endif // MAKESHIFT_CXXLEVEL >= 17
+#endif // gsl_CPP17_OR_GREATER
 }
 
 
@@ -565,7 +566,7 @@ template <typename EH, typename A, typename B>
     if (!makeshift::detail::can_multiply_wide_signed(a, b)) return EH::make_error(std::errc::value_too_large);
     return EH::make_result(V(a * b));
 }
-#if MAKESHIFT_CXXLEVEL < 17
+#if !gsl_CPP17_OR_GREATER
 template <typename EH, typename BC, typename A, typename B>
     constexpr result_t<EH, common_integral_value_type<A, B>> multiply_0(std::true_type /*isNarrow*/, BC /*isSigned*/, A a, B b)
 {
@@ -581,13 +582,13 @@ template <typename EH, typename A, typename B>
 {
     return makeshift::detail::multiply_wide_signed<EH>(a, b);
 }
-#endif // MAKESHIFT_CXXLEVEL < 17
+#endif // !gsl_CPP17_OR_GREATER
 template <typename EH, typename A, typename B>
     constexpr result_t<EH, common_integral_value_type<A, B>> multiply(A a, B b)
 {
     using V = common_integral_value_type<A, B>;
 
-#if MAKESHIFT_CXXLEVEL >= 17
+#if gsl_CPP17_OR_GREATER
     if constexpr (has_wider_type_v<V>)
     {
         return makeshift::detail::multiply_narrow<EH>(a, b);
@@ -600,9 +601,9 @@ template <typename EH, typename A, typename B>
     {
         return makeshift::detail::multiply_wide_unsigned<EH>(a, b);
     }
-#else // MAKESHIFT_CXXLEVEL >= 17
+#else // gsl_CPP17_OR_GREATER
     return makeshift::detail::multiply_0<EH>(has_wider_type<V>{ }, std::is_signed<V>{ }, a, b);
-#endif // MAKESHIFT_CXXLEVEL >= 17
+#endif // gsl_CPP17_OR_GREATER
 }
 
 
@@ -625,7 +626,7 @@ template <typename EH, typename N, typename D>
     if (n == std::numeric_limits<V>::min() && d == -1) return EH::make_error(std::errc::value_too_large);
     return EH::make_result(V(n / d));
 }
-#if MAKESHIFT_CXXLEVEL < 17
+#if !gsl_CPP17_OR_GREATER
 template <typename EH, typename N, typename D>
     constexpr result_t<EH, common_integral_value_type<N, D>> divide_0(std::false_type /*isSigned*/, N n, D d)
 {
@@ -636,13 +637,13 @@ template <typename EH, typename N, typename D>
 {
     return makeshift::detail::divide_signed<EH>(n, d);
 }
-#endif // MAKESHIFT_CXXLEVEL < 17
+#endif // !gsl_CPP17_OR_GREATER
 template <typename EH, typename N, typename D>
     constexpr result_t<EH, common_integral_value_type<N, D>> divide(N n, D d)
 {
     using V = common_integral_value_type<N, D>;
 
-#if MAKESHIFT_CXXLEVEL >= 17
+#if gsl_CPP17_OR_GREATER
     if constexpr (std::is_signed_v<V>)
     {
         return makeshift::detail::divide_signed<EH>(n, d);
@@ -651,9 +652,9 @@ template <typename EH, typename N, typename D>
     {
         return makeshift::detail::divide_unsigned<EH>(n, d);
     }
-#else // MAKESHIFT_CXXLEVEL >= 17
+#else // gsl_CPP17_OR_GREATER
     return makeshift::detail::divide_0<EH>(std::is_signed<V>{ }, n, d);
-#endif // MAKESHIFT_CXXLEVEL >= 17
+#endif // gsl_CPP17_OR_GREATER
 }
 
 
@@ -676,7 +677,7 @@ template <typename EH, typename N, typename D>
     if (n == std::numeric_limits<V>::min() && d == -1) return EH::make_error(std::errc::value_too_large);
     return EH::make_result(V(n % d));
 }
-#if MAKESHIFT_CXXLEVEL < 17
+#if !gsl_CPP17_OR_GREATER
 template <typename EH, typename N, typename D>
     constexpr result_t<EH, common_integral_value_type<N, D>> modulo_0(std::false_type /*isSigned*/, N n, D d)
 {
@@ -687,13 +688,13 @@ template <typename EH, typename N, typename D>
 {
     return makeshift::detail::modulo_signed<EH>(n, d);
 }
-#endif // MAKESHIFT_CXXLEVEL < 17
+#endif // !gsl_CPP17_OR_GREATER
 template <typename EH, typename N, typename D>
     constexpr result_t<EH, common_integral_value_type<N, D>> modulo(N n, D d)
 {
     using V = common_integral_value_type<N, D>;
 
-#if MAKESHIFT_CXXLEVEL >= 17
+#if gsl_CPP17_OR_GREATER
     if constexpr (std::is_signed_v<V>)
     {
         return makeshift::detail::modulo_signed<EH>(n, d);
@@ -702,9 +703,9 @@ template <typename EH, typename N, typename D>
     {
         return makeshift::detail::modulo_unsigned<EH>(n, d);
     }
-#else // MAKESHIFT_CXXLEVEL >= 17
+#else // gsl_CPP17_OR_GREATER
     return makeshift::detail::modulo_0<EH>(std::is_signed<V>{ }, n, d);
-#endif // MAKESHIFT_CXXLEVEL >= 17
+#endif // gsl_CPP17_OR_GREATER
 }
 
 
@@ -821,9 +822,6 @@ template <typename EH, typename B, typename E>
     constexpr V mSq = makeshift::detail::sqrti(std::numeric_limits<V>::max());
     V mb = std::numeric_limits<V>::max() / b;
 
-    E0 bit = 1;
-    for (; bit < e; bit *= 2) { }
-
     V cb = 1;
     for (E0 bit = E0(1) << E0(bit_scan_reverse(e)); bit > 0; bit /= 2)
     {
@@ -871,9 +869,9 @@ template <typename EH, typename B, typename E>
 
         // Convert back to signed and prefix with sign.
     if (absPow > U(std::numeric_limits<V>::max())) return EH::make_error(std::errc::value_too_large);
-    return EH::make_result(signOut * V(absPow));
+    return EH::make_result(V(signOut * V(absPow)));
 }
-#if MAKESHIFT_CXXLEVEL < 17
+#if !gsl_CPP17_OR_GREATER
 template <typename EH, typename B, typename E>
     constexpr result_t<EH, integral_value_type<B>> powi_0(std::false_type /*isSigned*/, B b, E e)
 {
@@ -884,7 +882,7 @@ template <typename EH, typename B, typename E>
 {
     return makeshift::detail::powi_signed<EH>(b, e);
 }
-#endif // MAKESHIFT_CXXLEVEL < 17
+#endif // !gsl_CPP17_OR_GREATER
 template <typename EH, typename B, typename E>
     constexpr result_t<EH, integral_value_type<B>> powi(B b, E e)
 {
@@ -893,7 +891,7 @@ template <typename EH, typename B, typename E>
         // Negative powers are not integral.
     Expects(e >= 0);
 
-#if MAKESHIFT_CXXLEVEL >= 17
+#if gsl_CPP17_OR_GREATER
     if constexpr (std::is_signed_v<V>)
     {
         return makeshift::detail::powi_signed<EH>(b, e);
@@ -902,9 +900,9 @@ template <typename EH, typename B, typename E>
     {
         return makeshift::detail::powi_unsigned<EH>(b, e);
     }
-#else // MAKESHIFT_CXXLEVEL >= 17
+#else // gsl_CPP17_OR_GREATER
     return makeshift::detail::powi_0<EH>(std::is_signed<V>{ }, b, e);
-#endif // MAKESHIFT_CXXLEVEL >= 17
+#endif // gsl_CPP17_OR_GREATER
 }
 
 
@@ -1128,7 +1126,7 @@ template <typename EH, typename X, typename A, typename B>
 }
 
 
-#if MAKESHIFT_CXX >= 17
+#if gsl_CPP17_OR_GREATER
     // Computes the greatest common divisor of a and b.
 template <typename EH, typename A, typename B>
     constexpr result_t<EH, common_integral_value_type<A, B>> gcd_unsigned(A a, B b)
@@ -1207,7 +1205,7 @@ template <typename EH, typename A, typename B>
         return makeshift::detail::lcm_unsigned<EH>(a, b);
     }
 }
-#endif // MAKESHIFT_CXX >= 17
+#endif // gsl_CPP17_OR_GREATER
 
 
 } // namespace detail

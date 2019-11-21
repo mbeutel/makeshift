@@ -8,8 +8,9 @@
 #include <cstddef> // for size_t, ptrdiff_t
 #include <utility> // for integer_sequence<>, get<>()
 
+#include <gsl/gsl-lite.hpp> // for gsl_CPP17_OR_GREATER
+
 #include <makeshift/utility.hpp> // for type_sequence<>
-#include <makeshift/macros.hpp>  // for MAKESHIFT_CXX
 
 #include <makeshift/detail/type_traits.hpp>     // for can_instantiate_<>, conjunction<>
 #include <makeshift/detail/tuple-transform.hpp> // for transform_element()
@@ -131,25 +132,25 @@ template <template <typename, std::size_t> class ArrayT, typename R, std::size_t
     return ArrayT<R, sizeof...(Is)>{ makeshift::detail::transform_element<Is>(func, std::forward<Ts>(args)...)... };
 }
 
-#if MAKESHIFT_CXX >= 17
+#if gsl_CPP17_OR_GREATER
 template <typename R, typename... Ts>
-    constexpr inline R cadd(Ts... vs) noexcept
+    constexpr R cadd(Ts... vs) noexcept
 {
     auto term = R{ 0 };
     return (vs + ... + term);
 }
-#else // MAKESHIFT_CXX >= 17
+#else // gsl_CPP17_OR_GREATER
 template <typename R>
-    constexpr inline R cadd(void) noexcept
+    constexpr R cadd(void) noexcept
 {
     return R{ 0 };
 }
 template <typename R, typename T0, typename... Ts>
-    constexpr inline R cadd(T0 v0, Ts... vs) noexcept
+    constexpr R cadd(T0 v0, Ts... vs) noexcept
 {
     return v0 + cadd<R>(vs...);
 }
-#endif // MAKESHIFT_CXX >= 17
+#endif // gsl_CPP17_OR_GREATER
 
     // Borrowing the 2-d indexing technique that first appeared in the `tuple_cat()` implementation of Microsoft's STL.
 template <std::size_t... Ns>

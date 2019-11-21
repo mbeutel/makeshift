@@ -1,6 +1,5 @@
 
 #include <makeshift/variant.hpp>
-#include <makeshift/macros.hpp>  // for MAKESHIFT_CXX
 
 #include <variant>
 #include <type_traits> // for is_same<>

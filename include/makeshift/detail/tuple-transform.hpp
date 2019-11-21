@@ -3,11 +3,11 @@
 #define INCLUDED_MAKESHIFT_DETAIL_TUPLE_TRANSFORM_HPP_
 
 
-#include <makeshift/macros.hpp> // for MAKESHIFT_CXX
+#include <gsl/gsl-lite.hpp> // for gsl_CPP17_OR_GREATER
 
-#if MAKESHIFT_CXX < 17
+#if !gsl_CPP17_OR_GREATER
  #include <tuple>      // for tuple_size<>
-#endif // MAKESHIFT_CXX < 17
+#endif // !gsl_CPP17_OR_GREATER
 
 #include <cstddef>     // for size_t, ptrdiff_t
 #include <utility>     // for forward<>(), integer_sequence<>, tuple_size<>, get<>()

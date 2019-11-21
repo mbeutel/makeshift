@@ -7,7 +7,7 @@
 #include <iosfwd>       // for ostream
 #include <system_error> // for errc
 
-#include <makeshift/macros.hpp> // for MAKESHIFT_NODISCARD, MAKESHIFT_CONSTEXPR20
+#include <gsl/gsl-lite.hpp> // for gsl_CPP17_OR_GREATER, gsl_NODISCARD, gsl_constexpr20
 
 #include <makeshift/detail/arithmetic.hpp>
 
@@ -23,12 +23,12 @@ template <typename V>
     V exponent;
 
         // equivalence
-    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR20 friend bool operator ==(factor const& lhs, factor const& rhs) noexcept
+    gsl_NODISCARD gsl_constexpr20 friend bool operator ==(factor const& lhs, factor const& rhs) noexcept
     {
         return lhs.base == rhs.base
             && lhs.exponent == rhs.exponent;
     }
-    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR20 friend bool operator !=(factor const& lhs, factor const& rhs) noexcept
+    gsl_NODISCARD gsl_constexpr20 friend bool operator !=(factor const& lhs, factor const& rhs) noexcept
     {
         return !(lhs == rhs);
     }
@@ -47,12 +47,12 @@ template <typename V, int NumFactors>
     std::array<factor<V>, NumFactors> factors;
 
         // equivalence
-    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR20 friend bool operator ==(factorization const& lhs, factorization const& rhs) noexcept
+    gsl_NODISCARD gsl_constexpr20 friend bool operator ==(factorization const& lhs, factorization const& rhs) noexcept
     {
         return lhs.remainder == rhs.remainder
             && lhs.factors == rhs.factors;
     }
-    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR20 friend bool operator !=(factorization const& lhs, factorization const& rhs) noexcept
+    gsl_NODISCARD gsl_constexpr20 friend bool operator !=(factorization const& lhs, factorization const& rhs) noexcept
     {
         return !(lhs == rhs);
     }
@@ -89,7 +89,7 @@ template <typename T>
     // Uses `Expects()` to raise error upon underflow.
     //
 template <typename V>
-    MAKESHIFT_NODISCARD constexpr makeshift::detail::integral_value_type<V>
+    gsl_NODISCARD constexpr makeshift::detail::integral_value_type<V>
     absi(V v)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<V>, "argument must be convertible to an integral type");
@@ -102,7 +102,7 @@ template <typename V>
     // Returns error code `std::errc::value_too_large` upon underflow.
     //
 template <typename V>
-    MAKESHIFT_NODISCARD constexpr arithmetic_result<makeshift::detail::integral_value_type<V>>
+    gsl_NODISCARD constexpr arithmetic_result<makeshift::detail::integral_value_type<V>>
     try_absi(V v)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<V>, "argument must be convertible to an integral type");
@@ -115,7 +115,7 @@ template <typename V>
     // Throws `std::system_error` upon underflow.
     //
 template <typename V>
-    MAKESHIFT_NODISCARD constexpr makeshift::detail::integral_value_type<V>
+    gsl_NODISCARD constexpr makeshift::detail::integral_value_type<V>
     absi_or_throw(V v)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<V>, "argument must be convertible to an integral type");
@@ -129,7 +129,7 @@ template <typename V>
     // Uses `Expects()` to raise error upon underflow.
     //
 template <typename V>
-    MAKESHIFT_NODISCARD constexpr makeshift::detail::integral_value_type<V>
+    gsl_NODISCARD constexpr makeshift::detail::integral_value_type<V>
     negate(V v)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<V>, "argument must be convertible to an integral type");
@@ -142,7 +142,7 @@ template <typename V>
     // Returns error code `std::errc::value_too_large` upon underflow.
     //
 template <typename V>
-    MAKESHIFT_NODISCARD constexpr arithmetic_result<makeshift::detail::integral_value_type<V>>
+    gsl_NODISCARD constexpr arithmetic_result<makeshift::detail::integral_value_type<V>>
     try_negate(V v)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<V>, "argument must be convertible to an integral type");
@@ -155,7 +155,7 @@ template <typename V>
     // Throws `std::system_error` upon underflow.
     //
 template <typename V>
-    MAKESHIFT_NODISCARD constexpr makeshift::detail::integral_value_type<V>
+    gsl_NODISCARD constexpr makeshift::detail::integral_value_type<V>
     negate_or_throw(V v)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<V>, "argument must be convertible to an integral type");
@@ -169,7 +169,7 @@ template <typename V>
     // Uses `Expects()` to raise error upon overflow.
     //
 template <typename A, typename B>
-    MAKESHIFT_NODISCARD constexpr makeshift::detail::common_integral_value_type<A, B>
+    gsl_NODISCARD constexpr makeshift::detail::common_integral_value_type<A, B>
     add(A a, B b)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<A, B>, "arguments must be convertible to an integral type");
@@ -183,7 +183,7 @@ template <typename A, typename B>
     // Returns error code `std::errc::value_too_large` upon overflow.
     //
 template <typename A, typename B>
-    MAKESHIFT_NODISCARD constexpr arithmetic_result<makeshift::detail::common_integral_value_type<A, B>>
+    gsl_NODISCARD constexpr arithmetic_result<makeshift::detail::common_integral_value_type<A, B>>
     try_add(A a, B b)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<A, B>, "arguments must be convertible to an integral type");
@@ -197,7 +197,7 @@ template <typename A, typename B>
     // Throws `std::system_error` upon overflow.
     //
 template <typename A, typename B>
-    MAKESHIFT_NODISCARD constexpr makeshift::detail::common_integral_value_type<A, B>
+    gsl_NODISCARD constexpr makeshift::detail::common_integral_value_type<A, B>
     add_or_throw(A a, B b)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<A, B>, "arguments must be convertible to an integral type");
@@ -212,7 +212,7 @@ template <typename A, typename B>
     // Uses `Expects()` to raise error upon overflow.
     //
 template <typename A, typename B>
-    MAKESHIFT_NODISCARD constexpr makeshift::detail::common_integral_value_type<A, B>
+    gsl_NODISCARD constexpr makeshift::detail::common_integral_value_type<A, B>
     subtract(A a, B b)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<A, B>, "arguments must be convertible to an integral type");
@@ -226,7 +226,7 @@ template <typename A, typename B>
     // Returns error code `std::errc::value_too_large` upon overflow.
     //
 template <typename A, typename B>
-    MAKESHIFT_NODISCARD constexpr arithmetic_result<makeshift::detail::common_integral_value_type<A, B>>
+    gsl_NODISCARD constexpr arithmetic_result<makeshift::detail::common_integral_value_type<A, B>>
     try_subtract(A a, B b)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<A, B>, "arguments must be convertible to an integral type");
@@ -240,7 +240,7 @@ template <typename A, typename B>
     // Throws `std::system_error` upon overflow.
     //
 template <typename A, typename B>
-    MAKESHIFT_NODISCARD constexpr makeshift::detail::common_integral_value_type<A, B>
+    gsl_NODISCARD constexpr makeshift::detail::common_integral_value_type<A, B>
     subtract_or_throw(A a, B b)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<A, B>, "arguments must be convertible to an integral type");
@@ -255,7 +255,7 @@ template <typename A, typename B>
     // Uses `Expects()` to raise error upon overflow.
     //
 template <typename A, typename B>
-    MAKESHIFT_NODISCARD constexpr makeshift::detail::common_integral_value_type<A, B>
+    gsl_NODISCARD constexpr makeshift::detail::common_integral_value_type<A, B>
     multiply(A a, B b)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<A, B>, "arguments must be convertible to an integral type");
@@ -269,7 +269,7 @@ template <typename A, typename B>
     // Returns error code `std::errc::value_too_large` upon overflow.
     //
 template <typename A, typename B>
-    MAKESHIFT_NODISCARD constexpr arithmetic_result<makeshift::detail::common_integral_value_type<A, B>>
+    gsl_NODISCARD constexpr arithmetic_result<makeshift::detail::common_integral_value_type<A, B>>
     try_multiply(A a, B b)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<A, B>, "arguments must be convertible to an integral type");
@@ -283,7 +283,7 @@ template <typename A, typename B>
     // Throws `std::system_error` upon overflow.
     //
 template <typename A, typename B>
-    MAKESHIFT_NODISCARD constexpr makeshift::detail::common_integral_value_type<A, B>
+    gsl_NODISCARD constexpr makeshift::detail::common_integral_value_type<A, B>
     multiply_or_throw(A a, B b)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<A, B>, "arguments must be convertible to an integral type");
@@ -298,7 +298,7 @@ template <typename A, typename B>
     // Uses `Expects()` to raise error upon overflow.
     //
 template <typename V>
-    MAKESHIFT_NODISCARD constexpr makeshift::detail::integral_value_type<V>
+    gsl_NODISCARD constexpr makeshift::detail::integral_value_type<V>
     square(V v)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<V>, "arguments must be convertible to an integral type");
@@ -311,7 +311,7 @@ template <typename V>
     // Returns error code `std::errc::value_too_large` upon overflow.
     //
 template <typename V>
-    MAKESHIFT_NODISCARD constexpr arithmetic_result<makeshift::detail::integral_value_type<V>>
+    gsl_NODISCARD constexpr arithmetic_result<makeshift::detail::integral_value_type<V>>
     try_square(V v)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<V>, "argument must be convertible to an integral type");
@@ -324,7 +324,7 @@ template <typename V>
     // Throws `std::system_error` upon overflow.
     //
 template <typename V>
-    MAKESHIFT_NODISCARD constexpr makeshift::detail::integral_value_type<V>
+    gsl_NODISCARD constexpr makeshift::detail::integral_value_type<V>
     square_or_throw(V v)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<V>, "argument must be convertible to an integral type");
@@ -338,7 +338,7 @@ template <typename V>
     // Enforces preconditions with `Expects()`. Uses `Expects()` to raise error upon overflow.
     //
 template <typename N, typename D>
-    MAKESHIFT_NODISCARD constexpr makeshift::detail::common_integral_value_type<N, D>
+    gsl_NODISCARD constexpr makeshift::detail::common_integral_value_type<N, D>
     divide(N n, D d)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<N, D>, "arguments must be convertible to an integral type");
@@ -352,7 +352,7 @@ template <typename N, typename D>
     // Enforces preconditions with `Expects()`. Returns error code `std::errc::value_too_large` upon overflow.
     //
 template <typename N, typename D>
-    MAKESHIFT_NODISCARD constexpr arithmetic_result<makeshift::detail::common_integral_value_type<N, D>>
+    gsl_NODISCARD constexpr arithmetic_result<makeshift::detail::common_integral_value_type<N, D>>
     try_divide(N n, D d)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<N, D>, "arguments must be convertible to an integral type");
@@ -366,7 +366,7 @@ template <typename N, typename D>
     // Enforces preconditions with `Expects()`. Throws `std::system_error` upon overflow.
     //
 template <typename N, typename D>
-    MAKESHIFT_NODISCARD constexpr makeshift::detail::common_integral_value_type<N, D>
+    gsl_NODISCARD constexpr makeshift::detail::common_integral_value_type<N, D>
     divide_or_throw(N n, D d)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<N, D>, "arguments must be convertible to an integral type");
@@ -381,7 +381,7 @@ template <typename N, typename D>
     // Enforces preconditions with `Expects()`. Uses `Expects()` to raise error upon overflow.
     //
 template <typename N, typename D>
-    MAKESHIFT_NODISCARD constexpr makeshift::detail::common_integral_value_type<N, D>
+    gsl_NODISCARD constexpr makeshift::detail::common_integral_value_type<N, D>
     modulo(N n, D d)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<N, D>, "arguments must be convertible to an integral type");
@@ -395,7 +395,7 @@ template <typename N, typename D>
     // Enforces preconditions with `Expects()`. Returns error code `std::errc::value_too_large` upon overflow.
     //
 template <typename N, typename D>
-    MAKESHIFT_NODISCARD constexpr arithmetic_result<makeshift::detail::common_integral_value_type<N, D>>
+    gsl_NODISCARD constexpr arithmetic_result<makeshift::detail::common_integral_value_type<N, D>>
     try_modulo(N n, D d)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<N, D>, "arguments must be convertible to an integral type");
@@ -409,7 +409,7 @@ template <typename N, typename D>
     // Enforces preconditions with `Expects()`. Throws `std::system_error` upon overflow.
     //
 template <typename N, typename D>
-    MAKESHIFT_NODISCARD constexpr makeshift::detail::common_integral_value_type<N, D>
+    gsl_NODISCARD constexpr makeshift::detail::common_integral_value_type<N, D>
     modulo_or_throw(N n, D d)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<N, D>, "arguments must be convertible to an integral type");
@@ -424,7 +424,7 @@ template <typename N, typename D>
     // Enforces preconditions with `Expects()`. Uses `Expects()` to raise error upon overflow.
     //
 template <typename X, typename S>
-    MAKESHIFT_NODISCARD constexpr makeshift::detail::common_integral_value_type<X, S>
+    gsl_NODISCARD constexpr makeshift::detail::common_integral_value_type<X, S>
     shift_left(X x, S s)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<X, S>, "arguments must be convertible to an integral type");
@@ -438,7 +438,7 @@ template <typename X, typename S>
     // Enforces preconditions with `Expects()`. Returns error code `std::errc::value_too_large` upon overflow.
     //
 template <typename X, typename S>
-    MAKESHIFT_NODISCARD constexpr arithmetic_result<makeshift::detail::common_integral_value_type<X, S>>
+    gsl_NODISCARD constexpr arithmetic_result<makeshift::detail::common_integral_value_type<X, S>>
     try_shift_left(X x, S s)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<X, S>, "arguments must be convertible to an integral type");
@@ -452,7 +452,7 @@ template <typename X, typename S>
     // Enforces preconditions with `Expects()`. Throws `std::system_error` upon overflow.
     //
 template <typename X, typename S>
-    MAKESHIFT_NODISCARD constexpr makeshift::detail::common_integral_value_type<X, S>
+    gsl_NODISCARD constexpr makeshift::detail::common_integral_value_type<X, S>
     shift_left_or_throw(X x, S s)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<X, S>, "arguments must be convertible to an integral type");
@@ -467,7 +467,7 @@ template <typename X, typename S>
     // Enforces preconditions with `Expects()`. Uses `Expects()` to raise error upon overflow.
     //
 template <typename X, typename S>
-    MAKESHIFT_NODISCARD constexpr makeshift::detail::common_integral_value_type<X, S>
+    gsl_NODISCARD constexpr makeshift::detail::common_integral_value_type<X, S>
     shift_right(X x, S s)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<X, S>, "arguments must be convertible to an integral type");
@@ -481,7 +481,7 @@ template <typename X, typename S>
     // Enforces preconditions with `Expects()`. Returns error code `std::errc::value_too_large` upon overflow.
     //
 template <typename X, typename S>
-    MAKESHIFT_NODISCARD constexpr arithmetic_result<makeshift::detail::common_integral_value_type<X, S>>
+    gsl_NODISCARD constexpr arithmetic_result<makeshift::detail::common_integral_value_type<X, S>>
     try_shift_right(X x, S s)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<X, S>, "arguments must be convertible to an integral type");
@@ -495,7 +495,7 @@ template <typename X, typename S>
     // Enforces preconditions with `Expects()`. Throws `std::system_error` upon overflow.
     //
 template <typename X, typename S>
-    MAKESHIFT_NODISCARD constexpr makeshift::detail::common_integral_value_type<X, S>
+    gsl_NODISCARD constexpr makeshift::detail::common_integral_value_type<X, S>
     shift_right_or_throw(X x, S s)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<X, S>, "arguments must be convertible to an integral type");
@@ -510,7 +510,7 @@ template <typename X, typename S>
     // Enforces preconditions with `Expects()`. Uses `Expects()` to raise error upon overflow.
     //
 template <typename B, typename E>
-    MAKESHIFT_NODISCARD constexpr makeshift::detail::integral_value_type<B>
+    gsl_NODISCARD constexpr makeshift::detail::integral_value_type<B>
     powi(B b, E e)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<B, E>, "arguments must be convertible to an integral type");
@@ -523,7 +523,7 @@ template <typename B, typename E>
     // Enforces preconditions with `Expects()`. Returns error code `std::errc::value_too_large` upon overflow.
     //
 template <typename B, typename E>
-    MAKESHIFT_NODISCARD constexpr arithmetic_result<makeshift::detail::integral_value_type<B>>
+    gsl_NODISCARD constexpr arithmetic_result<makeshift::detail::integral_value_type<B>>
     try_powi(B b, E e)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<B, E>, "arguments must be convertible to an integral type");
@@ -536,7 +536,7 @@ template <typename B, typename E>
     // Enforces preconditions with `Expects()`. Throws `std::system_error` upon overflow.
     //
 template <typename B, typename E>
-    MAKESHIFT_NODISCARD constexpr makeshift::detail::integral_value_type<B>
+    gsl_NODISCARD constexpr makeshift::detail::integral_value_type<B>
     powi_or_throw(B b, E e)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<B, E>, "arguments must be convertible to an integral type");
@@ -550,7 +550,7 @@ template <typename B, typename E>
     // Enforces preconditions with `Expects()`.
     //
 template <typename X, typename D>
-    MAKESHIFT_NODISCARD constexpr makeshift::detail::common_integral_value_type<X, D>
+    gsl_NODISCARD constexpr makeshift::detail::common_integral_value_type<X, D>
     floori(X x, D d)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<X, D>, "arguments must be convertible to an integral type");
@@ -565,7 +565,7 @@ template <typename X, typename D>
     // Enforces preconditions with `Expects()`. Uses `Expects()` to raise error upon overflow.
     //
 template <typename X, typename D>
-    MAKESHIFT_NODISCARD constexpr makeshift::detail::common_integral_value_type<X, D>
+    gsl_NODISCARD constexpr makeshift::detail::common_integral_value_type<X, D>
     ceili(X x, D d)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<X, D>, "arguments must be convertible to an integral type");
@@ -579,7 +579,7 @@ template <typename X, typename D>
     // Enforces preconditions with `Expects()`. Returns error code `std::errc::value_too_large` upon overflow.
     //
 template <typename X, typename D>
-    MAKESHIFT_NODISCARD constexpr arithmetic_result<makeshift::detail::common_integral_value_type<X, D>>
+    gsl_NODISCARD constexpr arithmetic_result<makeshift::detail::common_integral_value_type<X, D>>
     try_ceili(X x, D d)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<X, D>, "arguments must be convertible to an integral type");
@@ -593,7 +593,7 @@ template <typename X, typename D>
     // Enforces preconditions with `Expects()`. Throws `std::system_error` upon overflow.
     //
 template <typename X, typename D>
-    MAKESHIFT_NODISCARD constexpr makeshift::detail::common_integral_value_type<X, D>
+    gsl_NODISCARD constexpr makeshift::detail::common_integral_value_type<X, D>
     ceili_or_throw(X x, D d)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<X, D>, "arguments must be convertible to an integral type");
@@ -608,7 +608,7 @@ template <typename X, typename D>
     // Enforces preconditions with `Expects()`.
     //
 template <typename N, typename D>
-    MAKESHIFT_NODISCARD constexpr makeshift::detail::common_integral_value_type<N, D>
+    gsl_NODISCARD constexpr makeshift::detail::common_integral_value_type<N, D>
     ratio_floori(N n, D d)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<N, D>, "arguments must be convertible to an integral type");
@@ -623,7 +623,7 @@ template <typename N, typename D>
     // Enforces preconditions with `Expects()`.
     //
 template <typename N, typename D>
-    MAKESHIFT_NODISCARD constexpr makeshift::detail::common_integral_value_type<N, D>
+    gsl_NODISCARD constexpr makeshift::detail::common_integral_value_type<N, D>
     ratio_ceili(N n, D d)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<N, D>, "arguments must be convertible to an integral type");
@@ -638,7 +638,7 @@ template <typename N, typename D>
     // Enforces preconditions with `Expects()`.
     //
 template <typename X, typename B>
-    MAKESHIFT_NODISCARD constexpr makeshift::detail::common_integral_value_type<X, B>
+    gsl_NODISCARD constexpr makeshift::detail::common_integral_value_type<X, B>
     log_floori(X x, B b)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<X, B>, "arguments must be convertible to an integral type");
@@ -653,7 +653,7 @@ template <typename X, typename B>
     // Enforces preconditions with `Expects()`.
     //
 template <typename X, typename B>
-    MAKESHIFT_NODISCARD constexpr makeshift::detail::common_integral_value_type<X, B>
+    gsl_NODISCARD constexpr makeshift::detail::common_integral_value_type<X, B>
     log_ceili(X x, B b)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<X, B>, "arguments must be convertible to an integral type");
@@ -668,7 +668,7 @@ template <typename X, typename B>
     // Enforces preconditions with `Expects()`.
     //
 template <typename X, typename B>
-    MAKESHIFT_NODISCARD constexpr factorization<makeshift::detail::common_integral_value_type<X, B>, 1>
+    gsl_NODISCARD constexpr factorization<makeshift::detail::common_integral_value_type<X, B>, 1>
     factorize_floori(X x, B b)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<X, B>, "arguments must be convertible to an integral type");
@@ -683,7 +683,7 @@ template <typename X, typename B>
     // Enforces preconditions with `Expects()`. Uses `Expects()` to raise error upon overflow.
     //
 template <typename X, typename B>
-    MAKESHIFT_NODISCARD constexpr factorization<makeshift::detail::common_integral_value_type<X, B>, 1>
+    gsl_NODISCARD constexpr factorization<makeshift::detail::common_integral_value_type<X, B>, 1>
     factorize_ceili(X x, B b)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<X, B>, "arguments must be convertible to an integral type");
@@ -697,7 +697,7 @@ template <typename X, typename B>
     // Enforces preconditions with `Expects()`. Returns error code `std::errc::value_too_large` upon overflow.
     //
 template <typename X, typename B>
-    MAKESHIFT_NODISCARD constexpr factorization<arithmetic_result<makeshift::detail::common_integral_value_type<X, B>>, 1>
+    gsl_NODISCARD constexpr factorization<arithmetic_result<makeshift::detail::common_integral_value_type<X, B>>, 1>
     try_factorize_ceili(X x, B b)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<X, B>, "arguments must be convertible to an integral type");
@@ -711,7 +711,7 @@ template <typename X, typename B>
     // Enforces preconditions with `Expects()`. Throws `std::system_error` upon overflow.
     //
 template <typename X, typename B>
-    MAKESHIFT_NODISCARD constexpr factorization<makeshift::detail::common_integral_value_type<X, B>, 1>
+    gsl_NODISCARD constexpr factorization<makeshift::detail::common_integral_value_type<X, B>, 1>
     factorize_ceili_or_throw(X x, B b)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<X, B>, "arguments must be convertible to an integral type");
@@ -726,7 +726,7 @@ template <typename X, typename B>
     // Enforces preconditions with `Expects()`.
     //
 template <typename X, typename A, typename B>
-    MAKESHIFT_NODISCARD constexpr factorization<makeshift::detail::common_integral_value_type<X, A, B>, 2>
+    gsl_NODISCARD constexpr factorization<makeshift::detail::common_integral_value_type<X, A, B>, 2>
     factorize_floori(X x, A a, B b)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<X, A, B>, "arguments must be convertible to an integral type");
@@ -741,7 +741,7 @@ template <typename X, typename A, typename B>
     // Enforces preconditions with `Expects()`. Uses `Expects()` to raise error upon overflow.
     //
 template <typename X, typename A, typename B>
-    MAKESHIFT_NODISCARD constexpr factorization<makeshift::detail::common_integral_value_type<X, A, B>, 2>
+    gsl_NODISCARD constexpr factorization<makeshift::detail::common_integral_value_type<X, A, B>, 2>
     factorize_ceili(X x, A a, B b)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<X, A, B>, "arguments must be convertible to an integral type");
@@ -755,7 +755,7 @@ template <typename X, typename A, typename B>
     // Enforces preconditions with `Expects()`. Returns error code `std::errc::value_too_large` upon overflow.
     //
 template <typename X, typename A, typename B>
-    MAKESHIFT_NODISCARD constexpr factorization<arithmetic_result<makeshift::detail::common_integral_value_type<X, A, B>>, 2>
+    gsl_NODISCARD constexpr factorization<arithmetic_result<makeshift::detail::common_integral_value_type<X, A, B>>, 2>
     try_factorize_ceili(X x, A a, B b)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<X, A, B>, "arguments must be convertible to an integral type");
@@ -769,7 +769,7 @@ template <typename X, typename A, typename B>
     // Enforces preconditions with `Expects()`. Throws `std::system_error` upon overflow.
     //
 template <typename X, typename A, typename B>
-    MAKESHIFT_NODISCARD constexpr factorization<makeshift::detail::common_integral_value_type<X, A, B>, 2>
+    gsl_NODISCARD constexpr factorization<makeshift::detail::common_integral_value_type<X, A, B>, 2>
     factorize_ceili_or_throw(X x, A a, B b)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<X, A, B>, "arguments must be convertible to an integral type");
@@ -779,13 +779,13 @@ template <typename X, typename A, typename B>
 }
 
 
-#if MAKESHIFT_CXX >= 17
+#if gsl_CPP17_OR_GREATER
     //ᅟ
     // Computes the greatest common divisor of a and b.
     // Uses `Expects()` to raise error upon overflow.
     //
 template <typename A, typename B>
-    MAKESHIFT_NODISCARD constexpr makeshift::detail::common_integral_value_type<A, B>
+    gsl_NODISCARD constexpr makeshift::detail::common_integral_value_type<A, B>
     gcd(A a, B b)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<A, B>, "arguments must be convertible to an integral type");
@@ -799,7 +799,7 @@ template <typename A, typename B>
     // Returns error code `std::errc::value_too_large` upon overflow.
     //
 template <typename A, typename B>
-    MAKESHIFT_NODISCARD constexpr arithmetic_result<makeshift::detail::common_integral_value_type<A, B>>
+    gsl_NODISCARD constexpr arithmetic_result<makeshift::detail::common_integral_value_type<A, B>>
     try_gcd(A a, B b)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<A, B>, "arguments must be convertible to an integral type");
@@ -813,7 +813,7 @@ template <typename A, typename B>
     // Throws `std::system_error` upon overflow.
     //
 template <typename A, typename B>
-    MAKESHIFT_NODISCARD constexpr makeshift::detail::common_integral_value_type<A, B>
+    gsl_NODISCARD constexpr makeshift::detail::common_integral_value_type<A, B>
     gcd_or_throw(A a, B b)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<A, B>, "arguments must be convertible to an integral type");
@@ -828,7 +828,7 @@ template <typename A, typename B>
     // Uses `Expects()` to raise error upon overflow.
     //
 template <typename A, typename B>
-    MAKESHIFT_NODISCARD constexpr makeshift::detail::common_integral_value_type<A, B>
+    gsl_NODISCARD constexpr makeshift::detail::common_integral_value_type<A, B>
     lcm(A a, B b)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<A, B>, "arguments must be convertible to an integral type");
@@ -842,7 +842,7 @@ template <typename A, typename B>
     // Returns error code `std::errc::value_too_large` upon overflow.
     //
 template <typename A, typename B>
-    MAKESHIFT_NODISCARD constexpr arithmetic_result<makeshift::detail::common_integral_value_type<A, B>>
+    gsl_NODISCARD constexpr arithmetic_result<makeshift::detail::common_integral_value_type<A, B>>
     try_lcm(A a, B b)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<A, B>, "arguments must be convertible to an integral type");
@@ -856,7 +856,7 @@ template <typename A, typename B>
     // Throws `std::system_error` upon overflow.
     //
 template <typename A, typename B>
-    MAKESHIFT_NODISCARD constexpr makeshift::detail::common_integral_value_type<A, B>
+    gsl_NODISCARD constexpr makeshift::detail::common_integral_value_type<A, B>
     lcm_or_throw(A a, B b)
 {
     static_assert(makeshift::detail::are_integral_arithmetic_types_v<A, B>, "arguments must be convertible to an integral type");
@@ -864,7 +864,7 @@ template <typename A, typename B>
 
     return makeshift::detail::lcm<makeshift::detail::throw_error_handler>(a, b);
 }
-#endif // MAKESHIFT_CXX >= 17
+#endif // gsl_CPP17_OR_GREATER
 
 
 } // namespace makeshift

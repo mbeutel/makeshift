@@ -4,12 +4,6 @@
 
 
 #include <cstddef> // for size_t
-#ifdef _MSC_VER
- #include <new> // `hardware_{constructive|destructive}_interference_size` currently only provided by VC++
-#endif // _MSC_VER
-
-#include <makeshift/macros.hpp>        // for MAKESHIFT_CXX
-#include <makeshift/detail/export.hpp> // for MAKESHIFT_PUBLIC
 
 
 namespace makeshift
@@ -26,35 +20,28 @@ namespace makeshift
     // the ABI implications. However, note that it would be possible to run into ODR violations if we defined different values for different
     // sub-architectures, so the constexpr value defined here should depend only on architecture (e.g. x64), not on sub-architecture (e.g. Intel "Penryn").
 
-#if MAKESHIFT_CXX >= 17
- #ifdef _MSC_VER
-    constexpr std::size_t hardware_constructive_interference_size = std::hardware_constructive_interference_size;
-    constexpr std::size_t hardware_destructive_interference_size = std::hardware_destructive_interference_size;
- #else // _MSC_VER
-  #if defined(__i386__) || defined(__x86_64__)
-    constexpr std::size_t hardware_constructive_interference_size = 64;
-    constexpr std::size_t hardware_destructive_interference_size = 64;
-  #else // defined(__i386__) || defined(__x86_64__)
-   #error Unsupported architecture.
-  #endif // defined(__i386__) || defined(__x86_64__)
- #endif // _MSC_VER
-#endif // MAKESHIFT_CXX >= 17
+#if defined(_M_IX86) || defined(_M_AMD64) || defined(__i386__) || defined(__x86_64__)
+  constexpr std::size_t hardware_constructive_interference_size = 64;
+  constexpr std::size_t hardware_destructive_interference_size = 64;
+#else // defined(__i386__) || defined(__x86_64__)
+ #error Unsupported architecture.
+#endif // defined(__i386__) || defined(__x86_64__)
 
 
     //ᅟ
     // Reports the operating system's large page size in bytes, or 0 if large pages are not available or supported.
     //
-MAKESHIFT_PUBLIC std::size_t hardware_large_page_size(void) noexcept;
+std::size_t hardware_large_page_size(void) noexcept;
 
     //ᅟ
     // Reports the operating system's page size in bytes.
     //
-MAKESHIFT_PUBLIC std::size_t hardware_page_size(void) noexcept;
+std::size_t hardware_page_size(void) noexcept;
 
     //ᅟ
     // Reports the CPU architecture's cache line size in bytes.
     //
-MAKESHIFT_PUBLIC std::size_t hardware_cache_line_size(void) noexcept;
+std::size_t hardware_cache_line_size(void) noexcept;
 
 
 } // namespace makeshift

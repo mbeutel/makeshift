@@ -20,7 +20,7 @@ enum class Vegetables
     chili = 16,
     spicy = garlic | chili
 };
-MAKESHIFT_DEFINE_BITMASK_OPERATORS(Vegetables)
+MAKESHIFT_DEFINE_ENUM_BITMASK_OPERATORS(Vegetables)
 
 
 using FloatTypes = mk::type_enum<float, double>;

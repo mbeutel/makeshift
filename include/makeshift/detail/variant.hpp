@@ -8,6 +8,8 @@
 #include <exception>
 #include <type_traits> // for integral_constant<>, underlying_type<>, declval<>()
 
+#include <gsl/gsl-lite.hpp> // for gsl_CPP17_OR_GREATER
+
 #include <makeshift/utility.hpp>  // for type_seq_<>
 #include <makeshift/constval.hpp> // for array_constant<>
 
@@ -188,12 +190,12 @@ template <typename ShapeT> using compute_strides_ = compute_strides_0_<1, std::i
 template <typename ShapeT> using compute_strides_t = typename compute_strides_<ShapeT>::type;
 
 template <typename ShapeT> struct compute_size_;
-#if MAKESHIFT_CXX >= 17
+#if gsl_CPP17_OR_GREATER
 template <std::ptrdiff_t... Is> struct compute_size_<std::integer_sequence<std::ptrdiff_t, Is...>> : std::integral_constant<std::ptrdiff_t, (Is * ... * 1)> { };
-#else // MAKESHIFT_CXX >= 17
+#else // gsl_CPP17_OR_GREATER
 template <> struct compute_size_<std::integer_sequence<std::ptrdiff_t>> : std::integral_constant<std::ptrdiff_t, 1> { };
 template <std::ptrdiff_t I0, std::ptrdiff_t... Is> struct compute_size_<std::integer_sequence<std::ptrdiff_t, I0, Is...>> : std::integral_constant<std::ptrdiff_t, I0 * compute_size_<std::integer_sequence<std::ptrdiff_t, Is...>>::value> { };
-#endif // MAKESHIFT_CXX >= 17
+#endif // gsl_CPP17_OR_GREATER
 
 template <typename ShapeT, typename StridesT, typename F, typename... ArgSeqsT>
     struct variant_transform_result_1_;

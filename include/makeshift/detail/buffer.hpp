@@ -8,9 +8,7 @@
 #include <algorithm>   // for copy()
 #include <type_traits> // for integral_constant<>
 
-#include <gsl/gsl-lite.hpp> // for Expects()
-
-#include <makeshift/macros.hpp> // for MAKESHIFT_NODISCARD, MAKESHIFT_CONSTEXPR17
+#include <gsl/gsl-lite.hpp> // for Expects(), gsl_NODISCARD, gsl_constexpr17
 
 
 namespace makeshift
@@ -36,68 +34,68 @@ public:
     using const_iterator = T const*;
 
 private:
-    MAKESHIFT_CONSTEXPR17 T* _data(void) noexcept { return static_cast<DerivedT*>(this)->data(); }
-    MAKESHIFT_CONSTEXPR17 T const* _data(void) const noexcept { return static_cast<DerivedT const*>(this)->data(); }
-    MAKESHIFT_CONSTEXPR17 std::size_t _size(void) const noexcept { return static_cast<DerivedT const*>(this)->size(); }
+    gsl_constexpr17 T* _data(void) noexcept { return static_cast<DerivedT*>(this)->data(); }
+    gsl_constexpr17 T const* _data(void) const noexcept { return static_cast<DerivedT const*>(this)->data(); }
+    gsl_constexpr17 std::size_t _size(void) const noexcept { return static_cast<DerivedT const*>(this)->size(); }
 
 public:
-    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR17 iterator begin(void) noexcept
+    gsl_NODISCARD gsl_constexpr17 iterator begin(void) noexcept
     {
         return _data();
     }
-    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR17 const_iterator begin(void) const noexcept
+    gsl_NODISCARD gsl_constexpr17 const_iterator begin(void) const noexcept
     {
         return _data();
     }
-    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR17 iterator end(void) noexcept
+    gsl_NODISCARD gsl_constexpr17 iterator end(void) noexcept
     {
         return _data() + _size();
     }
-    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR17 const_iterator end(void) const noexcept
+    gsl_NODISCARD gsl_constexpr17 const_iterator end(void) const noexcept
     {
         return _data() + _size();
     }
 
-    MAKESHIFT_NODISCARD constexpr bool empty(void) const noexcept
+    gsl_NODISCARD constexpr bool empty(void) const noexcept
     {
         return _size() == 0;
     }
 
-    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR17 reference at(size_type i)
+    gsl_NODISCARD gsl_constexpr17 reference at(size_type i)
     {
         Expects(i < _size());
         return _data()[i];
     }
-    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR17 const_reference at(size_type i) const
+    gsl_NODISCARD gsl_constexpr17 const_reference at(size_type i) const
     {
         Expects(i < _size());
         return _data()[i];
     }
-    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR17 reference operator [](size_type i)
+    gsl_NODISCARD gsl_constexpr17 reference operator [](size_type i)
     {
         return _data()[i];
     }
-    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR17 const_reference operator [](size_type i) const
+    gsl_NODISCARD gsl_constexpr17 const_reference operator [](size_type i) const
     {
         return _data()[i];
     }
 
-    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR17 reference front(void) noexcept
+    gsl_NODISCARD gsl_constexpr17 reference front(void) noexcept
     {
         Expects(!empty());
         return _data()[0];
     }
-    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR17 const_reference front(void) const noexcept
+    gsl_NODISCARD gsl_constexpr17 const_reference front(void) const noexcept
     {
         Expects(!empty());
         return _data()[0];
     }
-    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR17 reference back(void) noexcept
+    gsl_NODISCARD gsl_constexpr17 reference back(void) noexcept
     {
         Expects(!empty());
         return _data()[_size() - 1];
     }
-    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR17 const_reference back(void) const noexcept
+    gsl_NODISCARD gsl_constexpr17 const_reference back(void) const noexcept
     {
         Expects(!empty());
         return _data()[_size() - 1];
@@ -121,33 +119,33 @@ public:
     {
     }
 
-    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR17 iterator begin(void) noexcept
+    gsl_NODISCARD gsl_constexpr17 iterator begin(void) noexcept
     {
         return data_.begin();
     }
-    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR17 const_iterator begin(void) const noexcept
+    gsl_NODISCARD gsl_constexpr17 const_iterator begin(void) const noexcept
     {
         return data_.begin();
     }
-    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR17 iterator end(void) noexcept
+    gsl_NODISCARD gsl_constexpr17 iterator end(void) noexcept
     {
         return data_.end();
     }
-    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR17 const_iterator end(void) const noexcept
+    gsl_NODISCARD gsl_constexpr17 const_iterator end(void) const noexcept
     {
         return data_.end();
     }
 
-    MAKESHIFT_NODISCARD constexpr std::size_t size(void) const noexcept
+    gsl_NODISCARD constexpr std::size_t size(void) const noexcept
     {
         return Extent;
     }
 
-    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR17 T* data(void) noexcept
+    gsl_NODISCARD gsl_constexpr17 T* data(void) noexcept
     {
         return data_.data();
     }
-    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR17 T const* data(void) const noexcept
+    gsl_NODISCARD gsl_constexpr17 T const* data(void) const noexcept
     {
         return data_.data();
     }
@@ -165,16 +163,16 @@ public:
     {
     }
 
-    MAKESHIFT_NODISCARD constexpr std::size_t size(void) const noexcept
+    gsl_NODISCARD constexpr std::size_t size(void) const noexcept
     {
         return size_;
     }
 
-    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR17 T* data(void) noexcept
+    gsl_NODISCARD gsl_constexpr17 T* data(void) noexcept
     {
         return data_.data();
     }
-    MAKESHIFT_NODISCARD MAKESHIFT_CONSTEXPR17 T const* data(void) const noexcept
+    gsl_NODISCARD gsl_constexpr17 T const* data(void) const noexcept
     {
         return data_.data();
     }
@@ -216,16 +214,16 @@ public:
             delete[] data_;
     }
 
-    MAKESHIFT_NODISCARD constexpr std::size_t size(void) const noexcept
+    gsl_NODISCARD constexpr std::size_t size(void) const noexcept
     {
         return size_;
     }
 
-    MAKESHIFT_NODISCARD constexpr T* data(void) noexcept
+    gsl_NODISCARD constexpr T* data(void) noexcept
     {
         return data_;
     }
-    MAKESHIFT_NODISCARD constexpr T const* data(void) const noexcept
+    gsl_NODISCARD constexpr T const* data(void) const noexcept
     {
         return data_;
     }
@@ -261,16 +259,16 @@ public:
         delete[] data_;
     }
 
-    MAKESHIFT_NODISCARD constexpr std::size_t size(void) const noexcept
+    gsl_NODISCARD constexpr std::size_t size(void) const noexcept
     {
         return size_;
     }
 
-    MAKESHIFT_NODISCARD constexpr T* data(void) noexcept
+    gsl_NODISCARD constexpr T* data(void) noexcept
     {
         return data_;
     }
-    MAKESHIFT_NODISCARD constexpr T const* data(void) const noexcept
+    gsl_NODISCARD constexpr T const* data(void) const noexcept
     {
         return data_;
     }
@@ -339,22 +337,22 @@ template <typename T, T V>
 }
 
 template <typename C>
-    constexpr inline void check_buffer_extents(std::true_type /*dynamicExtent*/, std::ptrdiff_t /*expectedExtent*/, C actualExtent)
+    constexpr void check_buffer_extents(std::true_type /*dynamicExtent*/, std::ptrdiff_t /*expectedExtent*/, C actualExtent)
 {
     Expects(actualExtent >= 0);
 }
 template <typename C>
-    constexpr inline void check_buffer_extents(std::false_type /*dynamicExtent*/, std::ptrdiff_t expectedExtent, C actualExtent)
+    constexpr void check_buffer_extents(std::false_type /*dynamicExtent*/, std::ptrdiff_t expectedExtent, C actualExtent)
 {
     Expects(actualExtent == expectedExtent);
 }
 template <typename C>
-    constexpr inline void check_fixed_buffer_extents(std::true_type /*dynamicExtent*/, std::ptrdiff_t /*expectedExtent*/, C actualExtent, std::ptrdiff_t maxBufferExtent)
+    constexpr void check_fixed_buffer_extents(std::true_type /*dynamicExtent*/, std::ptrdiff_t /*expectedExtent*/, C actualExtent, std::ptrdiff_t maxBufferExtent)
 {
     Expects(actualExtent >= 0 && actualExtent <= maxBufferExtent);
 }
 template <typename C>
-    constexpr inline void check_fixed_buffer_extents(std::false_type /*dynamicExtent*/, std::ptrdiff_t expectedExtent, C actualExtent, std::ptrdiff_t /*maxBufferExtent*/)
+    constexpr void check_fixed_buffer_extents(std::false_type /*dynamicExtent*/, std::ptrdiff_t expectedExtent, C actualExtent, std::ptrdiff_t /*maxBufferExtent*/)
 {
     Expects(actualExtent == expectedExtent);
 }

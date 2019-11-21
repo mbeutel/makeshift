@@ -8,9 +8,7 @@
 #include <iterator>    // for iterator_traits<>, random_access_iterator_tag
 #include <type_traits> // for is_base_of<>, declval<>(), integral_constant<>
 
-#include <gsl/gsl-lite.hpp> // for Expects()
-
-#include <makeshift/macros.hpp> // for MAKESHIFT_NODISCARD
+#include <gsl/gsl-lite.hpp> // for Expects(), gsl_NODISCARD
 
 
 namespace makeshift
@@ -35,8 +33,8 @@ public:
     {
     }
 
-    MAKESHIFT_NODISCARD constexpr It const& begin(void) const noexcept { return first_; }
-    MAKESHIFT_NODISCARD constexpr EndIt const& end(void) const noexcept { return last_; }
+    gsl_NODISCARD constexpr It const& begin(void) const noexcept { return first_; }
+    gsl_NODISCARD constexpr EndIt const& end(void) const noexcept { return last_; }
 };
 template <typename It, typename EndIt>
     class range_base<It, EndIt, std::random_access_iterator_tag, -1>
@@ -51,13 +49,13 @@ public:
     {
     }
 
-    MAKESHIFT_NODISCARD constexpr It const& begin(void) const noexcept { return first_; }
-    MAKESHIFT_NODISCARD constexpr EndIt const& end(void) const noexcept { return last_; }
-    MAKESHIFT_NODISCARD constexpr std::size_t size(void) const noexcept
+    gsl_NODISCARD constexpr It const& begin(void) const noexcept { return first_; }
+    gsl_NODISCARD constexpr EndIt const& end(void) const noexcept { return last_; }
+    gsl_NODISCARD constexpr std::size_t size(void) const noexcept
     {
         return last_ - first_;
     }
-    MAKESHIFT_NODISCARD constexpr decltype(auto) operator [](std::size_t i) const noexcept
+    gsl_NODISCARD constexpr decltype(auto) operator [](std::size_t i) const noexcept
     {
         Expects(i < last_ - first_);
         return first_[i];
@@ -77,13 +75,13 @@ public:
     {
     }
 
-    MAKESHIFT_NODISCARD constexpr It const& begin(void) const noexcept { return first_; }
-    MAKESHIFT_NODISCARD constexpr It const& end(void) const noexcept { return first_ + Extent; }
-    MAKESHIFT_NODISCARD constexpr std::size_t size(void) const noexcept
+    gsl_NODISCARD constexpr It const& begin(void) const noexcept { return first_; }
+    gsl_NODISCARD constexpr It const& end(void) const noexcept { return first_ + Extent; }
+    gsl_NODISCARD constexpr std::size_t size(void) const noexcept
     {
         return Extent;
     }
-    MAKESHIFT_NODISCARD constexpr decltype(auto) operator [](std::size_t i) const noexcept
+    gsl_NODISCARD constexpr decltype(auto) operator [](std::size_t i) const noexcept
     {
         Expects(i < std::size_t(Extent));
         return first_[i];
@@ -123,14 +121,14 @@ template <class T>
     return t;
 }
 template <std::size_t I, typename It, std::ptrdiff_t Extent>
-    MAKESHIFT_NODISCARD constexpr std::enable_if_t<(Extent >= 0), decltype(*std::declval<It>())>
+    gsl_NODISCARD constexpr std::enable_if_t<(Extent >= 0), decltype(*std::declval<It>())>
     get(range_base<It, It, std::random_access_iterator_tag, Extent>& range) noexcept
 {
     static_assert(I < std::size_t(Extent), "index out of range");
     return range[I];
 }
 template <std::size_t I, typename It, std::ptrdiff_t Extent>
-    MAKESHIFT_NODISCARD constexpr std::enable_if_t<(Extent >= 0), decltype(makeshift::detail::as_const(*std::declval<It>()))>
+    gsl_NODISCARD constexpr std::enable_if_t<(Extent >= 0), decltype(makeshift::detail::as_const(*std::declval<It>()))>
     get(range_base<It, It, std::random_access_iterator_tag, Extent> const& range) noexcept
 {
     static_assert(I < std::size_t(Extent), "index out of range");

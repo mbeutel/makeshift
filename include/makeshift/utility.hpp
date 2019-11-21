@@ -7,7 +7,7 @@
 #include <utility>     // for tuple_size<>, tuple_element<>
 #include <type_traits> // for integral_constant<>, enable_if<>, is_same<>, make_signed<>, common_type<>, declval<>()
 
-#include <makeshift/macros.hpp> // for MAKESHIFT_NODISCARD, MAKESHIFT_CXX
+#include <gsl/gsl-lite.hpp> // for gsl_CPP17_OR_GREATER, gsl_NODISCARD
 
 #include <makeshift/detail/type_traits.hpp> // for constval_tag, is_tuple_like_r<>, unwrap_enum_tag, try_index_of_type<>, negation<>, can_instantiate<>
 #include <makeshift/detail/utility.hpp>
@@ -54,13 +54,13 @@ template <typename T>
     using type = type_tag<T>;
 
 template <typename T1, typename T2>
-    MAKESHIFT_NODISCARD constexpr std::is_same<T1, T2>
+    gsl_NODISCARD constexpr std::is_same<T1, T2>
     operator ==(type<T1>, type<T2>) noexcept
 {
     return { };
 }
 template <typename T1, typename T2>
-    MAKESHIFT_NODISCARD constexpr std::integral_constant<bool, !std::is_same<T1, T2>::value>
+    gsl_NODISCARD constexpr std::integral_constant<bool, !std::is_same<T1, T2>::value>
     operator !=(type<T1>, type<T2>) noexcept
 {
     return { };
@@ -69,7 +69,13 @@ template <typename T1, typename T2>
     //ᅟ
     // Use `type_c<T>` as a value representation of `T` for tag dispatching.
     //
-template <typename T> MAKESHIFT_IF_NOT_CXX(17,static) constexpr MAKESHIFT_IF_CXX(17,inline) type<T> type_c { };
+template <typename T>
+#if gsl_CPP17_OR_GREATER
+inline
+#else // gsl_CPP17_OR_GREATER
+static
+#endif // gsl_CPP17_OR_GREATER
+constexpr type<T> type_c { };
 
 
     //ᅟ
@@ -96,15 +102,21 @@ template <>
         return *this;
     }
 };
-#if MAKESHIFT_CXX >= 17
+#if gsl_CPP17_OR_GREATER
 template <typename... Ts>
     type_sequence(type<Ts>...) -> type_sequence<Ts...>;
-#endif // MAKESHIFT_CXX >= 17
+#endif // gsl_CPP17_OR_GREATER
 
     //ᅟ
     // Type sequence, i.e. type list and tuple of `type<>` arguments.
     //
-template <typename... Ts> MAKESHIFT_IF_NOT_CXX(17,static) constexpr MAKESHIFT_IF_CXX(17,inline) type_sequence<Ts...> type_sequence_c { };
+template <typename... Ts>
+#if gsl_CPP17_OR_GREATER
+inline
+#else // gsl_CPP17_OR_GREATER
+static
+#endif // gsl_CPP17_OR_GREATER
+constexpr type_sequence<Ts...> type_sequence_c { };
 
     //ᅟ
     // Return a type sequence that represents the types of the given values.
@@ -155,7 +167,7 @@ template <typename... Ts> using type_sequence_cat_t = typename type_sequence_cat
     // (TODO: move to gsl-lite?)
     //
 template <typename ContainerT> 
-    MAKESHIFT_NODISCARD constexpr auto size(const ContainerT& c) -> decltype(c.size())
+    gsl_NODISCARD constexpr auto size(const ContainerT& c) -> decltype(c.size())
 {
     return c.size();
 }
@@ -167,7 +179,7 @@ template <typename ContainerT>
     // (TODO: move to gsl-lite?)
     //
 template <typename T, std::size_t N>
-    MAKESHIFT_NODISCARD constexpr std::size_t size(const T (&)[N]) noexcept
+    gsl_NODISCARD constexpr std::size_t size(const T (&)[N]) noexcept
 {
     return N;
 }
@@ -180,7 +192,7 @@ template <typename T, std::size_t N>
     // (TODO: move to gsl-lite?)
     //
 template <typename ContainerT>
-    MAKESHIFT_NODISCARD constexpr auto ssize(const ContainerT& c)
+    gsl_NODISCARD constexpr auto ssize(const ContainerT& c)
         -> std::common_type_t<std::ptrdiff_t, std::make_signed_t<decltype(c.size())>>
 {
     using R = std::common_type_t<std::ptrdiff_t, std::make_signed_t<decltype(c.size())>>;
@@ -194,7 +206,7 @@ template <typename ContainerT>
     // (TODO: move to gsl-lite?)
     //
 template <typename T, std::ptrdiff_t N>
-    MAKESHIFT_NODISCARD constexpr std::ptrdiff_t ssize(const T (&)[N]) noexcept
+    gsl_NODISCARD constexpr std::ptrdiff_t ssize(const T (&)[N]) noexcept
 {
     return N;
 }
@@ -204,7 +216,7 @@ template <typename T, std::ptrdiff_t N>
     // Returns the size of an array, range, tuple-like or container as a constval if known at compile time, or as a value if not.
     //
 template <typename ContainerT>
-    MAKESHIFT_NODISCARD constexpr auto csize(ContainerT const& c)
+    gsl_NODISCARD constexpr auto csize(ContainerT const& c)
 {
     return makeshift::detail::csize_impl(makeshift::detail::can_instantiate_<makeshift::detail::is_tuple_like_r, void, ContainerT>{ }, c);
 }
@@ -213,7 +225,7 @@ template <typename ContainerT>
     // Returns the size of an array, range, tuple-like or container as a constval if known at compile time, or as a value if not.
     //
 template <typename T, std::size_t N>
-    MAKESHIFT_NODISCARD constexpr std::integral_constant<std::size_t, N> csize(const T (&)[N]) noexcept
+    gsl_NODISCARD constexpr std::integral_constant<std::size_t, N> csize(const T (&)[N]) noexcept
 {
     return { };
 }
@@ -223,7 +235,7 @@ template <typename T, std::size_t N>
     // Returns the signed size of an array, range, tuple-like or container as a constval if known at compile time, or as a value if not.
     //
 template <typename ContainerT>
-    MAKESHIFT_NODISCARD constexpr auto cssize(ContainerT const& c)
+    gsl_NODISCARD constexpr auto cssize(ContainerT const& c)
 {
     return makeshift::detail::cssize_impl(makeshift::detail::can_instantiate_<makeshift::detail::is_tuple_like_r, void, ContainerT>{ }, c);
 }
@@ -232,7 +244,7 @@ template <typename ContainerT>
     // Returns the signed size of an array, range, tuple-like or container as a constval if known at compile time, or as a value if not.
     //
 template <typename T, std::ptrdiff_t N>
-    MAKESHIFT_NODISCARD constexpr std::integral_constant<std::ptrdiff_t, N> cssize(const T (&)[N]) noexcept
+    gsl_NODISCARD constexpr std::integral_constant<std::ptrdiff_t, N> cssize(const T (&)[N]) noexcept
 {
     return { };
 }
@@ -255,7 +267,7 @@ template <typename T>
 };
 template <typename T> constexpr type_tag<T> type_tag_inst<T>::value;
 template <typename T>
-    constexpr inline type_tag_proxy<T>::operator type_tag<T> const&(void) const noexcept
+    constexpr type_tag_proxy<T>::operator type_tag<T> const&(void) const noexcept
 {
     return type_tag_inst<T>::value;
 }

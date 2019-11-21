@@ -3,10 +3,7 @@
 #define INCLUDED_MAKESHIFT_FENV_HPP_
 
 
-#include <gsl/gsl-lite.hpp> // for Expects()
-
-#include <makeshift/macros.hpp>        // for MAKESHIFT_NODISCARD
-#include <makeshift/detail/export.hpp> // for MAKESHIFT_PUBLIC
+#include <gsl/gsl-lite.hpp> // for Expects(), gsl_NODISCARD
 
 
 namespace makeshift
@@ -18,7 +15,7 @@ namespace makeshift
     // The admissible mask values are defined as `FE_*` in standard header <cfenv>.
     // If an exception flag bit is on, the corresponding exception will be trapped; if the bit is clear, the exception will be masked.
     //
-MAKESHIFT_PUBLIC MAKESHIFT_NODISCARD bool try_set_trapping_fe_exceptions(int excepts) noexcept;
+gsl_NODISCARD bool try_set_trapping_fe_exceptions(int excepts) noexcept;
 
     //ᅟ
     // Disables hardware exception traps for the floating-point exceptions specified by the given mask value.
@@ -34,7 +31,7 @@ inline void set_trapping_fe_exceptions(int excepts)
     // Returns the bitmask of all floating-point exceptions for which trapping is currently enabled.
     // The admissible mask values are defined as `FE_*` in standard header <cfenv>.
     //
-MAKESHIFT_PUBLIC int get_trapping_fe_exceptions(void) noexcept;
+int get_trapping_fe_exceptions(void) noexcept;
 
 
 } // namespace makeshift

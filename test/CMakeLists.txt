@@ -9,7 +9,7 @@ cmake_minimum_required(VERSION 3.14)
 # dependencies
 find_package(Catch2 2.7 REQUIRED)
 find_package(CMakeshift 3.5 REQUIRED)
-find_package(gsl-lite REQUIRED)
+find_package(gsl-lite 0.35.3 REQUIRED)
 find_package(mpark_variant REQUIRED)
 
 # test targets
@@ -66,13 +66,13 @@ target_compile_definitions(test-makeshift-cxx17
 # test dependencies
 target_link_libraries(test-makeshift-cxx14
     PRIVATE
-        gsl::gsl-lite
+        gsl::gsl-lite-v1
         mpark_variant
         Catch2::Catch2
         makeshift)
 target_link_libraries(test-makeshift-cxx17
     PRIVATE
-        gsl::gsl-lite
+        gsl::gsl-lite-v1
         Catch2::Catch2
         makeshift)
 

@@ -6,7 +6,7 @@
 #include <array>
 #include <cstddef> // for size_t
 
-#include <makeshift/macros.hpp> // for MAKESHIFT_NODISCARD
+#include <gsl/gsl-lite.hpp> // for gsl_NODISCARD
 
 #include <makeshift/detail/array.hpp>
 
@@ -95,7 +95,7 @@ template <std::size_t N, typename F, typename... Ts>
     //ᅟ    // returns std::array{ 4, 9 }
     //
 template <typename F, typename... Ts>
-    MAKESHIFT_NODISCARD constexpr auto
+    gsl_NODISCARD constexpr auto
     array_transform(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
@@ -113,7 +113,7 @@ template <typename F, typename... Ts>
     //ᅟ    // returns MyArray<int, 2>{ 4, 9 }
     //
 template <template <typename, std::size_t> class ArrayT, typename F, typename... Ts>
-    MAKESHIFT_NODISCARD constexpr auto
+    gsl_NODISCARD constexpr auto
     array_transform(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
@@ -131,7 +131,7 @@ template <template <typename, std::size_t> class ArrayT, typename F, typename...
     //ᅟ    // returns std::array{ 0, 1, 2 }
     //
 template <std::size_t N, typename F, typename... Ts>
-    MAKESHIFT_NODISCARD constexpr auto
+    gsl_NODISCARD constexpr auto
     array_transform(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
@@ -149,7 +149,7 @@ template <std::size_t N, typename F, typename... Ts>
     //ᅟ    // returns MyArray<int, 3>{ 0, 1, 2 }
     //
 template <template <typename, std::size_t> class ArrayT, std::size_t N, typename F, typename... Ts>
-    MAKESHIFT_NODISCARD constexpr auto
+    gsl_NODISCARD constexpr auto
     array_transform(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
@@ -167,7 +167,7 @@ template <template <typename, std::size_t> class ArrayT, std::size_t N, typename
     //ᅟ    // returns std::array{ 4.0, 9.0 }
     //
 template <typename T, typename F, typename... Ts>
-    MAKESHIFT_NODISCARD constexpr auto
+    gsl_NODISCARD constexpr auto
     array_transform(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
@@ -185,7 +185,7 @@ template <typename T, typename F, typename... Ts>
     //ᅟ    // returns MyArray<double, 2>{ 4.0, 9.0 }
     //
 template <template <typename, std::size_t> class ArrayT, typename T, typename F, typename... Ts>
-    MAKESHIFT_NODISCARD constexpr auto
+    gsl_NODISCARD constexpr auto
     array_transform(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
@@ -203,7 +203,7 @@ template <template <typename, std::size_t> class ArrayT, typename T, typename F,
     //ᅟ    // returns std::array{ 0.0, 1.0, 2.0 }
     //
 template <typename T, std::size_t N, typename F, typename... Ts>
-    MAKESHIFT_NODISCARD constexpr auto
+    gsl_NODISCARD constexpr auto
     array_transform(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
@@ -221,7 +221,7 @@ template <typename T, std::size_t N, typename F, typename... Ts>
     //ᅟ    // returns MyArray<double, 3>{ 0.0, 1.0, 2.0 }
     //
 template <template <typename, std::size_t> class ArrayT, typename T, std::size_t N, typename F, typename... Ts>
-    MAKESHIFT_NODISCARD constexpr auto
+    gsl_NODISCARD constexpr auto
     array_transform(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
@@ -239,7 +239,7 @@ template <template <typename, std::size_t> class ArrayT, typename T, std::size_t
     //ᅟ    // returns std::array{ 2, 3, 6, 8 }
     //
 template <typename T, typename... Ts>
-    MAKESHIFT_NODISCARD constexpr auto
+    gsl_NODISCARD constexpr auto
     array_cat(Ts&&... tuples)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
@@ -258,7 +258,7 @@ template <typename T, typename... Ts>
     //ᅟ    // returns MyArray<int, 4>{ 2, 3, 6, 8 }
     //
 template <template <typename, std::size_t> class ArrayT, typename T, typename... Ts>
-    MAKESHIFT_NODISCARD constexpr auto
+    gsl_NODISCARD constexpr auto
     array_cat(Ts&&... tuples)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");

@@ -3,11 +3,11 @@
 #define INCLUDED_MAKESHIFT_RANGE_HPP_
 
 
-#include <makeshift/macros.hpp> // for MAKESHIFT_NODISCARD
+#include <gsl/gsl-lite.hpp> // for gsl_CPP17_OR_GREATER, gsl_NODISCARD
 
-#if MAKESHIFT_CXX < 17
- #include <tuple> // tuple_size<>
-#endif // MAKESHIFT_CXX < 17
+#if !gsl_CPP17_OR_GREATER
+ #include <tuple>      // for tuple_size<>
+#endif // !gsl_CPP17_OR_GREATER
 
 #include <cstddef>     // for size_t
 #include <utility>     // for move(), tuple_size<> (C++17), forward<>()
@@ -45,18 +45,18 @@ public:
         Expects(Extent == -1 || static_cast<std::ptrdiff_t>(extentC) == Extent);
     }
 };
-#if MAKESHIFT_CXX >= 17
+#if gsl_CPP17_OR_GREATER
 template <typename It, typename EndIt>
     range(It, EndIt) -> range<It, std::enable_if_t<!std::is_convertible<EndIt, std::size_t>::value, EndIt>, -1>;
 template <typename It, typename ExtentC>
     range(It, ExtentC) -> range<It, std::enable_if_t<!std::is_convertible<ExtentC, std::size_t>::value, It>, makeshift::detail::range_extent_from_constval(ExtentC{ })>;
-#endif // MAKESHIFT_CXX >= 17
+#endif // gsl_CPP17_OR_GREATER
 
     //ᅟ
     // Construct a range from a pair of iterators.
     //
 template <typename It, typename EndIt>
-    MAKESHIFT_NODISCARD std::enable_if_t<!std::is_convertible<EndIt, std::size_t>::value, range<It, EndIt>>
+    gsl_NODISCARD std::enable_if_t<!std::is_convertible<EndIt, std::size_t>::value, range<It, EndIt>>
     make_range(It first, EndIt last)
 {
     // the is_convertible<> trait also covers integer constvals due to normalization
@@ -68,7 +68,7 @@ template <typename It, typename EndIt>
     // Construct a range from an iterator and an extent.
     //
 template <typename It, typename ExtentC>
-    MAKESHIFT_NODISCARD std::enable_if_t<!std::is_convertible<ExtentC, std::size_t>::value, range<It, It, makeshift::detail::range_extent_from_constval(ExtentC{ })>>
+    gsl_NODISCARD std::enable_if_t<!std::is_convertible<ExtentC, std::size_t>::value, range<It, It, makeshift::detail::range_extent_from_constval(ExtentC{ })>>
     make_range(It start, ExtentC extentC)
 {
     return { std::move(start), extentC };

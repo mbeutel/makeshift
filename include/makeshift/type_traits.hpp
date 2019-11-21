@@ -124,12 +124,6 @@ template <typename T, typename... Ts> struct index_of_type : std::integral_const
 template <typename T, typename... Ts> constexpr std::size_t index_of_type_v = index_of_type<T, Ts...>::value;
 
     //ᅟ
-    // Helper alias for SFINAE in specializations.
-    // Equivalent to `std::void_t<>` in C++17.
-    //
-template <typename... Ts> using void_t = makeshift::detail::void_t<Ts...>;
-
-    //ᅟ
     // Determines whether the template instantiation `Z<Ts...>` would be valid.
     //
 template <template <typename...> class Z, typename... Ts> struct can_instantiate : makeshift::detail::can_instantiate_<Z, void, Ts...> { };

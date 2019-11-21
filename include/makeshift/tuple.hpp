@@ -9,8 +9,9 @@
 #include <utility>     // for forward<>()
 #include <type_traits> // for decay<>
 
+#include <gsl/gsl-lite.hpp> // for gsl_NODISCARD
+
 #include <makeshift/type_traits.hpp> // for can_instantiate<>
-#include <makeshift/macros.hpp>      // for MAKESHIFT_NODISCARD
 
 #include <makeshift/detail/tuple.hpp>
 
@@ -96,7 +97,7 @@ template <std::size_t N, typename F, typename... Ts>
     //ᅟ    // returns std::tuple{ 4, 9.0f }
     //
 template <typename F, typename... Ts>
-    MAKESHIFT_NODISCARD constexpr auto
+    gsl_NODISCARD constexpr auto
     tuple_transform(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
@@ -115,7 +116,7 @@ template <typename F, typename... Ts>
     //ᅟ    // returns MyTuple<int, float>{ 4, 9.0f }
     //
 template <template<typename...> class TupleT, typename F, typename... Ts>
-    MAKESHIFT_NODISCARD constexpr auto
+    gsl_NODISCARD constexpr auto
     tuple_transform(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
@@ -133,7 +134,7 @@ template <template<typename...> class TupleT, typename F, typename... Ts>
     //ᅟ    // returns std::tuple{ 0, 1, 2 }
     //
 template <std::size_t N, typename F, typename... Ts>
-    MAKESHIFT_NODISCARD constexpr auto
+    gsl_NODISCARD constexpr auto
     tuple_transform(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
@@ -152,7 +153,7 @@ template <std::size_t N, typename F, typename... Ts>
     //ᅟ    // returns MyTuple<index, index, index>{ 0, 1, 2 }
     //
 template <template <typename...> class TupleT, std::size_t N, typename F, typename... Ts>
-    MAKESHIFT_NODISCARD constexpr auto
+    gsl_NODISCARD constexpr auto
     tuple_transform(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
@@ -168,7 +169,7 @@ template <template <typename...> class TupleT, std::size_t N, typename F, typena
     //ᅟ    int sum = tuple_reduce(numbers, 0, std::plus<int>{ }); // returns 5
     //
 template <typename TupleT, typename T, typename F>
-    MAKESHIFT_NODISCARD constexpr auto
+    gsl_NODISCARD constexpr auto
     tuple_reduce(TupleT&& tuple, T&& initialValue, F&& func)
 {
     static_assert(is_tuple_like_v<std::decay_t<TupleT>>, "first argument must be tuple or tuple-like type");
@@ -184,7 +185,7 @@ template <typename TupleT, typename T, typename F>
     //ᅟ    int sum = tuple_reduce_left(numbers, 0, std::plus<int>{ }); // returns 5
     //
 template <typename TupleT, typename T, typename F>
-    MAKESHIFT_NODISCARD constexpr auto
+    gsl_NODISCARD constexpr auto
     tuple_reduce_left(TupleT&& tuple, T&& initialValue, F&& func)
 {
     static_assert(is_tuple_like_v<std::decay_t<TupleT>>, "first argument must be tuple or tuple-like type");
@@ -200,7 +201,7 @@ template <typename TupleT, typename T, typename F>
     //ᅟ    int sum = tuple_reduce_right(numbers, 0, std::plus<int>{ }); // returns 5
     //
 template <typename TupleT, typename T, typename F>
-    MAKESHIFT_NODISCARD constexpr auto
+    gsl_NODISCARD constexpr auto
     tuple_reduce_right(TupleT&& tuple, T&& initialValue, F&& func)
 {
     static_assert(is_tuple_like_v<std::decay_t<TupleT>>, "first argument must be tuple or tuple-like type");
@@ -218,7 +219,7 @@ template <typename TupleT, typename T, typename F>
     //ᅟ    // returns true
     //
 template <typename TupleT, typename P>
-    MAKESHIFT_NODISCARD constexpr auto
+    gsl_NODISCARD constexpr auto
     tuple_all_of(TupleT&& tuple, P&& pred)
 {
     static_assert(is_tuple_like_v<std::decay_t<TupleT>>, "first argument must be tuple or tuple-like type");
@@ -236,7 +237,7 @@ template <typename TupleT, typename P>
     //ᅟ    // returns true
     //
 template <typename TupleT, typename P>
-    MAKESHIFT_NODISCARD constexpr auto
+    gsl_NODISCARD constexpr auto
     tuple_any_of(TupleT&& tuple, P&& pred)
 {
     static_assert(is_tuple_like_v<std::decay_t<TupleT>>, "first argument must be tuple or tuple-like type");
@@ -254,7 +255,7 @@ template <typename TupleT, typename P>
     //ᅟ    // returns false
     //
 template <typename TupleT, typename P>
-    MAKESHIFT_NODISCARD constexpr auto
+    gsl_NODISCARD constexpr auto
     tuple_none_of(TupleT&& tuple, P&& pred)
 {
     static_assert(is_tuple_like_v<std::decay_t<TupleT>>, "first argument must be tuple or tuple-like type");

@@ -5,10 +5,9 @@
 
 #include <type_traits> // for enable_if<>
 
-#include <gsl/gsl-lite.hpp> // for Expects()
+#include <gsl/gsl-lite.hpp> // for Expects(), gsl_NODISCARD
 
 #include <makeshift/type_traits.hpp> // for underlying_type<>, is_bitmask_type<>
-#include <makeshift/macros.hpp>      // for MAKESHIFT_NODISCARD
 
 #include <makeshift/detail/enum.hpp>
 
@@ -49,7 +48,7 @@ namespace makeshift
     // Equivalent to `(haystack & needle) == needle`.
     //
 template <typename EnumT>
-    MAKESHIFT_NODISCARD constexpr bool
+    gsl_NODISCARD constexpr bool
     has_flag(EnumT haystack, EnumT needle)
 {
     static_assert(is_bitmask_type_v<EnumT>, "arguments must be of bitmask type");
@@ -62,7 +61,7 @@ template <typename EnumT>
     // Equivalent to `(haystack & needles) != { }`.
     //
 template <typename EnumT>
-    MAKESHIFT_NODISCARD constexpr bool
+    gsl_NODISCARD constexpr bool
     has_any_flag_of(EnumT haystack, EnumT needles)
 {
     static_assert(is_bitmask_type_v<EnumT>, "arguments must be of bitmask type");
@@ -74,7 +73,7 @@ template <typename EnumT>
     // Equivalent to `(haystack & needles) == needles`.
     //
 template <typename EnumT>
-    MAKESHIFT_NODISCARD constexpr bool
+    gsl_NODISCARD constexpr bool
     has_all_flags_of(EnumT haystack, EnumT needles)
 {
     static_assert(is_bitmask_type_v<EnumT>, "arguments must be of bitmask type");

@@ -9,8 +9,24 @@
 #include <utility>     // for forward<>(), get<>(), integer_sequence<>
 #include <type_traits> // for integral_constant<>, declval<>(), is_base_of<>, is_integral<>, is_enum<>, is_member_pointer<>, is_null_pointer<>, is_empty<>, is_default_constructible<>
 
+#include <gsl/gsl-lite.hpp> // for gsl_CPP17_OR_GREATER, gsl_NODISCARD
+
 #include <makeshift/type_traits.hpp> // for constval_tag, can_instantiate<>
-#include <makeshift/macros.hpp>      // for MAKESHIFT_NODISCARD
+
+
+#define MAKESHIFT_CONSTVAL_(...)                                \
+    (makeshift::detail::make_constval(                          \
+        []                                                      \
+        {                                                       \
+            struct R_                                           \
+            {                                                   \
+                constexpr auto operator ()(void) const noexcept \
+                {                                               \
+                    return __VA_ARGS__;                         \
+                }                                               \
+            };                                                  \
+            return R_{ };                                       \
+        }()))
 
 
 namespace makeshift
@@ -40,14 +56,14 @@ template <typename T, typename F>
 {
     using value_type = T;
 
-    MAKESHIFT_NODISCARD constexpr value_type operator ()(void) const
+    gsl_NODISCARD constexpr value_type operator ()(void) const
     {
         return F{ }();
     }
 #if defined(_MSC_VER) && !defined(__clang__) && !defined(__INTELLISENSE__)
-    MAKESHIFT_NODISCARD constexpr operator auto(void) const -> value_type // workaround for VC++ bug, cf. https://developercommunity.visualstudio.com/content/problem/149701/c2833-with-operator-decltype.html#reply-152822
+    gsl_NODISCARD constexpr operator auto(void) const -> value_type // workaround for VC++ bug, cf. https://developercommunity.visualstudio.com/content/problem/149701/c2833-with-operator-decltype.html#reply-152822
 #else // defined(_MSC_VER) && !defined(__clang__) && !defined(__INTELLISENSE__)
-    MAKESHIFT_NODISCARD constexpr operator value_type(void) const
+    gsl_NODISCARD constexpr operator value_type(void) const
 #endif // defined(_MSC_VER) && !defined(__clang__) && !defined(__INTELLISENSE__)
     {
         return (*this)();
@@ -58,19 +74,19 @@ template <typename T, typename F>
 private:
 #if defined(_MSC_VER) && !defined(NDEBUG)
         // for Natvis support
- #if MAKESHIFT_CXX >= 17
+ #if gsl_CPP17_OR_GREATER
     static inline const T value_ = value;
- #else // MAKESHIFT_CXX >= 17
+ #else // gsl_CPP17_OR_GREATER
     static const T value_;
- #endif // MAKESHIFT_CXX >= 17
+ #endif // gsl_CPP17_OR_GREATER
 #endif // defined(_MSC_VER) && !defined(NDEBUG)
 };
 template <typename T, typename F>
     constexpr T constval<T, F>::value;
-#if defined(_MSC_VER) && !defined(NDEBUG) && MAKESHIFT_CXX < 17
+#if defined(_MSC_VER) && !defined(NDEBUG) && !gsl_CPP17_OR_GREATER
 template <typename T, typename F>
     const T constval<T, F>::value_ = constval<T, F>::value;
-#endif // defined(_MSC_VER) && !defined(NDEBUG) && MAKESHIFT_CXX < 17
+#endif // defined(_MSC_VER) && !defined(NDEBUG) && !gsl_CPP17_OR_GREATER
 
 template <std::size_t I, typename C>
     struct tuple_accessor_functor
@@ -88,7 +104,7 @@ template <typename T, typename F>
 {
 };
 template <std::size_t I, typename T, typename F>
-    MAKESHIFT_NODISCARD constexpr
+    gsl_NODISCARD constexpr
     make_constval_t<tuple_accessor_functor<I, tuple_like_constval<T, F>>>
     get(tuple_like_constval<T, F>) noexcept
 {
@@ -107,11 +123,11 @@ public:
 private:
 #if defined(_MSC_VER) && !defined(NDEBUG)
         // for Natvis support
- #if MAKESHIFT_CXX >= 17
+ #if gsl_CPP17_OR_GREATER
     static inline const T value_ = value;
- #else // MAKESHIFT_CXX >= 17
+ #else // gsl_CPP17_OR_GREATER
     static const T value_;
- #endif // MAKESHIFT_CXX >= 17
+ #endif // gsl_CPP17_OR_GREATER
 #endif // defined(_MSC_VER) && !defined(NDEBUG)
 
 public:
@@ -120,10 +136,10 @@ public:
 };
 template <typename T, T const& Ref>
     constexpr T ref_constval<T, Ref>::value;
-#if defined(_MSC_VER) && !defined(NDEBUG) && MAKESHIFT_CXX < 17
+#if defined(_MSC_VER) && !defined(NDEBUG) && !gsl_CPP17_OR_GREATER
 template <typename T, T const& Ref>
     const T ref_constval<T, Ref>::value_ = ref_constval<T, Ref>::value;
-#endif // defined(_MSC_VER) && !defined(NDEBUG) && MAKESHIFT_CXX < 17
+#endif // defined(_MSC_VER) && !defined(NDEBUG) && !gsl_CPP17_OR_GREATER
 
     // Determines if a given type makes a valid C++14 non-type template parameter.
 template <typename T> struct is_valid_nttp_ : disjunction<std::is_integral<T>, std::is_enum<T>, std::is_member_pointer<T>, std::is_null_pointer<T>> { };

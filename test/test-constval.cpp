@@ -4,6 +4,8 @@
 #include <type_traits> // for integral_constant<>, is_same<>
 #include <functional>  // for plus<>
 
+#include <gsl/gsl-lite.hpp> // for gsl_CPP17_OR_GREATER
+
 #include <makeshift/array.hpp>   // for array<>
 #include <makeshift/utility.hpp>
 #include <makeshift/constval.hpp>
@@ -42,11 +44,11 @@ template <typename T, mk::as_dependent_type<T>... Vs>
 template <typename T, mk::as_dependent_type<T>... Vs>
     void expect_nested_array_constval_normalization(mk::array_constant<T, Vs...>)
 {
-#if MAKESHIFT_CXX >= 17
+#if gsl_CPP17_OR_GREATER
     (expect_array_constval_normalization(mk::c<T, Vs>), ...);
-#else // MAKESHIFT_CXX >= 17
+#else // gsl_CPP17_OR_GREATER
     discard_args((expect_array_constval_normalization(mk::c<T, Vs>), 1)...);
-#endif // MAKESHIFT_CXX >= 17
+#endif // gsl_CPP17_OR_GREATER
 }
 
 template <typename... Cs>
@@ -57,11 +59,11 @@ template <typename... Cs>
 template <typename... Cs>
     void expect_array_tuple_constval_normalization(mk::tuple_constant<Cs...>)
 {
-#if MAKESHIFT_CXX >= 17
+#if gsl_CPP17_OR_GREATER
     (expect_array_constval_normalization(Cs{ }), ...);
-#else // MAKESHIFT_CXX >= 17
+#else // gsl_CPP17_OR_GREATER
     discard_args((expect_array_constval_normalization(Cs{ }), 1)...);
-#endif // MAKESHIFT_CXX >= 17
+#endif // gsl_CPP17_OR_GREATER
 }
 
 template <typename T>
@@ -79,14 +81,14 @@ template <typename C>
 {
     (void) c;
 
-#if MAKESHIFT_CXX >= 17
+#if gsl_CPP17_OR_GREATER
     if constexpr (std::tuple_size_v<C> > 0)
     {
         using std::get;
         std::tuple_element_t<0, C> c0 = get<0>(c);
         (void) c0;
     }
-#endif // MAKESHIFT_CXX >= 17
+#endif // gsl_CPP17_OR_GREATER
 }
 
 
@@ -184,18 +186,18 @@ TEST_CASE("constval")
     (void) c2;
     auto cA3 = mk::c<std::array<int, 2> const&, SomeClass::ca>;
     expect_array_constval_normalization(cA3);
-#if MAKESHIFT_CXX >= 17
+#if gsl_CPP17_OR_GREATER
     auto cCT2 = mk::ref_c<SomeClass::ct>;
     static constexpr CustomType c3 = cCT2();
     (void) c3;
     auto cA4 = mk::ref_c<SomeClass::ca>;
     expect_array_constval_normalization(cA4);
-#endif // MAKESHIFT_CXX >= 17
+#endif // gsl_CPP17_OR_GREATER
 
-#if MAKESHIFT_CXX >= 17
+#if gsl_CPP17_OR_GREATER
     //auto iCT = mk::ref_c<SomeClass::ct.i>; // this doesn't work because arg doesn't have linkage
     //auto cCT3 = mk::ref_c<c2>; // this doesn't work either, for the same reason
     auto iCT = MAKESHIFT_CONSTVAL(SomeClass::ct.i);
     expect_constval_normalization<int>(iCT);
-#endif // MAKESHIFT_CXX >= 17
+#endif // gsl_CPP17_OR_GREATER
 }

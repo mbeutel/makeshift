@@ -7,48 +7,48 @@
 #include <cstdint>     // for int32_t
 #include <type_traits> // for enable_if<>
 
-#include <gsl/gsl-lite.hpp> // for Expects()
+#include <gsl/gsl-lite.hpp> // for Expects(), gsl_NODISCARD
+
 
 #include <makeshift/utility.hpp> // for type<>, type_sequence<>
-#include <makeshift/macros.hpp>  // for MAKESHIFT_NODISCARD
 
 #include <makeshift/detail/type_traits.hpp> // for is_tuple_like_r<>, type_enum_base, unwrap_enum_tag
 
 
-    MAKESHIFT_NODISCARD constexpr inline ENUM                                                           \
 #define MAKESHIFT_DEFINE_ENUM_BITMASK_OPERATORS_(ENUM)                                                  \
+    gsl_NODISCARD constexpr ENUM                                                                        \
     operator ~(ENUM val) noexcept                                                                       \
     {                                                                                                   \
         return ENUM(~makeshift::underlying_type_t<ENUM>(val));                                          \
     }                                                                                                   \
-    MAKESHIFT_NODISCARD constexpr inline ENUM                                                           \
+    gsl_NODISCARD constexpr ENUM                                                                        \
     operator |(ENUM lhs, ENUM rhs) noexcept                                                             \
     {                                                                                                   \
         return ENUM(makeshift::underlying_type_t<ENUM>(lhs) | makeshift::underlying_type_t<ENUM>(rhs)); \
     }                                                                                                   \
-    MAKESHIFT_NODISCARD constexpr inline ENUM                                                           \
+    gsl_NODISCARD constexpr ENUM                                                                        \
     operator &(ENUM lhs, ENUM rhs) noexcept                                                             \
     {                                                                                                   \
         return ENUM(makeshift::underlying_type_t<ENUM>(lhs) & makeshift::underlying_type_t<ENUM>(rhs)); \
     }                                                                                                   \
-    MAKESHIFT_NODISCARD constexpr inline ENUM                                                           \
+    gsl_NODISCARD constexpr ENUM                                                                        \
     operator ^(ENUM lhs, ENUM rhs) noexcept                                                             \
     {                                                                                                   \
         return ENUM(makeshift::underlying_type_t<ENUM>(lhs) ^ makeshift::underlying_type_t<ENUM>(rhs)); \
     }                                                                                                   \
-    constexpr inline ENUM&                                                                              \
+    constexpr ENUM&                                                                                     \
     operator |=(ENUM& lhs, ENUM rhs) noexcept                                                           \
     {                                                                                                   \
         lhs = lhs | rhs;                                                                                \
         return lhs;                                                                                     \
     }                                                                                                   \
-    constexpr inline ENUM&                                                                              \
+    constexpr ENUM&                                                                                     \
     operator &=(ENUM& lhs, ENUM rhs) noexcept                                                           \
     {                                                                                                   \
         lhs = lhs & rhs;                                                                                \
         return lhs;                                                                                     \
     }                                                                                                   \
-    constexpr inline ENUM&                                                                              \
+    constexpr ENUM&                                                                                     \
     operator ^=(ENUM& lhs, ENUM rhs) noexcept                                                           \
     {                                                                                                   \
         lhs = lhs ^ rhs;                                                                                \

@@ -6,12 +6,21 @@
 #include <utility>     // for tuple_size<>, tuple_element<>, integer_sequence<>
 #include <type_traits> // for is_empty<>, conjunction<>
 
-#include <gsl/gsl-lite.hpp> // for Expects()
+#include <gsl/gsl-lite.hpp> // for Expects(), gsl_CPP17_OR_GREATER, gsl_NODISCARD
 
 #include <makeshift/type_traits.hpp> // for can_instantiate<>, as_dependent_type<>
-#include <makeshift/macros.hpp>      // for MAKESHIFT_NODISCARD
 
 #include <makeshift/detail/constval.hpp>
+
+
+    //ᅟ
+    // Returns a constval with the value of the given constant expression.
+    //ᅟ
+    //ᅟ    struct PerformanceParams { int loopUnrollSize; };
+    //ᅟ    auto paramsC = MAKESHIFT_CONSTVAL(PerformanceParams{ .loopUnrollSize = 2 });
+    //ᅟ    // returns constval representing value `PerformanceParams{ 2 }`
+    //
+#define MAKESHIFT_CONSTVAL(...) MAKESHIFT_CONSTVAL_(__VA_ARGS__)
 
 
 namespace makeshift
@@ -20,17 +29,6 @@ namespace makeshift
 
     // For a reference to the general idea behind constexpr values, cf.
     // https://mpark.github.io/programming/2017/05/26/constexpr-function-parameters/ .
-
-
-    //ᅟ
-    // Returns a constval with the value of the given constant expression.
-    //ᅟ
-    //ᅟ    struct PerformanceParams { int loopUnrollSize; };
-    //ᅟ
-    //ᅟ    auto paramsC = MAKESHIFT_CONSTVAL(PerformanceParams{ .loopUnrollSize = 2 });
-    //ᅟ    // returns constval representing value `PerformanceParams{ 2 }`
-    //
-#define MAKESHIFT_CONSTVAL(...) (makeshift::detail::make_constval([] { struct R_ { constexpr auto operator ()(void) const noexcept { return __VA_ARGS__; } }; return R_{ }; }()))
 
 
     //ᅟ
@@ -52,7 +50,7 @@ template <typename T, T V> using constant = typename makeshift::detail::constant
 template <typename T, T V> constexpr constant<T, V> c{ };
 
 
-#if MAKESHIFT_CXX >= 17
+#if gsl_CPP17_OR_GREATER
     //ᅟ
     // Constval type that represents the given object.
     // The object type must be a valid C++14 non-type template parameter type.
@@ -78,7 +76,7 @@ template <auto const& Ref> using ref_constant = constant<decltype(Ref), Ref>;
     // Note that the language requires template reference arguments to have static linkage (e.g. global static objects, or static member objects of classes).
     //
 template <auto const& Ref> constexpr ref_constant<Ref> ref_c{ };
-#endif // MAKESHIFT_CXX >= 17
+#endif // gsl_CPP17_OR_GREATER
 
 
     //ᅟ
@@ -99,7 +97,7 @@ template <typename C>
     //ᅟ    auto indexR = constval_transform(std::plus<>, baseIndexR, offsetR); // returns `std::integral_constant<int, 45>{ }`
     //
 template <typename F, typename... Cs>
-    MAKESHIFT_NODISCARD constexpr auto
+    gsl_NODISCARD constexpr auto
     constval_transform(const F&, const Cs&... args)
 {
     static_assert(std::is_empty<F>::value, "transformer must be stateless");
@@ -121,7 +119,7 @@ template <typename F, typename... Cs>
     //ᅟ    // equivalent to `MAKESHIFT_CONSTVAL(42)`
     //
 template <typename CF, typename... Cs>
-    MAKESHIFT_NODISCARD constexpr auto
+    gsl_NODISCARD constexpr auto
     constval_extend(const CF&, const Cs&... args)
 {
     static_assert(std::is_empty<CF>::value, "extender must be stateless");
@@ -145,11 +143,11 @@ template <typename T, T... Vs>
     {
     }
 
-    MAKESHIFT_NODISCARD constexpr value_type operator ()(void) const noexcept
+    gsl_NODISCARD constexpr value_type operator ()(void) const noexcept
     {
         return value;
     }
-    MAKESHIFT_NODISCARD constexpr operator value_type(void) const noexcept
+    gsl_NODISCARD constexpr operator value_type(void) const noexcept
     {
         return value;
     }
@@ -166,25 +164,25 @@ template <typename T>
 
     constexpr array_constant(void) noexcept = default;
 
-    MAKESHIFT_NODISCARD constexpr value_type operator ()(void) const noexcept
+    gsl_NODISCARD constexpr value_type operator ()(void) const noexcept
     {
         return value;
     }
-    MAKESHIFT_NODISCARD constexpr operator value_type(void) const noexcept
+    gsl_NODISCARD constexpr operator value_type(void) const noexcept
     {
         return value;
     }
 };
 template <typename T>
     constexpr typename array_constant<T>::value_type array_constant<T>::value;
-#if MAKESHIFT_CXX >= 17
+#if gsl_CPP17_OR_GREATER
 template <typename... Cs>
     array_constant(Cs...) -> array_constant<typename makeshift::detail::array_constant_element_type_<typename makeshift::detail::equal_types_<typename Cs::value_type...>::common_type>::type, Cs::value...>;
-#endif // MAKESHIFT_CXX >= 17
+#endif // gsl_CPP17_OR_GREATER
 
     // Implement tuple-like protocol for `array_constant<>`.
 template <std::size_t I, typename T, as_dependent_type<T>... Vs>
-    MAKESHIFT_NODISCARD constexpr
+    gsl_NODISCARD constexpr
     make_constval_t<makeshift::detail::array_accessor_functor<I, array_constant<T, Vs...>>>
     get(array_constant<T, Vs...>) noexcept
 {
@@ -201,7 +199,7 @@ template <typename T, T... Vs> constexpr array_constant<T, Vs...> array_c{ };
     // Constructs a constval of type `std::array<>` from a sequence of homogeneously typed constvals.
     //
 template <typename... Cs>
-    MAKESHIFT_NODISCARD constexpr array_constant<typename makeshift::detail::array_constant_element_type_<typename makeshift::detail::equal_types_<typename Cs::value_type...>::common_type>::type, Cs::value...>
+    gsl_NODISCARD constexpr array_constant<typename makeshift::detail::array_constant_element_type_<typename makeshift::detail::equal_types_<typename Cs::value_type...>::common_type>::type, Cs::value...>
     make_array_constant(Cs...) noexcept
 {
     return { };
@@ -226,27 +224,27 @@ template <typename... Cs>
     {
     }
 
-    MAKESHIFT_NODISCARD constexpr value_type operator ()(void) const noexcept
+    gsl_NODISCARD constexpr value_type operator ()(void) const noexcept
     {
         return value;
     }
-    MAKESHIFT_NODISCARD constexpr operator value_type(void) const noexcept
+    gsl_NODISCARD constexpr operator value_type(void) const noexcept
     {
         return value;
     }
 };
 template <typename... Cs>
     constexpr typename tuple_constant<Cs...>::value_type tuple_constant<Cs...>::value;
-#if MAKESHIFT_CXX >= 17
+#if gsl_CPP17_OR_GREATER
 template <typename... Cs>
     tuple_constant(Cs...) -> tuple_constant<Cs...>;
-#endif // MAKESHIFT_CXX >= 17
+#endif // gsl_CPP17_OR_GREATER
 
     //ᅟ
     // Implement tuple-like protocol for `tuple_constant<>`.
     //
 template <std::size_t I, typename... Cs>
-    MAKESHIFT_NODISCARD constexpr
+    gsl_NODISCARD constexpr
     make_constval_t<makeshift::detail::tuple_accessor_functor<I, tuple_constant<Cs...>>>
     get(tuple_constant<Cs...>) noexcept
 {
@@ -263,7 +261,7 @@ template <typename... Cs> constexpr tuple_constant<Cs...> tuple_c{ };
     // Constructs a constval of type `std::tuple<>` from a sequence of constvals.
     //
 template <typename... Cs>
-    MAKESHIFT_NODISCARD constexpr tuple_constant<Cs...>
+    gsl_NODISCARD constexpr tuple_constant<Cs...>
     make_tuple_constant(Cs...) noexcept
 {
     static_assert(conjunction_v<is_constval<Cs>...>, "arguments must be constval types");

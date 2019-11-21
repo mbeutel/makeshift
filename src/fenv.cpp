@@ -78,7 +78,7 @@ static int fedisableexcept(int excepts)
 }
 #endif
 
-MAKESHIFT_NODISCARD bool try_set_trapping_fe_exceptions(int excepts) noexcept
+gsl_NODISCARD bool try_set_trapping_fe_exceptions(int excepts) noexcept
 {
     Expects((excepts & ~FE_ALL_EXCEPT) == 0);
 

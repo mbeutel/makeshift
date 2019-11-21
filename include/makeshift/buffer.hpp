@@ -9,7 +9,7 @@
 #include <algorithm>   // for copy()
 #include <type_traits> // for is_convertible<>
 
-#include <gsl/gsl-lite.hpp> // for Expects()
+#include <gsl/gsl-lite.hpp> // for Expects(), gsl_CPP17_OR_GREATER, gsl_NODISCARD
 
 #include <makeshift/detail/buffer.hpp>
 
@@ -69,10 +69,10 @@ public:
         return *this;
     }
 };
-//#if MAKESHIFT_CXX >= 17
+//#if gsl_CPP17_OR_GREATER
 //template <std::ptrdiff_t Extent, typename T>
 //    buffer(T (&&)[Extent]) -> buffer<T, Extent>;
-//#endif // MAKESHIFT_CXX >= 17
+//#endif // gsl_CPP17_OR_GREATER
 
     //ᅟ
     // Construct array-like class with configurable small-buffer optimization.
@@ -85,7 +85,7 @@ public:
     //
 template <typename T,
           typename C>
-    MAKESHIFT_NODISCARD constexpr
+    gsl_NODISCARD constexpr
     buffer<T, makeshift::detail::buffer_extent_from_constval(C{ })>
     make_buffer(C size)
 {
@@ -104,7 +104,7 @@ template <typename T,
     //
 template <typename T, std::ptrdiff_t MaxStaticBufferExtent,
           typename C>
-    MAKESHIFT_NODISCARD constexpr
+    gsl_NODISCARD constexpr
     buffer<T, makeshift::detail::buffer_extent_from_constval(C{ }), MaxStaticBufferExtent>
     make_buffer(C size)
 {
@@ -162,10 +162,10 @@ public:
         return *this;
     }
 };
-//#if MAKESHIFT_CXX >= 17
+//#if gsl_CPP17_OR_GREATER
 //template <std::ptrdiff_t Extent, typename T>
 //    buffer(T (&&)[Extent]) -> buffer<T, Extent>;
-//#endif // MAKESHIFT_CXX >= 17
+//#endif // gsl_CPP17_OR_GREATER
 
     //ᅟ
     // Array-like class with in-place storage of `Size` elements.
@@ -174,7 +174,7 @@ public:
     //ᅟ    auto buf = make_fixed_buffer<float>(numElementsC); // returns `fixed_buffer<float, N, N>`
     //
 template <typename T, typename SizeT, SizeT Size>
-    MAKESHIFT_NODISCARD constexpr
+    gsl_NODISCARD constexpr
     fixed_buffer<T, Size, Size>
     make_fixed_buffer(std::integral_constant<SizeT, Size>)
 {
@@ -192,7 +192,7 @@ template <typename T, typename SizeT, SizeT Size>
     //
 template <typename T, std::ptrdiff_t MaxBufferExtent,
           typename C>
-    MAKESHIFT_NODISCARD constexpr
+    gsl_NODISCARD constexpr
     fixed_buffer<T, makeshift::detail::buffer_extent_from_constval(C{ }), MaxBufferExtent>
     make_fixed_buffer(C size)
 {
@@ -202,14 +202,14 @@ template <typename T, std::ptrdiff_t MaxBufferExtent,
 
     // Implement tuple-like protocol for `buffer<>`.
 template <std::size_t I, typename T, std::ptrdiff_t Extent, std::ptrdiff_t MaxStaticBufferExtent>
-    MAKESHIFT_NODISCARD constexpr std::enable_if_t<Extent != dynamic_extent, T&>
+    gsl_NODISCARD constexpr std::enable_if_t<Extent != dynamic_extent, T&>
     get(buffer<T, Extent, MaxStaticBufferExtent>& buffer) noexcept
 {
     static_assert(I < Extent, "index out of range");
     return buffer[I];
 }
 template <std::size_t I, typename T, std::ptrdiff_t Extent, std::ptrdiff_t MaxStaticBufferExtent>
-    MAKESHIFT_NODISCARD constexpr std::enable_if_t<Extent != dynamic_extent, T const&>
+    gsl_NODISCARD constexpr std::enable_if_t<Extent != dynamic_extent, T const&>
     get(buffer<T, Extent, MaxStaticBufferExtent> const& buffer) noexcept
 {
     static_assert(I < Extent, "index out of range");
@@ -218,14 +218,14 @@ template <std::size_t I, typename T, std::ptrdiff_t Extent, std::ptrdiff_t MaxSt
 
     // Implement tuple-like protocol for `fixed_buffer<>`.
 template <std::size_t I, typename T, std::ptrdiff_t Extent, std::ptrdiff_t MaxBufferExtent>
-    MAKESHIFT_NODISCARD constexpr std::enable_if_t<Extent != dynamic_extent, T&>
+    gsl_NODISCARD constexpr std::enable_if_t<Extent != dynamic_extent, T&>
     get(fixed_buffer<T, Extent, MaxBufferExtent>& buffer) noexcept
 {
     static_assert(I < Extent, "index out of range");
     return buffer[I];
 }
 template <std::size_t I, typename T, std::ptrdiff_t Extent, std::ptrdiff_t MaxBufferExtent>
-    MAKESHIFT_NODISCARD constexpr std::enable_if_t<Extent != dynamic_extent, T const&>
+    gsl_NODISCARD constexpr std::enable_if_t<Extent != dynamic_extent, T const&>
     get(fixed_buffer<T, Extent, MaxBufferExtent> const& buffer) noexcept
 {
     static_assert(I < Extent, "index out of range");

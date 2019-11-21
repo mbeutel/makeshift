@@ -1,8 +1,3 @@
-#define MAKESHIFT_PUBLIC
 #define MAKESHIFT_DETAIL_EMPTY_BASES
-#define MAKESHIFT_NODISCARD
-#define MAKESHIFT_CONSTEXPR17
-#define MAKESHIFT_CONSTEXPR20
-#define MAKESHIFT_IF_NOT_CXX(L,...)
-#define MAKESHIFT_IF_CXX(L,...) __VA_ARGS__
+#define gsl_NODISCARD
 #define MAKESHIFT_CONSTVAL(__VA_ARGS__) (makeshift::detail::make_constval([] { struct R_ { constexpr auto operator ()(void) const noexcept { return __VA_ARGS__; } }; return R_{ }; }()))

@@ -5,8 +5,9 @@
 
 #include <utility> // for move(), forward<>()
 
-#include <makeshift/macros.hpp>  // for MAKESHIFT_CXX, MAKESHIFT_DETAIL_EMPTY_BASES
+#include <gsl/gsl-lite.hpp> // for gsl_CPP17_OR_GREATER
 
+#include <makeshift/detail/macros.hpp>     // for MAKESHIFT_DETAIL_CXXLEVEL, MAKESHIFT_DETAIL_EMPTY_BASES
 #include <makeshift/detail/functional.hpp>
 
 
@@ -14,7 +15,7 @@ namespace makeshift
 {
 
 
-#if MAKESHIFT_CXXLEVEL >= 17
+#if MAKESHIFT_DETAIL_CXXLEVEL >= 17
     //ᅟ
     // Constructs a functor wrapper that selects the matching overload among a number of given functors.
     //ᅟ
@@ -28,7 +29,7 @@ template <typename... Fs>
 {
     using Fs::operator ()...;
 };
-#else // MAKESHIFT_CXXLEVEL >= 17
+#else // ^^^ MAKESHIFT_DETAIL_CXXLEVEL >= 17 ^^^ / vvv MAKESHIFT_DETAIL_CXXLEVEL < 17 vvv
     //ᅟ
     // Constructs a functor wrapper that selects the matching overload among a number of given functors.
     //ᅟ
@@ -51,12 +52,12 @@ template <typename F0, typename... Fs>
     using F0::operator ();
     using overloaded<Fs...>::operator ();
 };
-#endif // MAKESHIFT_CXXLEVEL >= 17
+#endif // MAKESHIFT_DETAIL_CXXLEVEL >= 17
 
-#if MAKESHIFT_CXX >= 17
+#if gsl_CPP17_OR_GREATER
 template <typename... Ts>
     overloaded(Ts...) -> overloaded<Ts...>;
-#endif // MAKESHIFT_CXX >= 17
+#endif // gsl_CPP17_OR_GREATER
 
 template <typename... Fs>
     constexpr overloaded<Fs...> make_overloaded(Fs... fs)
@@ -101,10 +102,10 @@ public:
         return func_(makeshift::detail::y_combinator_func_ref<F const&>{ func_ }, std::forward<ArgsT>(args)...);
     }
 };
-#if MAKESHIFT_CXX >= 17
+#if gsl_CPP17_OR_GREATER
 template <typename F>
     y_combinator(F) -> y_combinator<F>;
-#endif // MAKESHIFT_CXX >= 17
+#endif // gsl_CPP17_OR_GREATER
 
 
 } // namespace makeshift

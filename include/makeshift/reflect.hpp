@@ -41,7 +41,7 @@ template <typename T> constexpr bool have_values_of_v = have_values_of<T>::value
     // User-defined types can provide a list of admissible values by defining a `reflect_values()` function in the same namespace:
     //ᅟ
     //ᅟ    enum Color { red, green, blue };
-    //ᅟ    constexpr inline auto reflect_values(type<Color>) { return std::array{ red, green, blue }; }
+    //ᅟ    constexpr auto reflect_values(type<Color>) { return std::array{ red, green, blue }; }
     //
 template <typename T> constexpr makeshift::detail::values_of_r<T> values_of = makeshift::detail::values_of_<T>{ }();
 
