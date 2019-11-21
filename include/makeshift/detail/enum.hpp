@@ -55,6 +55,29 @@
         return lhs;                                                                                     \
     }
 
+#define MAKESHIFT_DEFINE_ENUM_RELATIONAL_OPERATORS_(ENUM)                                          \
+    gsl_NODISCARD constexpr bool                                                                   \
+    operator <(ENUM lhs, ENUM rhs) noexcept                                                        \
+    {                                                                                              \
+        return makeshift::underlying_type_t<ENUM>(lhs) < makeshift::underlying_type_t<ENUM>(rhs);  \
+    }                                                                                              \
+    gsl_NODISCARD constexpr bool                                                                   \
+    operator >(ENUM lhs, ENUM rhs) noexcept                                                        \
+    {                                                                                              \
+        return makeshift::underlying_type_t<ENUM>(lhs) > makeshift::underlying_type_t<ENUM>(rhs);  \
+    }                                                                                              \
+    gsl_NODISCARD constexpr bool                                                                   \
+    operator <=(ENUM lhs, ENUM rhs) noexcept                                                       \
+    {                                                                                              \
+        return makeshift::underlying_type_t<ENUM>(lhs) <= makeshift::underlying_type_t<ENUM>(rhs); \
+    }                                                                                              \
+    gsl_NODISCARD constexpr bool                                                                   \
+    operator >=(ENUM lhs, ENUM rhs) noexcept                                                       \
+    {                                                                                              \
+        return makeshift::underlying_type_t<ENUM>(lhs) >= makeshift::underlying_type_t<ENUM>(rhs); \
+    }
+
+
 namespace makeshift
 {
 
