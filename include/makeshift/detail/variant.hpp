@@ -24,7 +24,7 @@ namespace makeshift
 class unsupported_runtime_value : public std::exception
 {
 public:
-    char const* what(void) const noexcept override;
+    char const* what(void) const noexcept override { return "unsupported runtime value"; }
 };
 
 

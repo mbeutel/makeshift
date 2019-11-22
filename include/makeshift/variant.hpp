@@ -6,7 +6,7 @@
 #include <gsl/gsl-lite.hpp> // for gsl_CPP17_OR_GREATER, gsl_NODISCARD
 
 #if !gsl_CPP17_OR_GREATER
- #error Header <makeshift/variant.hpp> requires C++17 mode or higher.
+# error Header <makeshift/variant.hpp> requires C++17 mode or higher.
 #endif // !gsl_CPP17_OR_GREATER
 
 #include <variant>
