@@ -9,7 +9,7 @@ steps:
       fi
       sudo apt-get update
       if [ "$(Compiler)" = "GCC" ]; then
-        sudo apt-get install cmake gcc-9
+        sudo apt-get install cmake gcc-9 g++-9
       else
         sudo apt-get install cmake clang-9
       fi
@@ -23,11 +23,11 @@ steps:
       echo "##vso[task.setvariable variable=VCPKG_ROOT]$(Build.BinariesDirectory)/dependencies/vcpkg"
       echo "##vso[task.setvariable variable=VCPKG_TRIPLET]$(Platform)-linux"
       if [ "$(Compiler)" = "GCC" ]; then
-        echo "##vso[task.setvariable variable=CC]gcc"
-        echo "##vso[task.setvariable variable=CXX]g++"
+        echo "##vso[task.setvariable variable=CC]gcc-9"
+        echo "##vso[task.setvariable variable=CXX]g++-9"
       else
-        echo "##vso[task.setvariable variable=CC]clang"
-        echo "##vso[task.setvariable variable=CXX]clang++"
+        echo "##vso[task.setvariable variable=CC]clang-9"
+        echo "##vso[task.setvariable variable=CXX]clang++-9"
       fi
     displayName: Set environment variables
 
