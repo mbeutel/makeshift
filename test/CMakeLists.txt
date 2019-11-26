@@ -15,6 +15,30 @@ find_package(mpark_variant REQUIRED)
 # common settings target
 add_library(test-makeshift-settings INTERFACE)
 
+# precompiled headers
+if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.16)
+    target_precompile_headers(test-makeshift-settings
+        INTERFACE
+            # C standard library
+            <cstddef>
+            <cstdint>
+            # C++ standard library
+            <array>
+            <tuple>
+            <limits>
+            <iosfwd>
+            <utility>
+            <numeric>
+            <iterator>
+            <algorithm>
+            <exception>
+            <type_traits>
+            <system_error>
+            # other libraries
+            <gsl/gsl-lite.hpp>
+            <catch2/catch.hpp>)
+endif()
+
 # test runner target
 add_library(test-makeshift-runner OBJECT
     "main.cpp")
