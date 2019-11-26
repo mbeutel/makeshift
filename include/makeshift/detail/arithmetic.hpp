@@ -126,7 +126,7 @@ struct assert_error_handler
     {
         return value;
     }
-    static inline unreachable_wildcard_t make_error(std::errc) noexcept
+    static inline unreachable_wildcard_t make_error(std::errc)
     {
         Expects(false);
     }
@@ -141,7 +141,7 @@ struct assert_error_handler
         return { };
     }
     template <typename T>
-    static MAKESHIFT_FORCEINLINE unreachable_wildcard_t passthrough_error(T) noexcept
+    static MAKESHIFT_FORCEINLINE unreachable_wildcard_t passthrough_error(T)
     {
         Expects(false);
     }
@@ -497,7 +497,7 @@ constexpr result_t<EH, integral_value_type<V>> square_unsigned(V v)
     constexpr V0 m = makeshift::detail::sqrti(max_v<V0>);
 
     if (v > m) return EH::make_error(std::errc::value_too_large);
-    return EH::make_result(v*v);
+    return EH::make_result(V(v*v));
 }
 template <typename EH, typename V>
 constexpr result_t<EH, integral_value_type<V>> square_signed(V v)
@@ -507,36 +507,36 @@ constexpr result_t<EH, integral_value_type<V>> square_signed(V v)
     constexpr V0 m = makeshift::detail::sqrti(max_v<V0>);
 
     if (v < -m || v > m) return EH::make_error(std::errc::value_too_large);
-    return EH::make_result(v*v);
+    return EH::make_result(V(v*v));
 }
 #if !gsl_CPP17_OR_GREATER
-template <typename V>
-constexpr bool square_0(std::false_type /*isSigned*/, V v)
+template <typename EH, typename V>
+constexpr int square_0(std::false_type /*isSigned*/, V v)
 {
-    return makeshift::detail::square_unsigned(v);
+    return makeshift::detail::square_unsigned<EH>(v);
 }
-template <typename V>
-constexpr bool square_0(std::true_type /*isSigned*/, V v)
+template <typename EH, typename V>
+constexpr int square_0(std::true_type /*isSigned*/, V v)
 {
-    return makeshift::detail::square_signed(v);
+    return makeshift::detail::square_signed<EH>(v);
 }
 #endif // !gsl_CPP17_OR_GREATER
-template <typename V>
-constexpr bool square(V v)
+template <typename EH, typename V>
+constexpr int square(V v)
 {
     using V0 = integral_value_type<V>;
 
 #if gsl_CPP17_OR_GREATER
     if constexpr (std::is_signed_v<V0>)
     {
-        return makeshift::detail::square_signed(v);
+        return makeshift::detail::square_signed<EH>(v);
     }
     else
     {
-        return makeshift::detail::square_unsigned(v);
+        return makeshift::detail::square_unsigned<EH>(v);
     }
 #else // gsl_CPP17_OR_GREATER
-    return makeshift::detail::square_0(std::is_signed<V0>{ }, v);
+    return makeshift::detail::square_0<EH>(std::is_signed<V0>{ }, v);
 #endif // gsl_CPP17_OR_GREATER
 }
 

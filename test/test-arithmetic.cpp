@@ -1,5 +1,8 @@
 ﻿
+#include <array>
+#include <tuple>
 #include <limits>
+#include <cstdint> // for CHAR_BIT
 #include <sstream>
 
 #include <stdint.h>
@@ -50,52 +53,328 @@ const volatile int64_t lmaxlog = mk::log_floori(lmax, int64_t(2));
 const volatile int64_t lminlog = mk::log_floori(lmin / -2, int64_t(2)) + 1;
 
 
+TEMPLATE_TEST_CASE("ratio_ceili()", "[arithmetic]", unsigned, int)
+{
+    static constexpr auto iMax = std::numeric_limits<TestType>::max();
+
+    SECTION("enforces preconditions")
+    {
+        CHECK_THROWS(mk::ratio_ceili(0, 0));
+        CHECK_THROWS(mk::ratio_ceili(1, 0));
+        CHECK_THROWS(mk::ratio_ceili(2, 0));
+        CHECK_THROWS(mk::ratio_ceili(-1, 1));
+        CHECK_THROWS(mk::ratio_ceili(-2, 1));
+    }
+
+    SECTION("basic correctness")
+    {
+        auto n = GENERATE(range(TestType(0), TestType(8)));
+        auto d = GENERATE(range(TestType(1), TestType(8)));
+
+        CAPTURE(n);
+        CAPTURE(d);
+        TestType q = mk::ratio_ceili(n, d);
+        CHECK(q >= 0);
+        CHECK(q * d >= n);
+        CHECK(q * d < n + d);
+    }
+
+    SECTION("borderline values")
+    {
+        static_assert(iMax % 2 != 0, "iMax must be odd in a two's complement representation");
+        CHECK(mk::ratio_ceili(iMax, TestType(2)) == iMax / 2 + 1);
+    }
+}
+
+TEMPLATE_TEST_CASE("multiply() for signed types", "[arithmetic]", std::int8_t, std::int32_t, std::int64_t)
+{
+    static constexpr auto iMin = std::numeric_limits<TestType>::min();
+    static constexpr auto iMax = std::numeric_limits<TestType>::max();
+
+    SECTION("basic correctness")
+    {
+        auto a = GENERATE(range(TestType(-7), TestType(8)));
+        auto b = GENERATE(range(TestType(-7), TestType(8)));
+
+        CAPTURE(a);
+        CAPTURE(b);
+        CHECK(mk::multiply(a, b) == a * b);
+    }
+
+    SECTION("borderline values")
+    {
+        using Tuple = std::tuple<TestType, TestType>;
+        auto a_b = GENERATE(
+            Tuple{ iMin,               TestType( 0) },
+            Tuple{ iMax,               TestType( 0) },
+            Tuple{ iMin,               TestType( 1) },
+            Tuple{ iMax,               TestType( 1) },
+            Tuple{ iMax,               TestType(-1) },
+            Tuple{ TestType(iMax / 2), TestType( 2) },
+            Tuple{ TestType(iMax / 2), TestType(-2) },
+            Tuple{ TestType(iMin / 2), TestType( 2) },
+            Tuple{ TestType(iMin / 3), TestType(-2) }
+        );
+        TestType a, b;
+        std::tie(a, b) = a_b;
+
+        CAPTURE(a);
+        CAPTURE(b);
+        CHECK(mk::multiply(a, b) == a * b);
+        CHECK(mk::multiply(b, a) == a * b);
+    }
+
+    SECTION("throws on integer overflow")
+    {
+        using Tuple = std::tuple<TestType, TestType>;
+        auto a_b = GENERATE(
+            Tuple{ iMin,               TestType( 2) },
+            Tuple{ iMin,               TestType(-1) },
+            Tuple{ iMin,               TestType(-2) },
+            Tuple{ iMax,               TestType( 2) },
+            Tuple{ iMax,               TestType(-2) },
+            Tuple{ iMin,               TestType(-1) },
+            Tuple{ TestType(iMax / 2), TestType( 3) },
+            Tuple{ TestType(iMax / 2), TestType(-3) },
+            Tuple{ TestType(iMin / 2), TestType( 3) },
+            Tuple{ TestType(iMin / 2), TestType(-2) }
+        );
+        TestType a, b;
+        std::tie(a, b) = a_b;
+
+        CAPTURE(a);
+        CAPTURE(b);
+        CHECK_THROWS(mk::multiply(a, b));
+        CHECK_THROWS(mk::multiply(b, a));
+    }
+}
+
+TEMPLATE_TEST_CASE("multiply() for unsigned types", "[arithmetic]", std::uint8_t, std::uint32_t, std::uint64_t)
+{
+    static constexpr TestType iMax = std::numeric_limits<TestType>::max();
+
+    SECTION("basic correctness")
+    {
+        auto a = GENERATE(range(TestType(0), TestType(8)));
+        auto b = GENERATE(range(TestType(0), TestType(8)));
+
+        CAPTURE(a);
+        CAPTURE(b);
+        CHECK(mk::multiply(a, b) == a * b);
+    }
+
+    SECTION("borderline values")
+    {
+        using Tuple = std::tuple<TestType, TestType>;
+        auto a_b = GENERATE(
+            Tuple{ iMax,               TestType(0) },
+            Tuple{ iMax,               TestType(1) },
+            Tuple{ TestType(iMax / 2), TestType(2) }
+        );
+        TestType a, b;
+        std::tie(a, b) = a_b;
+
+        CAPTURE(a);
+        CAPTURE(b);
+        CHECK(mk::multiply(a, b) == a * b);
+        CHECK(mk::multiply(b, a) == a * b);
+    }
+
+    SECTION("throws on integer overflow")
+    {
+        using Tuple = std::tuple<TestType, TestType>;
+        auto a_b = GENERATE(
+            Tuple{ iMax,               TestType(2) },
+            Tuple{ TestType(iMax / 2), TestType(3) }
+        );
+        TestType a, b;
+        std::tie(a, b) = a_b;
+
+        CAPTURE(a);
+        CAPTURE(b);
+        CHECK_THROWS(mk::multiply(a, b));
+        CHECK_THROWS(mk::multiply(b, a));
+    }
+}
+
+TEMPLATE_TEST_CASE("sqrti()", "[arithmetic]", unsigned, int)
+{
+    static constexpr auto iMax = std::numeric_limits<TestType>::max();
+
+    SECTION("enforces preconditions")
+    {
+        CHECK_THROWS(mk::detail::sqrti(-1));
+        CHECK_THROWS(mk::detail::sqrti(-2));
+    }
+
+    SECTION("basic correctness")
+    {
+        auto x = GENERATE(range(TestType(0), TestType(100)));
+
+        CAPTURE(x);
+
+        auto sqrtX = mk::detail::sqrti(x);
+        CHECK(sqrtX*sqrtX <= x);
+        CHECK((sqrtX + 1)*(sqrtX + 1) > x);
+    }
+
+    SECTION("borderline values")
+    {
+        auto x = GENERATE(as<TestType>{ }, iMax / 2, iMax - 2, iMax - 1, iMax);
+
+        CAPTURE(x);
+
+        auto sqrtX = mk::detail::sqrti(x);
+        CHECK(sqrtX*sqrtX <= x);
+        CHECK(sqrtX*sqrtX > x - 2*sqrtX - 1); // equivalent to `(sqrtX + 1)*(sqrtX + 1) > x` but without the possibility of overflow
+    }
+}
+
+TEMPLATE_TEST_CASE("square()", "[arithmetic]", int)
+{
+    static constexpr auto iMax = std::numeric_limits<TestType>::max();
+    static constexpr auto sqrtIMax = mk::detail::sqrti(iMax);
+
+    SECTION("basic correctness")
+    {
+        auto x = GENERATE(range(TestType(-12), TestType(13)), TestType(sqrtIMax - 1), sqrtIMax);
+
+        CAPTURE(x);
+
+        auto sqrX = mk::square(x);
+        CHECK(sqrX == x*x);
+    }
+
+    SECTION("throws on integer overflow")
+    {
+        int x = GENERATE(sqrtIMax + 1, sqrtIMax * 2);
+
+        CAPTURE(x);
+
+        CHECK_THROWS(mk::square(x));
+    }
+}
+
+TEMPLATE_TEST_CASE("log_floori()", "[arithmetic]", int)
+{
+    static constexpr auto iMax = std::numeric_limits<TestType>::max();
+
+    SECTION("basic correctness")
+    {
+        using Tuple = std::tuple<TestType, TestType, TestType>;
+        auto x_b_log = GENERATE(
+            Tuple{ 1,        2,        0                                         },
+            Tuple{ 2,        2,        1                                         },
+            Tuple{ 3,        2,        1                                         },
+            Tuple{ 8,        2,        3                                         },
+            Tuple{ iMax,     2,        TestType(sizeof(TestType) * CHAR_BIT - 2) },
+            Tuple{ iMax,     iMax,     1                                         },
+            Tuple{ iMax - 1, iMax,     0                                         },
+            Tuple{ iMax,     iMax - 1, 1                                         },
+            Tuple{ 1,        iMax,     1                                         }
+        );
+        TestType x, b, log;
+        std::tie(x, b, log) = x_b_log;
+        
+        CAPTURE(x);
+        CAPTURE(b);
+        CHECK(mk::log_floori(x, b) == log);
+    }
+}
+
+TEMPLATE_TEST_CASE("log_ceili()", "[arithmetic]", int)
+{
+    static constexpr auto iMax = std::numeric_limits<TestType>::max();
+
+    SECTION("basic correctness")
+    {
+        using Tuple = std::tuple<TestType, TestType, TestType>;
+        auto x_b_log = GENERATE(
+            Tuple{ 1,        2,        0                                         },
+            Tuple{ 2,        2,        1                                         },
+            Tuple{ 3,        2,        2                                         },
+            Tuple{ 8,        2,        3                                         },
+            Tuple{ iMax,     2,        TestType(sizeof(TestType) * CHAR_BIT) - 1 },
+            Tuple{ iMax,     iMax,     1                                         },
+            Tuple{ iMax - 1, iMax,     1                                         },
+            Tuple{ iMax,     iMax - 1, 2                                         },
+            Tuple{ 1,        iMax,     1                                         }
+        );
+        TestType x, b, log;
+        std::tie(x, b, log) = x_b_log;
+        
+        CAPTURE(x);
+        CAPTURE(b);
+        CHECK(mk::log_ceili(x, b) == log);
+    }
+}
+
+TEMPLATE_TEST_CASE("factorize_floori()", "[arithmetic]", int)
+{
+    SECTION("basic correctness")
+    {
+        using Tuple = std::tuple<TestType, TestType, TestType, TestType, TestType, TestType>;
+        auto x_a_b_r_ea_eb = GENERATE(
+            Tuple{ 1, 2, 3, 0, 0, 0 },
+            Tuple{ 2, 2, 3, 0, 1, 0 },
+            Tuple{ 3, 2, 3, 0, 0, 1 },
+            Tuple{ 4, 2, 3, 0, 2, 0 },
+            Tuple{ 5, 2, 3, 1, 2, 0 },
+            Tuple{ 6, 2, 3, 0, 1, 1 },
+            Tuple{ 7, 2, 3, 1, 1, 1 },
+            Tuple{ 8, 2, 3, 0, 3, 0 }
+        );
+        TestType x, a, b, r, ea, eb;
+        std::tie(x, a, b, r, ea, eb) = x_a_b_r_ea_eb;
+        
+        CAPTURE(x);
+        CAPTURE(a);
+        CAPTURE(b);
+        CHECK(mk::factorize_floori(x, a, b) == mk::factorization<TestType, 2>{ r, { mk::factor<TestType>{ a, ea }, mk::factor<TestType>{ b, eb } } });
+    }
+}
+
+TEMPLATE_TEST_CASE("factorize_ceili()", "[arithmetic]", int)
+{
+    SECTION("basic correctness")
+    {
+        using Tuple = std::tuple<TestType, TestType, TestType, TestType, TestType, TestType>;
+        auto x_a_b_r_ea_eb = GENERATE(
+            Tuple{ 1, 2, 3, 0, 0, 0 },
+            Tuple{ 2, 2, 3, 0, 1, 0 },
+            Tuple{ 3, 2, 3, 0, 0, 1 },
+            Tuple{ 4, 2, 3, 0, 2, 0 },
+            Tuple{ 5, 2, 3, 1, 1, 1 },
+            Tuple{ 6, 2, 3, 0, 1, 1 },
+            Tuple{ 7, 2, 3, 1, 3, 0 },
+            Tuple{ 8, 2, 3, 0, 3, 0 }
+        );
+        TestType x, a, b, r, ea, eb;
+        std::tie(x, a, b, r, ea, eb) = x_a_b_r_ea_eb;
+        
+        CAPTURE(x);
+        CAPTURE(a);
+        CAPTURE(b);
+        CHECK(mk::factorize_ceili(x, a, b) == mk::factorization<TestType, 2>{ r, { mk::factor<TestType>{ a, ea }, mk::factor<TestType>{ b, eb } } });
+    }
+}
+
+TEST_CASE("negate()")
+{
+    SECTION("throws on integer overflow")
+    {
+        CHECK_THROWS_AS(mk::negate_or_throw(u8), std::system_error);
+        CHECK_THROWS_AS(mk::negate_or_throw(i8nm), std::system_error);
+    }
+}
+
+
 TEST_CASE("arithmetic")
 {
-    SECTION("log")
-    {
-        CHECK(mk::log_floori(1, 2) == 0);
-        CHECK(mk::log_floori(2, 2) == 1);
-        CHECK(mk::log_floori(3, 2) == 1);
-        CHECK(mk::log_floori(8, 2) == 3);
-
-        CHECK(mk::log_ceili(1, 2) == 0);
-        CHECK(mk::log_ceili(2, 2) == 1);
-        CHECK(mk::log_ceili(3, 2) == 2);
-        CHECK(mk::log_ceili(8, 2) == 3);
-    }
-
-    SECTION("factorize")
-    {
-        CHECK(mk::factorize_ceili(1, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor<int>{ 2, 0 }, mk::factor<int>{ 3, 0 } } });
-        CHECK(mk::factorize_ceili(2, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor<int>{ 2, 1 }, mk::factor<int>{ 3, 0 } } });
-        CHECK(mk::factorize_ceili(3, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor<int>{ 2, 0 }, mk::factor<int>{ 3, 1 } } });
-        CHECK(mk::factorize_ceili(4, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor<int>{ 2, 2 }, mk::factor<int>{ 3, 0 } } });
-        CHECK(mk::factorize_ceili(5, 2, 3) == mk::factorization<int, 2>{ 1, { mk::factor<int>{ 2, 1 }, mk::factor<int>{ 3, 1 } } });
-        CHECK(mk::factorize_ceili(6, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor<int>{ 2, 1 }, mk::factor<int>{ 3, 1 } } });
-        CHECK(mk::factorize_ceili(7, 2, 3) == mk::factorization<int, 2>{ 1, { mk::factor<int>{ 2, 3 }, mk::factor<int>{ 3, 0 } } });
-        CHECK(mk::factorize_ceili(8, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor<int>{ 2, 3 }, mk::factor<int>{ 3, 0 } } });
-
-        CHECK(mk::factorize_floori(1, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor<int>{ 2, 0 }, mk::factor<int>{ 3, 0 } } });
-        CHECK(mk::factorize_floori(2, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor<int>{ 2, 1 }, mk::factor<int>{ 3, 0 } } });
-        CHECK(mk::factorize_floori(3, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor<int>{ 2, 0 }, mk::factor<int>{ 3, 1 } } });
-        CHECK(mk::factorize_floori(4, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor<int>{ 2, 2 }, mk::factor<int>{ 3, 0 } } });
-        CHECK(mk::factorize_floori(5, 2, 3) == mk::factorization<int, 2>{ 1, { mk::factor<int>{ 2, 2 }, mk::factor<int>{ 3, 0 } } });
-        CHECK(mk::factorize_floori(6, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor<int>{ 2, 1 }, mk::factor<int>{ 3, 1 } } });
-        CHECK(mk::factorize_floori(7, 2, 3) == mk::factorization<int, 2>{ 1, { mk::factor<int>{ 2, 1 }, mk::factor<int>{ 3, 1 } } });
-        CHECK(mk::factorize_floori(8, 2, 3) == mk::factorization<int, 2>{ 0, { mk::factor<int>{ 2, 3 }, mk::factor<int>{ 3, 0 } } });
-    }
-
     volatile uint8_t lu8;
     volatile uint64_t lu64;
     volatile int8_t li8;
     volatile int64_t li64;
-
-    SECTION("negate")
-    {
-        CHECK_THROWS_AS(lu8 = mk::negate_or_throw(u8), std::system_error);
-        CHECK_THROWS_AS(li8 = mk::negate_or_throw(i8nm), std::system_error);
-    }
 
     SECTION("add")
     {
