@@ -15,9 +15,12 @@ find_package(mpark_variant REQUIRED)
 # common settings target
 add_library(test-makeshift-settings INTERFACE)
 
+# test runner target
+add_library(test-makeshift-runner OBJECT
+    "main.cpp")
+
 # test targets
 add_executable(test-makeshift-cxx14
-    "main.cpp"
     "test-arithmetic.cpp"
     "test-array.cpp"
     "test-buffer.cpp"
@@ -32,12 +35,10 @@ add_executable(test-makeshift-cxx14
     "test-type_traits.cpp"
     "test-utility.cpp")
 add_executable(test-makeshift-cxx17
-    "main.cpp"
     "test-arithmetic.cpp"
     "test-constval.cpp"
     "test-variant.cpp")
 add_executable(test-makeshift-cxx20
-    "main.cpp"
     "test-constval.cpp")
 
 # compiler settings
@@ -46,6 +47,9 @@ cmakeshift_target_compile_settings(
     TARGETS test-makeshift-cxx14 test-makeshift-cxx17 test-makeshift-cxx20
     PRIVATE
         default)
+target_compile_features(test-makeshift-runner
+    PRIVATE
+        cxx_std_14)
 target_compile_features(test-makeshift-cxx14
     PRIVATE
         cxx_std_14)
@@ -64,6 +68,9 @@ target_compile_definitions(test-makeshift-settings
         gsl_CONFIG_CONTRACT_VIOLATION_THROWS) # this makes GSL's Expects()/Ensures() throw `gsl::fail_fast` on failure
 
 # test dependencies
+target_link_libraries(test-makeshift-runner
+    PRIVATE
+        Catch2::Catch2)
 target_link_libraries(test-makeshift-settings
     INTERFACE
         gsl::gsl-lite-v1
@@ -71,13 +78,16 @@ target_link_libraries(test-makeshift-settings
         makeshift)
 target_link_libraries(test-makeshift-cxx14
     PRIVATE
+        test-makeshift-runner
         test-makeshift-settings
         mpark_variant)
 target_link_libraries(test-makeshift-cxx17
     PRIVATE
+        test-makeshift-runner
         test-makeshift-settings)
 target_link_libraries(test-makeshift-cxx20
     PRIVATE
+        test-makeshift-runner
         test-makeshift-settings)
 
 # register tests
