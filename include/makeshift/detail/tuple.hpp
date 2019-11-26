@@ -19,14 +19,14 @@ namespace detail
 
 
 template <template <typename...> class TupleT, typename F, typename... Ts>
-    constexpr TupleT<>
-    tuple_transform_impl(std::index_sequence<>, F&&, Ts&&...)
+constexpr TupleT<>
+tuple_transform_impl(std::index_sequence<>, F&&, Ts&&...)
 {
     return { }; // extra overload to avoid unused-parameter warning
 }
 template <template <typename...> class TupleT, std::size_t... Is, typename F, typename... Ts>
-    constexpr auto
-    tuple_transform_impl(std::index_sequence<Is...>, F&& func, Ts&&... args)
+constexpr auto
+tuple_transform_impl(std::index_sequence<Is...>, F&& func, Ts&&... args)
 {
     (void) func;
     using RTuple = TupleT<std::decay_t<decltype(makeshift::detail::transform_element<Is>(func, std::forward<Ts>(args)...))>...>;
@@ -40,43 +40,43 @@ struct all_fold { };
 struct any_fold { };
 
 template <typename FoldT, typename TupleT, typename T, typename F>
-    constexpr auto fold_impl(std::index_sequence<>, FoldT, TupleT&&, T&& initialValue, F&&)
+constexpr auto fold_impl(std::index_sequence<>, FoldT, TupleT&&, T&& initialValue, F&&)
 {
     return std::forward<T>(initialValue);
 }
 template <std::size_t I0, std::size_t... Is, typename TupleT, typename T, typename F>
-    constexpr auto
-    fold_impl(std::index_sequence<I0, Is...>, left_fold, TupleT&& tuple, T&& initialValue, F&& func)
+constexpr auto
+fold_impl(std::index_sequence<I0, Is...>, left_fold, TupleT&& tuple, T&& initialValue, F&& func)
 {
     return makeshift::detail::fold_impl(std::index_sequence<Is...>{ }, left_fold{ }, std::forward<TupleT>(tuple),
         func(std::forward<T>(initialValue), std::get<I0>(std::forward<TupleT>(tuple))),
         std::forward<F>(func));
 }
 template <std::size_t I0, std::size_t... Is, typename TupleT, typename T, typename F>
-    constexpr auto
-    fold_impl(std::index_sequence<I0, Is...>, right_fold, TupleT&& tuple, T&& initialValue, F&& func)
+constexpr auto
+fold_impl(std::index_sequence<I0, Is...>, right_fold, TupleT&& tuple, T&& initialValue, F&& func)
 {
     return makeshift::detail::fold_impl(std::index_sequence<Is...>{ }, right_fold{ }, std::forward<TupleT>(tuple),
         func(std::get<std::tuple_size<std::decay_t<TupleT>>::value - 1 - I0>(std::forward<TupleT>(tuple)), std::forward<T>(initialValue)),
         std::forward<F>(func));
 }
 template <std::size_t I0, std::size_t... Is, typename TupleT, typename F>
-    constexpr auto
-    fold_impl(std::index_sequence<I0, Is...>, all_fold, TupleT&& tuple, bool, F&& func)
+constexpr auto
+fold_impl(std::index_sequence<I0, Is...>, all_fold, TupleT&& tuple, bool, F&& func)
 {
     return func(std::get<I0>(std::forward<TupleT>(tuple)))
         && makeshift::detail::fold_impl(std::index_sequence<Is...>{ }, all_fold{ }, std::forward<TupleT>(tuple), true, std::forward<F>(func));
 }
 template <std::size_t I0, std::size_t... Is, typename TupleT, typename F>
-    constexpr auto
-    fold_impl(std::index_sequence<I0, Is...>, any_fold, TupleT&& tuple, bool, F&& func)
+constexpr auto
+fold_impl(std::index_sequence<I0, Is...>, any_fold, TupleT&& tuple, bool, F&& func)
 {
     return func(std::get<I0>(std::forward<TupleT>(tuple)))
         || makeshift::detail::fold_impl(std::index_sequence<Is...>{ }, any_fold{ }, std::forward<TupleT>(tuple), false, std::forward<F>(func));
 }
 template <typename FoldT, typename TupleT, typename T, typename F>
-    constexpr auto
-    fold_impl(FoldT, TupleT&& tuple, T&& initialValue, F&& func)
+constexpr auto
+fold_impl(FoldT, TupleT&& tuple, T&& initialValue, F&& func)
 {
     return makeshift::detail::fold_impl(std::make_index_sequence<std::tuple_size<std::decay_t<TupleT>>::value>{ }, FoldT{ },
         std::forward<TupleT>(tuple), std::forward<T>(initialValue), std::forward<F>(func));

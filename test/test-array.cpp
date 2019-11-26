@@ -18,7 +18,7 @@ template <int> struct True : std::true_type { };
 template <int> struct False : std::false_type { };
 
 template <template <typename...> class TraitT, typename... Ts>
-    struct Check
+struct Check
 {
     constexpr operator bool(void) const noexcept
     {

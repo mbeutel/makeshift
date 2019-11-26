@@ -57,12 +57,12 @@ constexpr tuple_index_t tuple_index{ };
     //ᅟ
     //ᅟ    template_for(
     //ᅟ        [](auto name, auto elem) { std::cout << name << ": " << elem << '\n'; },
-    //ᅟ        std::make_tuple("a", "b"), std::make_tuple(1, 2.3f));
+    //ᅟ        std::tuple{ "a", "b" }, std::tuple{ 1, 2.3f });
     //ᅟ    // prints "a: 1\nb: 2.3\n"
     //
 template <typename F, typename... Ts>
-    constexpr void
-    template_for(F&& func, Ts&&... args)
+constexpr void
+template_for(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
     constexpr std::size_t size = makeshift::detail::tuple_transform_size<-1, Ts...>();
@@ -79,8 +79,8 @@ template <typename F, typename... Ts>
     //ᅟ    // prints "0\n1\n2\n"
     //
 template <std::size_t N, typename F, typename... Ts>
-    constexpr void
-    template_for(F&& func, Ts&&... args)
+constexpr void
+template_for(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
     constexpr std::size_t size = makeshift::detail::tuple_transform_size<N, Ts...>();
@@ -93,12 +93,12 @@ template <std::size_t N, typename F, typename... Ts>
     //ᅟ
     //ᅟ    auto squares = tuple_transform(
     //ᅟ        [](auto x) { return x*x; },
-    //ᅟ        std::make_tuple(2, 3.0f));
+    //ᅟ        std::tuple{ 2, 3.0f });
     //ᅟ    // returns std::tuple{ 4, 9.0f }
     //
 template <typename F, typename... Ts>
-    gsl_NODISCARD constexpr auto
-    tuple_transform(F&& func, Ts&&... args)
+gsl_NODISCARD constexpr auto
+tuple_transform(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
     constexpr std::size_t size = makeshift::detail::tuple_transform_size<-1, Ts...>();
@@ -112,12 +112,12 @@ template <typename F, typename... Ts>
     //ᅟ
     //ᅟ    auto squares = tuple_transform<MyTuple>(
     //ᅟ        [](auto x) { return x*x; },
-    //ᅟ        std::make_tuple(2, 3.0f));
+    //ᅟ        std::tuple{ 2, 3.0f });
     //ᅟ    // returns MyTuple<int, float>{ 4, 9.0f }
     //
 template <template<typename...> class TupleT, typename F, typename... Ts>
-    gsl_NODISCARD constexpr auto
-    tuple_transform(F&& func, Ts&&... args)
+gsl_NODISCARD constexpr auto
+tuple_transform(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
     constexpr std::size_t size = makeshift::detail::tuple_transform_size<-1, Ts...>();
@@ -134,8 +134,8 @@ template <template<typename...> class TupleT, typename F, typename... Ts>
     //ᅟ    // returns std::tuple{ 0, 1, 2 }
     //
 template <std::size_t N, typename F, typename... Ts>
-    gsl_NODISCARD constexpr auto
-    tuple_transform(F&& func, Ts&&... args)
+gsl_NODISCARD constexpr auto
+tuple_transform(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
     constexpr std::size_t size = makeshift::detail::tuple_transform_size<N, Ts...>();
@@ -153,8 +153,8 @@ template <std::size_t N, typename F, typename... Ts>
     //ᅟ    // returns MyTuple<index, index, index>{ 0, 1, 2 }
     //
 template <template <typename...> class TupleT, std::size_t N, typename F, typename... Ts>
-    gsl_NODISCARD constexpr auto
-    tuple_transform(F&& func, Ts&&... args)
+gsl_NODISCARD constexpr auto
+tuple_transform(F&& func, Ts&&... args)
 {
     static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
     constexpr std::size_t size = makeshift::detail::tuple_transform_size<N, Ts...>();
@@ -165,12 +165,12 @@ template <template <typename...> class TupleT, std::size_t N, typename F, typena
     //ᅟ
     // Takes a tuple, an initial value, and a binary accumulator function and returns the left fold of the tuple.
     //ᅟ
-    //ᅟ    auto numbers = std::make_tuple(2, 3u);
+    //ᅟ    auto numbers = std::tuple{ 2, 3u };
     //ᅟ    int sum = tuple_reduce(numbers, 0, std::plus<int>{ }); // returns 5
     //
 template <typename TupleT, typename T, typename F>
-    gsl_NODISCARD constexpr auto
-    tuple_reduce(TupleT&& tuple, T&& initialValue, F&& func)
+gsl_NODISCARD constexpr auto
+tuple_reduce(TupleT&& tuple, T&& initialValue, F&& func)
 {
     static_assert(is_tuple_like_v<std::decay_t<TupleT>>, "first argument must be tuple or tuple-like type");
     return makeshift::detail::fold_impl(makeshift::detail::left_fold{ },
@@ -181,12 +181,12 @@ template <typename TupleT, typename T, typename F>
     //ᅟ
     // Takes a tuple, an initial value, and a binary accumulator function and returns the left fold of the tuple.
     //ᅟ
-    //ᅟ    auto numbers = std::make_tuple(2, 3u);
+    //ᅟ    auto numbers = std::tuple{2, 3u };
     //ᅟ    int sum = tuple_reduce_left(numbers, 0, std::plus<int>{ }); // returns 5
     //
 template <typename TupleT, typename T, typename F>
-    gsl_NODISCARD constexpr auto
-    tuple_reduce_left(TupleT&& tuple, T&& initialValue, F&& func)
+gsl_NODISCARD constexpr auto
+tuple_reduce_left(TupleT&& tuple, T&& initialValue, F&& func)
 {
     static_assert(is_tuple_like_v<std::decay_t<TupleT>>, "first argument must be tuple or tuple-like type");
     return makeshift::detail::fold_impl(makeshift::detail::left_fold{ },
@@ -197,12 +197,12 @@ template <typename TupleT, typename T, typename F>
     //ᅟ
     // Takes a tuple, an initial value, and a binary accumulator function and returns the right fold of the tuple.
     //ᅟ
-    //ᅟ    auto numbers = std::make_tuple(2, 3u);
+    //ᅟ    auto numbers = std::tuple{ 2, 3u };
     //ᅟ    int sum = tuple_reduce_right(numbers, 0, std::plus<int>{ }); // returns 5
     //
 template <typename TupleT, typename T, typename F>
-    gsl_NODISCARD constexpr auto
-    tuple_reduce_right(TupleT&& tuple, T&& initialValue, F&& func)
+gsl_NODISCARD constexpr auto
+tuple_reduce_right(TupleT&& tuple, T&& initialValue, F&& func)
 {
     static_assert(is_tuple_like_v<std::decay_t<TupleT>>, "first argument must be tuple or tuple-like type");
     return makeshift::detail::fold_impl(makeshift::detail::right_fold{ },
@@ -219,8 +219,8 @@ template <typename TupleT, typename T, typename F>
     //ᅟ    // returns true
     //
 template <typename TupleT, typename P>
-    gsl_NODISCARD constexpr auto
-    tuple_all_of(TupleT&& tuple, P&& pred)
+gsl_NODISCARD constexpr auto
+tuple_all_of(TupleT&& tuple, P&& pred)
 {
     static_assert(is_tuple_like_v<std::decay_t<TupleT>>, "first argument must be tuple or tuple-like type");
     return makeshift::detail::fold_impl(makeshift::detail::all_fold{ },
@@ -237,8 +237,8 @@ template <typename TupleT, typename P>
     //ᅟ    // returns true
     //
 template <typename TupleT, typename P>
-    gsl_NODISCARD constexpr auto
-    tuple_any_of(TupleT&& tuple, P&& pred)
+gsl_NODISCARD constexpr auto
+tuple_any_of(TupleT&& tuple, P&& pred)
 {
     static_assert(is_tuple_like_v<std::decay_t<TupleT>>, "first argument must be tuple or tuple-like type");
     return makeshift::detail::fold_impl(makeshift::detail::any_fold{ },
@@ -255,8 +255,8 @@ template <typename TupleT, typename P>
     //ᅟ    // returns false
     //
 template <typename TupleT, typename P>
-    gsl_NODISCARD constexpr auto
-    tuple_none_of(TupleT&& tuple, P&& pred)
+gsl_NODISCARD constexpr auto
+tuple_none_of(TupleT&& tuple, P&& pred)
 {
     static_assert(is_tuple_like_v<std::decay_t<TupleT>>, "first argument must be tuple or tuple-like type");
     return !makeshift::detail::fold_impl(makeshift::detail::any_fold{ },

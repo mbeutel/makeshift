@@ -17,9 +17,9 @@
 #if defined(_MSC_VER) && _MSC_VER >= 1900 && _MSC_FULL_VER >= 190023918 && _MSC_VER < 2000
     // 
     // __declspec(empty_bases) was added in VC++ 2015 Update 2 and is expected to become unnecessary in the next ABI-breaking release.
- #define MAKESHIFT_DETAIL_EMPTY_BASES __declspec(empty_bases)
+# define MAKESHIFT_DETAIL_EMPTY_BASES __declspec(empty_bases)
 #else // defined(_MSC_VER) && _MSC_VER >= 1900 && _MSC_FULL_VER >= 190023918 && _MSC_VER < 2000
- #define MAKESHIFT_DETAIL_EMPTY_BASES
+# define MAKESHIFT_DETAIL_EMPTY_BASES
 #endif // defined(_MSC_VER) && _MSC_VER >= 1900 && _MSC_FULL_VER >= 190023918 && _MSC_VER < 2000
 
 

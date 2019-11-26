@@ -16,7 +16,7 @@ namespace makeshift
 struct all_of_fn
 {
     template <typename It, typename EndIt>
-        constexpr bool operator ()(It first, EndIt last) const
+    constexpr bool operator ()(It first, EndIt last) const
     {
         for (; first != last; ++first)
         {
@@ -26,7 +26,7 @@ struct all_of_fn
     }
 
     template <typename R>
-        constexpr bool operator ()(R&& range) const
+    constexpr bool operator ()(R&& range) const
     {
         using std::begin;
         using std::end;
@@ -43,7 +43,7 @@ constexpr inline all_of_fn all_of;
 struct any_of_fn
 {
     template <typename It, typename EndIt>
-        constexpr bool operator ()(It first, EndIt last) const
+    constexpr bool operator ()(It first, EndIt last) const
     {
         for (; first != last; ++first)
         {
@@ -53,7 +53,7 @@ struct any_of_fn
     }
 
     template <typename R>
-        constexpr bool operator ()(R&& range) const
+    constexpr bool operator ()(R&& range) const
     {
         using std::begin;
         using std::end;
@@ -70,13 +70,13 @@ constexpr inline any_of_fn any_of;
 struct none_of_fn
 {
     template <typename It, typename EndIt>
-        constexpr bool operator ()(It first, EndIt last) const
+    constexpr bool operator ()(It first, EndIt last) const
     {
         return !any_of(first, last);
     }
 
     template <typename R>
-        constexpr bool operator ()(R&& range) const
+    constexpr bool operator ()(R&& range) const
     {
         using std::begin;
         using std::end;

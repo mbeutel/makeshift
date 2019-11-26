@@ -33,9 +33,9 @@ namespace detail
 
 
 template <template <typename...> class VariantT, typename ValuesC>
-    struct constval_variant_map;
+struct constval_variant_map;
 template <template <typename...> class VariantT, typename T, T... Vs>
-    struct constval_variant_map<VariantT, array_constant<T, Vs...>>
+struct constval_variant_map<VariantT, array_constant<T, Vs...>>
 {
     using type = VariantT<typename constant_<T, Vs>::type...>; // workaround for VC++ bug, cf. https://developercommunity.visualstudio.com/content/problem/719235/erroneous-c2971-caused-by-using-variadic-by-ref-no.html
     static constexpr type values[] = {
@@ -43,13 +43,13 @@ template <template <typename...> class VariantT, typename T, T... Vs>
     };
 };
 template <template <typename...> class VariantT, typename T, T... Vs>
-    constexpr typename constval_variant_map<VariantT, array_constant<T, Vs...>>::type constval_variant_map<VariantT, array_constant<T, Vs...>>::values[];
+constexpr typename constval_variant_map<VariantT, array_constant<T, Vs...>>::type constval_variant_map<VariantT, array_constant<T, Vs...>>::values[];
 
 template <typename T> using can_order_r = decltype(std::declval<T>() < std::declval<T>());
 template <typename T> struct can_order : can_instantiate<can_order_r, T> { };
 
 template <typename T, std::size_t N>
-    constexpr bool are_values_sorted_0(std::true_type /* canOrder */, std::array<T, N> const& values)
+constexpr bool are_values_sorted_0(std::true_type /* canOrder */, std::array<T, N> const& values)
 {
         // `std::is_sorted()` is not `constexpr`, so we have to reimplement it here
     for (std::size_t i = 1; i < N; ++i)
@@ -59,18 +59,18 @@ template <typename T, std::size_t N>
     return true;
 }
 template <typename T, std::size_t N>
-    constexpr bool are_values_sorted_0(std::false_type /* canOrder */, std::array<T, N> const&)
+constexpr bool are_values_sorted_0(std::false_type /* canOrder */, std::array<T, N> const&)
 {
     return false;
 }
 template <typename T, std::size_t N>
-    constexpr bool are_values_sorted(std::array<T, N> const& values)
+constexpr bool are_values_sorted(std::array<T, N> const& values)
 {
     return are_values_sorted_0(can_order<T>{ }, values);
 }
 
 template <typename T, std::size_t N>
-    std::ptrdiff_t search_value_index_2(std::true_type /*sorted*/, T const& value, std::array<T, N> const& values)
+std::ptrdiff_t search_value_index_2(std::true_type /*sorted*/, T const& value, std::array<T, N> const& values)
 {
         // binary search
     std::ptrdiff_t first = 0,
@@ -99,7 +99,7 @@ template <typename T, std::size_t N>
     return -1;
 }
 template <typename T, std::size_t N>
-    std::ptrdiff_t search_value_index_2(std::false_type /*sorted*/, T const& value, std::array<T, N> const& values)
+std::ptrdiff_t search_value_index_2(std::false_type /*sorted*/, T const& value, std::array<T, N> const& values)
 {
         // linear search
     for (std::ptrdiff_t i = 0; i < std::ptrdiff_t(N); ++i)
@@ -110,7 +110,7 @@ template <typename T, std::size_t N>
 }
 
 template <typename RepT, typename T, typename ValuesC>
-    std::ptrdiff_t search_value_index_1(std::true_type /*bool||enum||integral && contiguous*/, T const& value, ValuesC valuesC)
+std::ptrdiff_t search_value_index_1(std::true_type /*bool||enum||integral && contiguous*/, T const& value, ValuesC valuesC)
 {
     constexpr auto const& values = valuesC.value;
     constexpr auto r0 = static_cast<RepT>(values[0]);
@@ -119,14 +119,14 @@ template <typename RepT, typename T, typename ValuesC>
     return r - r0;
 }
 template <typename RepT, typename T, typename ValuesC>
-    std::ptrdiff_t search_value_index_1(std::false_type /*bool||enum||integral && contiguous*/, T const& value, ValuesC valuesC)
+std::ptrdiff_t search_value_index_1(std::false_type /*bool||enum||integral && contiguous*/, T const& value, ValuesC valuesC)
 {
     constexpr bool sorted = are_values_sorted(valuesC.value); // TODO: perhaps we can just sort values for the index lookup
     return search_value_index_2(std::integral_constant<bool, sorted>{ }, value, valuesC.value);
 }
 
 template <typename RepT, typename T, std::size_t N>
-    constexpr bool are_values_contiguous(std::array<T, N> const& values)
+constexpr bool are_values_contiguous(std::array<T, N> const& values)
 {
     static_assert(N > 0, "overload resolution failed");
 
@@ -140,19 +140,19 @@ template <typename RepT, typename T, std::size_t N>
     return true;
 }
 template <typename RepT, typename T>
-    constexpr bool are_values_contiguous(std::array<T, 0> const& /*values*/)
+constexpr bool are_values_contiguous(std::array<T, 0> const& /*values*/)
 {
     return false;
 }
 
 template <typename RepT, typename T, typename ValuesC>
-    std::ptrdiff_t search_value_index_0(std::true_type /*bool||enum||integral*/, T const& value, ValuesC valuesC)
+std::ptrdiff_t search_value_index_0(std::true_type /*bool||enum||integral*/, T const& value, ValuesC valuesC)
 {
     constexpr bool contiguous = are_values_contiguous<RepT>(valuesC.value); // implies that at least one element exists
     return search_value_index_1<RepT>(std::integral_constant<bool, contiguous>{ }, value, valuesC);
 }
 template <typename T, typename ValuesC>
-    std::ptrdiff_t search_value_index_0(std::false_type /*bool||enum||integral*/, T const& value, ValuesC valuesC)
+std::ptrdiff_t search_value_index_0(std::false_type /*bool||enum||integral*/, T const& value, ValuesC valuesC)
 {
     return search_value_index_1<T>(std::false_type{ }, value, valuesC);
 }
@@ -164,7 +164,7 @@ template <typename T> struct has_integral_rep_ : has_integral_rep_0_<std::is_enu
 template <> struct has_integral_rep_<bool> : std::true_type { using rep = int; };
 
 template <typename T, typename ValuesC>
-    std::ptrdiff_t search_value_index(T const& value, ValuesC valuesC)
+std::ptrdiff_t search_value_index(T const& value, ValuesC valuesC)
 {
     return search_value_index_0<typename has_integral_rep_<T>::rep>(has_integral_rep_<T>{ }, value, valuesC);
 }
@@ -184,7 +184,8 @@ template <template <typename...> class SeqT, typename... Ts> struct seq_size_<Se
     // Using a signed type here means we get a compile error on overflow.
 template <std::ptrdiff_t CurStride, typename StridesT, typename ShapeT> struct compute_strides_0_;
 template <std::ptrdiff_t CurStride, std::ptrdiff_t... Strides> struct compute_strides_0_<CurStride, std::integer_sequence<std::ptrdiff_t, Strides...>, std::integer_sequence<std::ptrdiff_t>> { using type = std::integer_sequence<std::ptrdiff_t, Strides...>; };
-template <std::ptrdiff_t CurStride, std::ptrdiff_t... Strides, std::ptrdiff_t NextDim, std::ptrdiff_t... Dims> struct compute_strides_0_<CurStride, std::integer_sequence<std::ptrdiff_t, Strides...>, std::integer_sequence<std::ptrdiff_t, NextDim, Dims...>>
+template <std::ptrdiff_t CurStride, std::ptrdiff_t... Strides, std::ptrdiff_t NextDim, std::ptrdiff_t... Dims>
+struct compute_strides_0_<CurStride, std::integer_sequence<std::ptrdiff_t, Strides...>, std::integer_sequence<std::ptrdiff_t, NextDim, Dims...>>
     : compute_strides_0_<CurStride * NextDim, std::integer_sequence<std::ptrdiff_t, Strides..., CurStride>, std::integer_sequence<std::ptrdiff_t, Dims...>> { };
 template <typename ShapeT> using compute_strides_ = compute_strides_0_<1, std::integer_sequence<std::ptrdiff_t>, ShapeT>;
 template <typename ShapeT> using compute_strides_t = typename compute_strides_<ShapeT>::type;
@@ -198,28 +199,28 @@ template <std::ptrdiff_t I0, std::ptrdiff_t... Is> struct compute_size_<std::int
 #endif // gsl_CPP17_OR_GREATER
 
 template <typename ShapeT, typename StridesT, typename F, typename... ArgSeqsT>
-    struct variant_transform_result_1_;
+struct variant_transform_result_1_;
 template <std::ptrdiff_t... Dims, std::ptrdiff_t... Strides, typename F, typename... ArgSeqsT>
-    struct variant_transform_result_1_<std::integer_sequence<std::ptrdiff_t, Dims...>, std::integer_sequence<std::ptrdiff_t, Strides...>, F, ArgSeqsT...>
+struct variant_transform_result_1_<std::integer_sequence<std::ptrdiff_t, Dims...>, std::integer_sequence<std::ptrdiff_t, Strides...>, F, ArgSeqsT...>
 {
     template <std::size_t I>
-        struct for_idx
+    struct for_idx
     {
         using type = decltype(std::declval<F>()(std::declval<nth_variant_type<(I / std::size_t(Strides)) % std::size_t(Dims), ArgSeqsT>>()...));
     };
 };
 
 template <typename LinearIndices, typename ShapeT, typename StridesT, typename F, typename... ArgSeqsT>
-    struct variant_transform_results_0_;
+struct variant_transform_results_0_;
 template <std::size_t... Is, typename ShapeT, typename StridesT, typename F, typename... ArgSeqsT>
-    struct variant_transform_results_0_<std::index_sequence<Is...>, ShapeT, StridesT, F, ArgSeqsT...>
+struct variant_transform_results_0_<std::index_sequence<Is...>, ShapeT, StridesT, F, ArgSeqsT...>
 {
     using V1 = variant_transform_result_1_<ShapeT, StridesT, F, ArgSeqsT...>;
     using type = type_seq_<typename V1::template for_idx<Is>::type...>;
 };
 
 template <template <typename...> class VariantT, typename F, typename... Vs>
-    struct variant_transform_result_0_
+struct variant_transform_result_0_
 {
     using shape_ = std::integer_sequence<std::ptrdiff_t, seq_size_<std::remove_const_t<std::remove_reference_t<Vs>>>::value...>;
     using strides_ = compute_strides_t<shape_>;
@@ -228,30 +229,30 @@ template <template <typename...> class VariantT, typename F, typename... Vs>
 };
 
 template <template <typename...> class VariantT, typename F, typename... Vs>
-    struct variant_transform_result_
+struct variant_transform_result_
 {
     using result_seq_ = typename variant_transform_result_0_<VariantT, F, Vs...>::type;
     using unique_result_seq_ = typename unique_sequence_<result_seq_>::type;
     using type = typename instantiate_<VariantT, unique_result_seq_>::type;
 };
 template <template <typename...> class VariantT, typename F, typename... Vs>
-    using variant_transform_result = typename variant_transform_result_<VariantT, F, Vs...>::type;
+using variant_transform_result = typename variant_transform_result_<VariantT, F, Vs...>::type;
 
 template <template <typename...> class VariantT, typename Rs, typename Vs>
-    struct flatten_variant_;
+struct flatten_variant_;
 template <template <typename...> class VariantT, typename Rs>
-    struct flatten_variant_<VariantT, Rs, type_seq_<>>
+struct flatten_variant_<VariantT, Rs, type_seq_<>>
 {
     using type = Rs;
 };
 template <template <typename...> class VariantT, typename... Rs, typename... V0Ts, typename... Vs>
-    struct flatten_variant_<VariantT, type_seq_<Rs...>, type_seq_<VariantT<V0Ts...>, Vs...>>
-        : flatten_variant_<VariantT, type_seq_<Rs..., V0Ts...>, type_seq_<Vs...>>
+struct flatten_variant_<VariantT, type_seq_<Rs...>, type_seq_<VariantT<V0Ts...>, Vs...>>
+    : flatten_variant_<VariantT, type_seq_<Rs..., V0Ts...>, type_seq_<Vs...>>
 {
 };
 
 template <template <typename...> class VariantT, typename F, typename... Vs>
-    struct variant_transform_many_result_
+struct variant_transform_many_result_
 {
     using result_seq_ = typename variant_transform_result_0_<VariantT, F, Vs...>::type;
     using flat_result_seq_ = typename flatten_variant_<VariantT, type_seq_<>, result_seq_>::type;
@@ -259,7 +260,7 @@ template <template <typename...> class VariantT, typename F, typename... Vs>
     using type = typename instantiate_<VariantT, unique_result_seq_>::type;
 };
 template <template <typename...> class VariantT, typename F, typename... Vs>
-    using variant_transform_many_result = typename variant_transform_many_result_<VariantT, F, Vs...>::type;
+using variant_transform_many_result = typename variant_transform_many_result_<VariantT, F, Vs...>::type;
 
 //template <template <typename...> class VariantT, typename MonostateT, typename V> struct with_monostate_;
 //template <template <typename...> class VariantT, typename MonostateT, typename... Vs> struct with_monostate_<VariantT, MonostateT, VariantT<Vs...>> { using type = VariantT<MonostateT, Vs...>; };
@@ -267,29 +268,29 @@ template <template <typename...> class VariantT, typename F, typename... Vs>
 //template <template <typename...> class VariantT, typename MonostateT, typename... Vs> struct without_monostate_<VariantT, MonostateT, VariantT<MonostateT, Vs...>> { using type = VariantT<Vs...>; };
 
 //template <typename MonostateT, typename R>
-//    struct monostate_filtering_visitor
+//struct monostate_filtering_visitor
 //{
 //    [[noreturn]] R operator ()(MonostateT) const
 //    {
 //        std::terminate();
 //    }
 //    template <typename T>
-//        constexpr R operator ()(T&& arg) const
+//    constexpr R operator ()(T&& arg) const
 //    {
 //        return std::forward<T>(arg);
 //    }
 //};
 
 //template <template <typename...> class VariantT, typename... Vs>
-//    struct variant_cat_;
+//struct variant_cat_;
 //template <template <typename...> class VariantT, typename... Ts>
-//    struct variant_cat_<VariantT, VariantT<Ts...>>
+//struct variant_cat_<VariantT, VariantT<Ts...>>
 //{
 //    using type = VariantT<Ts...>;
 //};
 //template <template <typename...> class VariantT, typename... V0Ts, typename... V1Ts, typename... Vs>
-//    struct variant_cat_<VariantT, VariantT<V0Ts...>, VariantT<V1Ts...>, Vs...>
-//        : variant_cat_<VariantT, VariantT<V0Ts..., V1Ts...>>
+//struct variant_cat_<VariantT, VariantT<V0Ts...>, VariantT<V1Ts...>, Vs...>
+//    : variant_cat_<VariantT, VariantT<V0Ts..., V1Ts...>>
 //{
 //};
 

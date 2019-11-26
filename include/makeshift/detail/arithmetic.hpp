@@ -16,8 +16,8 @@
 
 
 #if defined(_MSC_VER) && !defined(__clang__)
- #pragma warning( push )
- #pragma warning( disable: 4702 ) // unreachable code
+# pragma warning( push )
+# pragma warning( disable: 4702 ) // unreachable code
 #endif // defined(_MSC_VER) && !defined(__clang__)
 
 
@@ -26,11 +26,11 @@ namespace makeshift
 
 
 template <typename V>
-    struct factor;
+struct factor;
 template <typename V, int NumFactors>
-    struct factorization;
+struct factorization;
 template <typename T>
-    struct arithmetic_result;
+struct arithmetic_result;
 
 
 namespace detail
@@ -40,7 +40,7 @@ namespace detail
 struct unreachable_wildcard_t
 {
     template <typename T>
-        [[noreturn]] operator T(void) const noexcept
+    [[noreturn]] operator T(void) const noexcept
     {
         std::terminate(); // unreachable
     }
@@ -51,7 +51,7 @@ struct errc_wildcard_t
     std::errc ec;
 
     template <typename T>
-        constexpr operator arithmetic_result<T>(void) const noexcept
+    constexpr operator arithmetic_result<T>(void) const noexcept
     {
         return { { }, ec };
     }
@@ -62,7 +62,7 @@ struct try_error_handler
     template <typename T> using result = arithmetic_result<T>;
     
     template <typename T>
-        static constexpr MAKESHIFT_FORCEINLINE arithmetic_result<T> make_result(T value) noexcept
+    static constexpr MAKESHIFT_FORCEINLINE arithmetic_result<T> make_result(T value) noexcept
     {
         return { value, std::errc{ } };
     }
@@ -71,17 +71,17 @@ struct try_error_handler
         return { ec };
     }
     template <typename T>
-        static constexpr MAKESHIFT_FORCEINLINE T get_value(arithmetic_result<T> const& result) noexcept
+    static constexpr MAKESHIFT_FORCEINLINE T get_value(arithmetic_result<T> const& result) noexcept
     {
         return result.value;
     }
     template <typename T>
-        static constexpr MAKESHIFT_FORCEINLINE bool is_error(arithmetic_result<T> const& result) noexcept
+    static constexpr MAKESHIFT_FORCEINLINE bool is_error(arithmetic_result<T> const& result) noexcept
     {
         return result.ec != std::errc{ };
     }
     template <typename T>
-        static constexpr MAKESHIFT_FORCEINLINE errc_wildcard_t passthrough_error(arithmetic_result<T> const& result) noexcept
+    static constexpr MAKESHIFT_FORCEINLINE errc_wildcard_t passthrough_error(arithmetic_result<T> const& result) noexcept
     {
         return { result.ec };
     }
@@ -92,7 +92,7 @@ struct throw_error_handler
     template <typename T> using result = T;
     
     template <typename T>
-        static constexpr MAKESHIFT_FORCEINLINE T make_result(T value) noexcept
+    static constexpr MAKESHIFT_FORCEINLINE T make_result(T value) noexcept
     {
         return value;
     }
@@ -101,17 +101,17 @@ struct throw_error_handler
         throw std::system_error(std::make_error_code(ec));
     }
     template <typename T>
-        static constexpr MAKESHIFT_FORCEINLINE T get_value(T result) noexcept
+    static constexpr MAKESHIFT_FORCEINLINE T get_value(T result) noexcept
     {
         return result;
     }
     template <typename T>
-        static constexpr MAKESHIFT_FORCEINLINE std::false_type is_error(T) noexcept
+    static constexpr MAKESHIFT_FORCEINLINE std::false_type is_error(T) noexcept
     {
         return { };
     }
     template <typename T>
-        static MAKESHIFT_FORCEINLINE unreachable_wildcard_t passthrough_error(T) noexcept
+    static MAKESHIFT_FORCEINLINE unreachable_wildcard_t passthrough_error(T) noexcept
     {
         std::terminate();
     }
@@ -122,7 +122,7 @@ struct assert_error_handler
     template <typename T> using result = T;
     
     template <typename T>
-        static constexpr MAKESHIFT_FORCEINLINE T make_result(T value) noexcept
+    static constexpr MAKESHIFT_FORCEINLINE T make_result(T value) noexcept
     {
         return value;
     }
@@ -131,17 +131,17 @@ struct assert_error_handler
         Expects(false);
     }
     template <typename T>
-        static constexpr MAKESHIFT_FORCEINLINE T get_value(T result) noexcept
+    static constexpr MAKESHIFT_FORCEINLINE T get_value(T result) noexcept
     {
         return result;
     }
     template <typename T>
-        static constexpr MAKESHIFT_FORCEINLINE std::false_type is_error(T) noexcept
+    static constexpr MAKESHIFT_FORCEINLINE std::false_type is_error(T) noexcept
     {
         return { };
     }
     template <typename T>
-        static MAKESHIFT_FORCEINLINE unreachable_wildcard_t passthrough_error(T) noexcept
+    static MAKESHIFT_FORCEINLINE unreachable_wildcard_t passthrough_error(T) noexcept
     {
         Expects(false);
     }
@@ -181,41 +181,44 @@ template <typename V> struct has_wider_type : std::integral_constant<bool, has_w
 
 template <typename EH, typename V> using result_t = typename EH::template result<V>;
 
+template <typename T> constexpr T min_v = std::numeric_limits<T>::min();
+template <typename T> constexpr T max_v = std::numeric_limits<T>::max();
+
 
     // The implementations below have borrowed heavily from the suggestions made and examples used in the SEI CERT C Coding Standard:
     // https://wiki.sei.cmu.edu/confluence/display/c/
 
 
 template <typename EH, typename V>
-    constexpr result_t<EH, integral_value_type<V>> absi_unsigned(V v)
+constexpr result_t<EH, integral_value_type<V>> absi_unsigned(V v)
 {
     using V0 = integral_value_type<V>;
 
     return EH::make_result(V0(v));
 }
 template <typename EH, typename V>
-    constexpr result_t<EH, integral_value_type<V>> absi_signed(V v)
+constexpr result_t<EH, integral_value_type<V>> absi_signed(V v)
 {
     using V0 = integral_value_type<V>;
 
         // This assumes a two's complement representation (it will yield a false negative for one's complement integers).
-    if (v == std::numeric_limits<V0>::min()) return EH::make_error(std::errc::value_too_large);
+    if (v == min_v<V0>) return EH::make_error(std::errc::value_too_large);
     return EH::make_result(V0(v < 0 ? -v : v));
 }
 #if !gsl_CPP17_OR_GREATER
 template <typename EH, typename V>
-    constexpr result_t<EH, integral_value_type<V>> absi_0(std::false_type /*isSigned*/, V v)
+constexpr result_t<EH, integral_value_type<V>> absi_0(std::false_type /*isSigned*/, V v)
 {
     return makeshift::detail::absi_unsigned<EH>(v);
 }
 template <typename EH, typename V>
-    constexpr result_t<EH, integral_value_type<V>> absi_0(std::true_type /*isSigned*/, V v)
+constexpr result_t<EH, integral_value_type<V>> absi_0(std::true_type /*isSigned*/, V v)
 {
     return makeshift::detail::absi_signed<EH>(v);
 }
 #endif // !gsl_CPP17_OR_GREATER
 template <typename EH, typename V>
-    constexpr result_t<EH, integral_value_type<V>> absi(V v)
+constexpr result_t<EH, integral_value_type<V>> absi(V v)
 {
     using V0 = integral_value_type<V>;
 
@@ -234,7 +237,7 @@ template <typename EH, typename V>
 }
 
 template <typename EH, typename V>
-    constexpr result_t<EH, integral_value_type<V>> negate_unsigned(V v)
+constexpr result_t<EH, integral_value_type<V>> negate_unsigned(V v)
 {
     using V0 = integral_value_type<V>;
 
@@ -242,28 +245,28 @@ template <typename EH, typename V>
     return EH::make_result(V0(0));
 }
 template <typename EH, typename V>
-    constexpr result_t<EH, integral_value_type<V>> negate_signed(V v)
+constexpr result_t<EH, integral_value_type<V>> negate_signed(V v)
 {
     using V0 = integral_value_type<V>;
 
         // This assumes a two's complement representation (it will yield a false negative for one's complement integers).
-    if (v == std::numeric_limits<V0>::min()) return EH::make_error(std::errc::value_too_large);
+    if (v == min_v<V0>) return EH::make_error(std::errc::value_too_large);
     return EH::make_result(V0(-v));
 }
 #if !gsl_CPP17_OR_GREATER
 template <typename EH, typename V>
-    constexpr result_t<EH, integral_value_type<V>> negate_0(std::false_type /*isSigned*/, V v)
+constexpr result_t<EH, integral_value_type<V>> negate_0(std::false_type /*isSigned*/, V v)
 {
     return makeshift::detail::negate_unsigned<EH>(v);
 }
 template <typename EH, typename V>
-    constexpr result_t<EH, integral_value_type<V>> negate_0(std::true_type /*isSigned*/, V v)
+constexpr result_t<EH, integral_value_type<V>> negate_0(std::true_type /*isSigned*/, V v)
 {
     return makeshift::detail::negate_signed<EH>(v);
 }
 #endif // !gsl_CPP17_OR_GREATER
 template <typename EH, typename V>
-    constexpr result_t<EH, integral_value_type<V>> negate(V v)
+constexpr result_t<EH, integral_value_type<V>> negate(V v)
 {
     using V0 = integral_value_type<V>;
 
@@ -283,17 +286,17 @@ template <typename EH, typename V>
 
 
 template <typename EH, typename A, typename B>
-    constexpr result_t<EH, common_integral_value_type<A, B>> add_narrow(A a, B b)
+constexpr result_t<EH, common_integral_value_type<A, B>> add_narrow(A a, B b)
 {
     using V = common_integral_value_type<A, B>;
     using W = wider_type<V>;
 
     W result = W(a) + W(b);
-    if (result < std::numeric_limits<V>::min() || result > std::numeric_limits<V>::max()) return EH::make_error(std::errc::value_too_large);
+    if (result < min_v<V> || result > max_v<V>) return EH::make_error(std::errc::value_too_large);
     return EH::make_result(V(result));
 }
 template <typename EH, typename A, typename B>
-    constexpr result_t<EH, common_integral_value_type<A, B>> add_wide_unsigned(A a, B b)
+constexpr result_t<EH, common_integral_value_type<A, B>> add_wide_unsigned(A a, B b)
 {
     using V = common_integral_value_type<A, B>;
 
@@ -302,7 +305,7 @@ template <typename EH, typename A, typename B>
     return EH::make_result(V(result));
 }
 template <typename EH, typename A, typename B>
-    constexpr result_t<EH, common_integral_value_type<A, B>> add_wide_signed(A a, B b)
+constexpr result_t<EH, common_integral_value_type<A, B>> add_wide_signed(A a, B b)
 {
     using V = common_integral_value_type<A, B>;
     using U = std::make_unsigned_t<V>;
@@ -317,23 +320,23 @@ template <typename EH, typename A, typename B>
 }
 #if !gsl_CPP17_OR_GREATER
 template <typename EH, typename BC, typename A, typename B>
-    constexpr result_t<EH, common_integral_value_type<A, B>> add_0(std::true_type /*isNarrow*/, BC /*isSigned*/, A a, B b)
+constexpr result_t<EH, common_integral_value_type<A, B>> add_0(std::true_type /*isNarrow*/, BC /*isSigned*/, A a, B b)
 {
     return makeshift::detail::add_narrow<EH>(a, b);
 }
 template <typename EH, typename A, typename B>
-    constexpr result_t<EH, common_integral_value_type<A, B>> add_0(std::false_type /*isNarrow*/, std::false_type /*isSigned*/, A a, B b)
+constexpr result_t<EH, common_integral_value_type<A, B>> add_0(std::false_type /*isNarrow*/, std::false_type /*isSigned*/, A a, B b)
 {
     return makeshift::detail::add_wide_unsigned<EH>(a, b);
 }
 template <typename EH, typename A, typename B>
-    constexpr result_t<EH, common_integral_value_type<A, B>> add_0(std::false_type /*isNarrow*/, std::true_type /*isSigned*/, A a, B b)
+constexpr result_t<EH, common_integral_value_type<A, B>> add_0(std::false_type /*isNarrow*/, std::true_type /*isSigned*/, A a, B b)
 {
     return makeshift::detail::add_wide_signed<EH>(a, b);
 }
 #endif // !gsl_CPP17_OR_GREATER
 template <typename EH, typename A, typename B>
-    constexpr result_t<EH, common_integral_value_type<A, B>> add(A a, B b)
+constexpr result_t<EH, common_integral_value_type<A, B>> add(A a, B b)
 {
     using V = common_integral_value_type<A, B>;
 
@@ -357,7 +360,7 @@ template <typename EH, typename A, typename B>
 
 
 template <typename EH, typename A, typename B>
-    constexpr result_t<EH, common_integral_value_type<A, B>> subtract_unsigned(A a, B b)
+constexpr result_t<EH, common_integral_value_type<A, B>> subtract_unsigned(A a, B b)
 {
     using V = common_integral_value_type<A, B>;
 
@@ -365,12 +368,12 @@ template <typename EH, typename A, typename B>
     return EH::make_result(V(a - b));
 }
 template <typename EH, typename A, typename B>
-    constexpr result_t<EH, common_integral_value_type<A, B>> subtract_signed(A a, B b)
+constexpr result_t<EH, common_integral_value_type<A, B>> subtract_signed(A a, B b)
 {
     using V = common_integral_value_type<A, B>;
 
-    if ((b > 0 && a < std::numeric_limits<V>::min() + b)
-     || (b < 0 && a > std::numeric_limits<V>::max() + b))
+    if ((b > 0 && a < min_v<V> + b)
+     || (b < 0 && a > max_v<V> + b))
     {
         return EH::make_error(std::errc::value_too_large);
     }
@@ -378,18 +381,18 @@ template <typename EH, typename A, typename B>
 }
 #if !gsl_CPP17_OR_GREATER
 template <typename EH, typename A, typename B>
-    constexpr result_t<EH, common_integral_value_type<A, B>> subtract_0(std::false_type /*isSigned*/, A a, B b)
+constexpr result_t<EH, common_integral_value_type<A, B>> subtract_0(std::false_type /*isSigned*/, A a, B b)
 {
     return makeshift::detail::subtract_unsigned<EH>(a, b);
 }
 template <typename EH, typename A, typename B>
-    constexpr result_t<EH, common_integral_value_type<A, B>> subtract_0(std::true_type /*isSigned*/, A a, B b)
+constexpr result_t<EH, common_integral_value_type<A, B>> subtract_0(std::true_type /*isSigned*/, A a, B b)
 {
     return makeshift::detail::subtract_signed<EH>(a, b);
 }
 #endif // !gsl_CPP17_OR_GREATER
 template <typename EH, typename A, typename B>
-    constexpr result_t<EH, common_integral_value_type<A, B>> subtract(A a, B b)
+constexpr result_t<EH, common_integral_value_type<A, B>> subtract(A a, B b)
 {
     using V = common_integral_value_type<A, B>;
 
@@ -409,34 +412,32 @@ template <typename EH, typename A, typename B>
 
 
 template <typename A, typename B>
-    constexpr bool can_multiply_narrow(A a, B b) noexcept
+constexpr bool can_multiply_narrow(A a, B b) noexcept
 {
     using V = common_integral_value_type<A, B>;
     using W = wider_type<V>;
 
     W result = W(a) * W(b);
-    return result >= std::numeric_limits<V>::min() && result <= std::numeric_limits<V>::max();
+    return result >= min_v<V> && result <= max_v<V>;
 }
 template <typename A, typename B>
-    constexpr bool can_multiply_wide_unsigned(A a, B b) noexcept
+constexpr bool can_multiply_wide_unsigned(A a, B b) noexcept
 {
     using V = common_integral_value_type<A, B>;
 
-    return b == 0 || a <= std::numeric_limits<V>::max() / b;
+    return !(b > 0 && a > max_v<V> / b);
 }
 template <typename A, typename B>
-    constexpr bool can_multiply_wide_signed(A a, B b) noexcept
+constexpr bool can_multiply_wide_signed(A a, B b) noexcept
 {
     using V = common_integral_value_type<A, B>;
 
-    return (a <= 0 || ((b <= 0           || a <= std::numeric_limits<V>::max() / b)
-                    && (b >  0           || b >= std::numeric_limits<V>::min() / a)))
-        && (a >  0 || ((b <= 0           || a >= std::numeric_limits<V>::min() / b)
-                    && (b >  0 || a == 0 || b >= std::numeric_limits<V>::max() / a)));
+    return !(   (a > 0 && ((b > 0 && a > max_v<V> / b) || (b <= 0 && b < min_v<V> / a)))
+             || (a < 0 && ((b > 0 && a < min_v<V> / b) || (b <= 0 && b < max_v<V> / a))));
 }
 #if !gsl_CPP17_OR_GREATER
 template <typename BC, typename A, typename B>
-    constexpr bool can_multiply_0(std::true_type /*isNarrow*/, BC /*isSigned*/, A a, B b)
+constexpr bool can_multiply_0(std::true_type /*isNarrow*/, BC /*isSigned*/, A a, B b)
 {
     return makeshift::detail::can_multiply_narrow(a, b);
 }
@@ -452,7 +453,7 @@ template <typename A, typename B>
 }
 #endif // !gsl_CPP17_OR_GREATER
 template <typename A, typename B>
-    constexpr bool can_multiply(A a, B b)
+constexpr bool can_multiply(A a, B b)
 {
     using V = common_integral_value_type<A, B>;
 
@@ -476,7 +477,7 @@ template <typename A, typename B>
 
     // This function is implemented with recursion, which is probably unsatisfactory for runtime performance, so we use it only internally, and only for compile-time computations.
 template <typename V>
-    constexpr V sqrti(V v)
+constexpr V sqrti(V v)
 {
     Expects(v >= 0);
 
@@ -489,39 +490,39 @@ template <typename V>
 }
 
 template <typename EH, typename V>
-    constexpr result_t<EH, integral_value_type<V>> square_unsigned(V v)
+constexpr result_t<EH, integral_value_type<V>> square_unsigned(V v)
 {
     using V0 = integral_value_type<V>;
 
-    constexpr V0 m = makeshift::detail::sqrti(std::numeric_limits<V0>::max());
+    constexpr V0 m = makeshift::detail::sqrti(max_v<V0>);
 
     if (v > m) return EH::make_error(std::errc::value_too_large);
     return EH::make_result(v*v);
 }
 template <typename EH, typename V>
-    constexpr result_t<EH, integral_value_type<V>> square_signed(V v)
+constexpr result_t<EH, integral_value_type<V>> square_signed(V v)
 {
     using V0 = integral_value_type<V>;
 
-    constexpr V0 m = makeshift::detail::sqrti(std::numeric_limits<V0>::max());
+    constexpr V0 m = makeshift::detail::sqrti(max_v<V0>);
 
     if (v < -m || v > m) return EH::make_error(std::errc::value_too_large);
     return EH::make_result(v*v);
 }
 #if !gsl_CPP17_OR_GREATER
 template <typename V>
-    constexpr bool square_0(std::false_type /*isSigned*/, V v)
+constexpr bool square_0(std::false_type /*isSigned*/, V v)
 {
     return makeshift::detail::square_unsigned(v);
 }
 template <typename V>
-    constexpr bool square_0(std::true_type /*isSigned*/, V v)
+constexpr bool square_0(std::true_type /*isSigned*/, V v)
 {
     return makeshift::detail::square_signed(v);
 }
 #endif // !gsl_CPP17_OR_GREATER
 template <typename V>
-    constexpr bool square(V v)
+constexpr bool square(V v)
 {
     using V0 = integral_value_type<V>;
 
@@ -541,17 +542,17 @@ template <typename V>
 
 
 template <typename EH, typename A, typename B>
-    constexpr result_t<EH, common_integral_value_type<A, B>> multiply_narrow(A a, B b)
+constexpr result_t<EH, common_integral_value_type<A, B>> multiply_narrow(A a, B b)
 {
     using V = common_integral_value_type<A, B>;
     using W = wider_type<V>;
 
     W result = W(a) * W(b);
-    if (result < std::numeric_limits<V>::min() || result > std::numeric_limits<V>::max()) return EH::make_error(std::errc::value_too_large);
+    if (result < min_v<V> || result > max_v<V>) return EH::make_error(std::errc::value_too_large);
     return EH::make_result(V(result));
 }
 template <typename EH, typename A, typename B>
-    constexpr result_t<EH, common_integral_value_type<A, B>> multiply_wide_unsigned(A a, B b)
+constexpr result_t<EH, common_integral_value_type<A, B>> multiply_wide_unsigned(A a, B b)
 {
     using V = common_integral_value_type<A, B>;
 
@@ -559,7 +560,7 @@ template <typename EH, typename A, typename B>
     return EH::make_result(V(a * b));
 }
 template <typename EH, typename A, typename B>
-    constexpr result_t<EH, common_integral_value_type<A, B>> multiply_wide_signed(A a, B b)
+constexpr result_t<EH, common_integral_value_type<A, B>> multiply_wide_signed(A a, B b)
 {
     using V = common_integral_value_type<A, B>;
 
@@ -568,23 +569,23 @@ template <typename EH, typename A, typename B>
 }
 #if !gsl_CPP17_OR_GREATER
 template <typename EH, typename BC, typename A, typename B>
-    constexpr result_t<EH, common_integral_value_type<A, B>> multiply_0(std::true_type /*isNarrow*/, BC /*isSigned*/, A a, B b)
+constexpr result_t<EH, common_integral_value_type<A, B>> multiply_0(std::true_type /*isNarrow*/, BC /*isSigned*/, A a, B b)
 {
     return makeshift::detail::multiply_narrow<EH>(a, b);
 }
 template <typename EH, typename A, typename B>
-    constexpr result_t<EH, common_integral_value_type<A, B>> multiply_0(std::false_type /*isNarrow*/, std::false_type /*isSigned*/, A a, B b)
+constexpr result_t<EH, common_integral_value_type<A, B>> multiply_0(std::false_type /*isNarrow*/, std::false_type /*isSigned*/, A a, B b)
 {
     return makeshift::detail::multiply_wide_unsigned<EH>(a, b);
 }
 template <typename EH, typename A, typename B>
-    constexpr result_t<EH, common_integral_value_type<A, B>> multiply_0(std::false_type /*isNarrow*/, std::true_type /*isSigned*/, A a, B b)
+constexpr result_t<EH, common_integral_value_type<A, B>> multiply_0(std::false_type /*isNarrow*/, std::true_type /*isSigned*/, A a, B b)
 {
     return makeshift::detail::multiply_wide_signed<EH>(a, b);
 }
 #endif // !gsl_CPP17_OR_GREATER
 template <typename EH, typename A, typename B>
-    constexpr result_t<EH, common_integral_value_type<A, B>> multiply(A a, B b)
+constexpr result_t<EH, common_integral_value_type<A, B>> multiply(A a, B b)
 {
     using V = common_integral_value_type<A, B>;
 
@@ -608,7 +609,7 @@ template <typename EH, typename A, typename B>
 
 
 template <typename EH, typename N, typename D>
-    constexpr result_t<EH, common_integral_value_type<N, D>> divide_unsigned(N n, D d)
+constexpr result_t<EH, common_integral_value_type<N, D>> divide_unsigned(N n, D d)
 {
     using V = common_integral_value_type<N, D>;
 
@@ -617,29 +618,29 @@ template <typename EH, typename N, typename D>
     return EH::make_result(V(n / d));
 }
 template <typename EH, typename N, typename D>
-    constexpr result_t<EH, common_integral_value_type<N, D>> divide_signed(N n, D d)
+constexpr result_t<EH, common_integral_value_type<N, D>> divide_signed(N n, D d)
 {
     using V = common_integral_value_type<N, D>;
 
     Expects(d != 0);
 
-    if (n == std::numeric_limits<V>::min() && d == -1) return EH::make_error(std::errc::value_too_large);
+    if (n == min_v<V> && d == -1) return EH::make_error(std::errc::value_too_large);
     return EH::make_result(V(n / d));
 }
 #if !gsl_CPP17_OR_GREATER
 template <typename EH, typename N, typename D>
-    constexpr result_t<EH, common_integral_value_type<N, D>> divide_0(std::false_type /*isSigned*/, N n, D d)
+constexpr result_t<EH, common_integral_value_type<N, D>> divide_0(std::false_type /*isSigned*/, N n, D d)
 {
     return makeshift::detail::divide_unsigned<EH>(n, d);
 }
 template <typename EH, typename N, typename D>
-    constexpr result_t<EH, common_integral_value_type<N, D>> divide_0(std::true_type /*isSigned*/, N n, D d)
+constexpr result_t<EH, common_integral_value_type<N, D>> divide_0(std::true_type /*isSigned*/, N n, D d)
 {
     return makeshift::detail::divide_signed<EH>(n, d);
 }
 #endif // !gsl_CPP17_OR_GREATER
 template <typename EH, typename N, typename D>
-    constexpr result_t<EH, common_integral_value_type<N, D>> divide(N n, D d)
+constexpr result_t<EH, common_integral_value_type<N, D>> divide(N n, D d)
 {
     using V = common_integral_value_type<N, D>;
 
@@ -659,7 +660,7 @@ template <typename EH, typename N, typename D>
 
 
 template <typename EH, typename N, typename D>
-    constexpr result_t<EH, common_integral_value_type<N, D>> modulo_unsigned(N n, D d)
+constexpr result_t<EH, common_integral_value_type<N, D>> modulo_unsigned(N n, D d)
 {
     using V = common_integral_value_type<N, D>;
 
@@ -668,29 +669,29 @@ template <typename EH, typename N, typename D>
     return EH::make_result(V(n % d));
 }
 template <typename EH, typename N, typename D>
-    constexpr result_t<EH, common_integral_value_type<N, D>> modulo_signed(N n, D d)
+constexpr result_t<EH, common_integral_value_type<N, D>> modulo_signed(N n, D d)
 {
     using V = common_integral_value_type<N, D>;
 
     Expects(d != 0);
 
-    if (n == std::numeric_limits<V>::min() && d == -1) return EH::make_error(std::errc::value_too_large);
+    if (n == min_v<V> && d == -1) return EH::make_error(std::errc::value_too_large);
     return EH::make_result(V(n % d));
 }
 #if !gsl_CPP17_OR_GREATER
 template <typename EH, typename N, typename D>
-    constexpr result_t<EH, common_integral_value_type<N, D>> modulo_0(std::false_type /*isSigned*/, N n, D d)
+constexpr result_t<EH, common_integral_value_type<N, D>> modulo_0(std::false_type /*isSigned*/, N n, D d)
 {
     return makeshift::detail::modulo_unsigned<EH>(n, d);
 }
 template <typename EH, typename N, typename D>
-    constexpr result_t<EH, common_integral_value_type<N, D>> modulo_0(std::true_type /*isSigned*/, N n, D d)
+constexpr result_t<EH, common_integral_value_type<N, D>> modulo_0(std::true_type /*isSigned*/, N n, D d)
 {
     return makeshift::detail::modulo_signed<EH>(n, d);
 }
 #endif // !gsl_CPP17_OR_GREATER
 template <typename EH, typename N, typename D>
-    constexpr result_t<EH, common_integral_value_type<N, D>> modulo(N n, D d)
+constexpr result_t<EH, common_integral_value_type<N, D>> modulo(N n, D d)
 {
     using V = common_integral_value_type<N, D>;
 
@@ -710,7 +711,7 @@ template <typename EH, typename N, typename D>
 
 
 template <typename EH, typename X, typename S>
-    constexpr result_t<EH, integral_value_type<X>> shift_right(X x, S s)
+constexpr result_t<EH, integral_value_type<X>> shift_right(X x, S s)
 {
     using V0 = integral_value_type<X>;
 
@@ -723,7 +724,7 @@ template <typename EH, typename X, typename S>
 
 
 template <typename EH, typename X, typename S>
-    constexpr result_t<EH, integral_value_type<X>> shift_left(X x, S s)
+constexpr result_t<EH, integral_value_type<X>> shift_left(X x, S s)
 {
     using V0 = integral_value_type<X>;
 
@@ -731,7 +732,7 @@ template <typename EH, typename X, typename S>
     Expects(x >= 0 && s >= 0);
 
     if (s >= gsl::narrow_cast<integral_value_type<S>>(sizeof(V0)*8)
-     || x > (std::numeric_limits<V0>::max() >> s))
+     || x > (max_v<V0> >> s))
     {
         return EH::make_error(std::errc::value_too_large);
     }
@@ -741,7 +742,7 @@ template <typename EH, typename X, typename S>
 
     // Computes ⌊x ÷ d⌋ ∙ d for x ∊ ℕ₀, d ∊ ℕ, d ≠ 0.
 template <typename X, typename D>
-    constexpr common_integral_value_type<X, D> floori(X x, D d)
+constexpr common_integral_value_type<X, D> floori(X x, D d)
 {
     Expects(x >= 0 && d > 0);
 
@@ -751,7 +752,7 @@ template <typename X, typename D>
 
     // Computes ⌈x ÷ d⌉ ∙ d for x ∊ ℕ₀, d ∊ ℕ, d ≠ 0.
 template <typename EH, typename X, typename D>
-    constexpr result_t<EH, common_integral_value_type<X, D>> ceili(X x, D d)
+constexpr result_t<EH, common_integral_value_type<X, D>> ceili(X x, D d)
 {
     using V = common_integral_value_type<X, D>;
 
@@ -774,7 +775,7 @@ template <typename EH, typename X, typename D>
 
     // Computes ⌊n ÷ d⌋ for n ∊ ℕ₀, d ∊ ℕ, d ≠ 0.
 template <typename N, typename D>
-    constexpr common_integral_value_type<N, D> ratio_floori(N n, D d)
+constexpr common_integral_value_type<N, D> ratio_floori(N n, D d)
 {
     Expects(n >= 0 && d > 0);
         
@@ -784,7 +785,7 @@ template <typename N, typename D>
 
     // Computes ⌈n ÷ d⌉ for n ∊ ℕ₀, d ∊ ℕ, d ≠ 0.
 template <typename N, typename D>
-    constexpr common_integral_value_type<N, D> ratio_ceili(N n, D d)
+constexpr common_integral_value_type<N, D> ratio_ceili(N n, D d)
 {
     Expects(n >= 0 && d > 0);
         
@@ -795,7 +796,7 @@ template <typename N, typename D>
 
 
 template <typename U>
-    static constexpr int bit_scan_reverse(U mask)
+constexpr int bit_scan_reverse(U mask)
 {
     int result = 0;
     while (mask >>= 1)
@@ -808,7 +809,7 @@ template <typename U>
 
     // Computes bᵉ for e ∊ ℕ₀.
 template <typename EH, typename B, typename E>
-    static constexpr result_t<EH, integral_value_type<B>> powi_unsigned(B b, E e)
+constexpr result_t<EH, integral_value_type<B>> powi_unsigned(B b, E e)
 {
     using V = integral_value_type<B>;
     using E0 = integral_value_type<E>;
@@ -819,8 +820,8 @@ template <typename EH, typename B, typename E>
 
         // We assume `b > 1 && e > 1` henceforth.
 
-    constexpr V mSq = makeshift::detail::sqrti(std::numeric_limits<V>::max());
-    V mb = std::numeric_limits<V>::max() / b;
+    constexpr V mSq = makeshift::detail::sqrti(max_v<V>);
+    V mb = max_v<V> / b;
 
     V cb = 1;
     for (E0 bit = E0(1) << E0(bit_scan_reverse(e)); bit > 0; bit /= 2)
@@ -837,13 +838,13 @@ template <typename EH, typename B, typename E>
 }
     // Computes bᵉ for e ∊ ℕ₀.
 template <typename EH, typename B, typename E>
-    static constexpr result_t<EH, integral_value_type<B>> powi_signed(B b, E e)
+constexpr result_t<EH, integral_value_type<B>> powi_signed(B b, E e)
 {
     using V = integral_value_type<B>;
 
         // In the special case of `b` assuming the smallest representable value, `signIn * b` would overflow,
         // so we need to handle it separately.
-    if (b == std::numeric_limits<V>::min())
+    if (b == min_v<V>)
     {
         if (e > 1) return EH::make_error(std::errc::value_too_large); // `powi()` would overflow for exponents greater than 1
         return EH::make_result(V(e == 0 ? V(1) : b));
@@ -862,29 +863,29 @@ template <typename EH, typename B, typename E>
     U absPow = makeshift::detail::powi_unsigned<EH>(U(signIn * b), e);
 
         // Handle special case where result is smallest representable value.
-    if (signOut == -1 && absPow == U(std::numeric_limits<V>::max()) + 1)
+    if (signOut == -1 && absPow == U(max_v<V>) + 1)
     {
-        return EH::make_result(std::numeric_limits<V>::min()); // assuming two's complement
+        return EH::make_result(min_v<V>); // assuming two's complement
     }
 
         // Convert back to signed and prefix with sign.
-    if (absPow > U(std::numeric_limits<V>::max())) return EH::make_error(std::errc::value_too_large);
+    if (absPow > U(max_v<V>)) return EH::make_error(std::errc::value_too_large);
     return EH::make_result(V(signOut * V(absPow)));
 }
 #if !gsl_CPP17_OR_GREATER
 template <typename EH, typename B, typename E>
-    constexpr result_t<EH, integral_value_type<B>> powi_0(std::false_type /*isSigned*/, B b, E e)
+constexpr result_t<EH, integral_value_type<B>> powi_0(std::false_type /*isSigned*/, B b, E e)
 {
     return makeshift::detail::powi_unsigned<EH>(b, e);
 }
 template <typename EH, typename B, typename E>
-    constexpr result_t<EH, integral_value_type<B>> powi_0(std::true_type /*isSigned*/, B b, E e)
+constexpr result_t<EH, integral_value_type<B>> powi_0(std::true_type /*isSigned*/, B b, E e)
 {
     return makeshift::detail::powi_signed<EH>(b, e);
 }
 #endif // !gsl_CPP17_OR_GREATER
 template <typename EH, typename B, typename E>
-    constexpr result_t<EH, integral_value_type<B>> powi(B b, E e)
+constexpr result_t<EH, integral_value_type<B>> powi(B b, E e)
 {
     using V = integral_value_type<B>;
 
@@ -908,7 +909,7 @@ template <typename EH, typename B, typename E>
 
     // Given x,b ∊ ℕ, x > 0, b > 1, returns (r,{ {b,e} }) such that x = bᵉ + r with r ≥ 0 minimal.
 template <typename X, typename B>
-    constexpr factorization<common_integral_value_type<X, B>, 1> factorize_floori(X x, B b)
+constexpr factorization<common_integral_value_type<X, B>, 1> factorize_floori(X x, B b)
 {
     using V = common_integral_value_type<X, B>;
 
@@ -916,7 +917,7 @@ template <typename X, typename B>
 
     V e = 0;
     V x0 = 1;
-    constexpr V M = std::numeric_limits<V>::max();
+    constexpr V M = max_v<V>;
     V m = M / b;
 
         // We generally assume bᵉ ≤ x (⇔ e ≤ log x ÷ log b).
@@ -957,7 +958,7 @@ template <typename X, typename B>
 
     // Given x,b ∊ ℕ, x > 0, b > 1, returns (r,{ {b,e} }) such that x = bᵉ - r with r ≥ 0 minimal.
 template <typename EH, typename X, typename B>
-    constexpr result_t<EH, factorization<common_integral_value_type<X, B>, 1>> factorize_ceili(X x, B b)
+constexpr result_t<EH, factorization<common_integral_value_type<X, B>, 1>> factorize_ceili(X x, B b)
 {
     using V = common_integral_value_type<X, B>;
 
@@ -983,7 +984,7 @@ template <typename EH, typename X, typename B>
 
     // Computes ⌊log x ÷ log b⌋ for x,b ∊ ℕ, x > 0, b > 1.
 template <typename X, typename B>
-    constexpr common_integral_value_type<X, B> log_floori(X x, B b)
+constexpr common_integral_value_type<X, B> log_floori(X x, B b)
 {
     auto fac = makeshift::detail::factorize_floori(x, b);
     return fac.factors[0].exponent;
@@ -992,7 +993,7 @@ template <typename X, typename B>
 
     // Computes ⌈log x ÷ log b⌉ for x,b ∊ ℕ, x > 0, b > 1.
 template <typename X, typename B>
-    constexpr common_integral_value_type<X, B> log_ceili(X x, B b)
+constexpr common_integral_value_type<X, B> log_ceili(X x, B b)
 {
     using V = common_integral_value_type<X, B>;
 
@@ -1000,7 +1001,7 @@ template <typename X, typename B>
 
     V e = 0;
     V x0 = 1;
-    constexpr V M = std::numeric_limits<V>::max();
+    constexpr V M = max_v<V>;
     V m = M / b;
 
     while (x0 < x)
@@ -1023,7 +1024,7 @@ template <typename X, typename B>
 
     // Given x,a,b ∊ ℕ, x > 0, a,b > 1, a ≠ b, returns (r,{ {a,i}, {b,j} }) such that x = aⁱ ∙ bʲ + r with r ≥ 0 minimal.
 template <typename X, typename A, typename B>
-    constexpr factorization<common_integral_value_type<X, A, B>, 2> factorize_floori(X x, A a, B b)
+constexpr factorization<common_integral_value_type<X, A, B>, 2> factorize_floori(X x, A a, B b)
 {
     using V = common_integral_value_type<X, A, B>;
 
@@ -1071,7 +1072,7 @@ template <typename X, typename A, typename B>
 
     // Given x,a,b ∊ ℕ, x > 0, a,b > 1, a ≠ b, returns (r,{ {a,i}, {b,j} }) such that x = aⁱ ∙ bʲ - r with r ≥ 0 minimal.
 template <typename EH, typename X, typename A, typename B>
-    constexpr result_t<EH, factorization<common_integral_value_type<X, A, B>, 2>> factorize_ceili(X x, A a, B b)
+constexpr result_t<EH, factorization<common_integral_value_type<X, A, B>, 2>> factorize_ceili(X x, A a, B b)
 {
     using V = common_integral_value_type<X, A, B>;
 
@@ -1129,7 +1130,7 @@ template <typename EH, typename X, typename A, typename B>
 #if gsl_CPP17_OR_GREATER
     // Computes the greatest common divisor of a and b.
 template <typename EH, typename A, typename B>
-    constexpr result_t<EH, common_integral_value_type<A, B>> gcd_unsigned(A a, B b)
+constexpr result_t<EH, common_integral_value_type<A, B>> gcd_unsigned(A a, B b)
 {
     using V = common_integral_value_type<A, B>;
 
@@ -1137,17 +1138,17 @@ template <typename EH, typename A, typename B>
 }
     // Computes the greatest common divisor of a and b.
 template <typename EH, typename A, typename B>
-    constexpr result_t<EH, common_integral_value_type<A, B>> gcd_signed(A a, B b)
+constexpr result_t<EH, common_integral_value_type<A, B>> gcd_signed(A a, B b)
 {
     using V = common_integral_value_type<A, B>;
 
         // This assumes a two's complement representation (it will yield a false negative for one's complement integers).
-    if (a == std::numeric_limits<V>::min() || b == std::numeric_limits<V>::min()) return EH::make_error(std::errc::value_too_large);
+    if (a == min_v<V> || b == min_v<V>) return EH::make_error(std::errc::value_too_large);
 
     return EH::make_result(V(std::gcd(integral_value_type<A>(a), integral_value_type<B>(b))));
 }
 template <typename EH, typename A, typename B>
-    constexpr result_t<EH, common_integral_value_type<A, B>> gcd(A a, B b)
+constexpr result_t<EH, common_integral_value_type<A, B>> gcd(A a, B b)
 {
     using V = common_integral_value_type<A, B>;
 
@@ -1164,7 +1165,7 @@ template <typename EH, typename A, typename B>
 
     // Computes the least common multiple of a and b.
 template <typename EH, typename A, typename B>
-    constexpr result_t<EH, common_integral_value_type<A, B>> lcm_unsigned(A a, B b)
+constexpr result_t<EH, common_integral_value_type<A, B>> lcm_unsigned(A a, B b)
 {
     using V = common_integral_value_type<A, B>;
 
@@ -1176,14 +1177,14 @@ template <typename EH, typename A, typename B>
 }
     // Computes the least common multiple of a and b.
 template <typename EH, typename A, typename B>
-    constexpr result_t<EH, common_integral_value_type<A, B>> lcm_signed(A a, B b)
+constexpr result_t<EH, common_integral_value_type<A, B>> lcm_signed(A a, B b)
 {
     using V = common_integral_value_type<A, B>;
 
     if (a == 0 || b == 0) return EH::make_result(V(0));
 
         // This assumes a two's complement representation (it will yield a false negative for one's complement integers).
-    if (a == std::numeric_limits<V>::min() || b == std::numeric_limits<V>::min()) return EH::make_error(std::errc::value_too_large);
+    if (a == min_v<V> || b == min_v<V>) return EH::make_error(std::errc::value_too_large);
 
     V av = a < 0 ? -a : a;
     V bv = b < 0 ? -b : b;
@@ -1192,7 +1193,7 @@ template <typename EH, typename A, typename B>
     return makeshift::detail::multiply<EH>(a / lgcd, b);
 }
 template <typename EH, typename A, typename B>
-    constexpr result_t<EH, common_integral_value_type<A, B>> lcm(A a, B b)
+constexpr result_t<EH, common_integral_value_type<A, B>> lcm(A a, B b)
 {
     using V = common_integral_value_type<A, B>;
 

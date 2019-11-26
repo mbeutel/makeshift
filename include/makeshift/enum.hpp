@@ -48,8 +48,8 @@ namespace makeshift
     // Equivalent to `(haystack & needle) == needle`.
     //
 template <typename EnumT>
-    gsl_NODISCARD constexpr bool
-    has_flag(EnumT haystack, EnumT needle)
+gsl_NODISCARD constexpr bool
+has_flag(EnumT haystack, EnumT needle)
 {
     static_assert(is_bitmask_type_v<EnumT>, "arguments must be of bitmask type");
     Expects(makeshift::detail::is_flag_power_of_2(std::underlying_type_t<EnumT>(needle)));
@@ -61,8 +61,8 @@ template <typename EnumT>
     // Equivalent to `(haystack & needles) != { }`.
     //
 template <typename EnumT>
-    gsl_NODISCARD constexpr bool
-    has_any_flag_of(EnumT haystack, EnumT needles)
+gsl_NODISCARD constexpr bool
+has_any_flag_of(EnumT haystack, EnumT needles)
 {
     static_assert(is_bitmask_type_v<EnumT>, "arguments must be of bitmask type");
     return (haystack & needles) != EnumT{ };
@@ -73,8 +73,8 @@ template <typename EnumT>
     // Equivalent to `(haystack & needles) == needles`.
     //
 template <typename EnumT>
-    gsl_NODISCARD constexpr bool
-    has_all_flags_of(EnumT haystack, EnumT needles)
+gsl_NODISCARD constexpr bool
+has_all_flags_of(EnumT haystack, EnumT needles)
 {
     static_assert(is_bitmask_type_v<EnumT>, "arguments must be of bitmask type");
     return (haystack & needles) == needles;
@@ -94,7 +94,7 @@ template <typename EnumT>
     //ᅟ    }
     //
 template <typename TypeEnumT, typename... Ts>
-    struct define_type_enum : makeshift::detail::define_type_enum_base<TypeEnumT, Ts...>
+struct define_type_enum : makeshift::detail::define_type_enum_base<TypeEnumT, Ts...>
 {
     using _base_base = makeshift::detail::define_type_enum_base<TypeEnumT, Ts...>;
     using _base_base::_base_base;
@@ -102,7 +102,7 @@ template <typename TypeEnumT, typename... Ts>
 };
 
 template <typename TypeEnumT>
-    struct underlying_type<TypeEnumT, std::enable_if_t<std::is_base_of<makeshift::detail::type_enum_base, TypeEnumT>::value>>
+struct underlying_type<TypeEnumT, std::enable_if_t<std::is_base_of<makeshift::detail::type_enum_base, TypeEnumT>::value>>
 {
     using type = typename TypeEnumT::underlying_type;
 };
@@ -121,7 +121,7 @@ template <typename TypeEnumT>
     //ᅟ    }
     //
 template <typename... Ts>
-    class type_enum final : public define_type_enum<type_enum<Ts...>, Ts...>
+class type_enum final : public define_type_enum<type_enum<Ts...>, Ts...>
 {
     using _base_base = define_type_enum<type_enum<Ts...>, Ts...>;
     using _base_base::_base_base;

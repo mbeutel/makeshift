@@ -6,7 +6,7 @@
 #include <gsl/gsl-lite.hpp> // for gsl_CPP17_OR_GREATER, gsl_NODISCARD
 
 #if !gsl_CPP17_OR_GREATER
- #include <tuple>      // for tuple_size<>
+# include <tuple>      // for tuple_size<>
 #endif // !gsl_CPP17_OR_GREATER
 
 #include <cstddef>     // for size_t
@@ -26,7 +26,7 @@ namespace makeshift
     // Represents a pair of iterators.
     //
 template <typename It, typename EndIt = It, std::ptrdiff_t Extent = -1>
-    class range : public makeshift::detail::range_base<It, EndIt, makeshift::detail::range_iterator_tag<It>, Extent>
+class range : public makeshift::detail::range_base<It, EndIt, makeshift::detail::range_iterator_tag<It>, Extent>
 {
     using base = makeshift::detail::range_base<It, EndIt, makeshift::detail::range_iterator_tag<It>, Extent>;
 
@@ -37,8 +37,8 @@ public:
     }
     template <typename ExtentC,
               std::enable_if_t<std::is_convertible<ExtentC, std::size_t>::value, int> = 0>
-        constexpr range(It start, ExtentC extentC)
-            : base(start, start + extentC)
+    constexpr range(It start, ExtentC extentC)
+        : base(start, start + extentC)
     {
         constexpr std::ptrdiff_t rhsExtent = makeshift::detail::range_extent_from_constval(ExtentC{ });
         static_assert(Extent == -1 || rhsExtent == -1 || Extent == rhsExtent, "static extents must match");
@@ -47,17 +47,17 @@ public:
 };
 #if gsl_CPP17_OR_GREATER
 template <typename It, typename EndIt>
-    range(It, EndIt) -> range<It, std::enable_if_t<!std::is_convertible<EndIt, std::size_t>::value, EndIt>, -1>;
+range(It, EndIt) -> range<It, std::enable_if_t<!std::is_convertible<EndIt, std::size_t>::value, EndIt>, -1>;
 template <typename It, typename ExtentC>
-    range(It, ExtentC) -> range<It, std::enable_if_t<!std::is_convertible<ExtentC, std::size_t>::value, It>, makeshift::detail::range_extent_from_constval(ExtentC{ })>;
+range(It, ExtentC) -> range<It, std::enable_if_t<!std::is_convertible<ExtentC, std::size_t>::value, It>, makeshift::detail::range_extent_from_constval(ExtentC{ })>;
 #endif // gsl_CPP17_OR_GREATER
 
     //ᅟ
     // Construct a range from a pair of iterators.
     //
 template <typename It, typename EndIt>
-    gsl_NODISCARD std::enable_if_t<!std::is_convertible<EndIt, std::size_t>::value, range<It, EndIt>>
-    make_range(It first, EndIt last)
+gsl_NODISCARD std::enable_if_t<!std::is_convertible<EndIt, std::size_t>::value, range<It, EndIt>>
+make_range(It first, EndIt last)
 {
     // the is_convertible<> trait also covers integer constvals due to normalization
 
@@ -68,8 +68,8 @@ template <typename It, typename EndIt>
     // Construct a range from an iterator and an extent.
     //
 template <typename It, typename ExtentC>
-    gsl_NODISCARD std::enable_if_t<!std::is_convertible<ExtentC, std::size_t>::value, range<It, It, makeshift::detail::range_extent_from_constval(ExtentC{ })>>
-    make_range(It start, ExtentC extentC)
+gsl_NODISCARD std::enable_if_t<!std::is_convertible<ExtentC, std::size_t>::value, range<It, It, makeshift::detail::range_extent_from_constval(ExtentC{ })>>
+make_range(It start, ExtentC extentC)
 {
     return { std::move(start), extentC };
 }

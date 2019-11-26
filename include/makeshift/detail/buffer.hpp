@@ -19,7 +19,7 @@ namespace detail
 
 
 template <typename T, typename DerivedT>
-    class buffer_interface_mixin
+class buffer_interface_mixin
 {
 public:
     using value_type = T;
@@ -103,7 +103,7 @@ public:
 };
 
 template <typename T, std::ptrdiff_t Extent, std::ptrdiff_t MaxExtent = -1>
-    class static_buffer_base : public buffer_interface_mixin<T, static_buffer_base<T, Extent, MaxExtent>>
+class static_buffer_base : public buffer_interface_mixin<T, static_buffer_base<T, Extent, MaxExtent>>
 {
     static_assert(Extent >= 0, "buffer extent must be non-negative");
 
@@ -151,7 +151,7 @@ public:
     }
 };
 template <typename T, std::ptrdiff_t MaxExtent>
-    class static_buffer_base<T, -1, MaxExtent> : public buffer_interface_mixin<T, static_buffer_base<T, -1, MaxExtent>>
+class static_buffer_base<T, -1, MaxExtent> : public buffer_interface_mixin<T, static_buffer_base<T, -1, MaxExtent>>
 {
 private:
     std::array<T, MaxExtent> data_;
@@ -179,7 +179,7 @@ public:
 };
 
 template <typename T, std::ptrdiff_t BufExtent>
-    class dynamic_buffer_base : public buffer_interface_mixin<T, dynamic_buffer_base<T, BufExtent>>
+class dynamic_buffer_base : public buffer_interface_mixin<T, dynamic_buffer_base<T, BufExtent>>
 {
 private:
     T* data_;
@@ -230,7 +230,7 @@ public:
 };
 
 template <typename T>
-    class dynamic_buffer_base<T, 0> : public buffer_interface_mixin<T, dynamic_buffer_base<T, 0>>
+class dynamic_buffer_base<T, 0> : public buffer_interface_mixin<T, dynamic_buffer_base<T, 0>>
 {
 private:
     T* data_;
@@ -293,10 +293,10 @@ static constexpr memory_location determine_memory_location(std::ptrdiff_t bufExt
 
 
 template <typename T, std::ptrdiff_t Extent, std::ptrdiff_t MaxStaticBufferExtent, memory_location MemoryLocation>
-    class buffer_base;
+class buffer_base;
 template <typename T, std::ptrdiff_t Extent, std::ptrdiff_t MaxStaticBufferExtent>
-    class buffer_base<T, Extent, MaxStaticBufferExtent, memory_location::always_on_stack>
-        : public static_buffer_base<T, Extent>
+class buffer_base<T, Extent, MaxStaticBufferExtent, memory_location::always_on_stack>
+    : public static_buffer_base<T, Extent>
 {
 private:
     using base_ = static_buffer_base<T, Extent>;
@@ -305,8 +305,8 @@ public:
     using base_::base_;
 };
 template <typename T, std::ptrdiff_t Extent, std::ptrdiff_t MaxStaticBufferExtent>
-    class buffer_base<T, Extent, MaxStaticBufferExtent, memory_location::dynamic>
-        : public dynamic_buffer_base<T, MaxStaticBufferExtent>
+class buffer_base<T, Extent, MaxStaticBufferExtent, memory_location::dynamic>
+    : public dynamic_buffer_base<T, MaxStaticBufferExtent>
 {
 private:
     using base_ = dynamic_buffer_base<T, MaxStaticBufferExtent>;
@@ -315,8 +315,8 @@ public:
     using base_::base_;
 };
 template <typename T, std::ptrdiff_t Extent, std::ptrdiff_t MaxStaticBufferExtent>
-    class buffer_base<T, Extent, MaxStaticBufferExtent, memory_location::never_on_stack>
-        : public dynamic_buffer_base<T, 0>
+class buffer_base<T, Extent, MaxStaticBufferExtent, memory_location::never_on_stack>
+    : public dynamic_buffer_base<T, 0>
 {
 private:
     using base_ = dynamic_buffer_base<T, 0>;
@@ -326,33 +326,33 @@ public:
 };
 
 template <typename ExtentT>
-    constexpr std::ptrdiff_t buffer_extent_from_constval(ExtentT)
+constexpr std::ptrdiff_t buffer_extent_from_constval(ExtentT)
 {
     return -1;
 }
 template <typename T, T V>
-    constexpr std::ptrdiff_t buffer_extent_from_constval(std::integral_constant<T, V>)
+constexpr std::ptrdiff_t buffer_extent_from_constval(std::integral_constant<T, V>)
 {
     return V;
 }
 
 template <typename C>
-    constexpr void check_buffer_extents(std::true_type /*dynamicExtent*/, std::ptrdiff_t /*expectedExtent*/, C actualExtent)
+constexpr void check_buffer_extents(std::true_type /*dynamicExtent*/, std::ptrdiff_t /*expectedExtent*/, C actualExtent)
 {
     Expects(actualExtent >= 0);
 }
 template <typename C>
-    constexpr void check_buffer_extents(std::false_type /*dynamicExtent*/, std::ptrdiff_t expectedExtent, C actualExtent)
+constexpr void check_buffer_extents(std::false_type /*dynamicExtent*/, std::ptrdiff_t expectedExtent, C actualExtent)
 {
     Expects(actualExtent == expectedExtent);
 }
 template <typename C>
-    constexpr void check_fixed_buffer_extents(std::true_type /*dynamicExtent*/, std::ptrdiff_t /*expectedExtent*/, C actualExtent, std::ptrdiff_t maxBufferExtent)
+constexpr void check_fixed_buffer_extents(std::true_type /*dynamicExtent*/, std::ptrdiff_t /*expectedExtent*/, C actualExtent, std::ptrdiff_t maxBufferExtent)
 {
     Expects(actualExtent >= 0 && actualExtent <= maxBufferExtent);
 }
 template <typename C>
-    constexpr void check_fixed_buffer_extents(std::false_type /*dynamicExtent*/, std::ptrdiff_t expectedExtent, C actualExtent, std::ptrdiff_t /*maxBufferExtent*/)
+constexpr void check_fixed_buffer_extents(std::false_type /*dynamicExtent*/, std::ptrdiff_t expectedExtent, C actualExtent, std::ptrdiff_t /*maxBufferExtent*/)
 {
     Expects(actualExtent == expectedExtent);
 }

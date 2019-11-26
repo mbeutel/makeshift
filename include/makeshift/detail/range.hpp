@@ -19,9 +19,9 @@ namespace detail
 
 
 template <typename It, typename EndIt, typename IteratorTagT, std::ptrdiff_t Extent>
-    class range_base;
+class range_base;
 template <typename It, typename EndIt, typename IteratorTagT>
-    class range_base<It, EndIt, IteratorTagT, -1>
+class range_base<It, EndIt, IteratorTagT, -1>
 {
 private:
     It first_;
@@ -37,7 +37,7 @@ public:
     gsl_NODISCARD constexpr EndIt const& end(void) const noexcept { return last_; }
 };
 template <typename It, typename EndIt>
-    class range_base<It, EndIt, std::random_access_iterator_tag, -1>
+class range_base<It, EndIt, std::random_access_iterator_tag, -1>
 {
 private:
     It first_;
@@ -62,7 +62,7 @@ public:
     }
 };
 template <typename It, std::ptrdiff_t Extent>
-    class range_base<It, It, std::random_access_iterator_tag, Extent>
+class range_base<It, It, std::random_access_iterator_tag, Extent>
 {
     static_assert(Extent >= 0, "range extent must be non-negative");
 
@@ -94,42 +94,42 @@ template <typename It> using range_iterator_tag = std::conditional_t<
     std::input_iterator_tag>;
 
 template <typename ExtentC>
-    constexpr std::ptrdiff_t range_extent_from_constval(ExtentC)
+constexpr std::ptrdiff_t range_extent_from_constval(ExtentC)
 {
     return -1;
 }
 template <typename T, T V>
-    constexpr std::ptrdiff_t range_extent_from_constval(std::integral_constant<T, V>)
+constexpr std::ptrdiff_t range_extent_from_constval(std::integral_constant<T, V>)
 {
     return V;
 }
 
 template <typename T>
-    constexpr void check_buffer_extents(std::true_type /*dynamicExtent*/, std::size_t expectedExtent, std::size_t actualExtent)
+constexpr void check_buffer_extents(std::true_type /*dynamicExtent*/, std::size_t expectedExtent, std::size_t actualExtent)
 {
     Expects(expectedExtent == actualExtent);
 }
 template <typename T>
-    constexpr void check_buffer_extents(std::false_type /*dynamicExtent*/, std::size_t /*expectedExtent*/, std::size_t /*actualExtent*/)
+constexpr void check_buffer_extents(std::false_type /*dynamicExtent*/, std::size_t /*expectedExtent*/, std::size_t /*actualExtent*/)
 {
 }
 
     // Implement tuple-like protocol for `range<>`.
 template <class T>
-    constexpr T const& as_const(T& t) noexcept
+constexpr T const& as_const(T& t) noexcept
 {
     return t;
 }
 template <std::size_t I, typename It, std::ptrdiff_t Extent>
-    gsl_NODISCARD constexpr std::enable_if_t<(Extent >= 0), decltype(*std::declval<It>())>
-    get(range_base<It, It, std::random_access_iterator_tag, Extent>& range) noexcept
+gsl_NODISCARD constexpr std::enable_if_t<(Extent >= 0), decltype(*std::declval<It>())>
+get(range_base<It, It, std::random_access_iterator_tag, Extent>& range) noexcept
 {
     static_assert(I < std::size_t(Extent), "index out of range");
     return range[I];
 }
 template <std::size_t I, typename It, std::ptrdiff_t Extent>
-    gsl_NODISCARD constexpr std::enable_if_t<(Extent >= 0), decltype(makeshift::detail::as_const(*std::declval<It>()))>
-    get(range_base<It, It, std::random_access_iterator_tag, Extent> const& range) noexcept
+gsl_NODISCARD constexpr std::enable_if_t<(Extent >= 0), decltype(makeshift::detail::as_const(*std::declval<It>()))>
+get(range_base<It, It, std::random_access_iterator_tag, Extent> const& range) noexcept
 {
     static_assert(I < std::size_t(Extent), "index out of range");
     return range[I];

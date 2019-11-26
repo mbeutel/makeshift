@@ -15,7 +15,7 @@ namespace makeshift
 
 
 template <typename T>
-    struct type_tag;
+struct type_tag;
 
 
 namespace detail
@@ -27,7 +27,7 @@ template <typename T, template <typename...> class TypeSeqT, typename... Ts> str
 
 
 template <typename T>
-    struct type_base : constval_tag
+struct type_base : constval_tag
 {
     using type = T;
 };
@@ -36,33 +36,33 @@ template <typename T>
 template <typename RSeqT, typename... Ts> struct type_sequence_cat_;
 template <typename RSeqT> struct type_sequence_cat_<RSeqT> { using type = RSeqT; };
 template <template <typename...> class TypeSeq1T, template <typename...> class TypeSeq2T, typename... RSeqT, typename... NSeqT, typename... Ts>
-    struct type_sequence_cat_<TypeSeq1T<RSeqT...>, TypeSeq2T<NSeqT...>, Ts...>
-        : type_sequence_cat_<TypeSeq1T<RSeqT..., NSeqT...>, Ts...> 
+struct type_sequence_cat_<TypeSeq1T<RSeqT...>, TypeSeq2T<NSeqT...>, Ts...>
+    : type_sequence_cat_<TypeSeq1T<RSeqT..., NSeqT...>, Ts...> 
 {
 };
 
 
 template <typename ContainerT>
-    constexpr std::integral_constant<std::size_t, std::tuple_size<ContainerT>::value>
-    csize_impl(std::true_type /*isConstval*/, ContainerT const&)
+constexpr std::integral_constant<std::size_t, std::tuple_size<ContainerT>::value>
+csize_impl(std::true_type /*isConstval*/, ContainerT const&)
 {
     return { };
 }
 template <typename ContainerT>
-    constexpr auto csize_impl(std::false_type /*isConstval*/, ContainerT const& c)
-        -> decltype(c.size())
+constexpr auto csize_impl(std::false_type /*isConstval*/, ContainerT const& c)
+    -> decltype(c.size())
 {
     return c.size();
 }
 
 template <typename ContainerT>
-    constexpr std::integral_constant<std::ptrdiff_t, std::tuple_size<ContainerT>::value> cssize_impl(std::true_type /*isConstval*/, ContainerT const&)
+constexpr std::integral_constant<std::ptrdiff_t, std::tuple_size<ContainerT>::value> cssize_impl(std::true_type /*isConstval*/, ContainerT const&)
 {
     return { };
 }
 template <typename ContainerT>
-    constexpr auto cssize_impl(std::false_type /*isConstval*/, ContainerT const& c)
-        -> std::common_type_t<std::ptrdiff_t, std::make_signed_t<decltype(c.size())>>
+constexpr auto cssize_impl(std::false_type /*isConstval*/, ContainerT const& c)
+    -> std::common_type_t<std::ptrdiff_t, std::make_signed_t<decltype(c.size())>>
 {
     using R = std::common_type_t<std::ptrdiff_t, std::make_signed_t<decltype(c.size())>>;
     return static_cast<R>(c.size());
@@ -70,7 +70,7 @@ template <typename ContainerT>
 
 
 template <typename T>
-    struct type_tag_proxy
+struct type_tag_proxy
 {
     constexpr operator type_tag<T> const&(void) const noexcept;
     constexpr type_tag<T> const* operator &(void) const noexcept

@@ -25,7 +25,7 @@ template <typename T> constexpr bool is_std_array_v = false;
 template <typename T, std::size_t N> constexpr bool is_std_array_v<std::array<T, N>> = true;
 
 template <typename T, typename ValuesT>
-    auto reflect_values_check_type(ValuesT const& values)
+auto reflect_values_check_type(ValuesT const& values)
 {
     static_assert(is_std_array_v<ValuesT>, "reflect_values(type<T>) must return a std::array<> of elements of type T");
     return values;
@@ -33,7 +33,7 @@ template <typename T, typename ValuesT>
 
 
 template <>
-    struct default_values<bool>
+struct default_values<bool>
 {
     constexpr std::array<bool, 2> operator ()(void) const
     {
@@ -41,7 +41,7 @@ template <>
     }
 };
 template <>
-    struct default_values<std::nullptr_t>
+struct default_values<std::nullptr_t>
 {
     constexpr std::array<std::nullptr_t, 1> operator ()(void) const
     {
@@ -57,7 +57,7 @@ template <typename T> using have_default_values = can_instantiate<makeshift::det
 
 template <bool HaveReflectValues, typename T> struct values_of_1_;
 template <typename T>
-    struct values_of_1_<true, T>
+struct values_of_1_<true, T>
 {
     constexpr reflect_values_r<T> operator ()(void) const
     {

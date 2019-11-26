@@ -25,7 +25,7 @@ namespace makeshift
     //ᅟ        [](auto)  { return "unknown"; });
     //
 template <typename... Fs>
-    struct MAKESHIFT_DETAIL_EMPTY_BASES overloaded : Fs...
+struct MAKESHIFT_DETAIL_EMPTY_BASES overloaded : Fs...
 {
     using Fs::operator ()...;
 };
@@ -39,14 +39,14 @@ template <typename... Fs>
     //ᅟ        [](auto)  { return "unknown"; });
     //
 template <typename... Fs>
-    struct overloaded;
+struct overloaded;
 template <typename F0>
-    struct MAKESHIFT_DETAIL_EMPTY_BASES overloaded<F0> : F0
+struct MAKESHIFT_DETAIL_EMPTY_BASES overloaded<F0> : F0
 {
     using F0::F0;
 };
 template <typename F0, typename... Fs>
-    struct MAKESHIFT_DETAIL_EMPTY_BASES overloaded<F0, Fs...> : F0, overloaded<Fs...>
+struct MAKESHIFT_DETAIL_EMPTY_BASES overloaded<F0, Fs...> : F0, overloaded<Fs...>
 {
     constexpr overloaded(F0 f0, Fs... fs) : F0(std::move(f0)), overloaded<Fs...>(std::move(fs)...) { }
     using F0::operator ();
@@ -56,11 +56,11 @@ template <typename F0, typename... Fs>
 
 #if gsl_CPP17_OR_GREATER
 template <typename... Ts>
-    overloaded(Ts...) -> overloaded<Ts...>;
+overloaded(Ts...) -> overloaded<Ts...>;
 #endif // gsl_CPP17_OR_GREATER
 
 template <typename... Fs>
-    constexpr overloaded<Fs...> make_overloaded(Fs... fs)
+constexpr overloaded<Fs...> make_overloaded(Fs... fs)
 {
     return { std::move(fs)... };
 }
@@ -80,7 +80,7 @@ template <typename... Fs>
     //ᅟ    int i = fac(4); // returns 24
     //
 template <typename F>
-    class y_combinator
+class y_combinator
 {
 private:
     F func_;
@@ -92,19 +92,19 @@ public:
     }
 
     template <typename... ArgsT>
-        constexpr decltype(auto) operator()(ArgsT&&... args)
+    constexpr decltype(auto) operator()(ArgsT&&... args)
     {
         return func_(makeshift::detail::y_combinator_func_ref<F&>{ func_ }, std::forward<ArgsT>(args)...);
     }
     template <typename... ArgsT>
-        constexpr decltype(auto) operator()(ArgsT&&... args) const
+    constexpr decltype(auto) operator()(ArgsT&&... args) const
     {
         return func_(makeshift::detail::y_combinator_func_ref<F const&>{ func_ }, std::forward<ArgsT>(args)...);
     }
 };
 #if gsl_CPP17_OR_GREATER
 template <typename F>
-    y_combinator(F) -> y_combinator<F>;
+y_combinator(F) -> y_combinator<F>;
 #endif // gsl_CPP17_OR_GREATER
 
 

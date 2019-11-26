@@ -46,7 +46,7 @@ template <template <typename...> class Z, typename... Ts> struct can_instantiate
     // taken from http://ldionne.com/2015/11/29/efficient-parameter-pack-indexing/
     // (cf. the same URL for a discussion of the benefits and drawbacks of the MI approach vs. a recursive one)
 template <std::size_t I, typename T>
-    struct type_pack_index_base
+struct type_pack_index_base
 {
     static constexpr std::size_t index = I;
     using type = T;
@@ -58,28 +58,28 @@ struct type_pack_no_match
 template <typename IsT, typename... Ts> struct type_pack_indexer;
 template <std::size_t... Is, typename... Ts> struct type_pack_indexer<std::index_sequence<Is...>, Ts...> : type_pack_index_base<Is, Ts>... { };
 template <std::size_t I, typename T>
-    static type_pack_index_base<I, T> select_type_seq_entry_by_idx(type_pack_index_base<I, T>);
+static type_pack_index_base<I, T> select_type_seq_entry_by_idx(type_pack_index_base<I, T>);
 template <typename T, std::size_t I>
-    static type_pack_index_base<I, T> select_type_seq_entry_by_type(type_pack_index_base<I, T>);
+static type_pack_index_base<I, T> select_type_seq_entry_by_type(type_pack_index_base<I, T>);
 template <typename T>
-    static type_pack_no_match select_type_seq_entry_by_type(...);
+static type_pack_no_match select_type_seq_entry_by_type(...);
 
 template <std::size_t I, typename... Ts>
-    struct type_pack_element_
+struct type_pack_element_
 {
     using index_base = decltype(makeshift::detail::select_type_seq_entry_by_idx<I>(type_pack_indexer<std::make_index_sequence<sizeof...(Ts)>, Ts...>{ }));
     using type = typename index_base::type;
 };
 
 template <typename T, typename... Ts>
-    struct try_type_pack_index_
+struct try_type_pack_index_
 {
     using index_base = decltype(makeshift::detail::select_type_seq_entry_by_type<T>(type_pack_indexer<std::make_index_sequence<sizeof...(Ts)>, Ts...>{ }));
     static constexpr std::size_t value = index_base::index;
 };
 
 template <typename T, typename... Ts>
-    struct type_pack_index_
+struct type_pack_index_
 {
     static constexpr std::size_t value = type_pack_index_<T, Ts...>::value;
     static_assert(value != ~std::size_t(0), "type T does not appear in type sequence");

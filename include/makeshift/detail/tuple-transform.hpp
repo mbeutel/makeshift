@@ -64,30 +64,30 @@ template <bool Mismatch, std::ptrdiff_t N, typename... Ts> struct equal_sizes_0_
 template <std::ptrdiff_t N, typename... Ts> struct equal_sizes_0_<true, N, Ts...> : std::false_type { static constexpr std::ptrdiff_t size = -1; };
 template <std::ptrdiff_t N> struct equal_sizes_0_<false, N> : std::true_type { static constexpr std::ptrdiff_t size = N; };
 template <std::ptrdiff_t N, typename T0, typename... Ts>
-    struct equal_sizes_0_<false, N, T0, Ts...>
-        : equal_sizes_0_<
-              N != -1 && maybe_tuple_size_<T0>::value != -1 && N != maybe_tuple_size_<T0>::value,
-              N != -1 ? N : maybe_tuple_size_<T0>::value,
-              Ts...>
+struct equal_sizes_0_<false, N, T0, Ts...>
+    : equal_sizes_0_<
+        N != -1 && maybe_tuple_size_<T0>::value != -1 && N != maybe_tuple_size_<T0>::value,
+        N != -1 ? N : maybe_tuple_size_<T0>::value,
+        Ts...>
 {
 };
 template <typename... Ts> struct equal_sizes_ : equal_sizes_0_<false, -1, Ts...> { };
 
 
 template <std::size_t I>
-    constexpr std::ptrdiff_t get(array_index_t) noexcept
+constexpr std::ptrdiff_t get(array_index_t) noexcept
 {
     return I;
 }
 template <std::size_t I>
-    constexpr std::integral_constant<std::ptrdiff_t, I> get(tuple_index_t) noexcept
+constexpr std::integral_constant<std::ptrdiff_t, I> get(tuple_index_t) noexcept
 {
     return { };
 }
 
 
 template <std::size_t I, typename T>
-    constexpr decltype(auto) get_element(T&& arg) noexcept
+constexpr decltype(auto) get_element(T&& arg) noexcept
 {
     using std::get; // make std::get<>() visible to enable ADL for template methods named get<>()
     return get<I>(std::forward<T>(arg));
@@ -95,21 +95,21 @@ template <std::size_t I, typename T>
 
 
 template <std::size_t I, typename... Ts, typename F>
-    constexpr decltype(auto)
-    transform_element(F&& func, Ts&&... args)
+constexpr decltype(auto)
+transform_element(F&& func, Ts&&... args)
 {
     return func(makeshift::detail::get_element<I>(std::forward<Ts>(args))...);
 }
 
 template <typename F, typename... Ts>
-    constexpr void
-    template_for_impl(std::index_sequence<>, F&&, Ts&&...)
+constexpr void
+template_for_impl(std::index_sequence<>, F&&, Ts&&...)
 {
     // extra overload to avoid unused-parameter warning
 }
 template <std::size_t... Is, typename F, typename... Ts>
-    constexpr void
-    template_for_impl(std::index_sequence<Is...>, F&& func, Ts&&... args)
+constexpr void
+template_for_impl(std::index_sequence<Is...>, F&& func, Ts&&... args)
 {
     (void) func;
     using Swallow = int[];
@@ -119,7 +119,7 @@ template <std::size_t... Is, typename F, typename... Ts>
 }
 
 template <std::ptrdiff_t N, typename... Ts>
-    constexpr std::size_t tuple_transform_size(void)
+constexpr std::size_t tuple_transform_size(void)
 {
     using Eq = equal_sizes_<std::decay_t<Ts>...>;
     static_assert(Eq::value, "sizes of tuple arguments do not match");

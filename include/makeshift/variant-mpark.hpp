@@ -37,8 +37,8 @@ namespace mpark
     //ᅟ        bitsV);
     //
 template <typename T, typename ValuesC>
-    gsl_NODISCARD constexpr typename makeshift::detail::constval_variant_map<::mpark::variant, ValuesC>::type
-    expand(T const& value, ValuesC valuesC)
+gsl_NODISCARD constexpr typename makeshift::detail::constval_variant_map<::mpark::variant, ValuesC>::type
+expand(T const& value, ValuesC valuesC)
 {
     std::ptrdiff_t index = makeshift::detail::search_value_index(value, valuesC);
     Expects(index >= 0);
@@ -63,8 +63,8 @@ template <typename T, typename ValuesC>
     //ᅟ        loggingV);
     //
 template <typename T>
-    gsl_NODISCARD constexpr auto
-    expand(T const& value)
+gsl_NODISCARD constexpr auto
+expand(T const& value)
 {
     static_assert(have_values_of_v<T>, "expand() cannot find admissible values");
     return makeshift::mpark::expand(value, makeshift::make_constval_t<makeshift::detail::values_of_<T>>{ });
@@ -86,8 +86,8 @@ template <typename T>
     //ᅟ        bitsVO.value());
     //
 //template <typename T, typename ValuesC>
-//    gsl_NODISCARD constexpr std::optional<typename makeshift::detail::constval_variant_map<::mpark::variant, ValuesC>::type>
-//    try_expand(T const& value, ValuesC valuesC)
+//gsl_NODISCARD constexpr std::optional<typename makeshift::detail::constval_variant_map<::mpark::variant, ValuesC>::type>
+//try_expand(T const& value, ValuesC valuesC)
 //{
 //    std::ptrdiff_t index = makeshift::detail::search_value_index(value, valuesC);
 //    if (index < 0) return std::nullopt;
@@ -113,8 +113,8 @@ template <typename T>
     //ᅟ        colorVO.value());
     //
 //template <typename T>
-//    gsl_NODISCARD constexpr auto
-//    try_expand(T const& value)
+//gsl_NODISCARD constexpr auto
+//try_expand(T const& value)
 //{
 //    static_assert(have_values_of_v<T>, "try_expand() cannot find admissible values");
 //    return makeshift::mpark::try_expand(value, makeshift::make_constval_t<makeshift::detail::values_of_<T>>{ });
@@ -135,8 +135,8 @@ template <typename T>
     //ᅟ        bitsV);
     //
 template <typename T, typename ValuesC>
-    gsl_NODISCARD constexpr typename makeshift::detail::constval_variant_map<::mpark::variant, ValuesC>::type
-    expand_or_throw(T const& value, ValuesC valuesC)
+gsl_NODISCARD constexpr typename makeshift::detail::constval_variant_map<::mpark::variant, ValuesC>::type
+expand_or_throw(T const& value, ValuesC valuesC)
 {
     std::ptrdiff_t index = makeshift::detail::search_value_index(value, valuesC);
     if (index < 0) throw unsupported_runtime_value{ };
@@ -161,8 +161,8 @@ template <typename T, typename ValuesC>
     //ᅟ        colorV);
     //
 template <typename T>
-    gsl_NODISCARD constexpr auto
-    expand_or_throw(T const& value)
+gsl_NODISCARD constexpr auto
+expand_or_throw(T const& value)
 {
     static_assert(have_values_of_v<T>, "expand_or_throw() cannot find admissible values");
     return makeshift::mpark::expand_or_throw(value, makeshift::make_constval_t<makeshift::detail::values_of_<T>>{ });
@@ -174,10 +174,10 @@ template <typename T>
     // Suppresses any template instantiations for intellisense parsers to improve responsivity.
     //
 template <typename F, typename... Vs>
-    gsl_NODISCARD constexpr auto
-    visit(F&& func, Vs&&... args)
+gsl_NODISCARD constexpr auto
+visit(F&& func, Vs&&... args)
 #if !(defined(_MSC_VER) && defined(__INTELLISENSE__))
-        -> decltype(::mpark::visit(std::forward<F>(func), std::forward<Vs>(args)...))
+    -> decltype(::mpark::visit(std::forward<F>(func), std::forward<Vs>(args)...))
 #endif // !(defined(_MSC_VER) && defined(__INTELLISENSE__))
 {
 #if !(defined(_MSC_VER) && defined(__INTELLISENSE__))
@@ -190,8 +190,8 @@ template <typename F, typename... Vs>
     // Suppresses any template instantiations for intellisense parsers to improve responsivity.
     //
 template <typename R, typename F, typename... Vs>
-    gsl_NODISCARD constexpr R
-    visit(F&& func, Vs&&... args)
+gsl_NODISCARD constexpr R
+visit(F&& func, Vs&&... args)
 {
 #if !(defined(_MSC_VER) && defined(__INTELLISENSE__))
     return ::mpark::visit(
@@ -218,8 +218,8 @@ template <typename R, typename F, typename... Vs>
     // Casts an argument of type `mpark::variant<Ts...>` to the given variant type.
     //
 //template <typename DstV, typename SrcV>
-//    gsl_NODISCARD constexpr DstV
-//    variant_cast(SrcV&& variant)
+//gsl_NODISCARD constexpr DstV
+//variant_cast(SrcV&& variant)
 //{
 //#if !(defined(_MSC_VER) && defined(__INTELLISENSE__))
 //    return ::mpark::visit(
@@ -235,8 +235,8 @@ template <typename R, typename F, typename... Vs>
     // Converts an argument of type `mpark::variant<::mpark::monostate, Ts...>` to `std::optional<::mpark::variant<Ts...>>`.
     //
 //template <typename V>
-//    gsl_NODISCARD constexpr decltype(auto)
-//    variant_to_optional(V&& variantWithMonostate)
+//gsl_NODISCARD constexpr decltype(auto)
+//variant_to_optional(V&& variantWithMonostate)
 //{
 //    using R = without_monostate<std::remove_cv_t<std::remove_reference_t<V>>>;
 //    if (std::holds_alternative<::mpark::monostate>(variantWithMonostate))
@@ -254,8 +254,8 @@ template <typename R, typename F, typename... Vs>
     // Converts an argument of type `std::optional<::mpark::variant<Ts...>>` to `mpark::variant<::mpark::monostate, Ts...>`.
     //
 //template <typename VO>
-//    gsl_NODISCARD constexpr decltype(auto)
-//    optional_to_variant(VO&& optionalVariant)
+//gsl_NODISCARD constexpr decltype(auto)
+//optional_to_variant(VO&& optionalVariant)
 //{
 //    using R = with_monostate<typename std::remove_cv_t<std::remove_reference_t<VO>>::value_type>;
 //    if (!optionalVariant.has_value())
@@ -271,8 +271,8 @@ template <typename R, typename F, typename... Vs>
     // Suppresses any template instantiations for intellisense parsers to improve responsivity.
     //
 template <typename F, typename... Vs>
-    gsl_NODISCARD constexpr decltype(auto)
-    variant_transform(F&& func, Vs&&... args)
+gsl_NODISCARD constexpr decltype(auto)
+variant_transform(F&& func, Vs&&... args)
 {
     // Currently we merge identical results, i.e. if two functor invocations both return the same type, the type appears only once in the result variant.
     // Although `mpark::variant<>` is explicitly designed to permit multiple alternatives of identical type, it seems reasonable to merge identically typed alternatives here because identically typed alternatives
@@ -297,8 +297,8 @@ template <typename F, typename... Vs>
     // Suppresses any template instantiations for intellisense parsers to improve responsivity.
     //
 template <typename F, typename... Vs>
-    gsl_NODISCARD constexpr decltype(auto)
-    variant_transform_many(F&& func, Vs&&... args)
+gsl_NODISCARD constexpr decltype(auto)
+variant_transform_many(F&& func, Vs&&... args)
 {
 #if !(defined(_MSC_VER) && defined(__INTELLISENSE__))
     using R = makeshift::detail::variant_transform_many_result<::mpark::variant, F, Vs...>;

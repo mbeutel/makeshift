@@ -35,8 +35,8 @@ constexpr std::ptrdiff_t dynamic_extent = -1;
     //ᅟ    auto buf = make_buffer<float, 16>(numElementsC); // returns `buffer<float, N, 16>`; allocates on the heap if `N > 16`
     //
 template <typename T, std::ptrdiff_t Extent = dynamic_extent, std::ptrdiff_t MaxStaticBufferExtent = -1>
-    class buffer
-        : public makeshift::detail::buffer_base<T, Extent, MaxStaticBufferExtent, makeshift::detail::determine_memory_location(Extent, MaxStaticBufferExtent)>
+class buffer
+    : public makeshift::detail::buffer_base<T, Extent, MaxStaticBufferExtent, makeshift::detail::determine_memory_location(Extent, MaxStaticBufferExtent)>
 {
 private:
     using base_ = makeshift::detail::buffer_base<T, Extent, MaxStaticBufferExtent, makeshift::detail::determine_memory_location(Extent, MaxStaticBufferExtent)>;
@@ -44,23 +44,23 @@ private:
 public:
     template <typename ExtentC,
               std::enable_if_t<std::is_convertible<ExtentC, std::size_t>::value, int> = 0>
-        explicit constexpr buffer(ExtentC extent)
-            : base_(extent)
+    explicit constexpr buffer(ExtentC extent)
+        : base_(extent)
     {
         constexpr std::ptrdiff_t rhsExtent = makeshift::detail::buffer_extent_from_constval(ExtentC{ });
         static_assert(Extent == dynamic_extent || rhsExtent == -1 || Extent == rhsExtent, "static extents must match");
         makeshift::detail::check_buffer_extents(std::integral_constant<bool, Extent == dynamic_extent>{ }, Extent, extent);
     }
     template <std::ptrdiff_t RExtent, typename U>
-        constexpr buffer(U (&&array)[RExtent])
-            : base_(RExtent)
+    constexpr buffer(U (&&array)[RExtent])
+        : base_(RExtent)
     {
         static_assert(Extent == dynamic_extent || RExtent == Extent, "array extent does not match");
         static_assert(std::is_convertible<U, T>::value, "incompatible array element types");
         std::copy(std::make_move_iterator(array), std::make_move_iterator(array + RExtent), this->begin());
     }
     template <std::ptrdiff_t RExtent, typename U>
-        constexpr buffer& operator =(U (&&array)[RExtent])
+    constexpr buffer& operator =(U (&&array)[RExtent])
     {
         static_assert(Extent == dynamic_extent || RExtent == Extent, "array extent does not match");
         static_assert(std::is_convertible<U, T>::value, "incompatible array element types");
@@ -71,7 +71,7 @@ public:
 };
 //#if gsl_CPP17_OR_GREATER
 //template <std::ptrdiff_t Extent, typename T>
-//    buffer(T (&&)[Extent]) -> buffer<T, Extent>;
+//buffer(T (&&)[Extent]) -> buffer<T, Extent>;
 //#endif // gsl_CPP17_OR_GREATER
 
     //ᅟ
@@ -85,9 +85,9 @@ public:
     //
 template <typename T,
           typename C>
-    gsl_NODISCARD constexpr
-    buffer<T, makeshift::detail::buffer_extent_from_constval(C{ })>
-    make_buffer(C size)
+gsl_NODISCARD constexpr
+buffer<T, makeshift::detail::buffer_extent_from_constval(C{ })>
+make_buffer(C size)
 {
     return buffer<T, makeshift::detail::buffer_extent_from_constval(C{ })>(size);
 }
@@ -104,9 +104,9 @@ template <typename T,
     //
 template <typename T, std::ptrdiff_t MaxStaticBufferExtent,
           typename C>
-    gsl_NODISCARD constexpr
-    buffer<T, makeshift::detail::buffer_extent_from_constval(C{ }), MaxStaticBufferExtent>
-    make_buffer(C size)
+gsl_NODISCARD constexpr
+buffer<T, makeshift::detail::buffer_extent_from_constval(C{ }), MaxStaticBufferExtent>
+make_buffer(C size)
 {
     return buffer<T, makeshift::detail::buffer_extent_from_constval(C{ }), MaxStaticBufferExtent>(size);
 }
@@ -124,8 +124,8 @@ template <typename T, std::ptrdiff_t MaxStaticBufferExtent,
     //ᅟ    auto buf = make_fixed_buffer<float, 16>(numElementsC); // returns `fixed_buffer<float, N, 16>`; asserts at compile-time that `N <= 16`
     //
 template <typename T, std::ptrdiff_t Extent, std::ptrdiff_t MaxBufferExtent>
-    class fixed_buffer
-        : public makeshift::detail::static_buffer_base<T, Extent, MaxBufferExtent>
+class fixed_buffer
+    : public makeshift::detail::static_buffer_base<T, Extent, MaxBufferExtent>
 {
     static_assert(MaxBufferExtent >= 0, "invalid maximal buffer extent");
     static_assert(Extent <= MaxBufferExtent, "size exceeds buffer extent");
@@ -136,8 +136,8 @@ private:
 public:
     template <typename ExtentC,
               std::enable_if_t<std::is_convertible<ExtentC, std::size_t>::value, int> = 0>
-        explicit constexpr fixed_buffer(ExtentC extent)
-            : base_(extent)
+    explicit constexpr fixed_buffer(ExtentC extent)
+        : base_(extent)
     {
         constexpr std::ptrdiff_t rhsExtent = makeshift::detail::buffer_extent_from_constval(ExtentC{ });
         static_assert(Extent == dynamic_extent || rhsExtent == -1 || Extent == rhsExtent, "static extents must match");
@@ -145,15 +145,15 @@ public:
         makeshift::detail::check_fixed_buffer_extents(std::integral_constant<bool, Extent == dynamic_extent>{ }, Extent, extent, MaxBufferExtent);
     }
     template <std::ptrdiff_t RExtent, typename U>
-        constexpr fixed_buffer(U (&&array)[RExtent])
-            : base_(RExtent)
+    constexpr fixed_buffer(U (&&array)[RExtent])
+        : base_(RExtent)
     {
         static_assert(Extent == dynamic_extent || RExtent == Extent, "array extent does not match");
         static_assert(std::is_convertible<U, T>::value, "incompatible array element types");
         std::copy(std::make_move_iterator(array), std::make_move_iterator(array + RExtent), this->begin());
     }
     template <std::ptrdiff_t RExtent, typename U>
-        constexpr fixed_buffer& operator =(U (&&array)[RExtent])
+    constexpr fixed_buffer& operator =(U (&&array)[RExtent])
     {
         static_assert(Extent == dynamic_extent || RExtent == Extent, "array extent does not match");
         static_assert(std::is_convertible<U, T>::value, "incompatible array element types");
@@ -164,7 +164,7 @@ public:
 };
 //#if gsl_CPP17_OR_GREATER
 //template <std::ptrdiff_t Extent, typename T>
-//    buffer(T (&&)[Extent]) -> buffer<T, Extent>;
+//buffer(T (&&)[Extent]) -> buffer<T, Extent>;
 //#endif // gsl_CPP17_OR_GREATER
 
     //ᅟ
@@ -174,9 +174,9 @@ public:
     //ᅟ    auto buf = make_fixed_buffer<float>(numElementsC); // returns `fixed_buffer<float, N, N>`
     //
 template <typename T, typename SizeT, SizeT Size>
-    gsl_NODISCARD constexpr
-    fixed_buffer<T, Size, Size>
-    make_fixed_buffer(std::integral_constant<SizeT, Size>)
+gsl_NODISCARD constexpr
+fixed_buffer<T, Size, Size>
+make_fixed_buffer(std::integral_constant<SizeT, Size>)
 {
     return fixed_buffer<T, Size, Size>(std::integral_constant<SizeT, Size>{ });
 }
@@ -192,9 +192,9 @@ template <typename T, typename SizeT, SizeT Size>
     //
 template <typename T, std::ptrdiff_t MaxBufferExtent,
           typename C>
-    gsl_NODISCARD constexpr
-    fixed_buffer<T, makeshift::detail::buffer_extent_from_constval(C{ }), MaxBufferExtent>
-    make_fixed_buffer(C size)
+gsl_NODISCARD constexpr
+fixed_buffer<T, makeshift::detail::buffer_extent_from_constval(C{ }), MaxBufferExtent>
+make_fixed_buffer(C size)
 {
     return fixed_buffer<T, makeshift::detail::buffer_extent_from_constval(C{ }), MaxBufferExtent>(size);
 }
@@ -202,15 +202,15 @@ template <typename T, std::ptrdiff_t MaxBufferExtent,
 
     // Implement tuple-like protocol for `buffer<>`.
 template <std::size_t I, typename T, std::ptrdiff_t Extent, std::ptrdiff_t MaxStaticBufferExtent>
-    gsl_NODISCARD constexpr std::enable_if_t<Extent != dynamic_extent, T&>
-    get(buffer<T, Extent, MaxStaticBufferExtent>& buffer) noexcept
+gsl_NODISCARD constexpr std::enable_if_t<Extent != dynamic_extent, T&>
+get(buffer<T, Extent, MaxStaticBufferExtent>& buffer) noexcept
 {
     static_assert(I < Extent, "index out of range");
     return buffer[I];
 }
 template <std::size_t I, typename T, std::ptrdiff_t Extent, std::ptrdiff_t MaxStaticBufferExtent>
-    gsl_NODISCARD constexpr std::enable_if_t<Extent != dynamic_extent, T const&>
-    get(buffer<T, Extent, MaxStaticBufferExtent> const& buffer) noexcept
+gsl_NODISCARD constexpr std::enable_if_t<Extent != dynamic_extent, T const&>
+get(buffer<T, Extent, MaxStaticBufferExtent> const& buffer) noexcept
 {
     static_assert(I < Extent, "index out of range");
     return buffer[I];
@@ -218,15 +218,15 @@ template <std::size_t I, typename T, std::ptrdiff_t Extent, std::ptrdiff_t MaxSt
 
     // Implement tuple-like protocol for `fixed_buffer<>`.
 template <std::size_t I, typename T, std::ptrdiff_t Extent, std::ptrdiff_t MaxBufferExtent>
-    gsl_NODISCARD constexpr std::enable_if_t<Extent != dynamic_extent, T&>
-    get(fixed_buffer<T, Extent, MaxBufferExtent>& buffer) noexcept
+gsl_NODISCARD constexpr std::enable_if_t<Extent != dynamic_extent, T&>
+get(fixed_buffer<T, Extent, MaxBufferExtent>& buffer) noexcept
 {
     static_assert(I < Extent, "index out of range");
     return buffer[I];
 }
 template <std::size_t I, typename T, std::ptrdiff_t Extent, std::ptrdiff_t MaxBufferExtent>
-    gsl_NODISCARD constexpr std::enable_if_t<Extent != dynamic_extent, T const&>
-    get(fixed_buffer<T, Extent, MaxBufferExtent> const& buffer) noexcept
+gsl_NODISCARD constexpr std::enable_if_t<Extent != dynamic_extent, T const&>
+get(fixed_buffer<T, Extent, MaxBufferExtent> const& buffer) noexcept
 {
     static_assert(I < Extent, "index out of range");
     return buffer[I];

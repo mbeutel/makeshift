@@ -16,33 +16,23 @@
 namespace mk = makeshift;
 
 
-constexpr std::tuple<int, int> getTuple(void)
-{
-    return { 4, 2 };
-}
-
-/*static auto getTupleElement = [](auto indexR)
-{
-    return std::get<indexR()>(getTuple());
-};*/
-
 template <typename... Ts>
-    void discard_args(Ts...)
+void discard_args(Ts...)
 {
 }
 
 template <typename T, T V>
-    void expect_constval_normalization(std::integral_constant<T, V>)
+void expect_constval_normalization(std::integral_constant<T, V>)
 {
 }
 
 template <typename T, mk::as_dependent_type<T>... Vs>
-    void expect_array_constval_normalization(mk::array_constant<T, Vs...>)
+void expect_array_constval_normalization(mk::array_constant<T, Vs...>)
 {
 }
 
 template <typename T, mk::as_dependent_type<T>... Vs>
-    void expect_nested_array_constval_normalization(mk::array_constant<T, Vs...>)
+void expect_nested_array_constval_normalization(mk::array_constant<T, Vs...>)
 {
 #if gsl_CPP17_OR_GREATER
     (expect_array_constval_normalization(mk::c<T, Vs>), ...);
@@ -52,12 +42,12 @@ template <typename T, mk::as_dependent_type<T>... Vs>
 }
 
 template <typename... Cs>
-    void expect_tuple_constval_normalization(mk::tuple_constant<Cs...>)
+void expect_tuple_constval_normalization(mk::tuple_constant<Cs...>)
 {
 }
 
 template <typename... Cs>
-    void expect_array_tuple_constval_normalization(mk::tuple_constant<Cs...>)
+void expect_array_tuple_constval_normalization(mk::tuple_constant<Cs...>)
 {
 #if gsl_CPP17_OR_GREATER
     (expect_array_constval_normalization(Cs{ }), ...);
@@ -67,17 +57,17 @@ template <typename... Cs>
 }
 
 template <typename T>
-    void expect_type_tag(mk::type<T>)
+void expect_type_tag(mk::type<T>)
 {
 }
 
 template <typename... Ts>
-    void expect_type_sequence_tag(mk::type_sequence<Ts...>)
+void expect_type_sequence_tag(mk::type_sequence<Ts...>)
 {
 }
 
 template <typename C>
-    void expect_tuple_like(C c)
+void expect_tuple_like(C c)
 {
     (void) c;
 
@@ -112,7 +102,7 @@ enum class Color { red, green, blue };
 struct ToArrayTransform
 {
     template <typename T>
-        constexpr auto operator ()(T customTypeObj) const
+    constexpr auto operator ()(T customTypeObj) const
     {
         return std::array<T, 2>{ customTypeObj, customTypeObj };
     }
@@ -120,7 +110,7 @@ struct ToArrayTransform
 struct ToTupleTransform
 {
     template <typename T>
-        constexpr auto operator ()(T customTypeObj) const
+    constexpr auto operator ()(T customTypeObj) const
     {
         return std::tuple<T, T>{ customTypeObj, customTypeObj };
     }

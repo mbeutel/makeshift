@@ -11,17 +11,17 @@
     // inhibit inlining of the annotated function.
     //
 #if defined(_MSC_VER)
- #define MAKESHIFT_FORCEINLINE  __forceinline
- #define MAKESHIFT_NOINLINE     __declspec(noinline)
+# define MAKESHIFT_FORCEINLINE  __forceinline
+# define MAKESHIFT_NOINLINE     __declspec(noinline)
 #elif defined(__INTEL_COMPILER)
- #define MAKESHIFT_FORCEINLINE  __forceinline // TODO: ??
- #define MAKESHIFT_NOINLINE     __attribute__((noinline)) // TODO: ??
+# define MAKESHIFT_FORCEINLINE  __forceinline // TODO: ??
+# define MAKESHIFT_NOINLINE     __attribute__((noinline)) // TODO: ??
 #elif defined(__GNUC__)
- #define MAKESHIFT_FORCEINLINE  __attribute__((always_inline)) inline
- #define MAKESHIFT_NOINLINE     __attribute__((noinline))
+# define MAKESHIFT_FORCEINLINE  __attribute__((always_inline)) inline
+# define MAKESHIFT_NOINLINE     __attribute__((noinline))
 #else
- #define MAKESHIFT_FORCEINLINE  inline
- #define MAKESHIFT_NOINLINE
+# define MAKESHIFT_FORCEINLINE  inline
+# define MAKESHIFT_NOINLINE
 #endif
 
 

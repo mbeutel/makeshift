@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<NonUserCode xmlns="http://schemas.microsoft.com/vstudio/debugger/jmc/2013">
+
+  <File Name="*\makeshift\include\*"/>
+  
+  <!-- CRT Exception implementation-->
+  <Function Name="makeshift::detail::throw_error_handler::make_error" ExceptionImplementation="true" />
+  <Function Name="makeshift::detail::assert_error_handler::make_error" ExceptionImplementation="true" />
+</NonUserCode>

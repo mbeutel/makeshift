@@ -8,7 +8,7 @@
 
 
 template <typename A, typename B>
-    struct IsSame
+struct IsSame
 {
     static constexpr bool value = std::is_same<A, B>::value;
     static_assert(value, "static assertion failed");

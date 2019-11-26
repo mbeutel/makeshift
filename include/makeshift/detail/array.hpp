@@ -36,9 +36,9 @@ template <> struct homogeneous_arg_type_<array_index_t> { using type = std::ptrd
 template <typename F, std::size_t I, typename... Ts> struct result_type_ { using type = decltype(std::declval<F>()(makeshift::detail::get_element<I>(std::declval<Ts>())...)); };
 
 template <typename F, typename Is, typename... Ts>
-    struct result_types_;
+struct result_types_;
 template <typename F, std::size_t... Is, typename... Ts>
-    struct result_types_<F, std::index_sequence<Is...>, Ts...>
+struct result_types_<F, std::index_sequence<Is...>, Ts...>
 {
     using type = type_sequence<typename result_type_<F, Is, Ts...>::type...>;
 };
@@ -49,25 +49,25 @@ template <typename R, typename T> struct transfer_ref_<R const&, T> { using type
 template <typename R, typename T> struct transfer_ref_<R&&, T> { using type = T; };
 
 template <std::ptrdiff_t N, bool HomogeneousArgs, typename F, typename... Ts>
-    struct homogeneous_result_;
+struct homogeneous_result_;
 template <std::ptrdiff_t N, typename F, typename... Ts>
-    struct homogeneous_result_<N, true, F, Ts...>
+struct homogeneous_result_<N, true, F, Ts...>
 {
         // all arguments are array types or array indices, so we can just extract their value types
     using type = decltype(std::declval<F>()(std::declval<typename transfer_ref_<Ts, typename homogeneous_arg_type_<std::decay_t<Ts>>::type>::type>()...));
 };
 template <typename F, typename Rs, typename... Ts>
-    struct check_homogeneous_result_;
+struct check_homogeneous_result_;
 template <typename F, typename... Rs, typename... Ts>
-    struct check_homogeneous_result_<F, type_sequence<Rs...>, Ts...>
+struct check_homogeneous_result_<F, type_sequence<Rs...>, Ts...>
 {
     using Eq = equal_types_<Rs...>;
     static_assert(sizeof...(Rs) == 0 || Eq::value, "result types of functor must be identical for all sets of tuple elements");
     using type = typename Eq::common_type; // exists only if types are identical
 };
 template <std::ptrdiff_t N, typename F, typename... Ts>
-    struct homogeneous_result_<N, false, F, Ts...>
-        : check_homogeneous_result_<F, typename result_types_<F, std::make_index_sequence<N>, Ts...>::type, Ts...>
+struct homogeneous_result_<N, false, F, Ts...>
+    : check_homogeneous_result_<F, typename result_types_<F, std::make_index_sequence<N>, Ts...>::type, Ts...>
 {
         // some arguments are non-homogeneous, so we need to compute return types for all combinations and verify that they match exactly
 };
@@ -78,21 +78,21 @@ template <std::size_t N> struct array_for_index_arg<N, true> : std::integral_con
 template <std::size_t N> struct array_for_index_arg<N, false> : std::make_index_sequence<N> { };
 
 template <typename T>
-    constexpr decltype(auto)
-    makeshift_get_array_element(T&& arg, std::ptrdiff_t i)
+constexpr decltype(auto)
+makeshift_get_array_element(T&& arg, std::ptrdiff_t i)
 {
     return std::forward<T>(arg)[i];
 }
 template <typename T>
-    constexpr std::ptrdiff_t
-    makeshift_get_array_element(array_index_t, std::ptrdiff_t i)
+constexpr std::ptrdiff_t
+makeshift_get_array_element(array_index_t, std::ptrdiff_t i)
 {
     return i;
 }
 
 template <std::size_t N, typename F, typename... Ts>
-    constexpr void
-    template_for_impl(std::integral_constant<std::size_t, N>, F&& func, Ts&&... args)
+constexpr void
+template_for_impl(std::integral_constant<std::size_t, N>, F&& func, Ts&&... args)
 {
     for (std::ptrdiff_t i = 0; i < std::ptrdiff_t(N); ++i)
     {
@@ -101,8 +101,8 @@ template <std::size_t N, typename F, typename... Ts>
 }
 
 template <template <typename, std::size_t> class ArrayT, typename F, typename... Ts>
-    constexpr auto
-    array_transform_impl(std::index_sequence<>, F&&, Ts&&...)
+constexpr auto
+array_transform_impl(std::index_sequence<>, F&&, Ts&&...)
 {
     // extra overload to avoid unused-parameter warning
 
@@ -111,22 +111,22 @@ template <template <typename, std::size_t> class ArrayT, typename F, typename...
     return ArrayT<R, 0>{ };
 }
 template <template <typename, std::size_t> class ArrayT, std::size_t... Is, typename F, typename... Ts>
-    constexpr auto
-    array_transform_impl(std::index_sequence<Is...>, F&& func, Ts&&... args)
+constexpr auto
+array_transform_impl(std::index_sequence<Is...>, F&& func, Ts&&... args)
 {
     (void) func;
     using R = typename homogeneous_result_<sizeof...(Is), conjunction<is_homogeneous_arg_<std::decay_t<Ts>>...>::value, F, Ts...>::type;
     return ArrayT<R, sizeof...(Is)>{ makeshift::detail::transform_element<Is>(func, std::forward<Ts>(args)...)... };
 }
 template <template <typename, std::size_t> class ArrayT, typename R, typename F, typename... Ts>
-    constexpr auto
-    array_transform_to_impl(std::index_sequence<>, F&&, Ts&&...)
+constexpr auto
+array_transform_to_impl(std::index_sequence<>, F&&, Ts&&...)
 {
     return ArrayT<R, 0>{ }; // extra overload to avoid unused-parameter warning
 }
 template <template <typename, std::size_t> class ArrayT, typename R, std::size_t... Is, typename F, typename... Ts>
-    constexpr auto
-    array_transform_to_impl(std::index_sequence<Is...>, F&& func, Ts&&... args)
+constexpr auto
+array_transform_to_impl(std::index_sequence<Is...>, F&& func, Ts&&... args)
 {
     (void) func;
     return ArrayT<R, sizeof...(Is)>{ makeshift::detail::transform_element<Is>(func, std::forward<Ts>(args)...)... };
@@ -134,19 +134,19 @@ template <template <typename, std::size_t> class ArrayT, typename R, std::size_t
 
 #if gsl_CPP17_OR_GREATER
 template <typename R, typename... Ts>
-    constexpr R cadd(Ts... vs) noexcept
+constexpr R cadd(Ts... vs) noexcept
 {
     auto term = R{ 0 };
     return (vs + ... + term);
 }
 #else // gsl_CPP17_OR_GREATER
 template <typename R>
-    constexpr R cadd(void) noexcept
+constexpr R cadd(void) noexcept
 {
     return R{ 0 };
 }
 template <typename R, typename T0, typename... Ts>
-    constexpr R cadd(T0 v0, Ts... vs) noexcept
+constexpr R cadd(T0 v0, Ts... vs) noexcept
 {
     return v0 + cadd<R>(vs...);
 }
@@ -154,7 +154,7 @@ template <typename R, typename T0, typename... Ts>
 
     // Borrowing the 2-d indexing technique that first appeared in the `tuple_cat()` implementation of Microsoft's STL.
 template <std::size_t... Ns>
-    struct indices_2d_
+struct indices_2d_
 {
     static constexpr std::size_t size = cadd<std::size_t>(Ns...);
     static constexpr std::size_t row(std::size_t i) noexcept
@@ -182,7 +182,7 @@ template <std::size_t... Ns>
 };
 
 template <template <typename, std::size_t> class ArrayT, typename T, std::size_t... Is, typename IndicesT, typename... Ts>
-    constexpr ArrayT<T, IndicesT::size> array_cat_impl(std::index_sequence<Is...>, IndicesT, std::tuple<Ts...> tupleOfTuples)
+constexpr ArrayT<T, IndicesT::size> array_cat_impl(std::index_sequence<Is...>, IndicesT, std::tuple<Ts...> tupleOfTuples)
 {
     using std::get;
     return { get<IndicesT::col(Is)>(std::get<IndicesT::row(Is)>(tupleOfTuples))... };
