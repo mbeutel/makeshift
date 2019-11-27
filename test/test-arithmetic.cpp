@@ -2,7 +2,8 @@
 #include <array>
 #include <tuple>
 #include <limits>
-#include <cstdint> // for CHAR_BIT
+#include <climits> // for CHAR_BIT
+#include <cstdint>
 #include <sstream>
 
 #include <stdint.h>

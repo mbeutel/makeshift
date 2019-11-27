@@ -6,6 +6,7 @@
 #include <limits>
 #include <numeric>      // for gcd(), lcm()
 #include <cstdint>      // for [u]int(8|16|32|64)_t
+#include <climits>      // for CHAR_BIT
 #include <exception>    // for terminate()
 #include <type_traits>  // for integral_constant<>, make_unsigned<>, is_signed<>, is_integral<>, is_same<>
 #include <system_error> // for errc, system_error
@@ -718,7 +719,7 @@ constexpr result_t<EH, integral_value_type<X>> shift_right(X x, S s)
         // Note that we fail when shifting negative integers.
     Expects(x >= 0 && s >= 0);
 
-    if (s >= gsl::narrow_cast<integral_value_type<S>>(sizeof(X)*8)) return EH::make_error(std::errc::value_too_large);
+    if (s >= gsl::narrow_cast<integral_value_type<S>>(sizeof(X) * CHAR_BIT)) return EH::make_error(std::errc::value_too_large);
     return EH::make_result(V0(x >> s));
 }
 
@@ -731,7 +732,7 @@ constexpr result_t<EH, integral_value_type<X>> shift_left(X x, S s)
         // Note that we fail when shifting negative integers.
     Expects(x >= 0 && s >= 0);
 
-    if (s >= gsl::narrow_cast<integral_value_type<S>>(sizeof(V0)*8)
+    if (s >= gsl::narrow_cast<integral_value_type<S>>(sizeof(V0) * CHAR_BIT)
      || x > (max_v<V0> >> s))
     {
         return EH::make_error(std::errc::value_too_large);
