@@ -271,7 +271,8 @@ TEMPLATE_TEST_CASE("log_floori()", "[arithmetic]", int)
             Tuple{ iMax,     iMax,     1                                         },
             Tuple{ iMax - 1, iMax,     0                                         },
             Tuple{ iMax,     iMax - 1, 1                                         },
-            Tuple{ 1,        iMax,     1                                         }
+            Tuple{ 1,        iMax,     0                                         },
+            Tuple{ 2,        iMax,     0                                         }
         );
         TestType x, b, log;
         std::tie(x, b, log) = x_b_log;
@@ -298,7 +299,8 @@ TEMPLATE_TEST_CASE("log_ceili()", "[arithmetic]", int)
             Tuple{ iMax,     iMax,     1                                         },
             Tuple{ iMax - 1, iMax,     1                                         },
             Tuple{ iMax,     iMax - 1, 2                                         },
-            Tuple{ 1,        iMax,     1                                         }
+            Tuple{ 1,        iMax,     0                                         },
+            Tuple{ 2,        iMax,     1                                         }
         );
         TestType x, b, log;
         std::tie(x, b, log) = x_b_log;
