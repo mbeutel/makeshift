@@ -5,6 +5,7 @@ variables:
   vcpkgGitRef: f07efb4a1dfebf4f9d55308785e65c74b68de269
   vcpkgPortsOverlayRepo: 'https://mp-force.ziti.uni-heidelberg.de/asc/infrastructure/vcpkg-ports.git'
   vcpkgPortsOverlayRef: 7f5820dd97e8e0e9f8fe430686db3084bf23aa2d
+  vcpkgTripletSuffix: ''
   cmakeConfigArgs: '-DBUILD_TESTS=ON'
   revision: 4
 
@@ -17,9 +18,6 @@ pr:
 
 jobs:
   - job: Windows
-
-    variables:
-        vcpkgTripletSuffix: ''
 
     strategy:
       matrix: 
@@ -67,6 +65,7 @@ jobs:
 
     variables:
         vcpkgTripletSuffix: '-sanitize'
+        cmakeConfigArgs: '$(cmakeConfigArgs) -DCMAKESHIFT_PRIVATE_COMPILE_SETTINGS=runtime-checks;debug-stdlib'
 
     strategy:
       matrix: 
@@ -95,9 +94,6 @@ jobs:
       - template: azure-pipelines-linux.yml
 
   - job: MacOS
-
-    variables:
-        vcpkgTripletSuffix: ''
 
     strategy:
       matrix: 
