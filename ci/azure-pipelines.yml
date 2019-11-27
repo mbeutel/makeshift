@@ -65,7 +65,7 @@ jobs:
 
     variables:
         vcpkgTripletSuffix: '-sanitize'
-        cmakeConfigArgs: '$(cmakeConfigArgs) -DCMAKESHIFT_PRIVATE_COMPILE_SETTINGS=runtime-checks;debug-stdlib'
+        cmakeConfigArgs: '-DBUILD_TESTS=ON -DCMAKESHIFT_PRIVATE_COMPILE_SETTINGS=runtime-checks;debug-stdlib'
 
     strategy:
       matrix: 
