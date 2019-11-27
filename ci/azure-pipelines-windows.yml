@@ -2,7 +2,7 @@ steps:
   - task: CacheBeta@1
     displayName: Cache dependencies
     inputs:
-      key: '$(Build.SourcesDirectory)/ci/vcpkg.txt | "$(vcpkgGitRef)" | "$(vcpkgPortsOverlayRef)" | "$(Agent.OS)" | "$(Platform)" | "$(revision)"'
+      key: '$(Build.SourcesDirectory)/ci/vcpkg.txt | "$(vcpkgGitRef)" | "$(vcpkgPortsOverlayRef)" | "$(Platform)-$(Agent.OS)$(vcpkgTripletSuffix)" | "$(Compiler)" | "$(revision)"'
       path: '$(Build.BinariesDirectory)/dependencies'
       cacheHitVar: 'dependencyCacheHit'
 
@@ -15,7 +15,7 @@ steps:
   - powershell: |
       Write-Host "##vso[task.setvariable variable=Path]$(Build.BinariesDirectory)/dependencies/cmake/bin;${env:Path}"
       Write-Host "##vso[task.setvariable variable=VCPKG_ROOT]$(Build.BinariesDirectory)/dependencies/vcpkg"
-      Write-Host "##vso[task.setvariable variable=VCPKG_TRIPLET]$(Platform)-windows"
+      Write-Host "##vso[task.setvariable variable=VCPKG_TRIPLET]$(Platform)-windows$(vcpkgTripletSuffix)"
       if ("$(Compiler)" -eq "Clang") {
         #$vsPath = &"${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"  -latest -prerelease -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
         #$clangClPath = Join-Path $vsPath 'VC\Tools\Llvm\bin\clang-cl.exe'

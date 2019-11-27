@@ -21,7 +21,7 @@ steps:
       ln -s /usr/bin/cmake ~/bin/cmake
       echo "##vso[task.setvariable variable=PATH]$HOME/bin:${PATH}"
       echo "##vso[task.setvariable variable=VCPKG_ROOT]$(Build.BinariesDirectory)/dependencies/vcpkg"
-      echo "##vso[task.setvariable variable=VCPKG_TRIPLET]$(Platform)-linux"
+      echo "##vso[task.setvariable variable=VCPKG_TRIPLET]$(Platform)-linux$(vcpkgTripletSuffix)"
       if [ "$(Compiler)" = "GCC" ]; then
         echo "##vso[task.setvariable variable=CC]gcc-9"
         echo "##vso[task.setvariable variable=CXX]g++-9"
@@ -34,7 +34,7 @@ steps:
   - task: CacheBeta@1
     displayName: Cache dependencies
     inputs:
-      key: '$(Build.SourcesDirectory)/ci/vcpkg.txt | "$(vcpkgGitRef)" | "$(vcpkgPortsOverlayRef)" | "$(Agent.OS)" | "$(Platform)" | "$(Compiler)" | "$(revision)"'
+      key: '$(Build.SourcesDirectory)/ci/vcpkg.txt | "$(vcpkgGitRef)" | "$(vcpkgPortsOverlayRef)" | "$(Platform)-$(Agent.OS)$(vcpkgTripletSuffix)" | "$(Compiler)" | "$(revision)"'
       path: '$(Build.BinariesDirectory)/dependencies'
       cacheHitVar: 'dependencyCacheHit'
 

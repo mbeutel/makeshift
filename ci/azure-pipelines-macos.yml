@@ -6,7 +6,7 @@ steps:
 
   - script: |
       echo "##vso[task.setvariable variable=VCPKG_ROOT]$(Build.BinariesDirectory)/dependencies/vcpkg"
-      echo "##vso[task.setvariable variable=VCPKG_TRIPLET]$(Platform)-osx"
+      echo "##vso[task.setvariable variable=VCPKG_TRIPLET]$(Platform)-osx$(vcpkgTripletSuffix)"
       if [ "$(Compiler)" == "GCC" ]; then
         echo "##vso[task.setvariable variable=CXXFLAGS_OLD]$CXXFLAGS"
         echo "##vso[task.setvariable variable=CXXFLAGS]$CXXFLAGS -fvisibility=hidden -fvisibility-inlines-hidden"
@@ -18,7 +18,7 @@ steps:
   - task: CacheBeta@1
     displayName: Cache dependencies
     inputs:
-      key: '$(Build.SourcesDirectory)/ci/vcpkg.txt | "$(vcpkgGitRef)" | "$(vcpkgPortsOverlayRef)" | "$(Agent.OS)" | "$(Platform)" | "$(revision)"'
+      key: '$(Build.SourcesDirectory)/ci/vcpkg.txt | "$(vcpkgGitRef)" | "$(vcpkgPortsOverlayRef)" | "$(Platform)-$(Agent.OS)$(vcpkgTripletSuffix)" | "$(Compiler)" | "$(revision)"'
       path: '$(Build.BinariesDirectory)/dependencies'
       cacheHitVar: 'dependencyCacheHit'
 
