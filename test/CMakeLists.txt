@@ -25,15 +25,12 @@ if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.16)
             # C++ standard library
             <array>
             <tuple>
-            <limits>
             <iosfwd>
             <utility>
-            <numeric>
-            <iterator>
-            <algorithm>
+            <iterator>  # TODO: ?
+            <algorithm> # TODO: ?
             <exception>
             <type_traits>
-            <system_error>
             # other libraries
             <gsl/gsl-lite.hpp>
             <catch2/catch.hpp>)
@@ -45,7 +42,6 @@ add_library(test-makeshift-runner OBJECT
 
 # test targets
 add_executable(test-makeshift-cxx14
-    "test-arithmetic.cpp"
     "test-array.cpp"
     "test-buffer.cpp"
     "test-constval.cpp"
@@ -59,7 +55,6 @@ add_executable(test-makeshift-cxx14
     "test-type_traits.cpp"
     "test-utility.cpp")
 add_executable(test-makeshift-cxx17
-    "test-arithmetic.cpp"
     "test-constval.cpp"
     "test-variant.cpp")
 add_executable(test-makeshift-cxx20
