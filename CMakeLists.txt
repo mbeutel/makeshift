@@ -11,11 +11,11 @@ project(makeshift
     LANGUAGES CXX)
 
 # Define build options.
-option(BUILD_TESTS "Build tests" OFF)
+option(MAKESHIFT_BUILD_TESTS "Build tests" OFF)
 
 # Include target definitions.
 add_subdirectory(src)
-if(BUILD_TESTS)
+if(MAKESHIFT_BUILD_TESTS)
     enable_testing()
     add_subdirectory(test)
 endif()

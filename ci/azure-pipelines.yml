@@ -6,7 +6,7 @@ variables:
   vcpkgPortsOverlayRepo: 'https://mp-force.ziti.uni-heidelberg.de/asc/infrastructure/vcpkg-ports.git'
   vcpkgPortsOverlayRef: 7f5820dd97e8e0e9f8fe430686db3084bf23aa2d
   vcpkgTripletSuffix: ''
-  cmakeConfigArgs: '-DBUILD_TESTS=ON'
+  cmakeConfigArgs: '-DMAKESHIFT_BUILD_TESTS=ON'
   revision: 4
 
 trigger:
@@ -65,7 +65,7 @@ jobs:
 
     variables:
         vcpkgTripletSuffix: '-sanitize'
-        cmakeConfigArgs: '-DBUILD_TESTS=ON -DCMAKESHIFT_PRIVATE_COMPILE_SETTINGS=runtime-checks;debug-stdlib'
+        cmakeConfigArgs: '-DMAKESHIFT_BUILD_TESTS=ON -DCMAKESHIFT_PRIVATE_COMPILE_SETTINGS=runtime-checks;debug-stdlib'
 
     strategy:
       matrix: 
