@@ -24,7 +24,7 @@ namespace makeshift
     // Use `type_c<T>` as a value representation of `T` for tag dispatching.
     //
 template <typename T>
-struct type_tag : makeshift::detail::type_base<T>
+struct type_tag : detail::type_base<T>
 {
     constexpr type_tag operator ()(void) const noexcept
     {
@@ -33,17 +33,17 @@ struct type_tag : makeshift::detail::type_base<T>
 
         // This conversion exists so expressions of type `type<>` can be used as case labels of switch statements over type enums.
     template <typename EnumT,
-              typename TypeEnumTypeT = decltype(type_enum_type_of_(std::declval<EnumT>(), makeshift::detail::unwrap_enum_tag{ })),
-              std::enable_if_t<makeshift::detail::try_index_of_type_in<T, typename TypeEnumTypeT::type::types>::value != -1, int> = 0>
+              typename TypeEnumTypeT = decltype(type_enum_type_of_(std::declval<EnumT>(), detail::unwrap_enum_tag{ })),
+              std::enable_if_t<detail::try_index_of_type_in<T, typename TypeEnumTypeT::type::types>::value != -1, int> = 0>
     constexpr operator EnumT(void) const noexcept
     {
-        return EnumT(int(makeshift::detail::try_index_of_type_in<T, typename TypeEnumTypeT::type::types>::value));
+        return EnumT(int(detail::try_index_of_type_in<T, typename TypeEnumTypeT::type::types>::value));
     }
 
         // This must be a proxy type to work around the problem that a class cannot have a static constexpr member of its own type.
-    static constexpr makeshift::detail::type_tag_proxy<T> value{ };
+    static constexpr detail::type_tag_proxy<T> value{ };
 };
-template <typename T> constexpr makeshift::detail::type_tag_proxy<T> type_tag<T>::value;
+template <typename T> constexpr detail::type_tag_proxy<T> type_tag<T>::value;
 
     //ᅟ
     // Generic type tag.
@@ -82,7 +82,7 @@ constexpr type<T> type_c { };
     // Type sequence, i.e. type list and tuple of `type<>` arguments.
     //
 template <typename... Ts>
-struct type_sequence : makeshift::detail::constval_tag
+struct type_sequence : detail::constval_tag
 {
     constexpr type_sequence(void) noexcept { }
     constexpr type_sequence(type<Ts>...) noexcept { }
@@ -93,7 +93,7 @@ struct type_sequence : makeshift::detail::constval_tag
     }
 };
 template <>
-struct type_sequence<> : makeshift::detail::constval_tag
+struct type_sequence<> : detail::constval_tag
 {
     constexpr type_sequence(void) noexcept { }
 
@@ -131,7 +131,7 @@ constexpr type_sequence<Ts...> make_type_sequence(type<Ts>...) noexcept
     // Returns the `I`-th element in the type sequence.
     //
 template <std::size_t I, typename... Ts>
-constexpr type<typename makeshift::detail::nth_type_<I, Ts...>::type> get(type_sequence<Ts...> const&) noexcept
+constexpr type<typename detail::nth_type_<I, Ts...>::type> get(type_sequence<Ts...> const&) noexcept
 {
     static_assert(I < sizeof...(Ts), "tuple index out of range");
     return { };
@@ -143,7 +143,7 @@ constexpr type<typename makeshift::detail::nth_type_<I, Ts...>::type> get(type_s
 template <typename T, typename... Ts>
 constexpr type<T> get(type_sequence<Ts...> const&) noexcept
 {
-	constexpr std::size_t index = makeshift::detail::try_index_of_type<T, Ts...>::value;
+	constexpr std::size_t index = detail::try_index_of_type<T, Ts...>::value;
     static_assert(index != std::size_t(-1), "type T does not appear in type sequence");
     return { };
 }
@@ -152,7 +152,7 @@ constexpr type<T> get(type_sequence<Ts...> const&) noexcept
     //ᅟ
     // Concatenates a sequence of type sequences.
     //
-template <typename... Ts> struct type_sequence_cat : makeshift::detail::type_sequence_cat_<type_sequence<>, Ts...> { };
+template <typename... Ts> struct type_sequence_cat : detail::type_sequence_cat_<type_sequence<>, Ts...> { };
 
     //ᅟ
     // Concatenates a sequence of type sequences.
@@ -166,7 +166,7 @@ template <typename... Ts> using type_sequence_cat_t = typename type_sequence_cat
 template <typename ContainerT>
 gsl_NODISCARD constexpr auto csize(ContainerT const& c)
 {
-    return makeshift::detail::csize_impl(makeshift::detail::can_instantiate_<makeshift::detail::is_tuple_like_r, void, ContainerT>{ }, c);
+    return detail::csize_impl(detail::can_instantiate_<detail::is_tuple_like_r, void, ContainerT>{ }, c);
 }
 
     //ᅟ
@@ -185,7 +185,7 @@ gsl_NODISCARD constexpr std::integral_constant<std::size_t, N> csize(T const (&)
 template <typename ContainerT>
 gsl_NODISCARD constexpr auto cssize(ContainerT const& c)
 {
-    return makeshift::detail::cssize_impl(makeshift::detail::can_instantiate_<makeshift::detail::is_tuple_like_r, void, ContainerT>{ }, c);
+    return detail::cssize_impl(detail::can_instantiate_<detail::is_tuple_like_r, void, ContainerT>{ }, c);
 }
 
     //ᅟ

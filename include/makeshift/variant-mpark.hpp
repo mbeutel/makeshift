@@ -37,12 +37,12 @@ namespace mpark
     //ᅟ        bitsV);
     //
 template <typename T, typename ValuesC>
-gsl_NODISCARD constexpr typename makeshift::detail::constval_variant_map<::mpark::variant, ValuesC>::type
+gsl_NODISCARD constexpr typename detail::constval_variant_map<::mpark::variant, ValuesC>::type
 expand(T const& value, ValuesC valuesC)
 {
-    std::ptrdiff_t index = makeshift::detail::search_value_index(value, valuesC);
+    std::ptrdiff_t index = detail::search_value_index(value, valuesC);
     Expects(index >= 0);
-    return makeshift::detail::constval_variant_map<::mpark::variant, ValuesC>::values[index];
+    return detail::constval_variant_map<::mpark::variant, ValuesC>::values[index];
 }
 
     //ᅟ
@@ -67,7 +67,7 @@ gsl_NODISCARD constexpr auto
 expand(T const& value)
 {
     static_assert(have_values_of_v<T>, "expand() cannot find admissible values");
-    return makeshift::mpark::expand(value, makeshift::make_constval_t<makeshift::detail::values_of_<T>>{ });
+    return makeshift::mpark::expand(value, makeshift::make_constval_t<detail::values_of_<T>>{ });
 }
 
     //ᅟ
@@ -86,12 +86,12 @@ expand(T const& value)
     //ᅟ        bitsVO.value());
     //
 //template <typename T, typename ValuesC>
-//gsl_NODISCARD constexpr std::optional<typename makeshift::detail::constval_variant_map<::mpark::variant, ValuesC>::type>
+//gsl_NODISCARD constexpr std::optional<typename detail::constval_variant_map<::mpark::variant, ValuesC>::type>
 //try_expand(T const& value, ValuesC valuesC)
 //{
-//    std::ptrdiff_t index = makeshift::detail::search_value_index(value, valuesC);
+//    std::ptrdiff_t index = detail::search_value_index(value, valuesC);
 //    if (index < 0) return std::nullopt;
-//    return { makeshift::detail::constval_variant_map<::mpark::variant, ValuesC>::values[index] };
+//    return { detail::constval_variant_map<::mpark::variant, ValuesC>::values[index] };
 //}
 
     //ᅟ
@@ -117,7 +117,7 @@ expand(T const& value)
 //try_expand(T const& value)
 //{
 //    static_assert(have_values_of_v<T>, "try_expand() cannot find admissible values");
-//    return makeshift::mpark::try_expand(value, makeshift::make_constval_t<makeshift::detail::values_of_<T>>{ });
+//    return makeshift::mpark::try_expand(value, makeshift::make_constval_t<detail::values_of_<T>>{ });
 //}
 
     //ᅟ
@@ -135,12 +135,12 @@ expand(T const& value)
     //ᅟ        bitsV);
     //
 template <typename T, typename ValuesC>
-gsl_NODISCARD constexpr typename makeshift::detail::constval_variant_map<::mpark::variant, ValuesC>::type
+gsl_NODISCARD constexpr typename detail::constval_variant_map<::mpark::variant, ValuesC>::type
 expand_or_throw(T const& value, ValuesC valuesC)
 {
-    std::ptrdiff_t index = makeshift::detail::search_value_index(value, valuesC);
+    std::ptrdiff_t index = detail::search_value_index(value, valuesC);
     if (index < 0) throw unsupported_runtime_value{ };
-    return makeshift::detail::constval_variant_map<::mpark::variant, ValuesC>::values[index];
+    return detail::constval_variant_map<::mpark::variant, ValuesC>::values[index];
 }
 
     //ᅟ
@@ -165,7 +165,7 @@ gsl_NODISCARD constexpr auto
 expand_or_throw(T const& value)
 {
     static_assert(have_values_of_v<T>, "expand_or_throw() cannot find admissible values");
-    return makeshift::mpark::expand_or_throw(value, makeshift::make_constval_t<makeshift::detail::values_of_<T>>{ });
+    return makeshift::mpark::expand_or_throw(value, makeshift::make_constval_t<detail::values_of_<T>>{ });
 }
 
 
@@ -207,12 +207,12 @@ visit(F&& func, Vs&&... args)
     //ᅟ
     // Given an argument of type `mpark::variant<Ts...>`, this is `mpark::variant<::mpark::monostate, Ts...>`.
     //
-//template <typename V> using with_monostate = typename makeshift::detail::with_monostate_<::mpark::variant, ::mpark::monostate, V>::type;
+//template <typename V> using with_monostate = typename detail::with_monostate_<::mpark::variant, ::mpark::monostate, V>::type;
 
     //ᅟ
     // Given an argument of type `mpark::variant<::mpark::monostate, Ts...>`, this is `mpark::variant<Ts...>`.
     //
-//template <typename V> using without_monostate = typename makeshift::detail::without_monostate_<::mpark::variant, ::mpark::monostate, V>::type;
+//template <typename V> using without_monostate = typename detail::without_monostate_<::mpark::variant, ::mpark::monostate, V>::type;
 
     //ᅟ
     // Casts an argument of type `mpark::variant<Ts...>` to the given variant type.
@@ -245,7 +245,7 @@ visit(F&& func, Vs&&... args)
 //    }
 //#if !(defined(_MSC_VER) && defined(__INTELLISENSE__))
 //    return std::optional<R>(::mpark::visit(
-//        makeshift::detail::monostate_filtering_visitor<::mpark::monostate, R>{ },
+//        detail::monostate_filtering_visitor<::mpark::monostate, R>{ },
 //        std::forward<V>(variantWithMonostate)));
 //#endif // MAKESHIFT_INTELLISENSE
 //}
@@ -280,7 +280,7 @@ variant_transform(F&& func, Vs&&... args)
     // detail) and hence cannot be reliably predicted by the caller.
 
 #if !(defined(_MSC_VER) && defined(__INTELLISENSE__))
-    using R = makeshift::detail::variant_transform_result<::mpark::variant, F, Vs...>;
+    using R = detail::variant_transform_result<::mpark::variant, F, Vs...>;
     return ::mpark::visit(
         [func = std::forward<F>(func)]
         (auto&&... args) -> R
@@ -301,7 +301,7 @@ gsl_NODISCARD constexpr decltype(auto)
 variant_transform_many(F&& func, Vs&&... args)
 {
 #if !(defined(_MSC_VER) && defined(__INTELLISENSE__))
-    using R = makeshift::detail::variant_transform_many_result<::mpark::variant, F, Vs...>;
+    using R = detail::variant_transform_many_result<::mpark::variant, F, Vs...>;
     return ::mpark::visit(
         [func = std::forward<F>(func)]
         (auto&&... args) -> R
@@ -321,7 +321,7 @@ variant_transform_many(F&& func, Vs&&... args)
     //ᅟ
     // Concatenates the alternatives in the given variants.
     //
-//template <typename... Vs> using variant_cat_t = typename makeshift::detail::variant_cat_<::mpark::variant, Vs...>::type;
+//template <typename... Vs> using variant_cat_t = typename detail::variant_cat_<::mpark::variant, Vs...>::type;
 
 
 } // namespace mpark

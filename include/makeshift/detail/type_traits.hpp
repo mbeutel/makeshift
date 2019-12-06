@@ -28,10 +28,10 @@ template <bool V0, typename T0, typename... Ts> struct conjunction_ { using type
 template <typename T0, typename T1, typename... Ts> struct conjunction_<true, T0, T1, Ts...> : conjunction_<T1::value, T1, Ts...> { };
 template <typename... Ts> struct disjunction;
 template <> struct disjunction<> : std::false_type { };
-template <typename T0, typename... Ts> struct disjunction<T0, Ts...> : makeshift::detail::disjunction_<T0::value, T0, Ts...>::type { };
+template <typename T0, typename... Ts> struct disjunction<T0, Ts...> : detail::disjunction_<T0::value, T0, Ts...>::type { };
 template <typename... Ts> struct conjunction;
 template <> struct conjunction<> : std::true_type { };
-template <typename T0, typename... Ts> struct conjunction<T0, Ts...> : makeshift::detail::conjunction_<T0::value, T0, Ts...>::type { };
+template <typename T0, typename... Ts> struct conjunction<T0, Ts...> : detail::conjunction_<T0::value, T0, Ts...>::type { };
 
 
 struct type_enum_base { };
@@ -67,14 +67,14 @@ static type_pack_no_match select_type_seq_entry_by_type(...);
 template <std::size_t I, typename... Ts>
 struct type_pack_element_
 {
-    using index_base = decltype(makeshift::detail::select_type_seq_entry_by_idx<I>(type_pack_indexer<std::make_index_sequence<sizeof...(Ts)>, Ts...>{ }));
+    using index_base = decltype(detail::select_type_seq_entry_by_idx<I>(type_pack_indexer<std::make_index_sequence<sizeof...(Ts)>, Ts...>{ }));
     using type = typename index_base::type;
 };
 
 template <typename T, typename... Ts>
 struct try_type_pack_index_
 {
-    using index_base = decltype(makeshift::detail::select_type_seq_entry_by_type<T>(type_pack_indexer<std::make_index_sequence<sizeof...(Ts)>, Ts...>{ }));
+    using index_base = decltype(detail::select_type_seq_entry_by_type<T>(type_pack_indexer<std::make_index_sequence<sizeof...(Ts)>, Ts...>{ }));
     static constexpr std::size_t value = index_base::index;
 };
 
@@ -101,7 +101,7 @@ template <std::size_t I, typename... Ts> using nth_type_ = type_pack_element_<I,
 
 #undef MAKESHIFT_BUILTIN_TYPE_PACK_ELEMENT_
 
-template <typename T, typename... Ts> using try_index_of_type = std::integral_constant<std::size_t, makeshift::detail::try_type_pack_index_<T, Ts...>::value>;
+template <typename T, typename... Ts> using try_index_of_type = std::integral_constant<std::size_t, detail::try_type_pack_index_<T, Ts...>::value>;
 
 template <template <typename...> class Z, typename SeqT> struct instantiate_;
 template <template <typename...> class Z, template <typename...> class SeqT, typename... Ts> struct instantiate_<Z, SeqT<Ts...>> { using type = Z<Ts...>; };

@@ -33,7 +33,7 @@ template <typename T> struct homogeneous_arg_type_ { using type = std::decay_t<i
 template <> struct homogeneous_arg_type_<array_index_t> { using type = std::ptrdiff_t; };
 
 
-template <typename F, std::size_t I, typename... Ts> struct result_type_ { using type = decltype(std::declval<F>()(makeshift::detail::get_element<I>(std::declval<Ts>())...)); };
+template <typename F, std::size_t I, typename... Ts> struct result_type_ { using type = decltype(std::declval<F>()(detail::get_element<I>(std::declval<Ts>())...)); };
 
 template <typename F, typename Is, typename... Ts>
 struct result_types_;
@@ -116,7 +116,7 @@ array_transform_impl(std::index_sequence<Is...>, F&& func, Ts&&... args)
 {
     (void) func;
     using R = typename homogeneous_result_<sizeof...(Is), conjunction<is_homogeneous_arg_<std::decay_t<Ts>>...>::value, F, Ts...>::type;
-    return ArrayT<R, sizeof...(Is)>{ makeshift::detail::transform_element<Is>(func, std::forward<Ts>(args)...)... };
+    return ArrayT<R, sizeof...(Is)>{ detail::transform_element<Is>(func, std::forward<Ts>(args)...)... };
 }
 template <template <typename, std::size_t> class ArrayT, typename R, typename F, typename... Ts>
 constexpr auto
@@ -129,7 +129,7 @@ constexpr auto
 array_transform_to_impl(std::index_sequence<Is...>, F&& func, Ts&&... args)
 {
     (void) func;
-    return ArrayT<R, sizeof...(Is)>{ makeshift::detail::transform_element<Is>(func, std::forward<Ts>(args)...)... };
+    return ArrayT<R, sizeof...(Is)>{ detail::transform_element<Is>(func, std::forward<Ts>(args)...)... };
 }
 
 #if gsl_CPP17_OR_GREATER

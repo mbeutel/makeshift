@@ -28,7 +28,7 @@ template <typename T, typename = void> struct values_provider { };
     //ᅟ
     // Determines if a `std::array<>` of possible values of type `T` can be retrieved with `values_of<>`.
     //
-template <typename T> struct have_values_of : can_instantiate<makeshift::detail::values_of_r, T> { };
+template <typename T> struct have_values_of : can_instantiate<detail::values_of_r, T> { };
 
     //ᅟ
     // Determines if a `std::array<>` of possible values of type `T` can be retrieved with `values_of<>`.
@@ -43,7 +43,7 @@ template <typename T> constexpr bool have_values_of_v = have_values_of<T>::value
     //ᅟ    enum Color { red, green, blue };
     //ᅟ    constexpr auto reflect_values(type<Color>) { return std::array{ red, green, blue }; }
     //
-template <typename T> constexpr makeshift::detail::values_of_r<T> values_of = makeshift::detail::values_of_<T>{ }();
+template <typename T> constexpr detail::values_of_r<T> values_of = detail::values_of_<T>{ }();
 
 
 } // namespace makeshift

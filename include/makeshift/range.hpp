@@ -26,9 +26,9 @@ namespace makeshift
     // Represents a pair of iterators.
     //
 template <typename It, typename EndIt = It, std::ptrdiff_t Extent = -1>
-class range : public makeshift::detail::range_base<It, EndIt, makeshift::detail::range_iterator_tag<It>, Extent>
+class range : public detail::range_base<It, EndIt, detail::range_iterator_tag<It>, Extent>
 {
-    using base = makeshift::detail::range_base<It, EndIt, makeshift::detail::range_iterator_tag<It>, Extent>;
+    using base = detail::range_base<It, EndIt, detail::range_iterator_tag<It>, Extent>;
 
 public:
     constexpr range(It first, EndIt last)
@@ -40,7 +40,7 @@ public:
     constexpr range(It start, ExtentC extentC)
         : base(start, start + extentC)
     {
-        constexpr std::ptrdiff_t rhsExtent = makeshift::detail::range_extent_from_constval(ExtentC{ });
+        constexpr std::ptrdiff_t rhsExtent = detail::range_extent_from_constval(ExtentC{ });
         static_assert(Extent == -1 || rhsExtent == -1 || Extent == rhsExtent, "static extents must match");
         Expects(Extent == -1 || static_cast<std::ptrdiff_t>(extentC) == Extent);
     }
@@ -49,7 +49,7 @@ public:
 template <typename It, typename EndIt>
 range(It, EndIt) -> range<It, std::enable_if_t<!std::is_convertible<EndIt, std::size_t>::value, EndIt>, -1>;
 template <typename It, typename ExtentC>
-range(It, ExtentC) -> range<It, std::enable_if_t<!std::is_convertible<ExtentC, std::size_t>::value, It>, makeshift::detail::range_extent_from_constval(ExtentC{ })>;
+range(It, ExtentC) -> range<It, std::enable_if_t<!std::is_convertible<ExtentC, std::size_t>::value, It>, detail::range_extent_from_constval(ExtentC{ })>;
 #endif // gsl_CPP17_OR_GREATER
 
     //ᅟ
@@ -68,7 +68,7 @@ make_range(It first, EndIt last)
     // Construct a range from an iterator and an extent.
     //
 template <typename It, typename ExtentC>
-gsl_NODISCARD std::enable_if_t<!std::is_convertible<ExtentC, std::size_t>::value, range<It, It, makeshift::detail::range_extent_from_constval(ExtentC{ })>>
+gsl_NODISCARD std::enable_if_t<!std::is_convertible<ExtentC, std::size_t>::value, range<It, It, detail::range_extent_from_constval(ExtentC{ })>>
 make_range(It start, ExtentC extentC)
 {
     return { std::move(start), extentC };

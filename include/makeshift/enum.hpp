@@ -52,7 +52,7 @@ gsl_NODISCARD constexpr bool
 has_flag(EnumT haystack, EnumT needle)
 {
     static_assert(is_bitmask_type_v<EnumT>, "arguments must be of bitmask type");
-    Expects(makeshift::detail::is_flag_power_of_2(std::underlying_type_t<EnumT>(needle)));
+    Expects(detail::is_flag_power_of_2(std::underlying_type_t<EnumT>(needle)));
     return (haystack & needle) == needle;
 }
     
@@ -94,15 +94,15 @@ has_all_flags_of(EnumT haystack, EnumT needles)
     //ᅟ    }
     //
 template <typename TypeEnumT, typename... Ts>
-struct define_type_enum : makeshift::detail::define_type_enum_base<TypeEnumT, Ts...>
+struct define_type_enum : detail::define_type_enum_base<TypeEnumT, Ts...>
 {
-    using _base_base = makeshift::detail::define_type_enum_base<TypeEnumT, Ts...>;
+    using _base_base = detail::define_type_enum_base<TypeEnumT, Ts...>;
     using _base_base::_base_base;
     using base = define_type_enum;
 };
 
 template <typename TypeEnumT>
-struct underlying_type<TypeEnumT, std::enable_if_t<std::is_base_of<makeshift::detail::type_enum_base, TypeEnumT>::value>>
+struct underlying_type<TypeEnumT, std::enable_if_t<std::is_base_of<detail::type_enum_base, TypeEnumT>::value>>
 {
     using type = typename TypeEnumT::underlying_type;
 };

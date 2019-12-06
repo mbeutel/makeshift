@@ -244,7 +244,7 @@ constexpr V get_hvalue_impl(std::false_type /*constvalArg*/, V const& arg)
 template <typename H>
 constexpr auto get_hvalue(H const& arg)
 {
-    return makeshift::detail::get_hvalue_impl(is_constval_<H>{ }, arg);
+    return detail::get_hvalue_impl(is_constval_<H>{ }, arg);
 }
 
 
@@ -265,7 +265,7 @@ constexpr auto constval_transform_impl(std::true_type /*constvalArgs*/, Cs const
 template <typename F, typename... Cs>
 constexpr auto constval_transform_impl(std::false_type /*constvalArgs*/, Cs const&... args)
 {
-    return F{ }(makeshift::detail::get_hvalue(args)...);
+    return F{ }(detail::get_hvalue(args)...);
 }
 
 

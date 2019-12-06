@@ -37,24 +37,24 @@ TEST_CASE("tuple", "[flags]")
         }, result_tuple, lhs_tuple, mk::tuple_index);
         CHECK(result_tuple == std::make_tuple(11, 121, 231));
     }
-    SECTION("fold")
+    SECTION("reduce")
     {
-        int sum = mk::tuple_reduce(numbers, 0, std::plus<int>{ });
+        int sum = mk::template_reduce(0, std::plus<int>{ }, numbers);
         CHECK(sum == 5);
     }
     SECTION("all/any/none")
     {
-        bool allGreaterThan0 = mk::tuple_all_of(numbers, [](auto x) { return x > 0; });
+        bool allGreaterThan0 = mk::template_all_of([](auto x) { return x > 0; }, numbers);
         CHECK(allGreaterThan0);
-        bool allGreaterThan2 = mk::tuple_all_of(numbers, [](auto x) { return x > 2; });
+        bool allGreaterThan2 = mk::template_all_of([](auto x) { return x > 2; }, numbers);
         CHECK_FALSE(allGreaterThan2);
-        bool anyGreaterThan2 = mk::tuple_any_of(numbers, [](auto x) { return x > 2; });
+        bool anyGreaterThan2 = mk::template_any_of([](auto x) { return x > 2; }, numbers);
         CHECK(anyGreaterThan2);
-        bool anyGreaterThan4 = mk::tuple_any_of(numbers, [](auto x) { return x > 4; });
+        bool anyGreaterThan4 = mk::template_any_of([](auto x) { return x > 4; }, numbers);
         CHECK_FALSE(anyGreaterThan4);
-        bool noneGreaterThan2 = mk::tuple_none_of(numbers, [](auto x) { return x > 2; });
+        bool noneGreaterThan2 = mk::template_none_of([](auto x) { return x > 2; }, numbers);
         CHECK_FALSE(noneGreaterThan2);
-        bool noneGreaterThan4 = mk::tuple_none_of(numbers, [](auto x) { return x > 4; });
+        bool noneGreaterThan4 = mk::template_none_of([](auto x) { return x > 4; }, numbers);
         CHECK(noneGreaterThan4);
     }
 }

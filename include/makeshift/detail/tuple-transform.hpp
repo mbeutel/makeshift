@@ -98,7 +98,7 @@ template <std::size_t I, typename... Ts, typename F>
 constexpr decltype(auto)
 transform_element(F&& func, Ts&&... args)
 {
-    return func(makeshift::detail::get_element<I>(std::forward<Ts>(args))...);
+    return func(detail::get_element<I>(std::forward<Ts>(args))...);
 }
 
 template <typename F, typename... Ts>
@@ -114,7 +114,7 @@ template_for_impl(std::index_sequence<Is...>, F&& func, Ts&&... args)
     (void) func;
     using Swallow = int[];
     (void) Swallow{ 1,
-        (makeshift::detail::transform_element<Is>(func, std::forward<Ts>(args)...), void(), int{ })...
+        (detail::transform_element<Is>(func, std::forward<Ts>(args)...), void(), int{ })...
     };
 }
 

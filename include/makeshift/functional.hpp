@@ -94,12 +94,12 @@ public:
     template <typename... ArgsT>
     constexpr decltype(auto) operator()(ArgsT&&... args)
     {
-        return func_(makeshift::detail::y_combinator_func_ref<F&>{ func_ }, std::forward<ArgsT>(args)...);
+        return func_(detail::y_combinator_func_ref<F&>{ func_ }, std::forward<ArgsT>(args)...);
     }
     template <typename... ArgsT>
     constexpr decltype(auto) operator()(ArgsT&&... args) const
     {
-        return func_(makeshift::detail::y_combinator_func_ref<F const&>{ func_ }, std::forward<ArgsT>(args)...);
+        return func_(detail::y_combinator_func_ref<F const&>{ func_ }, std::forward<ArgsT>(args)...);
     }
 };
 #if gsl_CPP17_OR_GREATER

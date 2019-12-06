@@ -50,10 +50,10 @@ struct default_values<std::nullptr_t>
 };
 
 
-template <typename T> using reflect_values_r = decltype(makeshift::detail::reflect_values_check_type<T>(reflect_values(type_c<T>)));
+template <typename T> using reflect_values_r = decltype(detail::reflect_values_check_type<T>(reflect_values(type_c<T>)));
 template <typename T> using default_values_r = decltype(default_values<T>{ }());
-template <typename T> using have_reflect_values = can_instantiate<makeshift::detail::reflect_values_r, T>;
-template <typename T> using have_default_values = can_instantiate<makeshift::detail::default_values_r, T>;
+template <typename T> using have_reflect_values = can_instantiate<detail::reflect_values_r, T>;
+template <typename T> using have_default_values = can_instantiate<detail::default_values_r, T>;
 
 template <bool HaveReflectValues, typename T> struct values_of_1_;
 template <typename T>

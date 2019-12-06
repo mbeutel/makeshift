@@ -128,7 +128,7 @@ get(range_base<It, It, std::random_access_iterator_tag, Extent>& range) noexcept
     return range[I];
 }
 template <std::size_t I, typename It, std::ptrdiff_t Extent>
-gsl_NODISCARD constexpr std::enable_if_t<(Extent >= 0), decltype(makeshift::detail::as_const(*std::declval<It>()))>
+gsl_NODISCARD constexpr std::enable_if_t<(Extent >= 0), decltype(detail::as_const(*std::declval<It>()))>
 get(range_base<It, It, std::random_access_iterator_tag, Extent> const& range) noexcept
 {
     static_assert(I < std::size_t(Extent), "index out of range");

@@ -56,7 +56,7 @@ template <bool Value> using bool_constant = std::integral_constant<bool, Value>;
     // Returns the short-circuiting conjunction of the given Boolean traits.
     // Equivalent to `std::conjunction<>` in C++17.
     //
-template <typename... Ts> struct conjunction : makeshift::detail::conjunction<Ts...> { };
+template <typename... Ts> struct conjunction : detail::conjunction<Ts...> { };
 
     //ᅟ
     // Returns the short-circuiting conjunction of the given Boolean traits.
@@ -68,7 +68,7 @@ template <typename... Ts> constexpr bool conjunction_v = conjunction<Ts...>::val
     // Returns the short-circuiting disjunction of the given Boolean traits.
     // Equivalent to `std::disjunction<>` in C++17.
     //
-template <typename... Ts> struct disjunction : makeshift::detail::disjunction<Ts...> { };
+template <typename... Ts> struct disjunction : detail::disjunction<Ts...> { };
 
     //ᅟ
     // Returns the short-circuiting disjunction of the given Boolean traits.
@@ -92,7 +92,7 @@ template <typename T> constexpr bool negation_v = negation<T>::value;
     //ᅟ
     // Determines the `N`-th type in the variadic type sequence.
     //
-template <std::size_t N, typename... Ts> struct nth_type : makeshift::detail::nth_type_<N, Ts...> { };
+template <std::size_t N, typename... Ts> struct nth_type : detail::nth_type_<N, Ts...> { };
 
     //ᅟ
     // Determines the `N`-th type in the variadic type sequence.
@@ -104,7 +104,7 @@ template <std::size_t N, typename... Ts> using nth_type_t = typename nth_type<N,
     // Determines the index of the type `T` in the variadic type sequence.
     // Returns `size_t(-1)` if `T` does not appear in the type sequence, or if it appears more than once.
     //
-template <typename T, typename... Ts> struct try_index_of_type : makeshift::detail::try_index_of_type<T, Ts...> { };
+template <typename T, typename... Ts> struct try_index_of_type : detail::try_index_of_type<T, Ts...> { };
 
     //ᅟ
     // Determines the index of the type `T` in the variadic type sequence.
@@ -116,7 +116,7 @@ template <typename T, typename... Ts> constexpr std::size_t try_index_of_type_v 
     //ᅟ
     // Determines the index of the type `T` in the variadic type sequence.
     //
-template <typename T, typename... Ts> struct index_of_type : std::integral_constant<std::size_t, makeshift::detail::type_pack_index_<T, Ts...>::value> { };
+template <typename T, typename... Ts> struct index_of_type : std::integral_constant<std::size_t, detail::type_pack_index_<T, Ts...>::value> { };
 
     //ᅟ
     // Determines the index of the type `T` in the variadic type sequence.
@@ -126,7 +126,7 @@ template <typename T, typename... Ts> constexpr std::size_t index_of_type_v = in
     //ᅟ
     // Determines whether the template instantiation `Z<Ts...>` would be valid.
     //
-template <template <typename...> class Z, typename... Ts> struct can_instantiate : makeshift::detail::can_instantiate_<Z, void, Ts...> { };
+template <template <typename...> class Z, typename... Ts> struct can_instantiate : detail::can_instantiate_<Z, void, Ts...> { };
 
     //ᅟ
     // Determines whether the template instantiation `Z<Ts...>` would be valid.
@@ -149,7 +149,7 @@ template <typename T, template <typename...> class U> constexpr bool is_instanti
     //ᅟ
     // Determines whether the given type is a bitmask type, i.e. bitmask operations with `|`, `^`, `~`, and `&` are well-formed.
     //
-template <typename T> struct is_bitmask_type : makeshift::detail::is_bitmask_type<T> { };
+template <typename T> struct is_bitmask_type : detail::is_bitmask_type<T> { };
 
     //ᅟ
     // Determines whether the given type is a bitmask type, i.e. bitmask operations with `|`, `^`, `~`, and `&` are well-formed.
@@ -173,7 +173,7 @@ template <typename T> using underlying_type_t = typename underlying_type<T>::typ
     //ᅟ
     // Determines whether the given type is a type enum.
     //
-template <typename T> struct is_type_enum : std::is_base_of<makeshift::detail::type_enum_base, T> { };
+template <typename T> struct is_type_enum : std::is_base_of<detail::type_enum_base, T> { };
 
     //ᅟ
     // Determines whether the given type is a type enum.
@@ -184,7 +184,7 @@ template <typename T> constexpr bool is_type_enum_v = is_type_enum<T>::value;
     //ᅟ
     // Determines whether the given type is in the list of types.
     //
-template <typename T, typename... Ts> struct is_in : makeshift::detail::is_in_<T, Ts...> { };
+template <typename T, typename... Ts> struct is_in : detail::is_in_<T, Ts...> { };
 
     //ᅟ
     // Determines whether the given type is in the list of types.
@@ -195,7 +195,7 @@ template <typename T, typename... Ts> constexpr bool is_in_v = is_in<T>::value;
     //ᅟ
     // Given a type sequence `T<Ts...>`, returns a type sequence `T<Us...>` such that every type `Us` is in `Ts...` and no type in `Us...` appears more than once.
     //
-template <typename Ts> struct unique_sequence : makeshift::detail::unique_sequence_<Ts> { };
+template <typename Ts> struct unique_sequence : detail::unique_sequence_<Ts> { };
 
     //ᅟ
     // Given a type sequence `T<Ts...>`, returns a type sequence `T<Us...>` such that every type `Us` is in `Ts...` and no type in `Us...` appears more than once.
@@ -208,7 +208,7 @@ template <typename Ts> using unique_sequence_t = typename unique_sequence<Ts>::t
     //ᅟ
     // A type `T` has a tuple-like interface if `std::tuple_size<T>::value`, `std::tuple_element_t<I, T>`, and `get<I>(t)` are well-formed. This trait only checks `std::tuple_size<T>::value`.
     //
-template <typename T> struct is_tuple_like : makeshift::detail::is_tuple_like<T> { };
+template <typename T> struct is_tuple_like : detail::is_tuple_like<T> { };
 
     //ᅟ
     // Determines whether a type has a tuple-like interface.
@@ -221,7 +221,7 @@ template <typename T> constexpr bool is_tuple_like_v = is_tuple_like<T>::value;
     //ᅟ
     // Determines whether the given type is a constval.
     //
-template <typename T> struct is_constval : makeshift::detail::is_constval_<T> { };
+template <typename T> struct is_constval : detail::is_constval_<T> { };
 
     //ᅟ
     // Determines whether the given type is a constval.
@@ -232,7 +232,7 @@ template <typename T> constexpr bool is_constval_v = is_constval<T>::value;
     //ᅟ
     // Determines whether the given type `T` is a constval returning the type `R`.
     //
-template <typename T, typename R> struct is_constval_of_type : makeshift::detail::is_constval_of_type_<T, R> { };
+template <typename T, typename R> struct is_constval_of_type : detail::is_constval_of_type_<T, R> { };
 
     //ᅟ
     // Determines whether the given type `T` is a constval returning the type `R`.
@@ -243,7 +243,7 @@ template <typename T, typename R> constexpr bool is_constval_of_type_v = is_cons
     //ᅟ
     // Retrieves the given type as a dependent type. This can be useful to suppress type inference.
     //
-template <typename T> using as_dependent_type = typename makeshift::detail::as_dependent_type_<T>::type;
+template <typename T> using as_dependent_type = typename detail::as_dependent_type_<T>::type;
 
 
 } // namespace makeshift

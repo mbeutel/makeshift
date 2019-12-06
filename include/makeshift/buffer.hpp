@@ -36,10 +36,10 @@ constexpr std::ptrdiff_t dynamic_extent = -1;
     //
 template <typename T, std::ptrdiff_t Extent = dynamic_extent, std::ptrdiff_t MaxStaticBufferExtent = -1>
 class buffer
-    : public makeshift::detail::buffer_base<T, Extent, MaxStaticBufferExtent, makeshift::detail::determine_memory_location(Extent, MaxStaticBufferExtent)>
+    : public detail::buffer_base<T, Extent, MaxStaticBufferExtent, detail::determine_memory_location(Extent, MaxStaticBufferExtent)>
 {
 private:
-    using base_ = makeshift::detail::buffer_base<T, Extent, MaxStaticBufferExtent, makeshift::detail::determine_memory_location(Extent, MaxStaticBufferExtent)>;
+    using base_ = detail::buffer_base<T, Extent, MaxStaticBufferExtent, detail::determine_memory_location(Extent, MaxStaticBufferExtent)>;
 
 public:
     template <typename ExtentC,
@@ -47,9 +47,9 @@ public:
     explicit constexpr buffer(ExtentC extent)
         : base_(extent)
     {
-        constexpr std::ptrdiff_t rhsExtent = makeshift::detail::buffer_extent_from_constval(ExtentC{ });
+        constexpr std::ptrdiff_t rhsExtent = detail::buffer_extent_from_constval(ExtentC{ });
         static_assert(Extent == dynamic_extent || rhsExtent == -1 || Extent == rhsExtent, "static extents must match");
-        makeshift::detail::check_buffer_extents(std::integral_constant<bool, Extent == dynamic_extent>{ }, Extent, extent);
+        detail::check_buffer_extents(std::integral_constant<bool, Extent == dynamic_extent>{ }, Extent, extent);
     }
     template <std::ptrdiff_t RExtent, typename U>
     constexpr buffer(U (&&array)[RExtent])
@@ -86,10 +86,10 @@ public:
 template <typename T,
           typename C>
 gsl_NODISCARD constexpr
-buffer<T, makeshift::detail::buffer_extent_from_constval(C{ })>
+buffer<T, detail::buffer_extent_from_constval(C{ })>
 make_buffer(C size)
 {
-    return buffer<T, makeshift::detail::buffer_extent_from_constval(C{ })>(size);
+    return buffer<T, detail::buffer_extent_from_constval(C{ })>(size);
 }
 
     //ᅟ
@@ -105,10 +105,10 @@ make_buffer(C size)
 template <typename T, std::ptrdiff_t MaxStaticBufferExtent,
           typename C>
 gsl_NODISCARD constexpr
-buffer<T, makeshift::detail::buffer_extent_from_constval(C{ }), MaxStaticBufferExtent>
+buffer<T, detail::buffer_extent_from_constval(C{ }), MaxStaticBufferExtent>
 make_buffer(C size)
 {
-    return buffer<T, makeshift::detail::buffer_extent_from_constval(C{ }), MaxStaticBufferExtent>(size);
+    return buffer<T, detail::buffer_extent_from_constval(C{ }), MaxStaticBufferExtent>(size);
 }
 
 
@@ -125,13 +125,13 @@ make_buffer(C size)
     //
 template <typename T, std::ptrdiff_t Extent, std::ptrdiff_t MaxBufferExtent>
 class fixed_buffer
-    : public makeshift::detail::static_buffer_base<T, Extent, MaxBufferExtent>
+    : public detail::static_buffer_base<T, Extent, MaxBufferExtent>
 {
     static_assert(MaxBufferExtent >= 0, "invalid maximal buffer extent");
     static_assert(Extent <= MaxBufferExtent, "size exceeds buffer extent");
 
 private:
-    using base_ = makeshift::detail::static_buffer_base<T, Extent, MaxBufferExtent>;
+    using base_ = detail::static_buffer_base<T, Extent, MaxBufferExtent>;
 
 public:
     template <typename ExtentC,
@@ -139,10 +139,10 @@ public:
     explicit constexpr fixed_buffer(ExtentC extent)
         : base_(extent)
     {
-        constexpr std::ptrdiff_t rhsExtent = makeshift::detail::buffer_extent_from_constval(ExtentC{ });
+        constexpr std::ptrdiff_t rhsExtent = detail::buffer_extent_from_constval(ExtentC{ });
         static_assert(Extent == dynamic_extent || rhsExtent == -1 || Extent == rhsExtent, "static extents must match");
         static_assert(rhsExtent == -1 || rhsExtent <= MaxBufferExtent, "size exceeds buffer extent");
-        makeshift::detail::check_fixed_buffer_extents(std::integral_constant<bool, Extent == dynamic_extent>{ }, Extent, extent, MaxBufferExtent);
+        detail::check_fixed_buffer_extents(std::integral_constant<bool, Extent == dynamic_extent>{ }, Extent, extent, MaxBufferExtent);
     }
     template <std::ptrdiff_t RExtent, typename U>
     constexpr fixed_buffer(U (&&array)[RExtent])
@@ -193,10 +193,10 @@ make_fixed_buffer(std::integral_constant<SizeT, Size>)
 template <typename T, std::ptrdiff_t MaxBufferExtent,
           typename C>
 gsl_NODISCARD constexpr
-fixed_buffer<T, makeshift::detail::buffer_extent_from_constval(C{ }), MaxBufferExtent>
+fixed_buffer<T, detail::buffer_extent_from_constval(C{ }), MaxBufferExtent>
 make_fixed_buffer(C size)
 {
-    return fixed_buffer<T, makeshift::detail::buffer_extent_from_constval(C{ }), MaxBufferExtent>(size);
+    return fixed_buffer<T, detail::buffer_extent_from_constval(C{ }), MaxBufferExtent>(size);
 }
 
 

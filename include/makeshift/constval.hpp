@@ -34,14 +34,14 @@ namespace makeshift
     //ᅟ
     // A constval type representing the given nullary constexpr function object type. Applies normalization if applicable.
     //
-template <typename C> using make_constval_t = makeshift::detail::make_constval_t<C>;
+template <typename C> using make_constval_t = detail::make_constval_t<C>;
 
 
     //ᅟ
     // Constval type that represents the object given or referenced.
     // `T` may be an object type or a const reference type. This is useful to obtain constvals representing the elements of an `array_constant<>`.
     //
-template <typename T, T V> using constant = typename makeshift::detail::constant_<T, V>::type;
+template <typename T, T V> using constant = typename detail::constant_<T, V>::type;
 
     //ᅟ
     // Constval that represents the object given or referenced.
@@ -85,7 +85,7 @@ template <auto const& Ref> constexpr ref_constant<Ref> ref_c{ };
 template <typename C>
 constexpr auto constval_extract(const C& value)
 {
-    return makeshift::detail::constval_extract_impl(is_constval<C>{ }, value);
+    return detail::constval_extract_impl(is_constval<C>{ }, value);
 }
 
 
@@ -101,7 +101,7 @@ gsl_NODISCARD constexpr auto
 constval_transform(const F&, const Cs&... args)
 {
     static_assert(std::is_empty<F>::value, "transformer must be stateless");
-    return makeshift::detail::constval_transform_impl<F>(conjunction<is_constval<Cs>...>{ }, args...);
+    return detail::constval_transform_impl<F>(conjunction<is_constval<Cs>...>{ }, args...);
 }
 
 
@@ -123,7 +123,7 @@ gsl_NODISCARD constexpr auto
 constval_extend(const CF&, const Cs&... args)
 {
     static_assert(std::is_empty<CF>::value, "extender must be stateless");
-    return makeshift::detail::constval_extend_impl<CF>(conjunction<is_constval<Cs>...>{ }, args...);
+    return detail::constval_extend_impl<CF>(conjunction<is_constval<Cs>...>{ }, args...);
 }
 
 
@@ -131,7 +131,7 @@ constval_extend(const CF&, const Cs&... args)
     // Represents a constval of type `std::array<>` with the given element type and values.
     //
 template <typename T, T... Vs>
-struct array_constant : makeshift::detail::constval_tag
+struct array_constant : detail::constval_tag
 {
     using element_type = std::remove_const_t<std::remove_reference_t<T>>;
     using value_type = std::array<element_type, sizeof...(Vs)>;
@@ -139,7 +139,7 @@ struct array_constant : makeshift::detail::constval_tag
     static constexpr value_type value = { Vs... };
 
     constexpr array_constant(void) noexcept = default;
-    constexpr array_constant(typename makeshift::detail::constant_<T, Vs>::type...) noexcept // workaround for VC++ bug, cf. https://developercommunity.visualstudio.com/content/problem/719235/erroneous-c2971-caused-by-using-variadic-by-ref-no.html
+    constexpr array_constant(typename detail::constant_<T, Vs>::type...) noexcept // workaround for VC++ bug, cf. https://developercommunity.visualstudio.com/content/problem/719235/erroneous-c2971-caused-by-using-variadic-by-ref-no.html
     {
     }
 
@@ -155,7 +155,7 @@ struct array_constant : makeshift::detail::constval_tag
 template <typename T, T... Vs>
 constexpr typename array_constant<T, Vs...>::value_type array_constant<T, Vs...>::value;
 template <typename T>
-struct array_constant<T> : makeshift::detail::constval_tag
+struct array_constant<T> : detail::constval_tag
 {
     using element_type = std::remove_const_t<std::remove_reference_t<T>>;
     using value_type = std::array<element_type, 0>;
@@ -177,13 +177,13 @@ template <typename T>
 constexpr typename array_constant<T>::value_type array_constant<T>::value;
 #if gsl_CPP17_OR_GREATER
 template <typename... Cs>
-array_constant(Cs...) -> array_constant<typename makeshift::detail::array_constant_element_type_<typename makeshift::detail::equal_types_<typename Cs::value_type...>::common_type>::type, Cs::value...>;
+array_constant(Cs...) -> array_constant<typename detail::array_constant_element_type_<typename detail::equal_types_<typename Cs::value_type...>::common_type>::type, Cs::value...>;
 #endif // gsl_CPP17_OR_GREATER
 
     // Implement tuple-like protocol for `array_constant<>`.
 template <std::size_t I, typename T, as_dependent_type<T>... Vs>
 gsl_NODISCARD constexpr
-make_constval_t<makeshift::detail::array_accessor_functor<I, array_constant<T, Vs...>>>
+make_constval_t<detail::array_accessor_functor<I, array_constant<T, Vs...>>>
 get(array_constant<T, Vs...>) noexcept
 {
     static_assert(I < sizeof...(Vs), "index out of range");
@@ -199,7 +199,7 @@ template <typename T, T... Vs> constexpr array_constant<T, Vs...> array_c{ };
     // Constructs a constval of type `std::array<>` from a sequence of homogeneously typed constvals.
     //
 template <typename... Cs>
-gsl_NODISCARD constexpr array_constant<typename makeshift::detail::array_constant_element_type_<typename makeshift::detail::equal_types_<typename Cs::value_type...>::common_type>::type, Cs::value...>
+gsl_NODISCARD constexpr array_constant<typename detail::array_constant_element_type_<typename detail::equal_types_<typename Cs::value_type...>::common_type>::type, Cs::value...>
 make_array_constant(Cs...) noexcept
 {
     return { };
@@ -210,7 +210,7 @@ make_array_constant(Cs...) noexcept
     // Represents a constval of type `std::tuple<>` with the given values.
     //
 template <typename... Cs>
-struct tuple_constant : makeshift::detail::constval_tag
+struct tuple_constant : detail::constval_tag
 {
     static_assert(conjunction_v<is_constval<Cs>...>, "arguments must be constval types");
 
@@ -245,7 +245,7 @@ tuple_constant(Cs...) -> tuple_constant<Cs...>;
     //
 template <std::size_t I, typename... Cs>
 gsl_NODISCARD constexpr
-make_constval_t<makeshift::detail::tuple_accessor_functor<I, tuple_constant<Cs...>>>
+make_constval_t<detail::tuple_accessor_functor<I, tuple_constant<Cs...>>>
 get(tuple_constant<Cs...>) noexcept
 {
     static_assert(I < sizeof...(Cs), "index out of range");

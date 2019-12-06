@@ -93,7 +93,7 @@ constexpr bool is_flag_power_of_2(T value) noexcept
 
 
 template <typename TypeEnumT, typename... Ts>
-struct define_type_enum_base : makeshift::detail::type_enum_base
+struct define_type_enum_base : detail::type_enum_base
 {
     static_assert(sizeof...(Ts) < 24, "type enumeration may not contain more than 24 types");
 
@@ -115,7 +115,7 @@ private:
 public:
     using underlying_type = std::int32_t;
 
-    friend constexpr type<TypeEnumT> type_enum_type_of_(value_t, makeshift::detail::unwrap_enum_tag) { return { }; }
+    friend constexpr type<TypeEnumT> type_enum_type_of_(value_t, detail::unwrap_enum_tag) { return { }; }
 
     using types = type_sequence<Ts...>;
 
@@ -149,7 +149,7 @@ public:
     }
 };
 template <typename TypeEnumT>
-struct define_type_enum_base<TypeEnumT> : makeshift::detail::type_enum_base
+struct define_type_enum_base<TypeEnumT> : detail::type_enum_base
 {
 public:
     using underlying_type = void;
@@ -183,7 +183,7 @@ struct type_enum_default_values<TypeEnumT, type_sequence<Ts...>>
 };
 
 template <typename TypeEnumT>
-struct default_values<TypeEnumT, std::enable_if_t<std::is_base_of<makeshift::detail::type_enum_base, TypeEnumT>::value>>
+struct default_values<TypeEnumT, std::enable_if_t<std::is_base_of<detail::type_enum_base, TypeEnumT>::value>>
     : type_enum_default_values<TypeEnumT, typename TypeEnumT::types>
 {
 };

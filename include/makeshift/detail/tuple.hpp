@@ -34,53 +34,65 @@ tuple_transform_impl(std::index_sequence<Is...>, F&& func, Ts&&... args)
 }
 
 
-struct left_fold { };
-struct right_fold { };
-struct all_fold { };
-struct any_fold { };
+struct identity_transform_t
+{
+    template <typename T>
+    constexpr auto operator ()(T&& arg) const
+    {
+        return std::forward<T>(arg);
+    }
+};
+template <bool LReduce, std::size_t N, typename ReduceFuncT, typename TransformFuncT>
+struct transform_reduce_fn
+{
+    ReduceFuncT reduceFunc_;
+    TransformFuncT transformFunc_;
 
-template <typename FoldT, typename TupleT, typename T, typename F>
-constexpr auto fold_impl(std::index_sequence<>, FoldT, TupleT&&, T&& initialValue, F&&)
+    template <std::size_t I, typename V, typename... Ts>
+    constexpr auto operator ()(std::integral_constant<std::size_t, I>, V&& value, Ts&&... args) const
+    {
+        constexpr std::size_t elementIdx = LReduce ? I : N - 1 - I;
+        return (*this)(std::integral_constant<std::size_t, I + 1>{ },
+            reduceFunc_(std::forward<V>(value), detail::transform_element<elementIdx>(transformFunc_, std::forward<Ts>(args)...)),
+            std::forward<Ts>(args)...);
+    }
+    template <typename V, typename... Ts>
+    constexpr auto operator ()(std::integral_constant<std::size_t, N>, V&& value, Ts&&...) const
+    {
+        return std::forward<V>(value);
+    }
+};
+template <std::size_t N, typename PredFuncT, typename TransformFuncT>
+struct conjunction_fn
 {
-    return std::forward<T>(initialValue);
-}
-template <std::size_t I0, std::size_t... Is, typename TupleT, typename T, typename F>
-constexpr auto
-fold_impl(std::index_sequence<I0, Is...>, left_fold, TupleT&& tuple, T&& initialValue, F&& func)
+    TransformFuncT transformFunc_;
+
+    template <std::size_t I, typename... Ts>
+    constexpr bool operator ()(std::integral_constant<std::size_t, I>, Ts&&... args) const
+    {
+        if (!PredFuncT{ }(detail::transform_element<I>(transformFunc_, std::forward<Ts>(args)...))) return false;
+        return (*this)(std::integral_constant<std::size_t, I + 1>{ }, std::forward<Ts>(args)...);
+    }
+    template <typename... Ts>
+    constexpr bool operator ()(std::integral_constant<std::size_t, N>, Ts&&...) const
+    {
+        return true;
+    }
+};
+struct all_of_pred
 {
-    return makeshift::detail::fold_impl(std::index_sequence<Is...>{ }, left_fold{ }, std::forward<TupleT>(tuple),
-        func(std::forward<T>(initialValue), std::get<I0>(std::forward<TupleT>(tuple))),
-        std::forward<F>(func));
-}
-template <std::size_t I0, std::size_t... Is, typename TupleT, typename T, typename F>
-constexpr auto
-fold_impl(std::index_sequence<I0, Is...>, right_fold, TupleT&& tuple, T&& initialValue, F&& func)
+    constexpr bool operator ()(bool cond) const
+    {
+        return cond;
+    }
+};
+struct none_of_pred
 {
-    return makeshift::detail::fold_impl(std::index_sequence<Is...>{ }, right_fold{ }, std::forward<TupleT>(tuple),
-        func(std::get<std::tuple_size<std::decay_t<TupleT>>::value - 1 - I0>(std::forward<TupleT>(tuple)), std::forward<T>(initialValue)),
-        std::forward<F>(func));
-}
-template <std::size_t I0, std::size_t... Is, typename TupleT, typename F>
-constexpr auto
-fold_impl(std::index_sequence<I0, Is...>, all_fold, TupleT&& tuple, bool, F&& func)
-{
-    return func(std::get<I0>(std::forward<TupleT>(tuple)))
-        && makeshift::detail::fold_impl(std::index_sequence<Is...>{ }, all_fold{ }, std::forward<TupleT>(tuple), true, std::forward<F>(func));
-}
-template <std::size_t I0, std::size_t... Is, typename TupleT, typename F>
-constexpr auto
-fold_impl(std::index_sequence<I0, Is...>, any_fold, TupleT&& tuple, bool, F&& func)
-{
-    return func(std::get<I0>(std::forward<TupleT>(tuple)))
-        || makeshift::detail::fold_impl(std::index_sequence<Is...>{ }, any_fold{ }, std::forward<TupleT>(tuple), false, std::forward<F>(func));
-}
-template <typename FoldT, typename TupleT, typename T, typename F>
-constexpr auto
-fold_impl(FoldT, TupleT&& tuple, T&& initialValue, F&& func)
-{
-    return makeshift::detail::fold_impl(std::make_index_sequence<std::tuple_size<std::decay_t<TupleT>>::value>{ }, FoldT{ },
-        std::forward<TupleT>(tuple), std::forward<T>(initialValue), std::forward<F>(func));
-}
+    constexpr bool operator ()(bool cond) const
+    {
+        return !cond;
+    }
+};
 
 
 } // namespace detail

@@ -24,7 +24,7 @@ namespace makeshift
     //ᅟ        array_index);
     //ᅟ    // returns std::array<index, 3>{ 0, 1, 2 }
     //
-using array_index_t = makeshift::detail::array_index_t;
+using array_index_t = detail::array_index_t;
 
 
     //ᅟ
@@ -44,7 +44,7 @@ constexpr array_index_t array_index{ };
     // `mdarray<T, N1, ..., Nd>` is an alias for `std::array<...std::array<T, Nd>..., N1>`, i.e. the modern equivalent of `T[N1]...[Nd]`.
     // Note that `mdarray<>` is defined as a dependent type, i.e. the type arguments of `mdarray<>` cannot be deduced.
     //
-template <typename T, std::size_t... Dims> using mdarray = typename makeshift::detail::mdarray_<T, Dims...>::type;
+template <typename T, std::size_t... Dims> using mdarray = typename detail::mdarray_<T, Dims...>::type;
 
 
     //ᅟ
@@ -60,10 +60,10 @@ template <typename F, typename... Ts>
 constexpr void
 array_for(F&& func, Ts&&... args)
 {
-    static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
-    constexpr std::size_t size = makeshift::detail::tuple_transform_size<-1, Ts...>();
-    constexpr bool areArgsHomogeneous = makeshift::detail::conjunction<makeshift::detail::is_homogeneous_arg_<std::decay_t<Ts>>...>::value;
-    return makeshift::detail::template_for_impl(makeshift::detail::array_for_index_arg<size, areArgsHomogeneous>{ },
+    static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
+    constexpr std::size_t size = detail::tuple_transform_size<-1, Ts...>();
+    constexpr bool areArgsHomogeneous = detail::conjunction<detail::is_homogeneous_arg_<std::decay_t<Ts>>...>::value;
+    return detail::template_for_impl(detail::array_for_index_arg<size, areArgsHomogeneous>{ },
         std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
@@ -80,9 +80,9 @@ template <std::size_t N, typename F, typename... Ts>
 constexpr void
 array_for(F&& func, Ts&&... args)
 {
-    static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
-    constexpr std::size_t size = makeshift::detail::tuple_transform_size<N, Ts...>();
-    return makeshift::detail::template_for_impl(std::make_index_sequence<size>{ }, std::forward<F>(func), std::forward<Ts>(args)...);
+    static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
+    constexpr std::size_t size = detail::tuple_transform_size<N, Ts...>();
+    return detail::template_for_impl(std::make_index_sequence<size>{ }, std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
 
@@ -98,9 +98,9 @@ template <typename F, typename... Ts>
 gsl_NODISCARD constexpr auto
 array_transform(F&& func, Ts&&... args)
 {
-    static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
-    constexpr std::size_t size = makeshift::detail::tuple_transform_size<-1, Ts...>();
-    return makeshift::detail::array_transform_impl<std::array>(std::make_index_sequence<size>{ }, std::forward<F>(func), std::forward<Ts>(args)...);
+    static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
+    constexpr std::size_t size = detail::tuple_transform_size<-1, Ts...>();
+    return detail::array_transform_impl<std::array>(std::make_index_sequence<size>{ }, std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
 
@@ -116,9 +116,9 @@ template <template <typename, std::size_t> class ArrayT, typename F, typename...
 gsl_NODISCARD constexpr auto
 array_transform(F&& func, Ts&&... args)
 {
-    static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
-    constexpr std::size_t size = makeshift::detail::tuple_transform_size<-1, Ts...>();
-    return makeshift::detail::array_transform_impl<ArrayT>(std::make_index_sequence<size>{ }, std::forward<F>(func), std::forward<Ts>(args)...);
+    static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
+    constexpr std::size_t size = detail::tuple_transform_size<-1, Ts...>();
+    return detail::array_transform_impl<ArrayT>(std::make_index_sequence<size>{ }, std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
 
@@ -134,9 +134,9 @@ template <std::size_t N, typename F, typename... Ts>
 gsl_NODISCARD constexpr auto
 array_transform(F&& func, Ts&&... args)
 {
-    static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
-    constexpr std::size_t size = makeshift::detail::tuple_transform_size<N, Ts...>();
-    return makeshift::detail::array_transform_impl<std::array>(std::make_index_sequence<size>{ }, std::forward<F>(func), std::forward<Ts>(args)...);
+    static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
+    constexpr std::size_t size = detail::tuple_transform_size<N, Ts...>();
+    return detail::array_transform_impl<std::array>(std::make_index_sequence<size>{ }, std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
 
@@ -152,9 +152,9 @@ template <template <typename, std::size_t> class ArrayT, std::size_t N, typename
 gsl_NODISCARD constexpr auto
 array_transform(F&& func, Ts&&... args)
 {
-    static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
-    constexpr std::size_t size = makeshift::detail::tuple_transform_size<N, Ts...>();
-    return makeshift::detail::array_transform_impl<ArrayT>(std::make_index_sequence<size>{ }, std::forward<F>(func), std::forward<Ts>(args)...);
+    static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
+    constexpr std::size_t size = detail::tuple_transform_size<N, Ts...>();
+    return detail::array_transform_impl<ArrayT>(std::make_index_sequence<size>{ }, std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
 
@@ -170,9 +170,9 @@ template <typename T, typename F, typename... Ts>
 gsl_NODISCARD constexpr auto
 array_transform(F&& func, Ts&&... args)
 {
-    static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
-    constexpr std::size_t size = makeshift::detail::tuple_transform_size<-1, Ts...>();
-    return makeshift::detail::array_transform_to_impl<std::array, T>(std::make_index_sequence<size>{ }, std::forward<F>(func), std::forward<Ts>(args)...);
+    static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
+    constexpr std::size_t size = detail::tuple_transform_size<-1, Ts...>();
+    return detail::array_transform_to_impl<std::array, T>(std::make_index_sequence<size>{ }, std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
 
@@ -188,9 +188,9 @@ template <template <typename, std::size_t> class ArrayT, typename T, typename F,
 gsl_NODISCARD constexpr auto
 array_transform(F&& func, Ts&&... args)
 {
-    static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
-    constexpr std::size_t size = makeshift::detail::tuple_transform_size<-1, Ts...>();
-    return makeshift::detail::array_transform_to_impl<ArrayT, T>(std::make_index_sequence<size>{ }, std::forward<F>(func), std::forward<Ts>(args)...);
+    static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
+    constexpr std::size_t size = detail::tuple_transform_size<-1, Ts...>();
+    return detail::array_transform_to_impl<ArrayT, T>(std::make_index_sequence<size>{ }, std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
 
@@ -206,9 +206,9 @@ template <typename T, std::size_t N, typename F, typename... Ts>
 gsl_NODISCARD constexpr auto
 array_transform(F&& func, Ts&&... args)
 {
-    static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
-    constexpr std::size_t size = makeshift::detail::tuple_transform_size<N, Ts...>();
-    return makeshift::detail::array_transform_to_impl<std::array, T>(std::make_index_sequence<size>{ }, std::forward<F>(func), std::forward<Ts>(args)...);
+    static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
+    constexpr std::size_t size = detail::tuple_transform_size<N, Ts...>();
+    return detail::array_transform_to_impl<std::array, T>(std::make_index_sequence<size>{ }, std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
 
@@ -224,9 +224,9 @@ template <template <typename, std::size_t> class ArrayT, typename T, std::size_t
 gsl_NODISCARD constexpr auto
 array_transform(F&& func, Ts&&... args)
 {
-    static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
-    constexpr std::size_t size = makeshift::detail::tuple_transform_size<N, Ts...>();
-    return makeshift::detail::array_transform_impl<ArrayT, T>(std::make_index_sequence<size>{ }, std::forward<F>(func), std::forward<Ts>(args)...);
+    static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
+    constexpr std::size_t size = detail::tuple_transform_size<N, Ts...>();
+    return detail::array_transform_impl<ArrayT, T>(std::make_index_sequence<size>{ }, std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
 
@@ -242,9 +242,9 @@ template <typename T, typename... Ts>
 gsl_NODISCARD constexpr auto
 array_cat(Ts&&... tuples)
 {
-    static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
-    using Indices = makeshift::detail::indices_2d_<std::tuple_size<std::decay_t<Ts>>::value...>;
-    return makeshift::detail::array_cat_impl<std::array, T>(std::make_index_sequence<Indices::size>{ }, Indices{ }, std::tuple<Ts&&...>{ std::forward<Ts>(tuples)... });
+    static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
+    using Indices = detail::indices_2d_<std::tuple_size<std::decay_t<Ts>>::value...>;
+    return detail::array_cat_impl<std::array, T>(std::make_index_sequence<Indices::size>{ }, Indices{ }, std::tuple<Ts&&...>{ std::forward<Ts>(tuples)... });
 }
 
 
@@ -261,9 +261,9 @@ template <template <typename, std::size_t> class ArrayT, typename T, typename...
 gsl_NODISCARD constexpr auto
 array_cat(Ts&&... tuples)
 {
-    static_assert(makeshift::detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
-    using Indices = makeshift::detail::indices_2d_<std::tuple_size<std::decay_t<Ts>>::value...>;
-    return makeshift::detail::array_cat_impl<ArrayT, T>(std::make_index_sequence<Indices::size>{ }, Indices{ }, std::tuple<Ts&&...>{ std::forward<Ts>(tuples)... });
+    static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
+    using Indices = detail::indices_2d_<std::tuple_size<std::decay_t<Ts>>::value...>;
+    return detail::array_cat_impl<ArrayT, T>(std::make_index_sequence<Indices::size>{ }, Indices{ }, std::tuple<Ts&&...>{ std::forward<Ts>(tuples)... });
 }
 
 
