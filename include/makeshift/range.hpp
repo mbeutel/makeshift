@@ -75,6 +75,11 @@ make_range(It start, ExtentC extentC)
 }
 
 
+// TODO: add range_for()
+// TODO: range_for() should support loop exit (or have *_for_while()? *_all_of()/*_any_of()/*_none_of()?)
+// TODO: perhaps these should be in algorithm.hpp?
+
+
 } // namespace makeshift
 
 

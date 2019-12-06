@@ -264,6 +264,9 @@ tuple_none_of(TupleT&& tuple, P&& pred)
 }
 
 
+// TODO: template_for() should support loop exit (or have *_for_while()? *_all_of()/*_any_of()/*_none_of()?)
+
+
 } // namespace makeshift
 
 
