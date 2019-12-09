@@ -6,7 +6,7 @@
 #include <gsl/gsl-lite.hpp> // for void_t<>, gsl_CPP17_OR_GREATER
 
 #if !gsl_CPP17_OR_GREATER
- #include <tuple>      // for tuple_size<>
+# include <tuple>      // for tuple_size<>
 #endif // !gsl_CPP17_OR_GREATER
 
 #include <cstddef>     // for size_t
@@ -87,9 +87,9 @@ struct type_pack_index_
 
 
 #ifdef __clang__
- #if __has_builtin(__type_pack_element)
-  #define MAKESHIFT_BUILTIN_TYPE_PACK_ELEMENT_
- #endif // __has_builtin(__type_pack_element)
+# if __has_builtin(__type_pack_element)
+#  define MAKESHIFT_BUILTIN_TYPE_PACK_ELEMENT_
+# endif // __has_builtin(__type_pack_element)
 #endif // __clang__
 
 #ifdef MAKESHIFT_BUILTIN_TYPE_PACK_ELEMENT_

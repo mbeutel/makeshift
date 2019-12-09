@@ -195,9 +195,9 @@ gsl_NODISCARD constexpr R
 visit(F&& func, Vs&&... args)
 {
 #if !(defined(_MSC_VER) && defined(__INTELLISENSE__))
- #if gsl_CPP20_OR_GREATER
+# if gsl_CPP20_OR_GREATER
     return std::visit<R>(std::forward<F>(func), std::forward<Vs>(args)...);
- #else // gsl_CPP20_OR_GREATER
+# else // gsl_CPP20_OR_GREATER
     return std::visit(
         [func = std::forward<F>(func)]
         (auto&&... args) -> R
@@ -205,7 +205,7 @@ visit(F&& func, Vs&&... args)
             return func(std::forward<decltype(args)>(args)...);
         },
         std::forward<Vs>(args)...);
- #endif // gsl_CPP20_OR_GREATER
+# endif // gsl_CPP20_OR_GREATER
 #endif // !(defined(_MSC_VER) && defined(__INTELLISENSE__))
 }
 
@@ -227,21 +227,21 @@ visit(F&& func, Vs&&... args)
 //variant_cast(SrcV&& variant)
 //{
 //#if !(defined(_MSC_VER) && defined(__INTELLISENSE__))
-// #if gsl_CPP20_OR_GREATER
+//# if gsl_CPP20_OR_GREATER
 //    return std::visit<DstV>(
 //        [](auto&& arg) -> DstV
 //        {
 //            return std::forward<decltype(arg)>(arg);
 //        },
 //        std::forward<SrcV>(variant));
-// #else // gsl_CPP20_OR_GREATER
+//# else // gsl_CPP20_OR_GREATER
 //    return std::visit(
 //        [](auto&& arg) -> DstV
 //        {
 //            return std::forward<decltype(arg)>(arg);
 //        },
 //        std::forward<SrcV>(variant));
-// #endif // gsl_CPP20_OR_GREATER}
+//# endif // gsl_CPP20_OR_GREATER}
 //#endif // !(defined(_MSC_VER) && defined(__INTELLISENSE__))
 //}
 
@@ -258,15 +258,15 @@ visit(F&& func, Vs&&... args)
 //        return std::optional<R>(std::nullopt);
 //    }
 //#if !(defined(_MSC_VER) && defined(__INTELLISENSE__))
-// #if gsl_CPP20_OR_GREATER
+//# if gsl_CPP20_OR_GREATER
 //    return std::optional<R>(std::visit<R>(
 //        detail::monostate_filtering_visitor<std::monostate, R>{ },
 //        std::forward<V>(variantWithMonostate)));
-// #else // gsl_CPP20_OR_GREATER
+//# else // gsl_CPP20_OR_GREATER
 //    return std::optional<R>(std::visit(
 //        detail::monostate_filtering_visitor<std::monostate, R>{ },
 //        std::forward<V>(variantWithMonostate)));
-// #endif // gsl_CPP20_OR_GREATER}
+//# endif // gsl_CPP20_OR_GREATER}
 //#endif // !(defined(_MSC_VER) && defined(__INTELLISENSE__))
 //}
 
@@ -301,9 +301,9 @@ variant_transform(F&& func, Vs&&... args)
 
 #if !(defined(_MSC_VER) && defined(__INTELLISENSE__))
     using R = detail::variant_transform_result<std::variant, F, Vs...>;
- #if gsl_CPP20_OR_GREATER
+# if gsl_CPP20_OR_GREATER
     return std::visit<R>(std::forward<F>(func), std::forward<Vs>(args)...);
- #else // gsl_CPP20_OR_GREATER
+# else // gsl_CPP20_OR_GREATER
     return std::visit(
         [func = std::forward<F>(func)]
         (auto&&... args) -> R
@@ -311,7 +311,7 @@ variant_transform(F&& func, Vs&&... args)
             return func(std::forward<decltype(args)>(args)...);
         },
         std::forward<Vs>(args)...);
- #endif // gsl_CPP20_OR_GREATER
+# endif // gsl_CPP20_OR_GREATER
 #endif // !(defined(_MSC_VER) && defined(__INTELLISENSE__))
 }
 
@@ -326,7 +326,7 @@ variant_transform_many(F&& func, Vs&&... args)
 {
 #if !(defined(_MSC_VER) && defined(__INTELLISENSE__))
     using R = detail::variant_transform_many_result<std::variant, F, Vs...>;
- #if gsl_CPP20_OR_GREATER
+# if gsl_CPP20_OR_GREATER
     return std::visit<R>(
         [func = std::forward<F>(func)]
         (auto&&... args) -> R
@@ -339,7 +339,7 @@ variant_transform_many(F&& func, Vs&&... args)
                 func(std::forward<decltype(args)>(args)...));
         },
         std::forward<Vs>(args)...);
- #else // gsl_CPP20_OR_GREATER
+# else // gsl_CPP20_OR_GREATER
     return std::visit(
         [func = std::forward<F>(func)]
         (auto&&... args) -> R
@@ -352,7 +352,7 @@ variant_transform_many(F&& func, Vs&&... args)
                 func(std::forward<decltype(args)>(args)...));
         },
         std::forward<Vs>(args)...);
- #endif // gsl_CPP20_OR_GREATER
+# endif // gsl_CPP20_OR_GREATER
 #endif // !(defined(_MSC_VER) && defined(__INTELLISENSE__))
 }
 

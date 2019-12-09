@@ -6,7 +6,7 @@
 #include <gsl/gsl-lite.hpp> // for gsl_CPP17_OR_GREATER
 
 #if !gsl_CPP17_OR_GREATER
- #include <tuple>      // for tuple_size<>
+# include <tuple>      // for tuple_size<>
 #endif // !gsl_CPP17_OR_GREATER
 
 #include <cstddef>     // for size_t, ptrdiff_t

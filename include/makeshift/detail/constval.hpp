@@ -74,11 +74,11 @@ struct constval : constval_tag
 private:
 #if defined(_MSC_VER) && !defined(NDEBUG)
         // for Natvis support
- #if gsl_CPP17_OR_GREATER
+# if gsl_CPP17_OR_GREATER
     static inline const T value_ = value;
- #else // gsl_CPP17_OR_GREATER
+# else // gsl_CPP17_OR_GREATER
     static const T value_;
- #endif // gsl_CPP17_OR_GREATER
+# endif // gsl_CPP17_OR_GREATER
 #endif // defined(_MSC_VER) && !defined(NDEBUG)
 };
 template <typename T, typename F>
@@ -123,11 +123,11 @@ public:
 private:
 #if defined(_MSC_VER) && !defined(NDEBUG)
         // for Natvis support
- #if gsl_CPP17_OR_GREATER
+# if gsl_CPP17_OR_GREATER
     static inline const T value_ = value;
- #else // gsl_CPP17_OR_GREATER
+# else // gsl_CPP17_OR_GREATER
     static const T value_;
- #endif // gsl_CPP17_OR_GREATER
+# endif // gsl_CPP17_OR_GREATER
 #endif // defined(_MSC_VER) && !defined(NDEBUG)
 
 public:
