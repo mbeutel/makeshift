@@ -1,4 +1,5 @@
 
+#include <makeshift/range.hpp>
 #include <makeshift/array.hpp>
 
 #include <array>
@@ -64,7 +65,7 @@ TEST_CASE("array2", "[flags]")
 
         mk::mdarray<double, 3> gridCoords = mk::array_transform<double, 3>(
             [dx=1.0](mk::index i) { return i*dx; },
-            mk::array_index);
+            mk::range_index);
         CHECK(gridCoords == std::array<double, 3>{ 0.0, 1.0, 2.0 });
     }
 }

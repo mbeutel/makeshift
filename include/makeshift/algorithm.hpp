@@ -3,7 +3,13 @@
 #define INCLUDED_MAKESHIFT_ALGORITHM_HPP_
 
 
-#include <iterator> // for begin(), end()
+#include <cstddef>     // for ptrdiff_t
+#include <utility>     // for forward<>()
+#include <type_traits> // for integral_constant<>, decay<>
+
+#include <makeshift/detail/algorithm.hpp>
+#include <makeshift/detail/range-index.hpp> // for identity_transform_t, all_of_pred, none_of_pred
+#include <makeshift/detail/type_traits.hpp> // for disjunction<>
 
 
 namespace makeshift
@@ -11,80 +17,232 @@ namespace makeshift
 
 
     //ᅟ
-    // Computes the conjunction of the given range of booleans.
+    // Takes a scalar procedure (i.e. a function of non-range arguments which returns nothing) and calls the procedure for every set of elements in the given ranges.
+    //ᅟ
+    //ᅟ    range_for(
+    //ᅟ        [](index i, int val) { std::cout << "array[" << i << "]: " << val << '\n'; },
+    //ᅟ        range_index, std::array{ 1, 2, 3 });
+    //ᅟ    // prints "array[0]: 1\narray[1]: 2\narray[2]: 3\n"
     //
-struct all_of_fn
+template <typename F, typename... Rs>
+constexpr void
+range_for(F&& func, Rs&&... ranges)
 {
-    template <typename It, typename EndIt>
-    constexpr bool operator ()(It first, EndIt last) const
-    {
-        for (; first != last; ++first)
-        {
-            if (!*first) return false;
-        }
-        return true;
-    }
+    constexpr std::ptrdiff_t staticSize = detail::static_ranges_size<Rs...>();
+    static_assert(staticSize != detail::inconsistent_size, "ranges have inconsistent sizes");
+    detail::range_for(detail::ranges_size<staticSize>(ranges...), std::forward<F>(func), ranges...);
+}
 
-    template <typename R>
-    constexpr bool operator ()(R&& range) const
-    {
-        using std::begin;
-        using std::end;
-        return (*this)(begin(range), end(range));
-    }
-};
- 
-constexpr inline all_of_fn all_of;
+    //ᅟ
+    // Takes a scalar procedure (i.e. a function of non-range arguments which returns nothing) and calls the procedure for every set of elements in the given ranges.
+    //ᅟ
+    //ᅟ    range_for<3>(
+    //ᅟ        [](index i) { std::cout << i << '\n'; },
+    //ᅟ        range_index);
+    //ᅟ    // prints "0\n1\n2\n"
+    //
+template <std::size_t N, typename F, typename... Rs>
+constexpr void
+range_for(F&& func, Rs&&... ranges)
+{
+    constexpr std::ptrdiff_t staticSize = detail::merge_sizes(detail::static_ranges_size<Rs...>(), N);
+    static_assert(staticSize != detail::inconsistent_size, "ranges have inconsistent sizes");
+    detail::range_for(detail::ranges_size<staticSize>(ranges...), std::forward<F>(func), ranges...);
+}
 
 
     //ᅟ
-    // Computes the disjunction of the given range of booleans.
+    // Takes an initial value, a reducer, a transformer, and a list of ranges and reduces them to a scalar value.
+    //ᅟ
+    //ᅟ    range_transform_reduce(
+    //ᅟ        std::size_t(0),
+    //ᅟ        std::plus<>{ },
+    //ᅟ        [](auto&& str) { return str.length(); },
+    //ᅟ        std::array{ "Hello, "sv, "World!"sv });
+    //ᅟ    // returns 13
     //
-struct any_of_fn
+template <typename T, typename ReduceFuncT, typename TransformFuncT, typename... Rs>
+gsl_NODISCARD constexpr std::decay_t<T>
+range_transform_reduce(T&& initialValue, ReduceFuncT&& reduce, TransformFuncT&& transform, Rs&&... ranges)
 {
-    template <typename It, typename EndIt>
-    constexpr bool operator ()(It first, EndIt last) const
-    {
-        for (; first != last; ++first)
-        {
-            if (*first) return true;
-        }
-        return false;
-    }
-
-    template <typename R>
-    constexpr bool operator ()(R&& range) const
-    {
-        using std::begin;
-        using std::end;
-        return (*this)(begin(range), end(range));
-    }
-};
- 
-constexpr inline any_of_fn any_of;
+    constexpr std::ptrdiff_t staticSize = detail::static_ranges_size<Rs...>();
+    static_assert(staticSize != detail::inconsistent_size, "ranges have inconsistent sizes");
+    return detail::range_transform_reduce(detail::ranges_size<staticSize>(ranges...),
+        std::forward<T>(initialValue), std::forward<ReduceFuncT>(reduce), std::forward<TransformFuncT>(transform), ranges...);
+}
 
 
     //ᅟ
-    // Computes the negated disjunction of the given range of booleans.
+    // Takes an initial value, a reducer, a transformer, and a list of ranges and reduces them to a scalar value.
+    //ᅟ
+    //ᅟ    range_transform_reduce<3>(
+    //ᅟ        std::size_t(0),
+    //ᅟ        std::plus<std::size_t>{ },
+    //ᅟ        [](std::size_t i) { return i*i; },
+    //ᅟ        range_index);
+    //ᅟ    // returns 5
     //
-struct none_of_fn
+template <std::size_t N, typename T, typename ReduceFuncT, typename TransformFuncT, typename... Rs>
+gsl_NODISCARD constexpr std::decay_t<T>
+range_transform_reduce(T&& initialValue, ReduceFuncT&& reduce, TransformFuncT&& transform, Rs&&... ranges)
 {
-    template <typename It, typename EndIt>
-    constexpr bool operator ()(It first, EndIt last) const
-    {
-        return !any_of(first, last);
-    }
+    constexpr std::ptrdiff_t staticSize = detail::merge_sizes(detail::static_ranges_size<Rs...>(), N);
+    static_assert(staticSize != detail::inconsistent_size, "ranges have inconsistent sizes");
+    return detail::range_transform_reduce(detail::ranges_size<staticSize>(ranges...),
+        std::forward<T>(initialValue), std::forward<ReduceFuncT>(reduce), std::forward<TransformFuncT>(transform), ranges...);
+}
 
-    template <typename R>
-    constexpr bool operator ()(R&& range) const
-    {
-        using std::begin;
-        using std::end;
-        return (*this)(begin(range), end(range));
-    }
-};
- 
-constexpr inline none_of_fn none_of;
+
+    //ᅟ
+    // Takes an initial value, a reducer, and a tuple and reduces them to a scalar value.
+    //ᅟ
+    //ᅟ    range_reduce(
+    //ᅟ        std::string{ },
+    //ᅟ        std::plus<>{ },
+    //ᅟ        std::array{ "Hello, "s, "World!"s });
+    //ᅟ    // returns "Hello, World!"s;
+    //
+template <typename T, typename ReduceFuncT, typename R>
+gsl_NODISCARD constexpr auto
+range_reduce(T&& initialValue, ReduceFuncT&& reduce, R&& range)
+{
+    constexpr std::ptrdiff_t staticSize = detail::static_ranges_size<R>();
+    return detail::range_transform_reduce(detail::ranges_size<staticSize>(range),
+        std::forward<T>(initialValue), std::forward<ReduceFuncT>(reduce), detail::identity_transform_t{ }, range);
+}
+
+
+    //ᅟ
+    // Takes an initial value, a reducer, and a tuple and reduces them to a scalar value.
+    //ᅟ
+    //ᅟ    range_reduce<4>(
+    //ᅟ        std::size_t(0),
+    //ᅟ        std::plus<std::size_t>{ },
+    //ᅟ        range_index);
+    //ᅟ    // returns 6
+    //
+template <std::size_t N, typename T, typename ReduceFuncT, typename R>
+gsl_NODISCARD constexpr auto
+range_reduce(T&& initialValue, ReduceFuncT&& reduce, R&& range)
+{
+    constexpr std::ptrdiff_t staticSize = detail::merge_sizes(detail::static_ranges_size<R>(), N);
+    static_assert(staticSize != detail::inconsistent_size, "ranges have inconsistent sizes");
+    return detail::range_transform_reduce(detail::ranges_size<staticSize>(range),
+        std::forward<T>(initialValue), std::forward<ReduceFuncT>(reduce), detail::identity_transform_t{ }, range);
+}
+
+
+    //ᅟ
+    // Takes a predicate and a list of ranges and returns whether the predicate is satisfied for all sets of tuple elements.
+    //ᅟ
+    //ᅟ    range_all_of(
+    //ᅟ        [](auto&& str) { return str.empty(); },
+    //ᅟ        std::tuple{ "Hello, "sv, "World!"sv });
+    //ᅟ    // returns false
+    //
+template <typename PredicateT, typename... Rs>
+gsl_NODISCARD constexpr bool
+range_all_of(PredicateT&& predicate, Rs&&... ranges)
+{
+    constexpr std::ptrdiff_t staticSize = detail::static_ranges_size<Rs...>();
+    static_assert(staticSize != detail::inconsistent_size, "ranges have inconsistent sizes");
+    return detail::range_conjunction<detail::all_of_pred>(detail::ranges_size<staticSize>(ranges...),
+        std::forward<PredicateT>(predicate), ranges...);
+}
+
+
+    //ᅟ
+    // Takes a predicate and a list of ranges and returns whether the predicate is satisfied for all sets of tuple elements.
+    //ᅟ
+    //ᅟ    range_all_of<3>(
+    //ᅟ        [](std::size_t i) { return isPrime(i + 1); },
+    //ᅟ        range_index);
+    //
+template <std::size_t N, typename PredicateT, typename... Rs>
+gsl_NODISCARD constexpr bool
+range_all_of(PredicateT&& predicate, Rs&&... ranges)
+{
+    constexpr std::ptrdiff_t staticSize = detail::merge_sizes(detail::static_ranges_size<Rs...>(), N);
+    static_assert(staticSize != detail::inconsistent_size, "ranges have inconsistent sizes");
+    return detail::range_conjunction<detail::all_of_pred>(detail::ranges_size<staticSize>(ranges...),
+        std::forward<PredicateT>(predicate), ranges...);
+}
+
+
+    //ᅟ
+    // Takes a predicate and a list of ranges and returns whether the predicate is satisfied for any set of tuple elements.
+    //ᅟ
+    //ᅟ    range_any_of(
+    //ᅟ        [](auto&& str) { return str.empty(); },
+    //ᅟ        std::tuple{ "Hello, "sv, "World!"sv });
+    //ᅟ    // returns false
+    //
+template <typename PredicateT, typename... Rs>
+gsl_NODISCARD constexpr bool
+range_any_of(PredicateT&& predicate, Rs&&... ranges)
+{
+    constexpr std::ptrdiff_t staticSize = detail::static_ranges_size<Rs...>();
+    static_assert(staticSize != detail::inconsistent_size, "ranges have inconsistent sizes");
+    return !detail::range_conjunction<detail::none_of_pred>(detail::ranges_size<staticSize>(ranges...),
+        std::forward<PredicateT>(predicate), ranges...);
+}
+
+
+    //ᅟ
+    // Takes a predicate and a list of ranges and returns whether the predicate is satisfied for all sets of tuple elements.
+    //ᅟ
+    //ᅟ    range_any_of<3>(
+    //ᅟ        [](std::size_t i) { return isPrime(i + 1); },
+    //ᅟ        range_index);
+    //ᅟ    // returns true
+    //
+template <std::size_t N, typename PredicateT, typename... Rs>
+gsl_NODISCARD constexpr bool
+range_any_of(PredicateT&& predicate, Rs&&... ranges)
+{
+    constexpr std::ptrdiff_t staticSize = detail::merge_sizes(detail::static_ranges_size<Rs...>(), N);
+    static_assert(staticSize != detail::inconsistent_size, "ranges have inconsistent sizes");
+    return !detail::range_conjunction<detail::none_of_pred>(detail::ranges_size<staticSize>(ranges...),
+        std::forward<PredicateT>(predicate), ranges...);
+}
+
+
+    //ᅟ
+    // Takes a predicate and a list of ranges and returns whether the predicate is satisfied for no set of tuple elements.
+    //ᅟ
+    //ᅟ    range_none_of(
+    //ᅟ        [](auto&& str) { return str.empty(); },
+    //ᅟ        std::tuple{ "Hello, "sv, "World!"sv });
+    //ᅟ    // returns true
+    //
+template <typename PredicateT, typename... Rs>
+gsl_NODISCARD constexpr bool
+range_none_of(PredicateT&& predicate, Rs&&... ranges)
+{
+    constexpr std::ptrdiff_t staticSize = detail::static_ranges_size<Rs...>();
+    static_assert(staticSize != detail::inconsistent_size, "ranges have inconsistent sizes");
+    return detail::range_conjunction<detail::none_of_pred>(detail::ranges_size<staticSize>(ranges...),
+        std::forward<PredicateT>(predicate), ranges...);
+}
+
+
+    //ᅟ
+    // Takes a predicate and a list of ranges and returns whether the predicate is satisfied for no set of tuple elements.
+    //ᅟ
+    //ᅟ    range_none_of<3>(
+    //ᅟ        [](std::size_t i) { return isPrime(i); },
+    //ᅟ        range_index);
+    //ᅟ    // returns false
+    //
+template <std::size_t N, typename PredicateT, typename... Rs>
+gsl_NODISCARD constexpr bool
+range_none_of(PredicateT&& predicate, Rs&&... ranges)
+{
+    constexpr std::ptrdiff_t staticSize = detail::merge_sizes(detail::static_ranges_size<Rs...>(), N);
+    static_assert(staticSize != detail::inconsistent_size, "ranges have inconsistent sizes");
+    return detail::range_conjunction<detail::none_of_pred>(detail::ranges_size<staticSize>(ranges...),
+        std::forward<PredicateT>(predicate), ranges...);
+}
 
 
 } // namespace makeshift

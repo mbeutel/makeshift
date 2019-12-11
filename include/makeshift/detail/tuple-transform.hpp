@@ -13,7 +13,8 @@
 #include <utility>     // for forward<>(), integer_sequence<>, tuple_size<>, get<>()
 #include <type_traits> // for decay<>, integral_constant<>
 
-#include <makeshift/type_traits.hpp> // for can_instantiate<>, conjunction<>, disjunction<>, is_tuple_like<>
+#include <makeshift/type_traits.hpp>        // for can_instantiate<>, conjunction<>, disjunction<>, is_tuple_like<>
+#include <makeshift/detail/range-index.hpp> // for range_index_t
 
 
 namespace makeshift
@@ -21,18 +22,6 @@ namespace makeshift
 
 namespace detail
 {
-
-
-    //ᅟ
-    // Pass `array_index` to `array_transform()`, `template_for()`, or `tuple_transform()` to have the array element index passed as a functor argument.
-    // The argument is of type `index`.
-    //ᅟ
-    //ᅟ    auto indices = array_transform<3>(
-    //ᅟ        [](index i) { return i; },
-    //ᅟ        array_index);
-    //ᅟ    // returns std::array<index, 3>{ 0, 1, 2 }
-    //
-struct array_index_t { };
 
 
     //ᅟ
@@ -48,7 +37,7 @@ struct tuple_index_t { };
 
 
 template <typename T> struct is_tuple_arg_0 : is_tuple_like<T> { };
-template <> struct is_tuple_arg_0<array_index_t> : std::true_type { };
+template <> struct is_tuple_arg_0<range_index_t> : std::true_type { };
 template <> struct is_tuple_arg_0<tuple_index_t> : std::true_type { };
 template <typename T> using is_tuple_arg = is_tuple_arg_0<std::decay_t<T>>;
 template <typename T> constexpr bool is_tuple_arg_v = is_tuple_arg<T>::value;
@@ -57,7 +46,7 @@ template <typename... Ts> struct are_tuple_args : conjunction<is_tuple_arg<Ts>..
 template <typename... Ts> constexpr bool are_tuple_args_v = are_tuple_args<Ts...>::value;
 
 template <typename T> struct maybe_tuple_size_ : std::tuple_size<T> { };
-template <> struct maybe_tuple_size_<array_index_t> : std::integral_constant<std::ptrdiff_t, -1> { };
+template <> struct maybe_tuple_size_<range_index_t> : std::integral_constant<std::ptrdiff_t, -1> { };
 template <> struct maybe_tuple_size_<tuple_index_t> : std::integral_constant<std::ptrdiff_t, -1> { };
 
 template <bool Mismatch, std::ptrdiff_t N, typename... Ts> struct equal_sizes_0_;
@@ -74,11 +63,6 @@ struct equal_sizes_0_<false, N, T0, Ts...>
 template <typename... Ts> struct equal_sizes_ : equal_sizes_0_<false, -1, Ts...> { };
 
 
-template <std::size_t I>
-constexpr std::ptrdiff_t get(array_index_t) noexcept
-{
-    return I;
-}
 template <std::size_t I>
 constexpr std::integral_constant<std::ptrdiff_t, I> get(tuple_index_t) noexcept
 {

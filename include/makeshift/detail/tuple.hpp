@@ -34,14 +34,6 @@ tuple_transform_impl(std::index_sequence<Is...>, F&& func, Ts&&... args)
 }
 
 
-struct identity_transform_t
-{
-    template <typename T>
-    constexpr auto operator ()(T&& arg) const
-    {
-        return std::forward<T>(arg);
-    }
-};
 template <bool LReduce, std::size_t N, typename ReduceFuncT, typename TransformFuncT>
 struct transform_reduce_fn
 {
@@ -77,20 +69,6 @@ struct conjunction_fn
     constexpr bool operator ()(std::integral_constant<std::size_t, N>, Ts&&...) const
     {
         return true;
-    }
-};
-struct all_of_pred
-{
-    constexpr bool operator ()(bool cond) const
-    {
-        return cond;
-    }
-};
-struct none_of_pred
-{
-    constexpr bool operator ()(bool cond) const
-    {
-        return !cond;
     }
 };
 

@@ -12,6 +12,7 @@
 
 #include <makeshift/utility.hpp> // for type_sequence<>
 
+#include <makeshift/detail/range-index.hpp>     // for range_index_t
 #include <makeshift/detail/type_traits.hpp>     // for can_instantiate_<>, conjunction<>
 #include <makeshift/detail/tuple-transform.hpp> // for transform_element()
 
@@ -27,10 +28,10 @@ template <typename T> using is_array_like_r = decltype(std::declval<T>()[std::de
 template <typename T> struct is_array_like_ : can_instantiate_<is_array_like_r, void, T> { };
 
 template <typename T> struct is_homogeneous_arg_ : is_array_like_<T> { };
-template <> struct is_homogeneous_arg_<array_index_t> : std::true_type { };
+template <> struct is_homogeneous_arg_<range_index_t> : std::true_type { };
 
 template <typename T> struct homogeneous_arg_type_ { using type = std::decay_t<is_array_like_r<T>>; };
-template <> struct homogeneous_arg_type_<array_index_t> { using type = std::ptrdiff_t; };
+template <> struct homogeneous_arg_type_<range_index_t> { using type = std::ptrdiff_t; };
 
 
 template <typename F, std::size_t I, typename... Ts> struct result_type_ { using type = decltype(std::declval<F>()(detail::get_element<I>(std::declval<Ts>())...)); };
@@ -85,7 +86,7 @@ makeshift_get_array_element(T&& arg, std::ptrdiff_t i)
 }
 template <typename T>
 constexpr std::ptrdiff_t
-makeshift_get_array_element(array_index_t, std::ptrdiff_t i)
+makeshift_get_array_element(range_index_t, std::ptrdiff_t i)
 {
     return i;
 }

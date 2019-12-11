@@ -42,6 +42,7 @@ add_library(test-makeshift-runner OBJECT
 
 # test targets
 add_executable(test-makeshift-cxx14
+    "test-algorithm.cpp"
     "test-array.cpp"
     "test-buffer.cpp"
     "test-constval.cpp"

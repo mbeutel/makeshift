@@ -75,7 +75,7 @@ template_for(F&& func, Ts&&... args)
     //ᅟ
     //ᅟ    template_for<3>(
     //ᅟ        [](index i) { std::cout << i << '\n'; },
-    //ᅟ        array_index);
+    //ᅟ        range_index);
     //ᅟ    // prints "0\n1\n2\n"
     //
 template <std::size_t N, typename F, typename... Ts>
@@ -130,7 +130,7 @@ tuple_transform(F&& func, Ts&&... args)
     //ᅟ
     //ᅟ    auto indices = tuple_transform<3>(
     //ᅟ        [](index i) { return i; },
-    //ᅟ        array_index);
+    //ᅟ        range_index);
     //ᅟ    // returns std::tuple{ 0, 1, 2 }
     //
 template <std::size_t N, typename F, typename... Ts>
@@ -149,7 +149,7 @@ tuple_transform(F&& func, Ts&&... args)
     //ᅟ
     //ᅟ    auto indices = tuple_transform<MyTuple, 3>(
     //ᅟ        [](index i) { return i; },
-    //ᅟ        array_index);
+    //ᅟ        range_index);
     //ᅟ    // returns MyTuple<index, index, index>{ 0, 1, 2 }
     //
 template <template <typename...> class TupleT, std::size_t N, typename F, typename... Ts>
@@ -191,7 +191,7 @@ template_transform_reduce(InitialValueT&& initialValue, ReduceFuncT&& reduce, Tr
     //ᅟ        std::size_t(0),
     //ᅟ        std::plus<std::size_t>{ },
     //ᅟ        [](std::size_t i) { return i*i; },
-    //ᅟ        array_index);
+    //ᅟ        range_index);
     //ᅟ    // returns 5
     //
 template <std::size_t N, typename InitialValueT, typename ReduceFuncT, typename TransformFuncT, typename... Ts>
@@ -233,7 +233,7 @@ template_reduce(InitialValueT&& initialValue, ReduceFuncT&& reduce, T&& arg)
     //ᅟ    template_reduce<4>(
     //ᅟ        std::size_t(0),
     //ᅟ        std::plus<std::size_t>{ },
-    //ᅟ        array_index);
+    //ᅟ        range_index);
     //ᅟ    // returns 6
     //
 template <std::size_t N, typename InitialValueT, typename ReduceFuncT, typename T>
@@ -273,7 +273,7 @@ template_all_of(PredicateT&& predicate, Ts&&... args)
     //ᅟ
     //ᅟ    template_all_of<3>(
     //ᅟ        [](std::size_t i) { return isPrime(i + 1); },
-    //ᅟ        array_index);
+    //ᅟ        range_index);
     //
 template <std::size_t N, typename PredicateT, typename... Ts>
 gsl_NODISCARD constexpr bool
@@ -312,7 +312,7 @@ template_any_of(PredicateT&& predicate, Ts&&... args)
     //ᅟ
     //ᅟ    template_any_of<3>(
     //ᅟ        [](std::size_t i) { return isPrime(i + 1); },
-    //ᅟ        array_index);
+    //ᅟ        range_index);
     //ᅟ    // returns true
     //
 template <std::size_t N, typename PredicateT, typename... Ts>
@@ -352,7 +352,7 @@ template_none_of(PredicateT&& predicate, Ts&&... args)
     //ᅟ
     //ᅟ    template_none_of<3>(
     //ᅟ        [](std::size_t i) { return isPrime(i); },
-    //ᅟ        array_index);
+    //ᅟ        range_index);
     //ᅟ    // returns false
     //
 template <std::size_t N, typename PredicateT, typename... Ts>
