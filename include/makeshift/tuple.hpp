@@ -11,7 +11,7 @@
 
 #include <gsl/gsl-lite.hpp> // for gsl_NODISCARD
 
-#include <makeshift/type_traits.hpp> // for can_instantiate<>
+#include <makeshift/type_traits.hpp> // for can_instantiate<>, static_const<>
 
 #include <makeshift/detail/tuple.hpp>
 
@@ -33,23 +33,7 @@ namespace makeshift
     //ᅟ            printTypename<T>();
     //ᅟ        });
     //
-using tuple_index_t = detail::tuple_index_t;
-
-
-    //ᅟ
-    // Pass `tuple_index` to `array_transform()`, `template_for()`, or `tuple_transform()` to have the tuple element index passed as a functor argument.
-    // The argument is of type `integral_constant<index, I>`.
-    //ᅟ
-    //ᅟ        // print all alternatives of a variant
-    //ᅟ    constexpr auto numAlternatives = std::variant_size_v<MyVariant>;
-    //ᅟ    template_for<numAlternatives>(
-    //ᅟ        [](auto idxC)
-    //ᅟ        {
-    //ᅟ            using T = std::variant_alternative_t<idxC(), MyVariant>;
-    //ᅟ            printTypename<T>();
-    //ᅟ        });
-    //
-constexpr tuple_index_t tuple_index{ };
+static constexpr detail::tuple_index_t const& tuple_index = static_const<detail::tuple_index_t>;
 
 
     //ᅟ

@@ -54,8 +54,7 @@ template <typename T> constexpr detail::type_tag_proxy<T> type_tag<T>::value;
     //ᅟ
     // Use `type_c<T>` as a value representation of `T` for tag dispatching.
     //
-template <typename T>
-using type = type_tag<T>;
+template <typename T> using type = type_tag<T>;
 
 template <typename T1, typename T2>
 gsl_NODISCARD constexpr std::is_same<T1, T2>
@@ -73,13 +72,7 @@ operator !=(type<T1>, type<T2>) noexcept
     //ᅟ
     // Use `type_c<T>` as a value representation of `T` for tag dispatching.
     //
-template <typename T>
-#if gsl_CPP17_OR_GREATER
-inline
-#else // gsl_CPP17_OR_GREATER
-static
-#endif // gsl_CPP17_OR_GREATER
-constexpr type<T> type_c { };
+template <typename T> constexpr type<T> type_c{ };
 
 
     //ᅟ
@@ -114,13 +107,7 @@ type_sequence(type<Ts>...) -> type_sequence<Ts...>;
     //ᅟ
     // Type sequence, i.e. type list and tuple of `type<>` arguments.
     //
-template <typename... Ts>
-#if gsl_CPP17_OR_GREATER
-inline
-#else // gsl_CPP17_OR_GREATER
-static
-#endif // gsl_CPP17_OR_GREATER
-constexpr type_sequence<Ts...> type_sequence_c { };
+template <typename... Ts> constexpr type_sequence<Ts...> type_sequence_c{ };
 
     //ᅟ
     // Return a type sequence that represents the types of the given values.

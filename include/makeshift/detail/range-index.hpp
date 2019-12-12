@@ -5,6 +5,8 @@
 
 #include <cstddef> // for ptrdiff_t
 
+#include <makeshift/type_traits.hpp> // for static_const<>
+
 
 namespace makeshift
 {
@@ -68,7 +70,7 @@ constexpr std::ptrdiff_t get(range_index_t) noexcept
     //ᅟ        range_index);
     //ᅟ    // returns std::array<index, 3>{ 0, 1, 2 }
     //
-constexpr detail::range_index_t range_index{ };
+static constexpr detail::range_index_t const& range_index = static_const<detail::range_index_t>;
 
 
 } // namespace makeshift

@@ -246,6 +246,15 @@ template <typename T, typename R> constexpr bool is_constval_of_type_v = is_cons
 template <typename T> using as_dependent_type = typename detail::as_dependent_type_<T>::type;
 
 
+    //ᅟ
+    // Contains a default-constructed `constexpr` instance of type `T`.
+    // Useful to avoid ODR violations when defining constexpr objects in C++14 (without C++17 `constexpr inline` available).
+    //ᅟ
+    //ᅟ    static constexpr S const& singleton = static_const<S>;
+    //
+template <typename T> constexpr T static_const{ };
+
+
 } // namespace makeshift
 
 
