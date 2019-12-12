@@ -110,7 +110,7 @@ y_combinator(F) -> y_combinator<F>;
 template <typename F>
 constexpr y_combinator<F> make_y_combinator(F func)
 {
-    return y_combinator<F>{ std::move(f) };
+    return y_combinator<F>{ std::move(func) };
 }
 
 
