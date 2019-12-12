@@ -4,8 +4,11 @@
 
 
 #include <cstddef>     // for ptrdiff_t
-#include <utility>     // for forward<>()
+#include <utility>     // for forward<>(), swap()
+#include <iterator>    // for iterator_traits<>
 #include <type_traits> // for integral_constant<>, decay<>
+
+#include <gsl/gsl-lite.hpp> // for Expects()
 
 #include <makeshift/detail/algorithm.hpp>
 #include <makeshift/detail/range-index.hpp> // for identity_transform_t, all_of_pred, none_of_pred
@@ -14,6 +17,78 @@
 
 namespace makeshift
 {
+
+
+    //ᅟ
+    // Permutes the range of elements [first, last) using the permutation given by the index range.
+    //
+template <typename RandomIt, typename IndexRandomIt>
+constexpr void
+apply_permutation(RandomIt first, RandomIt last, IndexRandomIt indices)
+{
+    // Implementation based on Raymond Chen's article at https://devblogs.microsoft.com/oldnewthing/20170110-00/?p=95155.
+
+    using Diff = typename std::iterator_traits<IndexRandomIt>::value_type;
+
+    using std::swap;
+
+        // We deliberately don't use std::distance() in order to support iterators with proxy reference types (which cannot implement LegacyRandomAccessIterator
+        // even though they may be random-access).
+    Diff length = last - first;
+
+    for (Diff i = 0; i < length; ++i)
+    {
+        Diff current = i;
+        while (i != indices[current])
+        {
+            Diff next = indices[current];
+            if (next < 0 || next >= length)
+            {
+                indices[i] = next; // Improve post-mortem debuggability by storing the out-of-range index in the array.
+                Expects(false); // invalid index in permutation
+            }
+            if (next == current)
+            {
+                indices[i] = next;
+                Expects(false); // not a permutation
+            }
+            swap(first[current], first[next]);
+            indices[current] = current;
+            current = next;
+        }
+        indices[current] = current;
+    }
+}
+
+    //ᅟ
+    // Permutes the range of elements [first, last) using the inverse of the permutation given by the index range.
+    //
+template <typename RandomIt, typename IndexRandomIt>
+constexpr void
+apply_reverse_permutation(RandomIt first, RandomIt last, IndexRandomIt indices)
+{
+    // Implementation based on Raymond Chen's article at https://devblogs.microsoft.com/oldnewthing/20170111-00/?p=95165.
+
+    using Diff = typename std::iterator_traits<IndexRandomIt>::value_type;
+
+    using std::swap;
+
+        // We deliberately don't use std::distance() in order to support iterators with proxy reference types (which cannot implement LegacyRandomAccessIterator
+        // even though they may be random-access).
+    Diff length = last - first;
+
+    for (Diff i = 0; i < length; ++i)
+    {
+        while (i != indices[i])
+        {
+            Diff next = indices[i];
+            Expects(next >= 0 && next < length); // make sure index is valid
+            Expects(next != indices[next]); // make sure this is actually a permutation, which isn't the case if an index occurs more than once
+            swap(first[i], first[next]);
+            swap(indices[i], indices[next]);
+        }
+    }
+}
 
 
     //ᅟ
