@@ -107,6 +107,12 @@ template <typename F>
 y_combinator(F) -> y_combinator<F>;
 #endif // gsl_CPP17_OR_GREATER
 
+template <typename F>
+constexpr y_combinator<F> make_y_combinator(F func)
+{
+    return y_combinator<F>{ std::move(f) };
+}
+
 
 } // namespace makeshift
 

@@ -13,7 +13,24 @@ namespace makeshift
     //ᅟ
     // Function object which wraps the to-stream operator `<<`.
     //
+template <typename T = void>
 struct to_stream
+{
+        //ᅟ
+        // Writes the argument to the given stream by calling `stream << arg`.
+        //
+    auto operator ()(std::ostream& stream, T const& arg)
+        -> decltype(stream << arg)
+    {
+        return stream << arg;
+    }
+};
+
+    //ᅟ
+    // Function object which wraps the to-stream operator `<<`.
+    //
+template <>
+struct to_stream<>
 {
         //ᅟ
         // Writes the argument to the given stream by calling `stream << arg`.
@@ -30,7 +47,24 @@ struct to_stream
     //ᅟ
     // Function object which wraps the from-stream operator `>>`.
     //
+template <typename T = void>
 struct from_stream
+{
+        //ᅟ
+        // Reads the argument from the given stream by calling `stream >> arg`.
+        //
+    auto operator ()(std::istream& stream, T& arg)
+        -> decltype(stream >> arg)
+    {
+        return stream >> arg;
+    }
+};
+
+    //ᅟ
+    // Function object which wraps the from-stream operator `>>`.
+    //
+template <>
+struct from_stream<>
 {
         //ᅟ
         // Reads the argument from the given stream by calling `stream >> arg`.

@@ -203,9 +203,6 @@ array_cat(Ts&&... tuples)
 }
 
 
-// TODO: array_for() should support loop exit (or have *_for_while()? *_all_of()/*_any_of()/*_none_of()?)
-
-
 } // namespace makeshift
 
 
