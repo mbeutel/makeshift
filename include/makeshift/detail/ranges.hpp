@@ -1,6 +1,6 @@
 
-#ifndef INCLUDED_MAKESHIFT_DETAIL_RANGE_HPP_
-#define INCLUDED_MAKESHIFT_DETAIL_RANGE_HPP_
+#ifndef INCLUDED_MAKESHIFT_DETAIL_RANGES_HPP_
+#define INCLUDED_MAKESHIFT_DETAIL_RANGES_HPP_
 
 
 #include <cstddef>     // for size_t, ptrdiff_t
@@ -141,4 +141,4 @@ get(range_base<It, It, std::random_access_iterator_tag, Extent> const& range) no
 } // namespace makeshift
 
 
-#endif // INCLUDED_MAKESHIFT_DETAIL_RANGE_HPP_
+#endif // INCLUDED_MAKESHIFT_DETAIL_RANGES_HPP_

@@ -1,6 +1,6 @@
 ﻿
-#ifndef INCLUDED_MAKESHIFT_RANGE_HPP_
-#define INCLUDED_MAKESHIFT_RANGE_HPP_
+#ifndef INCLUDED_MAKESHIFT_RANGES_HPP_
+#define INCLUDED_MAKESHIFT_RANGES_HPP_
 
 
 #include <gsl/gsl-lite.hpp> // for gsl_CPP17_OR_GREATER, gsl_NODISCARD
@@ -15,7 +15,7 @@
 
 #include <gsl/gsl-lite.hpp> // for Expects()
 
-#include <makeshift/detail/range.hpp>
+#include <makeshift/detail/ranges.hpp>
 
 
 namespace makeshift
@@ -75,11 +75,6 @@ make_range(It start, ExtentC extentC)
 }
 
 
-// TODO: add range_for()
-// TODO: range_for() should support loop exit (or have *_for_while()? *_all_of()/*_any_of()/*_none_of()?)
-// TODO: perhaps these should be in algorithm.hpp?
-
-
 } // namespace makeshift
 
 
@@ -97,4 +92,4 @@ template <std::size_t I, typename It, typename EndIt> class tuple_element<I, mak
 } // namespace std
 
 
-#endif // INCLUDED_MAKESHIFT_RANGE_HPP_
+#endif // INCLUDED_MAKESHIFT_RANGES_HPP_

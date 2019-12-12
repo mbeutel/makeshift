@@ -49,7 +49,7 @@ add_executable(test-makeshift-cxx14
     "test-enum.cpp"
     "test-functional.cpp"
     "test-iostream.cpp"
-    "test-range.cpp"
+    "test-ranges.cpp"
     "test-reflect.cpp"
     "test-variant-mpark.cpp"
     "test-tuple.cpp"
