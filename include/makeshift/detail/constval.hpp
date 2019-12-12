@@ -5,9 +5,9 @@
 
 #include <array>
 #include <tuple>
-#include <cstddef>     // for size_t
+#include <cstddef>     // for size_t, ptrdiff_t
 #include <utility>     // for forward<>(), get<>(), integer_sequence<>
-#include <type_traits> // for integral_constant<>, declval<>(), is_base_of<>, is_integral<>, is_enum<>, is_member_pointer<>, is_null_pointer<>, is_empty<>, is_default_constructible<>
+#include <type_traits> // for integral_constant<>, declval<>(), is_base_of<>, is_integral<>, is_enum<>, is_member_pointer<>, is_null_pointer<>, is_empty<>, is_default_constructible<>, common_type<>, make_signed<>
 
 #include <gsl/gsl-lite.hpp> // for gsl_CPP17_OR_GREATER, gsl_NODISCARD
 
@@ -317,6 +317,33 @@ template <typename C>
 constexpr make_constval_t<C> make_constval(C const&)
 {
     return { };
+}
+
+
+template <typename ContainerT>
+constexpr std::integral_constant<std::size_t, std::tuple_size<ContainerT>::value>
+csize_impl(std::true_type /*isConstval*/, ContainerT const&)
+{
+    return { };
+}
+template <typename ContainerT>
+constexpr auto csize_impl(std::false_type /*isConstval*/, ContainerT const& c)
+    -> decltype(c.size())
+{
+    return c.size();
+}
+
+template <typename ContainerT>
+constexpr std::integral_constant<std::ptrdiff_t, std::tuple_size<ContainerT>::value> cssize_impl(std::true_type /*isConstval*/, ContainerT const&)
+{
+    return { };
+}
+template <typename ContainerT>
+constexpr auto cssize_impl(std::false_type /*isConstval*/, ContainerT const& c)
+    -> std::common_type_t<std::ptrdiff_t, std::make_signed_t<decltype(c.size())>>
+{
+    using R = std::common_type_t<std::ptrdiff_t, std::make_signed_t<decltype(c.size())>>;
+    return static_cast<R>(c.size());
 }
 
 

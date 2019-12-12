@@ -3,14 +3,18 @@
 #define INCLUDED_MAKESHIFT_UTILITY_HPP_
 
 
-#include <cstddef>     // for size_t, ptrdiff_t
-#include <utility>     // for tuple_size<>, tuple_element<>
-#include <type_traits> // for integral_constant<>, enable_if<>, is_same<>, declval<>()
-
 #include <gsl/gsl-lite.hpp> // for gsl_CPP17_OR_GREATER, gsl_NODISCARD
 
-#include <makeshift/detail/type_traits.hpp> // for constval_tag, is_tuple_like_r<>, unwrap_enum_tag, try_index_of_type<>, negation<>, can_instantiate<>
+#if !gsl_CPP17_OR_GREATER
+# include <tuple>      // for tuple_size<>, tuple_element<>
+#endif // !gsl_CPP17_OR_GREATER
+
+#include <cstddef>     // for size_t
+#include <utility>     // for tuple_size<> (C++17), tuple_element<> (C++17)
+#include <type_traits> // for integral_constant<>, enable_if<>, is_same<>, declval<>()
+
 #include <makeshift/detail/utility.hpp>
+#include <makeshift/detail/type_traits.hpp> // for constval_tag, is_tuple_like_r<>, unwrap_enum_tag, try_index_of_type<>
 
 
 namespace makeshift
@@ -158,44 +162,6 @@ template <typename... Ts> struct type_sequence_cat : detail::type_sequence_cat_<
     // Concatenates a sequence of type sequences.
     //
 template <typename... Ts> using type_sequence_cat_t = typename type_sequence_cat<Ts...>::type;
-
-
-    //ᅟ
-    // Returns the size of an array, range, tuple-like, or container as a constval if known at compile time, or as a value if not.
-    //
-template <typename ContainerT>
-gsl_NODISCARD constexpr auto csize(ContainerT const& c)
-{
-    return detail::csize_impl(detail::can_instantiate_<detail::is_tuple_like_r, void, ContainerT>{ }, c);
-}
-
-    //ᅟ
-    // Returns the size of an array, range, tuple-like, or container as a constval if known at compile time, or as a value if not.
-    //
-template <typename T, std::size_t N>
-gsl_NODISCARD constexpr std::integral_constant<std::size_t, N> csize(T const (&)[N]) noexcept
-{
-    return { };
-}
-
-
-    //ᅟ
-    // Returns the signed size of an array, range, tuple-like, or container as a constval if known at compile time, or as a value if not.
-    //
-template <typename ContainerT>
-gsl_NODISCARD constexpr auto cssize(ContainerT const& c)
-{
-    return detail::cssize_impl(detail::can_instantiate_<detail::is_tuple_like_r, void, ContainerT>{ }, c);
-}
-
-    //ᅟ
-    // Returns the signed size of an array, range, tuple-like, or container as a constval if known at compile time, or as a value if not.
-    //
-template <typename T, std::size_t N>
-gsl_NODISCARD constexpr std::integral_constant<std::ptrdiff_t, N> cssize(T const (&)[N]) noexcept
-{
-    return { };
-}
 
 
 } // namespace makeshift

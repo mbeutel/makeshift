@@ -269,6 +269,44 @@ make_tuple_constant(Cs...) noexcept
 }
 
 
+    //ᅟ
+    // Returns the size of an array, range, tuple-like, or container as a constval if known at compile time, or as a value if not.
+    //
+template <typename ContainerT>
+gsl_NODISCARD constexpr auto csize(ContainerT const& c)
+{
+    return detail::csize_impl(detail::can_instantiate_<detail::is_tuple_like_r, void, ContainerT>{ }, c);
+}
+
+    //ᅟ
+    // Returns the size of an array, range, tuple-like, or container as a constval if known at compile time, or as a value if not.
+    //
+template <typename T, std::size_t N>
+gsl_NODISCARD constexpr std::integral_constant<std::size_t, N> csize(T const (&)[N]) noexcept
+{
+    return { };
+}
+
+
+    //ᅟ
+    // Returns the signed size of an array, range, tuple-like, or container as a constval if known at compile time, or as a value if not.
+    //
+template <typename ContainerT>
+gsl_NODISCARD constexpr auto cssize(ContainerT const& c)
+{
+    return detail::cssize_impl(detail::can_instantiate_<detail::is_tuple_like_r, void, ContainerT>{ }, c);
+}
+
+    //ᅟ
+    // Returns the signed size of an array, range, tuple-like, or container as a constval if known at compile time, or as a value if not.
+    //
+template <typename T, std::size_t N>
+gsl_NODISCARD constexpr std::integral_constant<std::ptrdiff_t, N> cssize(T const (&)[N]) noexcept
+{
+    return { };
+}
+
+
 } // namespace makeshift
 
 
