@@ -92,6 +92,36 @@ apply_reverse_permutation(RandomIt first, RandomIt last, IndexRandomIt indices)
 
 
     //ᅟ
+    // Similar to `std::shuffle()`, but support iterators with proxy reference types such as `std::vector<bool>` or `soa_span<>` (which cannot implement
+    // LegacyRandomAccessIterator even though they may be random-access), and permits passing a user-defined integer distribution.
+    //ᅟ
+    //ᅟ    shuffle(v.begin(), v.end(), rng,
+    //ᅟ        std::uniform_int_distribution<std::ptrdiff_t>{ });
+    //
+template <typename RandomIt, typename URBG, typename UniformIntDistributionT>
+constexpr void
+shuffle(RandomIt first, RandomIt last, URBG&& rng, UniformIntDistributionT dist)
+{
+    // Implementation taken from https://en.cppreference.com/w/cpp/algorithm/shuffle.
+
+    using Diff = typename std::iterator_traits<RandomIt>::difference_type;
+    using Param = typename UniformIntDistributionT::param_type;
+ 
+    Diff length = last - first;
+    for (Diff i = length - 1; i > 0; --i)
+    {
+        Diff j = dist(rng, Param(0, i));
+        if (i != j)
+        {
+            using std::swap;
+            swap(first[i], first[j]);
+        }
+    }
+}
+
+
+
+    //ᅟ
     // Takes a scalar procedure (i.e. a function of non-range arguments which returns nothing) and calls the procedure for every set of elements in the given ranges.
     //ᅟ
     //ᅟ    range_for(
