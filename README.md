@@ -1,6 +1,9 @@
 # makeshift C++ library
 
-[![Language](https://img.shields.io/badge/language-C%2B%2B14-blue)](https://en.wikipedia.org/wiki/C%2B%2B#Standardization) [![License](https://img.shields.io/badge/license-BSD%202--Clause-green)](https://opensource.org/licenses/BSD-2-Clause) [![Build Status](https://dev.azure.com/moritzbeutel/makeshift/_apis/build/status/mbeutel.makeshift?branchName=master)](https://dev.azure.com/moritzbeutel/makeshift/_build/latest?definitionId=2&branchName=master) [![Azure DevOps tests](https://img.shields.io/azure-devops/tests/moritzbeutel/makeshift/2)](https://dev.azure.com/moritzbeutel/makeshift/_testManagement/runs)
+[![Language](https://img.shields.io/badge/language-C%2B%2B14-blue)](https://en.wikipedia.org/wiki/C%2B%2B#Standardization)
+ [![License](https://img.shields.io/badge/license-BSD%202--Clause-green)](https://opensource.org/licenses/BSD-2-Clause)
+ [![Build Status](https://dev.azure.com/moritzbeutel/makeshift/_apis/build/status/mbeutel.makeshift?branchName=master)](https://dev.azure.com/moritzbeutel/makeshift/_build/latest?definitionId=2&branchName=master)
+ [![Azure DevOps tests](https://img.shields.io/azure-devops/tests/moritzbeutel/makeshift/2)](https://dev.azure.com/moritzbeutel/makeshift/_testManagement/runs)
 
 
 A collection of the things I miss in the C++ standard library.
@@ -9,7 +12,7 @@ A collection of the things I miss in the C++ standard library.
 ## Dependencies
 
 * [CMakeshift](https://github.com/mbeutel/CMakeshift)
-* [gsl-lite](https://github.com/Microsoft/GSL), an implementation of the [C++ Core Guidelines Support Libraray](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#S-gsl)
+* [gsl-lite](https://github.com/martinmoene/gsl-lite), an implementation of the [C++ Core Guidelines Support Library](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#S-gsl)
 
 
 ### Optional Dependencies
