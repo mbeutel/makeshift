@@ -2,11 +2,13 @@
 
 variables:
   system.debug: true
-  vcpkgGitRef: f07efb4a1dfebf4f9d55308785e65c74b68de269
+  vcpkgGitRef: e308474b85ff49f2b688a759351c4ec569636910
   vcpkgPortsOverlayRepo: 'https://mp-force.ziti.uni-heidelberg.de/asc/infrastructure/vcpkg-ports.git'
-  vcpkgPortsOverlayRef: 7f5820dd97e8e0e9f8fe430686db3084bf23aa2d
+  vcpkgPortsOverlayRef: c19ffbe03fd152a92bbbb70e68805087d2b98aef
   vcpkgTripletSuffix: ''
-  cmakeConfigArgs: '-DMAKESHIFT_BUILD_TESTS=ON'
+  cmakeBaseConfigArgs: '-DSLOWMATH_BUILD_TESTS=ON'
+  cmakeSanitizeConfigArgs: '-DCMAKESHIFT_PRIVATE_COMPILE_SETTINGS=runtime-checks;debug-stdlib'
+  cmakeConfigArgs: '$(cmakeBaseConfigArgs)'
   revision: 4
 
 trigger:
@@ -65,7 +67,6 @@ jobs:
 
     variables:
         vcpkgTripletSuffix: '-sanitize'
-        cmakeConfigArgs: '-DMAKESHIFT_BUILD_TESTS=ON -DCMAKESHIFT_PRIVATE_COMPILE_SETTINGS=runtime-checks;debug-stdlib'
 
     strategy:
       matrix: 

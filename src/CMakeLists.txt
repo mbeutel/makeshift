@@ -4,7 +4,7 @@
 # makeshift library target
 
 
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.14)
 
 # dependencies
 find_package(CMakeshift 3.7 REQUIRED)
