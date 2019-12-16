@@ -61,16 +61,6 @@ public:
         return _size() == 0;
     }
 
-    gsl_NODISCARD gsl_constexpr17 reference at(size_type i)
-    {
-        Expects(i < _size());
-        return _data()[i];
-    }
-    gsl_NODISCARD gsl_constexpr17 const_reference at(size_type i) const
-    {
-        Expects(i < _size());
-        return _data()[i];
-    }
     gsl_NODISCARD gsl_constexpr17 reference operator [](size_type i)
     {
         return _data()[i];
@@ -80,22 +70,22 @@ public:
         return _data()[i];
     }
 
-    gsl_NODISCARD gsl_constexpr17 reference front(void) noexcept
+    gsl_NODISCARD gsl_constexpr17 reference front(void)
     {
         Expects(!empty());
         return _data()[0];
     }
-    gsl_NODISCARD gsl_constexpr17 const_reference front(void) const noexcept
+    gsl_NODISCARD gsl_constexpr17 const_reference front(void) const
     {
         Expects(!empty());
         return _data()[0];
     }
-    gsl_NODISCARD gsl_constexpr17 reference back(void) noexcept
+    gsl_NODISCARD gsl_constexpr17 reference back(void)
     {
         Expects(!empty());
         return _data()[_size() - 1];
     }
-    gsl_NODISCARD gsl_constexpr17 const_reference back(void) const noexcept
+    gsl_NODISCARD gsl_constexpr17 const_reference back(void) const
     {
         Expects(!empty());
         return _data()[_size() - 1];

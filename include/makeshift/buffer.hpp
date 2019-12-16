@@ -21,6 +21,10 @@ namespace makeshift
 constexpr std::ptrdiff_t dynamic_extent = -1;
 
 
+// TODO: have `buffer<>` support allocators
+// TODO: introduce `row_buffer<>`
+
+
     //ᅟ
     // Array-like class with configurable small-buffer optimization.
     // The buffer stores `Extent` elements. If `Extent == dynamic_extent`, the number of elements is determined at runtime.
