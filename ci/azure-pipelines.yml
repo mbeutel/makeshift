@@ -6,7 +6,7 @@ variables:
   vcpkgPortsOverlayRepo: 'https://mp-force.ziti.uni-heidelberg.de/asc/infrastructure/vcpkg-ports.git'
   vcpkgPortsOverlayRef: c19ffbe03fd152a92bbbb70e68805087d2b98aef
   vcpkgTripletSuffix: ''
-  cmakeBaseConfigArgs: '-DSLOWMATH_BUILD_TESTS=ON'
+  cmakeBaseConfigArgs: '-DMAKESHIFT_BUILD_TESTS=ON'
   cmakeSanitizeConfigArgs: '-DCMAKESHIFT_PRIVATE_COMPILE_SETTINGS=runtime-checks;debug-stdlib'
   cmakeConfigArgs: '$(cmakeBaseConfigArgs)'
   revision: 4
