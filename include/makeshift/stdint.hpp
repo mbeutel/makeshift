@@ -11,6 +11,9 @@ namespace makeshift
 {
 
 
+    // TODO: more of these could be in gsl-lite; perhaps we can do without index_constant etc.?
+
+
     //ᅟ
     // Represents an index value.
     //
