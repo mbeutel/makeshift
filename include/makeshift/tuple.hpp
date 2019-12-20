@@ -14,6 +14,7 @@
 #include <makeshift/type_traits.hpp> // for can_instantiate<>, static_const<>
 
 #include <makeshift/detail/tuple.hpp>
+#include <makeshift/detail/macros.hpp> // for MAKESHIFT_DETAIL_FORCEINLINE
 
 
 namespace makeshift
@@ -45,7 +46,7 @@ static constexpr detail::tuple_index_t const& tuple_index = static_const<detail:
     //ᅟ    // prints "a: 1\nb: 2.3\n"
     //
 template <typename F, typename... Ts>
-constexpr void
+constexpr MAKESHIFT_DETAIL_FORCEINLINE void
 template_for(F&& func, Ts&&... args)
 {
     static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
@@ -63,7 +64,7 @@ template_for(F&& func, Ts&&... args)
     //ᅟ    // prints "0\n1\n2\n"
     //
 template <std::size_t N, typename F, typename... Ts>
-constexpr void
+constexpr MAKESHIFT_DETAIL_FORCEINLINE void
 template_for(F&& func, Ts&&... args)
 {
     static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
@@ -81,7 +82,7 @@ template_for(F&& func, Ts&&... args)
     //ᅟ    // returns std::tuple{ 4, 9.0f }
     //
 template <typename F, typename... Ts>
-gsl_NODISCARD constexpr auto
+gsl_NODISCARD constexpr MAKESHIFT_DETAIL_FORCEINLINE auto
 tuple_transform(F&& func, Ts&&... args)
 {
     static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
@@ -100,7 +101,7 @@ tuple_transform(F&& func, Ts&&... args)
     //ᅟ    // returns MyTuple<int, float>{ 4, 9.0f }
     //
 template <template<typename...> class TupleT, typename F, typename... Ts>
-gsl_NODISCARD constexpr auto
+gsl_NODISCARD constexpr MAKESHIFT_DETAIL_FORCEINLINE auto
 tuple_transform(F&& func, Ts&&... args)
 {
     static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
@@ -118,7 +119,7 @@ tuple_transform(F&& func, Ts&&... args)
     //ᅟ    // returns std::tuple{ 0, 1, 2 }
     //
 template <std::size_t N, typename F, typename... Ts>
-gsl_NODISCARD constexpr auto
+gsl_NODISCARD constexpr MAKESHIFT_DETAIL_FORCEINLINE auto
 tuple_transform(F&& func, Ts&&... args)
 {
     static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
@@ -137,7 +138,7 @@ tuple_transform(F&& func, Ts&&... args)
     //ᅟ    // returns MyTuple<index, index, index>{ 0, 1, 2 }
     //
 template <template <typename...> class TupleT, std::size_t N, typename F, typename... Ts>
-gsl_NODISCARD constexpr auto
+gsl_NODISCARD constexpr MAKESHIFT_DETAIL_FORCEINLINE auto
 tuple_transform(F&& func, Ts&&... args)
 {
     static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
@@ -157,7 +158,7 @@ tuple_transform(F&& func, Ts&&... args)
     //ᅟ    // returns 13
     //
 template <typename InitialValueT, typename ReduceFuncT, typename TransformFuncT, typename... Ts>
-gsl_NODISCARD constexpr auto
+gsl_NODISCARD constexpr MAKESHIFT_DETAIL_FORCEINLINE auto
 template_transform_reduce(InitialValueT&& initialValue, ReduceFuncT&& reduce, TransformFuncT&& transform, Ts&&... args)
 {
     static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
@@ -179,7 +180,7 @@ template_transform_reduce(InitialValueT&& initialValue, ReduceFuncT&& reduce, Tr
     //ᅟ    // returns 5
     //
 template <std::size_t N, typename InitialValueT, typename ReduceFuncT, typename TransformFuncT, typename... Ts>
-gsl_NODISCARD constexpr auto
+gsl_NODISCARD constexpr MAKESHIFT_DETAIL_FORCEINLINE auto
 template_transform_reduce(InitialValueT&& initialValue, ReduceFuncT&& reduce, TransformFuncT&& transform, Ts&&... args)
 {
     static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
@@ -200,7 +201,7 @@ template_transform_reduce(InitialValueT&& initialValue, ReduceFuncT&& reduce, Tr
     //ᅟ    // returns "Hello, World!"s;
     //
 template <typename InitialValueT, typename ReduceFuncT, typename T>
-gsl_NODISCARD constexpr auto
+gsl_NODISCARD constexpr MAKESHIFT_DETAIL_FORCEINLINE auto
 template_reduce(InitialValueT&& initialValue, ReduceFuncT&& reduce, T&& arg)
 {
     static_assert(detail::are_tuple_args_v<T>, "arguments must be tuples or tuple-like types");
@@ -221,7 +222,7 @@ template_reduce(InitialValueT&& initialValue, ReduceFuncT&& reduce, T&& arg)
     //ᅟ    // returns 6
     //
 template <std::size_t N, typename InitialValueT, typename ReduceFuncT, typename T>
-gsl_NODISCARD constexpr auto
+gsl_NODISCARD constexpr MAKESHIFT_DETAIL_FORCEINLINE auto
 template_reduce(InitialValueT&& initialValue, ReduceFuncT&& reduce, T&& arg)
 {
     static_assert(detail::are_tuple_args_v<T>, "arguments must be tuples or tuple-like types");
@@ -241,7 +242,7 @@ template_reduce(InitialValueT&& initialValue, ReduceFuncT&& reduce, T&& arg)
     //ᅟ    // returns false
     //
 template <typename PredicateT, typename... Ts>
-gsl_NODISCARD constexpr bool
+gsl_NODISCARD constexpr MAKESHIFT_DETAIL_FORCEINLINE bool
 template_all_of(PredicateT&& predicate, Ts&&... args)
 {
     static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
@@ -260,7 +261,7 @@ template_all_of(PredicateT&& predicate, Ts&&... args)
     //ᅟ        range_index);
     //
 template <std::size_t N, typename PredicateT, typename... Ts>
-gsl_NODISCARD constexpr bool
+gsl_NODISCARD constexpr MAKESHIFT_DETAIL_FORCEINLINE bool
 template_all_of(PredicateT&& predicate, Ts&&... args)
 {
     static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
@@ -280,7 +281,7 @@ template_all_of(PredicateT&& predicate, Ts&&... args)
     //ᅟ    // returns false
     //
 template <typename PredicateT, typename... Ts>
-gsl_NODISCARD constexpr bool
+gsl_NODISCARD constexpr MAKESHIFT_DETAIL_FORCEINLINE bool
 template_any_of(PredicateT&& predicate, Ts&&... args)
 {
     static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
@@ -300,7 +301,7 @@ template_any_of(PredicateT&& predicate, Ts&&... args)
     //ᅟ    // returns true
     //
 template <std::size_t N, typename PredicateT, typename... Ts>
-gsl_NODISCARD constexpr bool
+gsl_NODISCARD constexpr MAKESHIFT_DETAIL_FORCEINLINE bool
 template_any_of(PredicateT&& predicate, Ts&&... args)
 {
     static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
@@ -320,7 +321,7 @@ template_any_of(PredicateT&& predicate, Ts&&... args)
     //ᅟ    // returns true
     //
 template <typename PredicateT, typename... Ts>
-gsl_NODISCARD constexpr bool
+gsl_NODISCARD constexpr MAKESHIFT_DETAIL_FORCEINLINE bool
 template_none_of(PredicateT&& predicate, Ts&&... args)
 {
     static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
@@ -340,7 +341,7 @@ template_none_of(PredicateT&& predicate, Ts&&... args)
     //ᅟ    // returns false
     //
 template <std::size_t N, typename PredicateT, typename... Ts>
-gsl_NODISCARD constexpr bool
+gsl_NODISCARD constexpr MAKESHIFT_DETAIL_FORCEINLINE bool
 template_none_of(PredicateT&& predicate, Ts&&... args)
 {
     static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");

@@ -14,6 +14,8 @@
 #include <type_traits> // for decay<>, integral_constant<>
 
 #include <makeshift/type_traits.hpp>        // for can_instantiate<>, conjunction<>, disjunction<>, is_tuple_like<>
+
+#include <makeshift/detail/macros.hpp>      // for MAKESHIFT_DETAIL_FORCEINLINE
 #include <makeshift/detail/range-index.hpp> // for range_index_t
 
 
@@ -64,14 +66,14 @@ template <typename... Ts> struct equal_sizes_ : equal_sizes_0_<false, -1, Ts...>
 
 
 template <std::size_t I>
-constexpr std::integral_constant<std::ptrdiff_t, I> get(tuple_index_t) noexcept
+constexpr MAKESHIFT_DETAIL_FORCEINLINE std::integral_constant<std::ptrdiff_t, I> get(tuple_index_t) noexcept
 {
     return { };
 }
 
 
 template <std::size_t I, typename T>
-constexpr decltype(auto) get_element(T&& arg) noexcept
+constexpr MAKESHIFT_DETAIL_FORCEINLINE decltype(auto) get_element(T&& arg) noexcept
 {
     using std::get; // make std::get<>() visible to enable ADL for template methods named get<>()
     return get<I>(std::forward<T>(arg));
@@ -79,20 +81,20 @@ constexpr decltype(auto) get_element(T&& arg) noexcept
 
 
 template <std::size_t I, typename... Ts, typename F>
-constexpr decltype(auto)
+constexpr MAKESHIFT_DETAIL_FORCEINLINE decltype(auto)
 transform_element(F&& func, Ts&&... args)
 {
     return func(detail::get_element<I>(std::forward<Ts>(args))...);
 }
 
 template <typename F, typename... Ts>
-constexpr void
+constexpr MAKESHIFT_DETAIL_FORCEINLINE void
 template_for_impl(std::index_sequence<>, F&&, Ts&&...)
 {
     // extra overload to avoid unused-parameter warning
 }
 template <std::size_t... Is, typename F, typename... Ts>
-constexpr void
+constexpr MAKESHIFT_DETAIL_FORCEINLINE void
 template_for_impl(std::index_sequence<Is...>, F&& func, Ts&&... args)
 {
     (void) func;

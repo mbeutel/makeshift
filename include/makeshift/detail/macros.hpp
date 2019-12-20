@@ -23,4 +23,18 @@
 #endif // defined(_MSC_VER) && _MSC_VER >= 1900 && _MSC_FULL_VER >= 190023918 && _MSC_VER < 2000
 
 
+    //ᅟ
+    // `MAKESHIFT_DETAIL_FORCEINLINE` attempts to force the compiler to inline the given function.
+    //
+#if defined(_MSC_VER)
+# define MAKESHIFT_DETAIL_FORCEINLINE  __forceinline
+#elif defined(__INTEL_COMPILER)
+# define MAKESHIFT_DETAIL_FORCEINLINE  __forceinline // TODO: ??
+#elif defined(__GNUC__)
+# define MAKESHIFT_DETAIL_FORCEINLINE  __attribute__((always_inline)) inline
+#else
+# define MAKESHIFT_DETAIL_FORCEINLINE  inline
+#endif
+
+
 #endif // INCLUDED_MAKESHIFT_DETAIL_MACROS_HPP_
