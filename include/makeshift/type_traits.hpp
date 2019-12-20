@@ -243,7 +243,7 @@ template <typename T, typename R> constexpr bool is_constval_of_type_v = is_cons
     //ᅟ
     // Retrieves the given type as a dependent type. This can be useful to suppress type inference.
     //
-template <typename T> using as_dependent_type = typename detail::as_dependent_type_<T>::type;
+template <typename T> using as_dependent_type = typename detail::as_dependent_type_<T>::type; // TODO: rename type_identity_t<>, move to gsl-lite (also have identity<> there)
 
 
     //ᅟ

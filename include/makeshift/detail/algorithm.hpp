@@ -279,7 +279,7 @@ constexpr std::ptrdiff_t dynamic_ranges_size(Rs&... ranges)
 constexpr std::ptrdiff_t dynamic_size = -4;
 
 template <typename... Rs>
-constexpr std::integral_constant<std::ptrdiff_t, unknown_size> ranges_size_0(std::integral_constant<std::ptrdiff_t, unknown_size>, Rs&... ranges)
+constexpr std::integral_constant<std::ptrdiff_t, unknown_size> ranges_size_0(std::integral_constant<std::ptrdiff_t, unknown_size>, Rs&...)
 {
     return { };
 }
