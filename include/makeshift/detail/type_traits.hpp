@@ -137,13 +137,29 @@ template <typename T, typename = void> struct default_values { };
 
 struct constval_tag { };
 
-template <typename C> struct is_integral_constant_ : std::false_type { };
-template <typename T, T V> struct is_integral_constant_<std::integral_constant<T, V>> : std::true_type { };
+template <typename T, typename = void> struct has_value_type_ : std::false_type { };
+template <typename T> struct has_value_type_<T, gsl::std17::void_t<typename T::value_type>> : std::true_type { };
 
-template <typename T> struct is_constval_ : disjunction<std::is_base_of<constval_tag, T>, is_integral_constant_<T>> { };
+template <typename T, typename = void> struct has_value_member_ : std::false_type { };
+template <typename T> struct has_value_member_<T, gsl::std17::void_t<decltype(T::value)>> : std::true_type { };
 
-template <typename C, typename R> struct is_nullary_functor_of_type_ : std::is_same<R, decltype(std::declval<C>()())> { };
-template <typename T, typename R> struct is_constval_of_type_ : conjunction<is_constval_<T>, is_nullary_functor_of_type_<T, R>> { };
+template <typename T, typename = void> struct is_nullary_functor_ : std::false_type { };
+template <typename T> struct is_nullary_functor_<T, gsl::std17::void_t<decltype(std::declval<T>()())>> : std::true_type { };
+
+template <typename T> struct is_constval_1_ : conjunction<
+    std::is_convertible<T, typename T::value_type>,
+    std::is_same<decltype(T::value), typename T::value_type>,
+    std::is_same<decltype(std::declval<T>()()), typename T::value_type>> { };
+template <typename T> struct is_constval_0_ : conjunction<
+    has_value_type_<T>,
+    has_value_member_<T>,
+    is_nullary_functor_<T>,
+    is_constval_1_<T>> { };
+template <typename T> struct is_constval_ : disjunction<std::is_base_of<constval_tag, T>, is_constval_0_<T>> { };
+template <typename T, T V> struct is_constval_<std::integral_constant<T, V>> : std::true_type { }; // shortcut
+
+template <typename C, typename R> struct is_constval_convertible_ : std::is_convertible<typename C::value_type, R> { };
+template <typename T, typename R> struct is_constval_of_ : conjunction<is_constval_<T>, is_constval_convertible_<T, R>> { };
 
 
 template <typename T> struct as_dependent_type_ { using type = T; };
@@ -153,10 +169,10 @@ template <typename T> using is_tuple_like_r = decltype(std::tuple_size<T>::value
 template <typename T> struct is_tuple_like : can_instantiate_<is_tuple_like_r, void, T> { };
 
 
-template <typename T, typename V1, typename V2, typename V3, typename V4, typename R1, typename R2, typename R3> struct is_bitmask_type_result : std::false_type { };
-template <typename T> struct is_bitmask_type_result<T, T, T, T, T, T&, T&, T&> : std::true_type { };
+template <typename T, typename V1, typename V2, typename V3, typename V4, typename R1, typename R2, typename R3> struct is_bitmask_result : std::false_type { };
+template <typename T> struct is_bitmask_result<T, T, T, T, T, T&, T&, T&> : std::true_type { };
 
-template <typename T> using is_bitmask_type_r = is_bitmask_type_result<T,
+template <typename T> using is_bitmask_r = is_bitmask_result<T,
     decltype(~std::declval<T const&>()),
     decltype(std::declval<T const&>() | std::declval<T const&>()),
     decltype(std::declval<T const&>() & std::declval<T const&>()),
@@ -165,8 +181,8 @@ template <typename T> using is_bitmask_type_r = is_bitmask_type_result<T,
     decltype(std::declval<T&>() &= std::declval<T const&>()),
     decltype(std::declval<T&>() ^= std::declval<T const&>())>;
 
-template <typename T> struct is_bitmask_type_0_ : is_bitmask_type_r<T> { };
-template <typename T> using is_bitmask_type = conjunction<can_instantiate_<is_bitmask_type_r, void, T>, is_bitmask_type_0_<T>>;
+template <typename T> struct is_bitmask_0_ : is_bitmask_r<T> { };
+template <typename T> using is_bitmask = conjunction<can_instantiate_<is_bitmask_r, void, T>, is_bitmask_0_<T>>;
 
 
 } // namespace detail

@@ -156,12 +156,12 @@ template <typename T, template <typename...> class U> constexpr bool is_instanti
     //
     // Determines whether the given type is a bitmask type, i.e. bitmask operations with `|`, `^`, `~`, and `&` are well-formed.
     //
-template <typename T> struct is_bitmask_type : detail::is_bitmask_type<T> { };
+template <typename T> struct is_bitmask : detail::is_bitmask<T> { };
 
     //
     // Determines whether the given type is a bitmask type, i.e. bitmask operations with `|`, `^`, `~`, and `&` are well-formed.
     //
-template <typename T> constexpr bool is_bitmask_type_v = is_bitmask_type<T>::value;
+template <typename T> constexpr bool is_bitmask_v = is_bitmask<T>::value;
 
 
     //
@@ -243,12 +243,12 @@ template <typename T> constexpr bool is_constval_v = is_constval<T>::value;
     //
     // Determines whether the given type `T` is a constval returning the type `R`.
     //
-template <typename T, typename R> struct is_constval_of_type : detail::is_constval_of_type_<T, R> { };
+template <typename T, typename R> struct is_constval_of : detail::is_constval_of_<T, R> { };
 
     //
     // Determines whether the given type `T` is a constval returning the type `R`.
     //
-template <typename T, typename R> constexpr bool is_constval_of_type_v = is_constval_of_type<T, R>::value;
+template <typename T, typename R> constexpr bool is_constval_of_v = is_constval_of<T, R>::value;
 
 
     //

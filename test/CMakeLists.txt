@@ -60,6 +60,7 @@ add_executable(test-makeshift-cxx17
     "test-constval.cpp"
     "test-variant.cpp")
 add_executable(test-makeshift-cxx20
+    "test-concepts.cpp"
     "test-constval.cpp")
 
 # compiler settings
