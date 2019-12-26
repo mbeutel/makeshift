@@ -18,7 +18,7 @@ namespace makeshift
 {
 
 
-    //ᅟ
+    //
     // Exception thrown by `expand_or_throw()` if the runtime value to be expanded is not among the values listed.
     //
 class unsupported_runtime_value : public std::exception

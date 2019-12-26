@@ -23,7 +23,7 @@ namespace makeshift
 {
 
 
-    //ᅟ
+    //
     // Given a runtime value and a constexpr array of values, `expand()` returns a variant of known constexpr values.
     // `Expects()` is used to ensure that the runtime value is among the values in the array.
     //ᅟ
@@ -46,7 +46,7 @@ expand(T const& value, ValuesC valuesC)
     return detail::constval_variant_map<std::variant, ValuesC>::values[index];
 }
 
-    //ᅟ
+    //
     // Given a runtime value of a type for which all possible values are known, `expand()` returns a variant of known constexpr values.
     // `Expects()` is used to ensure that the runtime value is among the values in the array.
     //ᅟ
@@ -71,7 +71,7 @@ expand(T const& value)
     return makeshift::expand(value, makeshift::make_constval_t<detail::values_of_<T>>{ });
 }
 
-    //ᅟ
+    //
     // Given a runtime value and a constexpr array of values, `try_expand()` returns an optional variant of known constexpr values.
     // The result is `std::nullopt` if the runtime value is not among the values in the array.
     //ᅟ
@@ -95,7 +95,7 @@ try_expand(T const& value, ValuesC valuesC)
     return { detail::constval_variant_map<std::variant, ValuesC>::values[index] };
 }
 
-    //ᅟ
+    //
     // Given a runtime value of a type for which all possible values are known, `try_expand()` returns an optional variant of known constexpr values.
     // The result is `std::nullopt` if the runtime value is not among the values in the array.
     //ᅟ
@@ -121,7 +121,7 @@ try_expand(T const& value)
     return makeshift::try_expand(value, makeshift::make_constval_t<detail::values_of_<T>>{ });
 }
 
-    //ᅟ
+    //
     // Given a runtime value and a constexpr value list, `expand_or_throw()` returns a variant of known constexpr values.
     // An exception of type `unsupported_runtime_value` is thrown if the runtime value is not among the values in the array.
     //ᅟ
@@ -144,7 +144,7 @@ expand_or_throw(T const& value, ValuesC valuesC)
     return detail::constval_variant_map<std::variant, ValuesC>::values[index];
 }
 
-    //ᅟ
+    //
     // Given a runtime value of a type for which all possible values are known, `expand_or_throw()` returns a variant of known constexpr values.
     // An exception of type `unsupported_runtime_value` is thrown if the runtime value is not among the values in the array.
     //ᅟ
@@ -170,8 +170,9 @@ expand_or_throw(T const& value)
 }
 
 
-    //ᅟ
+    //
     // Equivalent to `std::visit()`.
+    //ᅟ
     // Suppresses any template instantiations for intellisense parsers to improve responsivity.
     //
 template <typename F, typename... Vs>
@@ -186,8 +187,9 @@ visit(F&& func, Vs&&... args)
 #endif // !(defined(_MSC_VER) && defined(__INTELLISENSE__))
 }
 
-    //ᅟ
+    //
     // Equivalent to `std::visit<>()`.
+    //ᅟ
     // Suppresses any template instantiations for intellisense parsers to improve responsivity.
     //
 template <typename R, typename F, typename... Vs>
@@ -209,17 +211,17 @@ visit(F&& func, Vs&&... args)
 #endif // !(defined(_MSC_VER) && defined(__INTELLISENSE__))
 }
 
-    //ᅟ
+    //
     // Given an argument of type `std::variant<Ts...>`, this is `std::variant<std::monostate, Ts...>`.
     //
 //template <typename V> using with_monostate = typename detail::with_monostate_<std::variant, std::monostate, V>::type;
 
-    //ᅟ
+    //
     // Given an argument of type `std::variant<std::monostate, Ts...>`, this is `std::variant<Ts...>`.
     //
 //template <typename V> using without_monostate = typename detail::without_monostate_<std::variant, std::monostate, V>::type;
 
-    //ᅟ
+    //
     // Casts an argument of type `std::variant<Ts...>` to the given variant type.
     //
 //template <typename DstV, typename SrcV>
@@ -245,7 +247,7 @@ visit(F&& func, Vs&&... args)
 //#endif // !(defined(_MSC_VER) && defined(__INTELLISENSE__))
 //}
 
-    //ᅟ
+    //
     // Converts an argument of type `std::variant<std::monostate, Ts...>` to `std::optional<std::variant<Ts...>>`.
     //
 //template <typename V>
@@ -270,7 +272,7 @@ visit(F&& func, Vs&&... args)
 //#endif // !(defined(_MSC_VER) && defined(__INTELLISENSE__))
 //}
 
-    //ᅟ
+    //
     // Converts an argument of type `std::optional<std::variant<Ts...>>` to `std::variant<std::monostate, Ts...>`.
     //
 //template <typename VO>
@@ -285,8 +287,9 @@ visit(F&& func, Vs&&... args)
 //    return variant_cast<R>(*std::forward<VO>(optionalVariant));
 //}
 
-    //ᅟ
+    //
     // Similar to `std::visit()`, but permits the functor to map different argument types to different result types and returns a variant of the possible results.
+    //ᅟ
     // `variant_transform()` merges identical result types, i.e. every distinct result type appears only once in the resulting variant type.
     // Suppresses any template instantiations for intellisense parsers to improve responsivity.
     //
@@ -315,8 +318,9 @@ variant_transform(F&& func, Vs&&... args)
 #endif // !(defined(_MSC_VER) && defined(__INTELLISENSE__))
 }
 
-    //ᅟ
+    //
     // Similar to `std::visit()`, but permits the functor to map different argument types to different variants and returns an unwrapped variant of the possible results.
+    //ᅟ
     // `variant_transform_many()` merges identical result types, i.e. every distinct result type appears only once in the resulting variant type.
     // Suppresses any template instantiations for intellisense parsers to improve responsivity.
     //
@@ -357,7 +361,7 @@ variant_transform_many(F&& func, Vs&&... args)
 }
 
 
-    //ᅟ
+    //
     // Concatenates the alternatives in the given variants.
     //
 //template <typename... Vs> using variant_cat_t = typename detail::variant_cat_<std::variant, Vs...>::type;

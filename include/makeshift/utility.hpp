@@ -21,11 +21,10 @@ namespace makeshift
 {
 
 
-    //ᅟ
+    //
     // Generic type tag.
-    // Always refer to this type by the `type<>` alias template. This type exists for technical reasons only (because we want the alias `type<T>::type`).
     //ᅟ
-    // Use `type_c<T>` as a value representation of `T` for tag dispatching.
+    // Always refer to this type by the `type<>` alias template. This type exists for technical reasons only (because we want the alias `type<T>::type`).
     //
 template <typename T>
 struct type_tag : detail::type_base<T>
@@ -49,10 +48,8 @@ struct type_tag : detail::type_base<T>
 };
 template <typename T> constexpr detail::type_tag_proxy<T> type_tag<T>::value;
 
-    //ᅟ
+    //
     // Generic type tag.
-    //ᅟ
-    // Use `type_c<T>` as a value representation of `T` for tag dispatching.
     //
 template <typename T> using type = type_tag<T>;
 
@@ -69,13 +66,13 @@ operator !=(type<T1>, type<T2>) noexcept
     return { };
 }
 
-    //ᅟ
+    //
     // Use `type_c<T>` as a value representation of `T` for tag dispatching.
     //
 template <typename T> constexpr type<T> type_c{ };
 
 
-    //ᅟ
+    //
     // Type sequence, i.e. type list and tuple of `type<>` arguments.
     //
 template <typename... Ts>
@@ -104,13 +101,13 @@ template <typename... Ts>
 type_sequence(type<Ts>...) -> type_sequence<Ts...>;
 #endif // gsl_CPP17_OR_GREATER
 
-    //ᅟ
+    //
     // Type sequence, i.e. type list and tuple of `type<>` arguments.
     //
 template <typename... Ts> constexpr type_sequence<Ts...> type_sequence_c{ };
 
-    //ᅟ
-    // Return a type sequence that represents the types of the given values.
+    //
+    // Returns a type sequence that represents the types of the given values.
     //
 template <typename... Ts>
 constexpr type_sequence<Ts...> make_type_sequence(type<Ts>...) noexcept
@@ -118,7 +115,7 @@ constexpr type_sequence<Ts...> make_type_sequence(type<Ts>...) noexcept
     return { };
 }
 
-    //ᅟ
+    //
     // Returns the `I`-th element in the type sequence.
     //
 template <std::size_t I, typename... Ts>
@@ -128,7 +125,7 @@ constexpr type<typename detail::nth_type_<I, Ts...>::type> get(type_sequence<Ts.
     return { };
 }
 
-    //ᅟ
+    //
     // Returns the type sequence element of type `T`.
     //
 template <typename T, typename... Ts>
@@ -140,12 +137,12 @@ constexpr type<T> get(type_sequence<Ts...> const&) noexcept
 }
 
 
-    //ᅟ
+    //
     // Concatenates a sequence of type sequences.
     //
 template <typename... Ts> struct type_sequence_cat : detail::type_sequence_cat_<type_sequence<>, Ts...> { };
 
-    //ᅟ
+    //
     // Concatenates a sequence of type sequences.
     //
 template <typename... Ts> using type_sequence_cat_t = typename type_sequence_cat<Ts...>::type;

@@ -18,6 +18,14 @@ namespace makeshift
 {
 
 
+    //
+    // Tuple of spans with span-of-tuples interface.
+    //ᅟ
+    //ᅟ    std::vector<int> is, js;
+    //ᅟ    std::vector<double> vs;
+    //ᅟ    auto A = soa_span(gsl::span(is), gsl::span(js), gsl::span(vs));
+    //ᅟ    auto [i, j, v] = A[k];
+    //
 template <typename... Ts>
 class soa_span
 {
@@ -133,6 +141,14 @@ template <typename... Ts>
 soa_span(std::tuple<Ts*...> const&, std::size_t) -> soa_span<Ts...>;
 #endif // gsl_CPP17_OR_GREATER
 
+    //
+    // Tuple of spans with span-of-tuples interface.
+    //ᅟ
+    //ᅟ    std::vector<int> is, js;
+    //ᅟ    std::vector<double> vs;
+    //ᅟ    auto A = make_soa_span(gsl::span(is), gsl::span(js), gsl::span(vs));
+    //ᅟ    auto [i, j, v] = A[k];
+    //
 template <typename... Ts>
 gsl_NODISCARD constexpr soa_span<Ts...> make_soa_span(gsl::span<Ts>... spans)
 {

@@ -12,7 +12,7 @@
 #include <makeshift/detail/enum.hpp>
 
 
-    //ᅟ
+    //
     // Defines bitmask operators `|`, `&`, `^`, `~`, `|=`, `&=`, and `^=` for the given enum type.
     //ᅟ
     //ᅟ    enum class Vegetables
@@ -25,7 +25,7 @@
     //
 #define MAKESHIFT_DEFINE_ENUM_BITMASK_OPERATORS(ENUM) MAKESHIFT_DEFINE_ENUM_BITMASK_OPERATORS_(ENUM)
 
-    //ᅟ
+    //
     // Defines relational operators `<`, `>`, `<=`, `>=` for the given enum type.
     //ᅟ
     //ᅟ    enum class OperatorPrecedence
@@ -43,46 +43,49 @@ namespace makeshift
 {
 
 
-    //ᅟ
+    //
     // `has_flag(haystack, needle)` determines whether the bitmask `haystack` contains the flag `needle`.
+    //ᅟ
     // Equivalent to `(haystack & needle) == needle`.
     //
 template <typename EnumT>
 gsl_NODISCARD constexpr bool
 has_flag(EnumT haystack, EnumT needle)
 {
-    static_assert(is_bitmask_type_v<EnumT>, "arguments must be of bitmask type");
+    static_assert(is_bitmask_v<EnumT>, "arguments must be of bitmask type");
     Expects(detail::is_flag_power_of_2(std::underlying_type_t<EnumT>(needle)));
     return (haystack & needle) == needle;
 }
     
-    //ᅟ
+    //
     // `has_any_flag_of(haystack, needles)` determines whether the bitmask `haystack` contains any of the flags in `needles`.
+    //ᅟ
     // Equivalent to `(haystack & needles) != { }`.
     //
 template <typename EnumT>
 gsl_NODISCARD constexpr bool
 has_any_flag_of(EnumT haystack, EnumT needles)
 {
-    static_assert(is_bitmask_type_v<EnumT>, "arguments must be of bitmask type");
+    static_assert(is_bitmask_v<EnumT>, "arguments must be of bitmask type");
     return (haystack & needles) != EnumT{ };
 }
 
-    //ᅟ
+    //
     // `has_all_flags_of(haystack, needles)` determines whether the bitmask `haystack` contains all of the flags in `needles`.
+    //ᅟ
     // Equivalent to `(haystack & needles) == needles`.
     //
 template <typename EnumT>
 gsl_NODISCARD constexpr bool
 has_all_flags_of(EnumT haystack, EnumT needles)
 {
-    static_assert(is_bitmask_type_v<EnumT>, "arguments must be of bitmask type");
+    static_assert(is_bitmask_v<EnumT>, "arguments must be of bitmask type");
     return (haystack & needles) == needles;
 }
 
 
-    //ᅟ
-    // Inherit from `define_type_enum<>` to define a named type enumeration:
+    //
+    // Inherit from `define_type_enum<>` to define a named type enumeration.
     //ᅟ
     //ᅟ    struct FloatTypes : define_type_enum<FloatTypes, float, double> { using base::base; };
     //ᅟ
@@ -108,7 +111,7 @@ struct underlying_type<TypeEnumT, std::enable_if_t<std::is_base_of<detail::type_
 };
 
 
-    //ᅟ
+    //
     // Anonymous type enumeration.
     //ᅟ
     //ᅟ    using FloatTypes = type_enum<float, double>;

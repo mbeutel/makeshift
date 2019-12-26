@@ -13,7 +13,7 @@
 #include <makeshift/detail/constval.hpp>
 
 
-    //ᅟ
+    //
     // Returns a constval with the value of the given constant expression.
     //ᅟ
     //ᅟ    struct PerformanceParams { int loopUnrollSize; };
@@ -21,6 +21,9 @@
     //ᅟ    // returns constval representing value `PerformanceParams{ 2 }`
     //
 #define MAKESHIFT_CONSTVAL(...) MAKESHIFT_CONSTVAL_(__VA_ARGS__)
+
+
+// TODO: remove whatever can be done without
 
 
 namespace makeshift
@@ -31,55 +34,62 @@ namespace makeshift
     // https://mpark.github.io/programming/2017/05/26/constexpr-function-parameters/ .
 
 
-    //ᅟ
+    //
     // A constval type representing the given nullary constexpr function object type. Applies normalization if applicable.
+    // TODO: either rename to constval_t or remove
     //
 template <typename C> using make_constval_t = detail::make_constval_t<C>;
 
 
-    //ᅟ
+    //
     // Constval type that represents the object given or referenced.
+    //ᅟ
     // `T` may be an object type or a const reference type. This is useful to obtain constvals representing the elements of an `array_constant<>`.
     //
 template <typename T, T V> using constant = typename detail::constant_<T, V>::type;
 
-    //ᅟ
+    //
     // Constval that represents the object given or referenced.
+    //ᅟ
     // `T` may be an object type or a const reference type. This is useful to obtain constvals representing the elements of an `array_constant<>`.
     //
 template <typename T, T V> constexpr constant<T, V> c{ };
 
 
 #if gsl_CPP17_OR_GREATER
-    //ᅟ
+    //
     // Constval type that represents the given object.
+    //ᅟ
     // The object type must be a valid C++14 non-type template parameter type.
     //
 //template <auto V> using val_constant = std::integral_constant<decltype(V), V>; // Doing this would permit inferring V, but it would mean that `val_constant<std::array{ 1 }>`, which might be allowed by a future C++ standard, cannot be normalized, so we either have to constrain V to valid C++14 NTTPs or retain the dependent-ness of `val_constant<>`.
 template <auto V> using val_constant = constant<decltype(V), V>; // TODO: this is a dependent type, which makes inferring V impossible.
 
-    //ᅟ
+    //
     // Constval that represents the given object.
+    //ᅟ
     // The object type must be a valid C++14 non-type template parameter type.
     //
 template <auto V> constexpr val_constant<V> val_c{ };
 
 
-    //ᅟ
+    //
     // Constval that represents the referenced object.
+    //ᅟ
     // Note that the language requires template reference arguments to have static linkage (e.g. global static objects, or static member objects of classes).
     //
 template <auto const& Ref> using ref_constant = constant<decltype(Ref), Ref>;
 
-    //ᅟ
+    //
     // Constval represents the referenced object.
+    //ᅟ
     // Note that the language requires template reference arguments to have static linkage (e.g. global static objects, or static member objects of classes).
     //
 template <auto const& Ref> constexpr ref_constant<Ref> ref_c{ };
 #endif // gsl_CPP17_OR_GREATER
 
 
-    //ᅟ
+    //
     // Returns the value of a constval, or passes through the argument if it is not a constval.
     //
 template <typename C>
@@ -89,7 +99,7 @@ constexpr auto constval_extract(const C& value)
 }
 
 
-    //ᅟ
+    //
     // Returns the result of the function applied to the values of the given constvals as a constval, or the result value itself if one of the arguments is not a constval.
     //ᅟ
     //ᅟ    auto baseIndexR = MAKESHIFT_CONSTVAL(42); // returns `std::integral_constant<int, 42>{ }`
@@ -105,7 +115,7 @@ constval_transform(const F&, const Cs&... args)
 }
 
 
-    //ᅟ
+    //
     // Returns the result of the function applied to the given constvals as a constval, or the result value itself if one of the arguments is not a constval.
     //ᅟ
     //ᅟ    auto variantR = MAKESHIFT_CONSTVAL(std::variant<int, float>{ 42 });
@@ -127,7 +137,7 @@ constval_extend(const CF&, const Cs&... args)
 }
 
 
-    //ᅟ
+    //
     // Represents a constval of type `std::array<>` with the given element type and values.
     //
 template <typename T, T... Vs>
@@ -190,12 +200,12 @@ get(array_constant<T, Vs...>) noexcept
     return { };
 }
 
-    //ᅟ
+    //
     // Represents a constval of type `std::array<>` with the given element type and values.
     //
 template <typename T, T... Vs> constexpr array_constant<T, Vs...> array_c{ };
 
-    //ᅟ
+    //
     // Constructs a constval of type `std::array<>` from a sequence of homogeneously typed constvals.
     //
 template <typename... Cs>
@@ -206,7 +216,7 @@ make_array_constant(Cs...) noexcept
 }
 
 
-    //ᅟ
+    //
     // Represents a constval of type `std::tuple<>` with the given values.
     //
 template <typename... Cs>
@@ -240,9 +250,7 @@ template <typename... Cs>
 tuple_constant(Cs...) -> tuple_constant<Cs...>;
 #endif // gsl_CPP17_OR_GREATER
 
-    //ᅟ
     // Implement tuple-like protocol for `tuple_constant<>`.
-    //
 template <std::size_t I, typename... Cs>
 gsl_NODISCARD constexpr
 make_constval_t<detail::tuple_accessor_functor<I, tuple_constant<Cs...>>>
@@ -252,12 +260,12 @@ get(tuple_constant<Cs...>) noexcept
     return { };
 }
 
-    //ᅟ
+    //
     // Represents a constval of type `std::tuple<>` with the given values.
     //
 template <typename... Cs> constexpr tuple_constant<Cs...> tuple_c{ };
 
-    //ᅟ
+    //
     // Constructs a constval of type `std::tuple<>` from a sequence of constvals.
     //
 template <typename... Cs>
@@ -269,7 +277,7 @@ make_tuple_constant(Cs...) noexcept
 }
 
 
-    //ᅟ
+    //
     // Returns the size of an array, range, tuple-like, or container as a constval if known at compile time, or as a value if not.
     //
 template <typename ContainerT>
@@ -278,7 +286,7 @@ gsl_NODISCARD constexpr auto csize(ContainerT const& c)
     return detail::csize_impl(detail::can_instantiate_<detail::is_tuple_like_r, void, ContainerT>{ }, c);
 }
 
-    //ᅟ
+    //
     // Returns the size of an array, range, tuple-like, or container as a constval if known at compile time, or as a value if not.
     //
 template <typename T, std::size_t N>
@@ -288,7 +296,7 @@ gsl_NODISCARD constexpr std::integral_constant<std::size_t, N> csize(T const (&)
 }
 
 
-    //ᅟ
+    //
     // Returns the signed size of an array, range, tuple-like, or container as a constval if known at compile time, or as a value if not.
     //
 template <typename ContainerT>
@@ -297,7 +305,7 @@ gsl_NODISCARD constexpr auto cssize(ContainerT const& c)
     return detail::cssize_impl(detail::can_instantiate_<detail::is_tuple_like_r, void, ContainerT>{ }, c);
 }
 
-    //ᅟ
+    //
     // Returns the signed size of an array, range, tuple-like, or container as a constval if known at compile time, or as a value if not.
     //
 template <typename T, std::size_t N>

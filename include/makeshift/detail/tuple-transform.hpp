@@ -26,7 +26,7 @@ namespace detail
 {
 
 
-    //ᅟ
+    //
     // Pass `tuple_index` to `template_for()` or `tuple_transform()` to have the tuple element index passed as a functor argument.
     // The argument is of type `integral_constant<std::size_t, I>` and implicitly converts to `std::size_t`.
     //ᅟ

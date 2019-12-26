@@ -35,6 +35,7 @@ namespace makeshift
 
 template <typename T, T... Vs>
 struct array_constant;
+
 template <typename... Cs>
 struct tuple_constant;
 

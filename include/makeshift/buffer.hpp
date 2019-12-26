@@ -23,10 +23,12 @@ constexpr std::ptrdiff_t dynamic_extent = -1;
 
 // TODO: have `buffer<>` support allocators
 // TODO: introduce `row_buffer<>`
+// TODO: remove, or move to experimental/?
 
 
+    //
+    // Array-like container with configurable small-buffer optimization.
     //ᅟ
-    // Array-like class with configurable small-buffer optimization.
     // The buffer stores `Extent` elements. If `Extent == dynamic_extent`, the number of elements is determined at runtime.
     // The buffer allocates the elements in-place if the number of elements is smaller than `MaxStaticBufferExtent`, and on the heap otherwise.
     // If `MaxStaticBufferExtent == -1`, the elements are allocated in-place if `Extent != dynamic_extent`, and on the heap otherwise.
@@ -78,8 +80,9 @@ public:
 //buffer(T (&&)[Extent]) -> buffer<T, Extent>;
 //#endif // gsl_CPP17_OR_GREATER
 
+    //
+    // Construct array-like container with configurable small-buffer optimization.
     //ᅟ
-    // Construct array-like class with configurable small-buffer optimization.
     // The number of elements is allocated in-place if `size` is a constval, and on the heap otherwise.
     //ᅟ
     //ᅟ    std::size_t numElements = ...;
@@ -96,8 +99,9 @@ make_buffer(C size)
     return buffer<T, detail::buffer_extent_from_constval(C{ })>(size);
 }
 
+    //
+    // Construct array-like container with configurable small-buffer optimization.
     //ᅟ
-    // Construct array-like class with configurable small-buffer optimization.
     // If `MaxStaticBufferExtent >= 0`, the elements are allocated in-place if `size <= MaxStaticBufferExtent`, and on the heap otherwise.
     // If `MaxStaticBufferExtent == -1`, the elements are allocated in-place if `size` is a constval, and on the heap otherwise.
     //ᅟ
@@ -116,8 +120,9 @@ make_buffer(C size)
 }
 
 
+    //
+    // Array-like container with in-place storage.
     //ᅟ
-    // Array-like class with in-place storage.
     // The buffer stores `Extent` elements. If `Extent == dynamic_extent`, the number of elements is determined at runtime.
     // Buffer construction fails if the number of elements exceeds `MaxStaticBufferExtent`.
     //ᅟ
@@ -171,8 +176,8 @@ public:
 //buffer(T (&&)[Extent]) -> buffer<T, Extent>;
 //#endif // gsl_CPP17_OR_GREATER
 
-    //ᅟ
-    // Array-like class with in-place storage of `Size` elements.
+    //
+    // Array-like container with in-place storage of `Size` elements.
     //ᅟ
     //ᅟ    auto numElementsC = std::integral_constant<std::size_t, N>{ };
     //ᅟ    auto buf = make_fixed_buffer<float>(numElementsC); // returns `fixed_buffer<float, N, N>`
@@ -185,8 +190,9 @@ make_fixed_buffer(std::integral_constant<SizeT, Size>)
     return fixed_buffer<T, Size, Size>(std::integral_constant<SizeT, Size>{ });
 }
 
+    //
+    // Array-like container with in-place storage of `size` elements.
     //ᅟ
-    // Array-like class with in-place storage of `size` elements.
     // Asserts that `size <= MaxBufferExtent`.
     //ᅟ
     //ᅟ    std::size_t numElements = ...;

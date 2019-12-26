@@ -22,7 +22,7 @@ namespace makeshift
 {
 
 
-    //ᅟ
+    //
     // Represents a pair of iterators.
     //
 template <typename It, typename EndIt = It, std::ptrdiff_t Extent = -1>
@@ -52,7 +52,7 @@ template <typename It, typename ExtentC>
 range(It, ExtentC) -> range<It, std::enable_if_t<!std::is_convertible<ExtentC, std::size_t>::value, It>, detail::range_extent_from_constval(ExtentC{ })>;
 #endif // gsl_CPP17_OR_GREATER
 
-    //ᅟ
+    //
     // Construct a range from a pair of iterators.
     //
 template <typename It, typename EndIt>
@@ -64,7 +64,7 @@ make_range(It first, EndIt last)
     return { std::move(first), std::move(last) };
 }
 
-    //ᅟ
+    //
     // Construct a range from an iterator and an extent.
     //
 template <typename It, typename ExtentC>

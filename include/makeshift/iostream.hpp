@@ -10,13 +10,13 @@ namespace makeshift
 {
 
 
-    //ᅟ
+    //
     // Function object which wraps the to-stream operator `<<`.
     //
 template <typename T = void>
 struct to_stream
 {
-        //ᅟ
+        //
         // Writes the argument to the given stream by calling `stream << arg`.
         //
     auto operator ()(std::ostream& stream, T const& arg)
@@ -26,13 +26,13 @@ struct to_stream
     }
 };
 
-    //ᅟ
+    //
     // Function object which wraps the to-stream operator `<<`.
     //
 template <>
 struct to_stream<>
 {
-        //ᅟ
+        //
         // Writes the argument to the given stream by calling `stream << arg`.
         //
     template <typename T>
@@ -44,13 +44,13 @@ struct to_stream<>
 };
 
 
-    //ᅟ
+    //
     // Function object which wraps the from-stream operator `>>`.
     //
 template <typename T = void>
 struct from_stream
 {
-        //ᅟ
+        //
         // Reads the argument from the given stream by calling `stream >> arg`.
         //
     auto operator ()(std::istream& stream, T& arg)
@@ -60,13 +60,13 @@ struct from_stream
     }
 };
 
-    //ᅟ
+    //
     // Function object which wraps the from-stream operator `>>`.
     //
 template <>
 struct from_stream<>
 {
-        //ᅟ
+        //
         // Reads the argument from the given stream by calling `stream >> arg`.
         //
     template <typename T>

@@ -19,7 +19,7 @@ namespace makeshift
 {
 
 
-    //ᅟ
+    //
     // Permutes the range of elements [first, last) using the permutation given by the index range.
     //
 template <typename RandomIt, typename IndexRandomIt>
@@ -32,7 +32,7 @@ apply_permutation(RandomIt first, RandomIt last, IndexRandomIt indices)
 
     using std::swap;
 
-        // We deliberately don't use std::distance() in order to support iterators with proxy reference types (which cannot implement LegacyRandomAccessIterator
+        // We deliberately don't use `std::distance()` in order to support iterators with proxy reference types (which cannot implement LegacyRandomAccessIterator
         // even though they may be random-access).
     Diff length = last - first;
 
@@ -44,7 +44,9 @@ apply_permutation(RandomIt first, RandomIt last, IndexRandomIt indices)
             Diff next = indices[current];
             if (next < 0 || next >= length)
             {
-                indices[i] = next; // Improve post-mortem debuggability by storing the out-of-range index in the array.
+                    // Improve post-mortem debuggability by storing the out-of-range index in the array.
+                indices[i] = next;
+
                 Expects(false); // invalid index in permutation
             }
             if (next == current)
@@ -60,7 +62,7 @@ apply_permutation(RandomIt first, RandomIt last, IndexRandomIt indices)
     }
 }
 
-    //ᅟ
+    //
     // Permutes the range of elements [first, last) using the inverse of the permutation given by the index range.
     //
 template <typename RandomIt, typename IndexRandomIt>
@@ -91,7 +93,7 @@ apply_reverse_permutation(RandomIt first, RandomIt last, IndexRandomIt indices)
 }
 
 
-    //ᅟ
+    //
     // Similar to `std::shuffle()`, but support iterators with proxy reference types such as `std::vector<bool>` or `soa_span<>` (which cannot implement
     // LegacyRandomAccessIterator even though they may be random-access), and permits passing a user-defined integer distribution.
     //ᅟ
@@ -121,7 +123,7 @@ shuffle(RandomIt first, RandomIt last, URBG&& rng, UniformIntDistributionT dist)
 
 
 
-    //ᅟ
+    //
     // Takes a scalar procedure (i.e. a function of non-range arguments which returns nothing) and calls the procedure for every set of elements in the given ranges.
     //ᅟ
     //ᅟ    range_for(
@@ -138,7 +140,7 @@ range_for(F&& func, Rs&&... ranges)
     detail::range_for(detail::ranges_size<staticSize>(ranges...), std::forward<F>(func), ranges...);
 }
 
-    //ᅟ
+    //
     // Takes a scalar procedure (i.e. a function of non-range arguments which returns nothing) and calls the procedure for every set of elements in the given ranges.
     //ᅟ
     //ᅟ    range_for<3>(
@@ -156,7 +158,7 @@ range_for(F&& func, Rs&&... ranges)
 }
 
 
-    //ᅟ
+    //
     // Takes an initial value, a reducer, a transformer, and a list of ranges and reduces them to a scalar value.
     //ᅟ
     //ᅟ    range_transform_reduce(
@@ -177,7 +179,7 @@ range_transform_reduce(T&& initialValue, ReduceFuncT&& reduce, TransformFuncT&& 
 }
 
 
-    //ᅟ
+    //
     // Takes an initial value, a reducer, a transformer, and a list of ranges and reduces them to a scalar value.
     //ᅟ
     //ᅟ    range_transform_reduce<3>(
@@ -198,7 +200,7 @@ range_transform_reduce(T&& initialValue, ReduceFuncT&& reduce, TransformFuncT&& 
 }
 
 
-    //ᅟ
+    //
     // Takes an initial value, a reducer, and a tuple and reduces them to a scalar value.
     //ᅟ
     //ᅟ    range_reduce(
@@ -217,7 +219,7 @@ range_reduce(T&& initialValue, ReduceFuncT&& reduce, R&& range)
 }
 
 
-    //ᅟ
+    //
     // Takes an initial value, a reducer, and a tuple and reduces them to a scalar value.
     //ᅟ
     //ᅟ    range_reduce<4>(
@@ -237,7 +239,7 @@ range_reduce(T&& initialValue, ReduceFuncT&& reduce, R&& range)
 }
 
 
-    //ᅟ
+    //
     // Takes a predicate and a list of ranges and returns whether the predicate is satisfied for all sets of tuple elements.
     //ᅟ
     //ᅟ    range_all_of(
@@ -256,7 +258,7 @@ range_all_of(PredicateT&& predicate, Rs&&... ranges)
 }
 
 
-    //ᅟ
+    //
     // Takes a predicate and a list of ranges and returns whether the predicate is satisfied for all sets of tuple elements.
     //ᅟ
     //ᅟ    range_all_of<3>(
@@ -274,7 +276,7 @@ range_all_of(PredicateT&& predicate, Rs&&... ranges)
 }
 
 
-    //ᅟ
+    //
     // Takes a predicate and a list of ranges and returns whether the predicate is satisfied for any set of tuple elements.
     //ᅟ
     //ᅟ    range_any_of(
@@ -293,7 +295,7 @@ range_any_of(PredicateT&& predicate, Rs&&... ranges)
 }
 
 
-    //ᅟ
+    //
     // Takes a predicate and a list of ranges and returns whether the predicate is satisfied for all sets of tuple elements.
     //ᅟ
     //ᅟ    range_any_of<3>(
@@ -312,7 +314,7 @@ range_any_of(PredicateT&& predicate, Rs&&... ranges)
 }
 
 
-    //ᅟ
+    //
     // Takes a predicate and a list of ranges and returns whether the predicate is satisfied for no set of tuple elements.
     //ᅟ
     //ᅟ    range_none_of(
@@ -331,7 +333,7 @@ range_none_of(PredicateT&& predicate, Rs&&... ranges)
 }
 
 
-    //ᅟ
+    //
     // Takes a predicate and a list of ranges and returns whether the predicate is satisfied for no set of tuple elements.
     //ᅟ
     //ᅟ    range_none_of<3>(

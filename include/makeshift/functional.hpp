@@ -16,7 +16,7 @@ namespace makeshift
 
 
 #if MAKESHIFT_DETAIL_CXXLEVEL >= 17
-    //ᅟ
+    //
     // Constructs a functor wrapper that selects the matching overload among a number of given functors.
     //ᅟ
     //ᅟ    auto type_name_func = overloaded(
@@ -30,7 +30,7 @@ struct MAKESHIFT_DETAIL_EMPTY_BASES overloaded : Fs...
     using Fs::operator ()...;
 };
 #else // ^^^ MAKESHIFT_DETAIL_CXXLEVEL >= 17 ^^^ / vvv MAKESHIFT_DETAIL_CXXLEVEL < 17 vvv
-    //ᅟ
+    //
     // Constructs a functor wrapper that selects the matching overload among a number of given functors.
     //ᅟ
     //ᅟ    auto type_name_func = overloaded(
@@ -59,6 +59,14 @@ template <typename... Ts>
 overloaded(Ts...) -> overloaded<Ts...>;
 #endif // gsl_CPP17_OR_GREATER
 
+    //
+    // Constructs a functor wrapper that selects the matching overload among a number of given functors.
+    //ᅟ
+    //ᅟ    auto type_name_func = make_overloaded(
+    //ᅟ        [](int)   { return "int"; },
+    //ᅟ        [](float) { return "float"; },
+    //ᅟ        [](auto)  { return "unknown"; });
+    //
 template <typename... Fs>
 constexpr overloaded<Fs...> make_overloaded(Fs... fs)
 {
@@ -66,6 +74,7 @@ constexpr overloaded<Fs...> make_overloaded(Fs... fs)
 }
 
 
+    // TODO: move to experimental
 template <typename F>
 struct rvalue_ref_fn : F
 {
@@ -82,13 +91,14 @@ template <typename F>
 rvalue_ref_fn(F) -> rvalue_ref_fn<F>;
 #endif // gsl_CPP17_OR_GREATER
 
+    // TODO: move to experimental
 template <typename F>
 constexpr rvalue_ref_fn<F> make_rvalue_ref_fn(F func)
 {
     return { std::move(func) };
 }
 
-
+    // TODO: move to experimental
 template <typename F>
 struct lvalue_ref_fn : F
 {
@@ -105,13 +115,14 @@ template <typename F>
 lvalue_ref_fn(F) -> lvalue_ref_fn<F>;
 #endif // gsl_CPP17_OR_GREATER
 
+    // TODO: move to experimental
 template <typename F>
 constexpr lvalue_ref_fn<F> make_lvalue_ref_fn(F func)
 {
     return { std::move(func) };
 }
 
-
+    // TODO: move to experimental
 template <typename F>
 struct lvalue_const_ref_fn : F
 {
@@ -128,6 +139,7 @@ template <typename F>
 lvalue_const_ref_fn(F) -> lvalue_const_ref_fn<F>;
 #endif // gsl_CPP17_OR_GREATER
 
+    // TODO: move to experimental
 template <typename F>
 constexpr lvalue_const_ref_fn<F> make_lvalue_const_ref_fn(F func)
 {
@@ -135,8 +147,9 @@ constexpr lvalue_const_ref_fn<F> make_lvalue_const_ref_fn(F func)
 }
 
 
-    //ᅟ
+    //
     // Higher-order function for defining recursive lambda functions.
+    //ᅟ
     // Note that the lambda function must explicitly declare a return type.
     //ᅟ
     //ᅟ    auto fac = y_combinator( 
@@ -176,6 +189,20 @@ template <typename F>
 y_combinator(F) -> y_combinator<F>;
 #endif // gsl_CPP17_OR_GREATER
 
+    //
+    // Higher-order function for defining recursive lambda functions.
+    //ᅟ
+    // Note that the lambda function must explicitly declare a return type.
+    //ᅟ
+    //ᅟ    auto fac = make_y_combinator( 
+    //ᅟ        [](auto fac, int i) -> int
+    //ᅟ        {
+    //ᅟ            return i <= 1
+    //ᅟ                ? 1
+    //ᅟ                : i * fac(i - 1);
+    //ᅟ        });
+    //ᅟ    int i = fac(4); // returns 24
+    //
 template <typename F>
 constexpr y_combinator<F> make_y_combinator(F func)
 {

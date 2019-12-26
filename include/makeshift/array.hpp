@@ -15,14 +15,16 @@ namespace makeshift
 {
 
 
-    //ᅟ
+    //
     // `mdarray<T, N1, ..., Nd>` is an alias for `std::array<...std::array<T, Nd>..., N1>`, i.e. the modern equivalent of `T[N1]...[Nd]`.
+    //ᅟ
     // Note that `mdarray<>` is defined as a dependent type, i.e. the type arguments of `mdarray<>` cannot be deduced.
+    // TODO: remove, or move to experimental/?
     //
 template <typename T, std::size_t... Dims> using mdarray = typename detail::mdarray_<T, Dims...>::type;
 
 
-    //ᅟ
+    //
     // Takes a scalar function (i.e. a function of non-tuple arguments) and returns an array of the results of the function applied to the tuple elements.
     //ᅟ
     //ᅟ    auto intSquares = array_transform(
@@ -40,7 +42,7 @@ array_transform(F&& func, Ts&&... args)
 }
 
 
-    //ᅟ
+    //
     // Takes a scalar function (i.e. a function of non-tuple arguments) and returns an array of the results of the function applied to the tuple elements.
     //ᅟ
     //ᅟ    auto intSquares = array_transform<MyArray>(
@@ -58,7 +60,7 @@ array_transform(F&& func, Ts&&... args)
 }
 
 
-    //ᅟ
+    //
     // Takes a scalar function (i.e. a function of non-tuple arguments) and returns an array of the results of the function applied to the tuple elements.
     //ᅟ
     //ᅟ    auto indices = array_transform<3>(
@@ -76,7 +78,7 @@ array_transform(F&& func, Ts&&... args)
 }
 
 
-    //ᅟ
+    //
     // Takes a scalar function (i.e. a function of non-tuple arguments) and returns an array of the results of the function applied to the tuple elements.
     //ᅟ
     //ᅟ    auto indices = array_transform<MyArray, 3>(
@@ -94,7 +96,7 @@ array_transform(F&& func, Ts&&... args)
 }
 
 
-    //ᅟ
+    //
     // Takes a scalar function (i.e. a function of non-tuple arguments) and returns an array of the results of the function applied to the tuple elements.
     //ᅟ
     //ᅟ    auto intSquares = array_transform<double>(
@@ -112,7 +114,7 @@ array_transform(F&& func, Ts&&... args)
 }
 
 
-    //ᅟ
+    //
     // Takes a scalar function (i.e. a function of non-tuple arguments) and returns an array of the results of the function applied to the tuple elements.
     //ᅟ
     //ᅟ    auto intSquares = array_transform<MyArray, double>(
@@ -130,7 +132,7 @@ array_transform(F&& func, Ts&&... args)
 }
 
 
-    //ᅟ
+    //
     // Takes a scalar function (i.e. a function of non-tuple arguments) and returns an array of the results of the function applied to the tuple elements.
     //ᅟ
     //ᅟ    auto gridCoords = array_transform<double, 3>(
@@ -148,7 +150,7 @@ array_transform(F&& func, Ts&&... args)
 }
 
 
-    //ᅟ
+    //
     // Takes a scalar function (i.e. a function of non-tuple arguments) and returns an array of the results of the function applied to the tuple elements.
     //ᅟ
     //ᅟ    auto gridCoords = array_transform<MyArray, double, 3>(
@@ -166,7 +168,7 @@ array_transform(F&& func, Ts&&... args)
 }
 
 
-    //ᅟ
+    //
     // Takes a list of tuples and returns an array of concatenated elements.
     //ᅟ
     //ᅟ    auto numbers = std::tuple{ 2, 3 };
@@ -184,7 +186,7 @@ array_cat(Ts&&... tuples)
 }
 
 
-    //ᅟ
+    //
     // Takes a list of tuples and returns an array of concatenated elements.
     // The array is constructed using the given array template.
     //ᅟ

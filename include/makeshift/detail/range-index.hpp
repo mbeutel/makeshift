@@ -40,7 +40,7 @@ struct none_of_pred
 };
 
 
-    //ᅟ
+    //
     // Pass `range_index` to `range_*()`, `array_*()`, `template_*()`, or `tuple_*()` algorithms to have the array element index passed as a functor argument.
     // The argument is of type `index`.
     //ᅟ
@@ -61,7 +61,7 @@ constexpr std::ptrdiff_t get(range_index_t) noexcept
 } // namespace detail
 
 
-    //ᅟ
+    //
     // Pass `range_index` to `range_*()`, `array_*()`, `template_*()`, or `tuple_*()` algorithms to have the array element index passed as a functor argument.
     // The argument is of type `index`.
     //ᅟ

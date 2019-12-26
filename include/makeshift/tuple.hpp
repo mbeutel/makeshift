@@ -21,7 +21,7 @@ namespace makeshift
 {
 
 
-    //ᅟ
+    //
     // Pass `tuple_index` to `array_transform()`, `template_for()`, or `tuple_transform()` to have the tuple element index passed as a functor argument.
     // The argument is of type `integral_constant<index, I>`.
     //ᅟ
@@ -37,7 +37,7 @@ namespace makeshift
 static constexpr detail::tuple_index_t const& tuple_index = static_const<detail::tuple_index_t>;
 
 
-    //ᅟ
+    //
     // Takes a scalar procedure (i.e. a function of non-tuple arguments which returns nothing) and calls the procedure for every element in the given tuples.
     //ᅟ
     //ᅟ    template_for(
@@ -55,7 +55,7 @@ template_for(F&& func, Ts&&... args)
 }
 
 
-    //ᅟ
+    //
     // Takes a scalar procedure (i.e. a function of non-tuple arguments which returns nothing) and calls the procedure for every element in the given tuples.
     //ᅟ
     //ᅟ    template_for<3>(
@@ -73,7 +73,7 @@ template_for(F&& func, Ts&&... args)
 }
 
 
-    //ᅟ
+    //
     // Takes a scalar function (i.e. a function of non-tuple arguments) and returns a tuple of the results of the function applied to the tuple elements.
     //ᅟ
     //ᅟ    auto squares = tuple_transform(
@@ -91,7 +91,7 @@ tuple_transform(F&& func, Ts&&... args)
 }
 
 
-    //ᅟ
+    //
     // Takes a scalar function (i.e. a function of non-tuple arguments) and returns a tuple of the results of the function applied to the tuple elements.
     // The tuple is constructed using the given tuple template.
     //ᅟ
@@ -110,7 +110,7 @@ tuple_transform(F&& func, Ts&&... args)
 }
 
 
-    //ᅟ
+    //
     // Takes a scalar function (i.e. a function of non-tuple arguments) and returns a tuple of the results of the function applied to the tuple elements.
     //ᅟ
     //ᅟ    auto indices = tuple_transform<3>(
@@ -128,7 +128,7 @@ tuple_transform(F&& func, Ts&&... args)
 }
 
 
-    //ᅟ
+    //
     // Takes a scalar function (i.e. a function of non-tuple arguments) and returns a tuple of the results of the function applied to the tuple elements.
     // The tuple is constructed using the given tuple template.
     //ᅟ
@@ -147,7 +147,7 @@ tuple_transform(F&& func, Ts&&... args)
 }
 
 
-    //ᅟ
+    //
     // Takes an initial value, a reducer, a transformer, and a list of tuples and reduces them to a scalar value.
     //ᅟ
     //ᅟ    template_transform_reduce(
@@ -169,7 +169,7 @@ template_transform_reduce(InitialValueT&& initialValue, ReduceFuncT&& reduce, Tr
 }
 
 
-    //ᅟ
+    //
     // Takes an initial value, a reducer, a transformer, and a list of tuples and reduces them to a scalar value.
     //ᅟ
     //ᅟ    template_transform_reduce<3>(
@@ -191,7 +191,7 @@ template_transform_reduce(InitialValueT&& initialValue, ReduceFuncT&& reduce, Tr
 }
 
 
-    //ᅟ
+    //
     // Takes an initial value, a reducer, and a tuple and reduces them to a scalar value.
     //ᅟ
     //ᅟ    template_reduce(
@@ -212,7 +212,7 @@ template_reduce(InitialValueT&& initialValue, ReduceFuncT&& reduce, T&& arg)
 }
 
 
-    //ᅟ
+    //
     // Takes an initial value, a reducer, and a tuple and reduces them to a scalar value.
     //ᅟ
     //ᅟ    template_reduce<4>(
@@ -233,7 +233,7 @@ template_reduce(InitialValueT&& initialValue, ReduceFuncT&& reduce, T&& arg)
 }
 
 
-    //ᅟ
+    //
     // Takes a predicate and a list of tuples and returns whether the predicate is satisfied for all sets of tuple elements.
     //ᅟ
     //ᅟ    template_all_of(
@@ -253,7 +253,7 @@ template_all_of(PredicateT&& predicate, Ts&&... args)
 }
 
 
-    //ᅟ
+    //
     // Takes a predicate and a list of tuples and returns whether the predicate is satisfied for all sets of tuple elements.
     //ᅟ
     //ᅟ    template_all_of<3>(
@@ -272,7 +272,7 @@ template_all_of(PredicateT&& predicate, Ts&&... args)
 }
 
 
-    //ᅟ
+    //
     // Takes a predicate and a list of tuples and returns whether the predicate is satisfied for any set of tuple elements.
     //ᅟ
     //ᅟ    template_any_of(
@@ -292,7 +292,7 @@ template_any_of(PredicateT&& predicate, Ts&&... args)
 }
 
 
-    //ᅟ
+    //
     // Takes a predicate and a list of tuples and returns whether the predicate is satisfied for all sets of tuple elements.
     //ᅟ
     //ᅟ    template_any_of<3>(
@@ -312,7 +312,7 @@ template_any_of(PredicateT&& predicate, Ts&&... args)
 }
 
 
-    //ᅟ
+    //
     // Takes a predicate and a list of tuples and returns whether the predicate is satisfied for no set of tuple elements.
     //ᅟ
     //ᅟ    template_none_of(
@@ -332,7 +332,7 @@ template_none_of(PredicateT&& predicate, Ts&&... args)
 }
 
 
-    //ᅟ
+    //
     // Takes a predicate and a list of tuples and returns whether the predicate is satisfied for no set of tuple elements.
     //ᅟ
     //ᅟ    template_none_of<3>(
