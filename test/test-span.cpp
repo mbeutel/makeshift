@@ -1,7 +1,7 @@
 
 #include <makeshift/span.hpp>   // for soa_span<>
 
-#include <gsl-lite/gsl-lite.hpp> // for index
+#include <gsl-lite/gsl-lite.hpp> // for index, dim
 
 #include <catch2/catch.hpp>
 
@@ -19,7 +19,7 @@ TEST_CASE("soa_span<>")
     auto ivals = std::vector<int>(n);
     auto uvals = std::vector<unsigned>(n);
 
-    for (mk::index i = 0, c = mk::dim(n); i < c; ++i)
+    for (gsl::index i = 0, c = gsl::dim(n); i < c; ++i)
     {
         ivals[i] = int(i);
     }
@@ -32,7 +32,7 @@ TEST_CASE("soa_span<>")
         using std::get;
         get<1>(ref) = unsigned(get<0>(ref));
     }
-    for (gsl::index i = 0, c = mk::dim(n); i < c; ++i)
+    for (gsl::index i = 0, c = gsl::dim(n); i < c; ++i)
     {
         CHECK(uvals[i] == (i >= 2 && i < 5 ? unsigned(i) : 0));
     }

@@ -10,6 +10,8 @@
 
 #include <mpark/variant.hpp>
 
+#include <makeshift/experimental/detail/variant.hpp>
+
 
 namespace makeshift
 {
