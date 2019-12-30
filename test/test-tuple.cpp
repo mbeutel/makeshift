@@ -1,13 +1,18 @@
 
+#include <makeshift/tuple.hpp>
+
 #include <tuple>
 
-#include <makeshift/tuple.hpp>
-#include <makeshift/stdint.hpp> // for index
+#include <gsl-lite/gsl-lite.hpp> // for index
 
 #include <catch2/catch.hpp>
 
 
-namespace mk = makeshift;
+namespace {
+
+
+namespace mk = ::makeshift;
+namespace gsl = ::gsl_lite;
 
 
 TEST_CASE("tuple", "[flags]")
@@ -32,7 +37,7 @@ TEST_CASE("tuple", "[flags]")
         auto rhs_scalar = 1;
         mk::template_for([offset, rhs = rhs_scalar](auto& result, auto lhs, auto indexC)
         {
-            constexpr mk::index index = indexC();
+            constexpr gsl::index index = indexC();
             result = lhs + rhs + int(index*offset);
         }, result_tuple, lhs_tuple, mk::tuple_index);
         CHECK(result_tuple == std::make_tuple(11, 121, 231));
@@ -58,3 +63,6 @@ TEST_CASE("tuple", "[flags]")
         CHECK(noneGreaterThan4);
     }
 }
+
+
+} // anonymous namespace

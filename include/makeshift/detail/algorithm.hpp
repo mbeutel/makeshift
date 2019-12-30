@@ -3,7 +3,7 @@
 #define INCLUDED_MAKESHIFT_DETAIL_ALGORITHM_HPP_
 
 
-#include <gsl/gsl-lite.hpp> // for Expects(), ssize(), void_t<>, gsl_CPP17_OR_GREATER
+#include <gsl-lite/gsl-lite.hpp> // for disjunction<>, gsl_Expects(), ssize(), void_t<>, gsl_CPP17_OR_GREATER
 
 #if !gsl_CPP17_OR_GREATER
 # include <tuple>      // for tuple_size<>
@@ -15,21 +15,24 @@
 
 #include <makeshift/detail/macros.hpp>      // for MAKESHIFT_DETAIL_EMPTY_BASES
 #include <makeshift/detail/range-index.hpp> // for range_index_t
-#include <makeshift/detail/type_traits.hpp> // for disjunction<>
 
 
 namespace makeshift
 {
+
+
+namespace gsl = ::gsl_lite;
+
 
 namespace detail
 {
 
 
 template <typename R, typename = void> struct has_data : std::false_type { };
-template <typename R> struct has_data<R, gsl::std17::void_t<decltype(gsl::std17::data(std::declval<R>()))>> : std::true_type { };
+template <typename R> struct has_data<R, gsl::void_t<decltype(gsl::data(std::declval<R>()))>> : std::true_type { };
 
 template <typename R, typename = void> struct has_size : std::false_type { };
-template <typename R> struct has_size<R, gsl::std17::void_t<decltype(gsl::std17::size(std::declval<R>()))>> : std::true_type { };
+template <typename R> struct has_size<R, gsl::void_t<decltype(gsl::size(std::declval<R>()))>> : std::true_type { };
 
 enum class iterator_mode
 {
@@ -186,7 +189,7 @@ struct MAKESHIFT_DETAIL_EMPTY_BASES range_iterator_base<F, std::index_sequence<I
         (void) Swallow{ 1, (detail::get_leaf<Is>(*this).is_end(isNotEnd, isEnd), void(), int{ })... };
 
             // Check that different ranges don't have different sizes.
-        Expects(!(isNotEnd && isEnd));
+        gsl_Expects(!(isNotEnd && isEnd));
 
         return isEnd;
     }
@@ -238,7 +241,7 @@ constexpr std::ptrdiff_t merge_sizes(std::ptrdiff_t size1, std::ptrdiff_t size2,
 }
 
 template <typename R, typename = void> struct static_range_size : std::integral_constant<std::ptrdiff_t, unknown_size> { };
-template <typename R> struct static_range_size<R, gsl::std17::void_t<decltype(std::tuple_size<R>::value)>> : std::integral_constant<std::ptrdiff_t, std::tuple_size<R>::value> { };
+template <typename R> struct static_range_size<R, gsl::void_t<decltype(std::tuple_size<R>::value)>> : std::integral_constant<std::ptrdiff_t, std::tuple_size<R>::value> { };
 
 template <typename R, typename = void>
 struct dynamic_range_size_
@@ -257,7 +260,7 @@ struct dynamic_range_size_<range_index_t>
     }
 };
 template <typename R>
-struct dynamic_range_size_<R, gsl::std17::void_t<decltype(gsl::std20::ssize(std::declval<R>()))>>
+struct dynamic_range_size_<R, gsl::void_t<decltype(gsl::std20::ssize(std::declval<R>()))>>
 {
     constexpr std::ptrdiff_t operator ()(R const& range) const
     {
@@ -287,7 +290,7 @@ template <std::ptrdiff_t N, typename... Rs>
 constexpr std::integral_constant<std::ptrdiff_t, N> ranges_size_0(std::integral_constant<std::ptrdiff_t, N>, Rs&... ranges)
 {
         // Check that different ranges don't have different sizes.
-    Expects(detail::dynamic_ranges_size<Rs...>(ranges...) >= 0);
+    gsl_Expects(detail::dynamic_ranges_size<Rs...>(ranges...) >= 0);
 
     return { };
 }
@@ -297,7 +300,7 @@ constexpr std::ptrdiff_t ranges_size_0(std::integral_constant<std::ptrdiff_t, dy
     std::ptrdiff_t n = detail::dynamic_ranges_size<Rs...>(ranges...);
 
         // Check that different ranges don't have different sizes.
-    Expects(n >= 0);
+    gsl_Expects(n >= 0);
 
     return n;
 }
@@ -306,7 +309,7 @@ constexpr auto ranges_size(Rs&... ranges)
 {
     constexpr std::ptrdiff_t staticSizeEx =
         StaticSize != unknown_size ? StaticSize
-      : disjunction<detail::has_size<Rs>...>::value ? dynamic_size
+      : gsl::disjunction<detail::has_size<Rs>...>::value ? dynamic_size
       : unknown_size;
     return detail::ranges_size_0(std::integral_constant<std::ptrdiff_t, staticSizeEx>{ }, ranges...);
 }
@@ -320,7 +323,7 @@ range_for(N n, F&& func, Rs&... ranges)
     for (std::ptrdiff_t i = 0; i != n; ++i, ++rangeIterator)
     {
             // Check that different ranges don't have different sizes.
-        Expects(rangeIterator.is_consistent());
+        gsl_Expects(rangeIterator.is_consistent());
 
         rangeIterator.invoke(i);
     }
@@ -347,10 +350,11 @@ range_transform_reduce(N n, T&& initialValue, ReduceFuncT&& reduce, TransformFun
     for (std::ptrdiff_t i = 0; i != n; ++i, ++rangeIterator)
     {
             // Check that different ranges don't have different sizes.
-        Expects(rangeIterator.is_consistent());
+        gsl_Expects(rangeIterator.is_consistent());
 
         result = reduce(std::move(result), rangeIterator.invoke(i));
     }
+    return result;
 }
 
 template <typename T, typename ReduceFuncT, typename TransformFuncT, typename... Rs>
@@ -363,10 +367,11 @@ range_transform_reduce(std::integral_constant<std::ptrdiff_t, unknown_size>, T&&
     {
         result = reduce(std::move(result), rangeIterator.invoke(i));
     }
+    return result;
 }
 
 
-template <typename PredFuncT, typename N, typename T, typename TransformFuncT, typename... Rs>
+template <typename PredFuncT, typename N, typename TransformFuncT, typename... Rs>
 constexpr bool
 range_conjunction(N n, TransformFuncT&& transform, Rs&... ranges)
 {
@@ -374,14 +379,14 @@ range_conjunction(N n, TransformFuncT&& transform, Rs&... ranges)
     for (std::ptrdiff_t i = 0; i != n; ++i, ++rangeIterator)
     {
             // Check that different ranges don't have different sizes.
-        Expects(rangeIterator.is_consistent());
+        gsl_Expects(rangeIterator.is_consistent());
 
         if (!PredFuncT{ }(rangeIterator.invoke(i))) return false;
     }
     return true;
 }
 
-template <typename PredFuncT, typename T, typename TransformFuncT, typename... Rs>
+template <typename PredFuncT, typename TransformFuncT, typename... Rs>
 constexpr bool
 range_conjunction(std::integral_constant<std::ptrdiff_t, unknown_size>, TransformFuncT&& transform, Rs&... ranges)
 {

@@ -3,7 +3,7 @@
 #define INCLUDED_MAKESHIFT_RANGES_HPP_
 
 
-#include <gsl/gsl-lite.hpp> // for gsl_CPP17_OR_GREATER, gsl_NODISCARD
+#include <gsl-lite/gsl-lite.hpp> // for gsl_CPP17_OR_GREATER, gsl_NODISCARD
 
 #if !gsl_CPP17_OR_GREATER
 # include <tuple>      // for tuple_size<>
@@ -13,13 +13,16 @@
 #include <utility>     // for move(), tuple_size<> (C++17), forward<>()
 #include <type_traits> // for enable_if<>, is_convertible<>
 
-#include <gsl/gsl-lite.hpp> // for Expects()
+#include <gsl-lite/gsl-lite.hpp> // for gsl_Expects()
 
 #include <makeshift/detail/ranges.hpp>
 
 
 namespace makeshift
 {
+
+
+namespace gsl = ::gsl_lite;
 
 
     //
@@ -42,7 +45,7 @@ public:
     {
         constexpr std::ptrdiff_t rhsExtent = detail::range_extent_from_constval(ExtentC{ });
         static_assert(Extent == -1 || rhsExtent == -1 || Extent == rhsExtent, "static extents must match");
-        Expects(Extent == -1 || static_cast<std::ptrdiff_t>(extentC) == Extent);
+        gsl_Expects(Extent == -1 || static_cast<std::ptrdiff_t>(extentC) == Extent);
     }
 };
 #if gsl_CPP17_OR_GREATER

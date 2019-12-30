@@ -9,14 +9,17 @@
 #include <iterator>    // for input_iterator_tag, random_access_iterator_tag
 #include <type_traits> // for integral_constant<>, enable_if<>, remove_cv<>, is_const<>, is_same<>
 
-#include <gsl/gsl-lite.hpp> // for span<>, Expects(), gsl_NODISCARD
+#include <gsl-lite/gsl-lite.hpp> // for conjunction<>, negation<>, span<>, gsl_Expects(), gsl_NODISCARD
 
 #include <makeshift/tuple.hpp>       // for template_for(), tuple_transform()
-#include <makeshift/type_traits.hpp> // for nth_type<>, conjunction<>, negation<>
+#include <makeshift/type_traits.hpp> // for nth_type<>
 
 
 namespace makeshift
 {
+
+
+namespace gsl = ::gsl_lite;
 
 
 template <typename... Ts>
@@ -92,7 +95,7 @@ public:
 };
 
 template <typename... Ts>
-constexpr std::enable_if_t<conjunction_v<negation<std::is_const<Ts>>...>>
+constexpr std::enable_if_t<gsl::conjunction_v<gsl::negation<std::is_const<Ts>>...>>
 swap(soa_reference<Ts...> const& lhs, soa_reference<Ts...> const& rhs) noexcept
 {
     makeshift::template_for<sizeof...(Ts)>(
@@ -131,7 +134,7 @@ public:
     using iterator_concept = std::random_access_iterator_tag; // We can be a non-legacy random access iterator though in C++20.
 
     template <typename... RTs,
-              std::enable_if_t<conjunction_v<std::is_const<Ts>..., negation<std::is_const<RTs>>..., std::is_same<Ts, const RTs>...>, int> = 0>
+              std::enable_if_t<gsl::conjunction_v<std::is_const<Ts>..., gsl::negation<std::is_const<RTs>>..., std::is_same<Ts, const RTs>...>, int> = 0>
         constexpr soa_span_iterator(soa_span_iterator<RTs...> const& rhs) noexcept
             : data_(rhs.data_), index_(rhs.index_)
     {
@@ -241,7 +244,7 @@ template <typename R, typename T0, typename... Ts>
 constexpr R check_all_equal(T0 v0, Ts... vs)
 {
     auto result = check_all_equal<R>(vs...);
-    Expects(v0 == result);
+    gsl_Expects(v0 == result);
     return result;
 }
 

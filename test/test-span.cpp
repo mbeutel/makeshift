@@ -1,11 +1,16 @@
 
 #include <makeshift/span.hpp>   // for soa_span<>
-#include <makeshift/stdint.hpp> // for index
+
+#include <gsl-lite/gsl-lite.hpp> // for index
 
 #include <catch2/catch.hpp>
 
 
-namespace mk = makeshift;
+namespace {
+
+
+namespace mk = ::makeshift;
+namespace gsl = ::gsl_lite;
 
 
 TEST_CASE("soa_span<>")
@@ -27,7 +32,7 @@ TEST_CASE("soa_span<>")
         using std::get;
         get<1>(ref) = unsigned(get<0>(ref));
     }
-    for (mk::index i = 0, c = mk::dim(n); i < c; ++i)
+    for (gsl::index i = 0, c = mk::dim(n); i < c; ++i)
     {
         CHECK(uvals[i] == (i >= 2 && i < 5 ? unsigned(i) : 0));
     }
@@ -35,3 +40,6 @@ TEST_CASE("soa_span<>")
     auto d = s.end() - s.begin();
     CHECK(d == std::ptrdiff_t(n));
 }
+
+
+} // anonymous namespace

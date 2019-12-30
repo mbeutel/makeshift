@@ -9,7 +9,7 @@
 #include <utility>     // for forward<>(), get<>(), integer_sequence<>
 #include <type_traits> // for integral_constant<>, declval<>(), is_base_of<>, is_integral<>, is_enum<>, is_member_pointer<>, is_null_pointer<>, is_empty<>, is_default_constructible<>, common_type<>, make_signed<>
 
-#include <gsl/gsl-lite.hpp> // for gsl_CPP17_OR_GREATER, gsl_NODISCARD
+#include <gsl-lite/gsl-lite.hpp> // for conjunction<>, gsl_CPP17_OR_GREATER, gsl_NODISCARD
 
 #include <makeshift/type_traits.hpp> // for constval_tag, can_instantiate<>
 
@@ -31,6 +31,9 @@
 
 namespace makeshift
 {
+
+
+namespace gsl = ::gsl_lite;
 
 
 template <typename T, T... Vs>
@@ -143,7 +146,7 @@ const T ref_constval<T, Ref>::value_ = ref_constval<T, Ref>::value;
 #endif // defined(_MSC_VER) && !defined(NDEBUG) && !gsl_CPP17_OR_GREATER
 
     // Determines if a given type makes a valid C++14 non-type template parameter.
-template <typename T> struct is_valid_nttp_ : disjunction<std::is_integral<T>, std::is_enum<T>, std::is_member_pointer<T>, std::is_null_pointer<T>> { };
+template <typename T> struct is_valid_nttp_ : gsl::disjunction<std::is_integral<T>, std::is_enum<T>, std::is_member_pointer<T>, std::is_null_pointer<T>> { };
 
     // Represent constvals of type `std::array<>` as `array_constant<>` of the array values if the array element type is a valid NTTP type,
     // or as an `array_constant<>` of const references to constexpr objects otherwise. This way, syntax for `array_constant<>` users can be
@@ -310,7 +313,7 @@ constexpr void constval_assert_impl(std::true_type /*isConstval*/, BoolC arg) no
 }
 static constexpr void constval_assert_impl(std::false_type /*isConstval*/, bool arg)
 {
-    Expects(arg);
+    gsl_Expects(arg);
 }
 
 

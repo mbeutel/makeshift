@@ -14,7 +14,7 @@ namespace makeshift
 
 
     //
-    // Specialize `values_provider<>` with `enable_if_t<>` or `void_t<>` to support retrieving values for all types matching a condition.
+    // Specialize `values_provider<>` with `enable_if_t<>` or `void_t<>` to support retrieving values for all types matching a SFINAE condition.
     //ᅟ
     //ᅟ    struct TagBase { };
     //ᅟ    template <typename T> struct values_provider<T, std::enable_if_t<std::is_base_of_v<TagBase, T>>> {

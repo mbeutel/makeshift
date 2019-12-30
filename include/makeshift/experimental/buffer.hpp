@@ -1,6 +1,6 @@
 
-#ifndef INCLUDED_MAKESHIFT_BUFFER_HPP_
-#define INCLUDED_MAKESHIFT_BUFFER_HPP_
+#ifndef INCLUDED_MAKESHIFT_EXPERIMENTAL_BUFFER_HPP_
+#define INCLUDED_MAKESHIFT_EXPERIMENTAL_BUFFER_HPP_
 
 
 #include <array>
@@ -9,13 +9,16 @@
 #include <algorithm>   // for copy()
 #include <type_traits> // for is_convertible<>
 
-#include <gsl/gsl-lite.hpp> // for Expects(), gsl_CPP17_OR_GREATER, gsl_NODISCARD
+#include <gsl-lite/gsl-lite.hpp> // for gsl_Expects(), gsl_CPP17_OR_GREATER, gsl_NODISCARD
 
-#include <makeshift/detail/buffer.hpp>
+#include <makeshift/experimental/detail/buffer.hpp>
 
 
 namespace makeshift
 {
+
+
+namespace gsl = ::gsl_lite;
 
 
 constexpr std::ptrdiff_t dynamic_extent = -1;
@@ -23,7 +26,6 @@ constexpr std::ptrdiff_t dynamic_extent = -1;
 
 // TODO: have `buffer<>` support allocators
 // TODO: introduce `row_buffer<>`
-// TODO: remove, or move to experimental/?
 
 
     //
@@ -70,7 +72,7 @@ public:
     {
         static_assert(Extent == dynamic_extent || RExtent == Extent, "array extent does not match");
         static_assert(std::is_convertible<U, T>::value, "incompatible array element types");
-        Expects(RExtent == this->size());
+        gsl_Expects(RExtent == this->size());
         std::copy(std::make_move_iterator(array), std::make_move_iterator(array + RExtent), this->begin());
         return *this;
     }
@@ -166,7 +168,7 @@ public:
     {
         static_assert(Extent == dynamic_extent || RExtent == Extent, "array extent does not match");
         static_assert(std::is_convertible<U, T>::value, "incompatible array element types");
-        Expects(RExtent == this->size());
+        gsl_Expects(RExtent == this->size());
         std::copy(std::make_move_iterator(array), std::make_move_iterator(array + RExtent), this->begin());
         return *this;
     }
@@ -264,4 +266,4 @@ template <std::size_t I, typename T, std::ptrdiff_t Extent, std::ptrdiff_t MaxBu
 } // namespace std
 
 
-#endif // INCLUDED_MAKESHIFT_BUFFER_HPP_
+#endif // INCLUDED_MAKESHIFT_EXPERIMENTAL_BUFFER_HPP_

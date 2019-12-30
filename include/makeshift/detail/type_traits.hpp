@@ -3,7 +3,7 @@
 #define INCLUDED_MAKESHIFT_DETAIL_TYPE_TRAITS_HPP_
 
 
-#include <gsl/gsl-lite.hpp> // for void_t<>, gsl_CPP17_OR_GREATER
+#include <gsl-lite/gsl-lite.hpp> // for conjunction<>, disjunction<>, void_t<>, gsl_CPP17_OR_GREATER
 
 #if !gsl_CPP17_OR_GREATER
 # include <tuple>      // for tuple_size<>
@@ -18,20 +18,12 @@
 namespace makeshift
 {
 
+
+namespace gsl = ::gsl_lite;
+
+
 namespace detail
 {
-
-
-template <bool V0, typename T0, typename... Ts> struct disjunction_ { using type = T0; };
-template <typename T0, typename T1, typename... Ts> struct disjunction_<false, T0, T1, Ts...> : disjunction_<T1::value, T1, Ts...> { };
-template <bool V0, typename T0, typename... Ts> struct conjunction_ { using type = T0; };
-template <typename T0, typename T1, typename... Ts> struct conjunction_<true, T0, T1, Ts...> : conjunction_<T1::value, T1, Ts...> { };
-template <typename... Ts> struct disjunction;
-template <> struct disjunction<> : std::false_type { };
-template <typename T0, typename... Ts> struct disjunction<T0, Ts...> : detail::disjunction_<T0::value, T0, Ts...>::type { };
-template <typename... Ts> struct conjunction;
-template <> struct conjunction<> : std::true_type { };
-template <typename T0, typename... Ts> struct conjunction<T0, Ts...> : detail::conjunction_<T0::value, T0, Ts...>::type { };
 
 
 struct type_enum_base { };
@@ -146,23 +138,20 @@ template <typename T> struct has_value_member_<T, gsl::std17::void_t<decltype(T:
 template <typename T, typename = void> struct is_nullary_functor_ : std::false_type { };
 template <typename T> struct is_nullary_functor_<T, gsl::std17::void_t<decltype(std::declval<T>()())>> : std::true_type { };
 
-template <typename T> struct is_constval_1_ : conjunction<
+template <typename T> struct is_constval_1_ : gsl::conjunction<
     std::is_convertible<T, typename T::value_type>,
     std::is_same<decltype(T::value), typename T::value_type>,
     std::is_same<decltype(std::declval<T>()()), typename T::value_type>> { };
-template <typename T> struct is_constval_0_ : conjunction<
+template <typename T> struct is_constval_0_ : gsl::conjunction<
     has_value_type_<T>,
     has_value_member_<T>,
     is_nullary_functor_<T>,
     is_constval_1_<T>> { };
-template <typename T> struct is_constval_ : disjunction<std::is_base_of<constval_tag, T>, is_constval_0_<T>> { };
+template <typename T> struct is_constval_ : gsl::disjunction<std::is_base_of<constval_tag, T>, is_constval_0_<T>> { };
 template <typename T, T V> struct is_constval_<std::integral_constant<T, V>> : std::true_type { }; // shortcut
 
 template <typename C, typename R> struct is_constval_convertible_ : std::is_convertible<typename C::value_type, R> { };
-template <typename T, typename R> struct is_constval_of_ : conjunction<is_constval_<T>, is_constval_convertible_<T, R>> { };
-
-
-template <typename T> struct as_dependent_type_ { using type = T; };
+template <typename T, typename R> struct is_constval_of_ : gsl::conjunction<is_constval_<T>, is_constval_convertible_<T, R>> { };
 
 
 template <typename T> using is_tuple_like_r = decltype(std::tuple_size<T>::value);
@@ -182,7 +171,7 @@ template <typename T> using is_bitmask_r = is_bitmask_result<T,
     decltype(std::declval<T&>() ^= std::declval<T const&>())>;
 
 template <typename T> struct is_bitmask_0_ : is_bitmask_r<T> { };
-template <typename T> using is_bitmask = conjunction<can_instantiate_<is_bitmask_r, void, T>, is_bitmask_0_<T>>;
+template <typename T> using is_bitmask = gsl::conjunction<can_instantiate_<is_bitmask_r, void, T>, is_bitmask_0_<T>>;
 
 
 } // namespace detail

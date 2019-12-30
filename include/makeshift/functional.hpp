@@ -5,7 +5,7 @@
 
 #include <utility> // for move(), forward<>()
 
-#include <gsl/gsl-lite.hpp> // for gsl_CPP17_OR_GREATER
+#include <gsl-lite/gsl-lite.hpp> // for gsl_CPP17_OR_GREATER
 
 #include <makeshift/detail/macros.hpp>     // for MAKESHIFT_DETAIL_CXXLEVEL, MAKESHIFT_DETAIL_EMPTY_BASES
 #include <makeshift/detail/functional.hpp>
@@ -13,6 +13,9 @@
 
 namespace makeshift
 {
+
+
+namespace gsl = ::gsl_lite;
 
 
 #if MAKESHIFT_DETAIL_CXXLEVEL >= 17
@@ -71,79 +74,6 @@ template <typename... Fs>
 constexpr overloaded<Fs...> make_overloaded(Fs... fs)
 {
     return { std::move(fs)... };
-}
-
-
-    // TODO: move to experimental
-template <typename F>
-struct rvalue_ref_fn : F
-{
-    constexpr rvalue_ref_fn(F func) : F(std::move(func)) { }
-    template <typename... Ts>
-    constexpr auto operator ()(Ts&&... args) &&
-        -> decltype(static_cast<F&&>(*this)(std::forward<Ts>(args)...))
-    {
-        return static_cast<F&&>(*this)(std::forward<Ts>(args)...);
-    }
-};
-#if gsl_CPP17_OR_GREATER
-template <typename F>
-rvalue_ref_fn(F) -> rvalue_ref_fn<F>;
-#endif // gsl_CPP17_OR_GREATER
-
-    // TODO: move to experimental
-template <typename F>
-constexpr rvalue_ref_fn<F> make_rvalue_ref_fn(F func)
-{
-    return { std::move(func) };
-}
-
-    // TODO: move to experimental
-template <typename F>
-struct lvalue_ref_fn : F
-{
-    constexpr lvalue_ref_fn(F func) : F(std::move(func)) { }
-    template <typename... Ts>
-    constexpr auto operator ()(Ts&&... args) &
-        -> decltype(static_cast<F&>(*this)(std::forward<Ts>(args)...))
-    {
-        return static_cast<F&>(*this)(std::forward<Ts>(args)...);
-    }
-};
-#if gsl_CPP17_OR_GREATER
-template <typename F>
-lvalue_ref_fn(F) -> lvalue_ref_fn<F>;
-#endif // gsl_CPP17_OR_GREATER
-
-    // TODO: move to experimental
-template <typename F>
-constexpr lvalue_ref_fn<F> make_lvalue_ref_fn(F func)
-{
-    return { std::move(func) };
-}
-
-    // TODO: move to experimental
-template <typename F>
-struct lvalue_const_ref_fn : F
-{
-    constexpr lvalue_const_ref_fn(F func) : F(std::move(func)) { }
-    template <typename... Ts>
-    constexpr auto operator ()(Ts&&... args) const&
-        -> decltype(static_cast<F const&>(*this)(std::forward<Ts>(args)...))
-    {
-        return static_cast<F const&>(*this)(std::forward<Ts>(args)...);
-    }
-};
-#if gsl_CPP17_OR_GREATER
-template <typename F>
-lvalue_const_ref_fn(F) -> lvalue_const_ref_fn<F>;
-#endif // gsl_CPP17_OR_GREATER
-
-    // TODO: move to experimental
-template <typename F>
-constexpr lvalue_const_ref_fn<F> make_lvalue_const_ref_fn(F func)
-{
-    return { std::move(func) };
 }
 
 

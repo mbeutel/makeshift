@@ -3,44 +3,20 @@
 #define INCLUDED_MAKESHIFT_ENUM_HPP_
 
 
-#include <type_traits> // for enable_if<>
+#include <type_traits> // for underlying_type<>
 
-#include <gsl/gsl-lite.hpp> // for Expects(), gsl_NODISCARD
+#include <gsl-lite/gsl-lite.hpp> // for gsl_Expects(), gsl_NODISCARD
 
-#include <makeshift/type_traits.hpp> // for underlying_type<>, is_bitmask_type<>
+#include <makeshift/type_traits.hpp> // for is_bitmask<>
 
 #include <makeshift/detail/enum.hpp>
 
 
-    //
-    // Defines bitmask operators `|`, `&`, `^`, `~`, `|=`, `&=`, and `^=` for the given enum type.
-    //ᅟ
-    //ᅟ    enum class Vegetables
-    //ᅟ    {
-    //ᅟ        tomato   = 0b001,
-    //ᅟ        onion    = 0b010,
-    //ᅟ        eggplant = 0b100
-    //ᅟ    };
-    //ᅟ    MAKESHIFT_DEFINE_ENUM_BITMASK_OPERATORS(Vegetables)
-    //
-#define MAKESHIFT_DEFINE_ENUM_BITMASK_OPERATORS(ENUM) MAKESHIFT_DEFINE_ENUM_BITMASK_OPERATORS_(ENUM)
-
-    //
-    // Defines relational operators `<`, `>`, `<=`, `>=` for the given enum type.
-    //ᅟ
-    //ᅟ    enum class OperatorPrecedence
-    //ᅟ    {
-    //ᅟ        additive = 0,
-    //ᅟ        multiplicative = 1,
-    //ᅟ        power = 2
-    //ᅟ    };
-    //ᅟ    MAKESHIFT_DEFINE_ENUM_RELATIONAL_OPERATORS(OperatorPrecedence)
-    //
-#define MAKESHIFT_DEFINE_ENUM_RELATIONAL_OPERATORS(ENUM) MAKESHIFT_DEFINE_ENUM_RELATIONAL_OPERATORS_(ENUM)
-
-
 namespace makeshift
 {
+
+
+namespace gsl = ::gsl_lite;
 
 
     //
@@ -53,14 +29,14 @@ gsl_NODISCARD constexpr bool
 has_flag(EnumT haystack, EnumT needle)
 {
     static_assert(is_bitmask_v<EnumT>, "arguments must be of bitmask type");
-    Expects(detail::is_flag_power_of_2(std::underlying_type_t<EnumT>(needle)));
+    gsl_Expects(detail::is_flag_power_of_2(std::underlying_type_t<EnumT>(needle)));
     return (haystack & needle) == needle;
 }
     
     //
     // `has_any_flag_of(haystack, needles)` determines whether the bitmask `haystack` contains any of the flags in `needles`.
     //ᅟ
-    // Equivalent to `(haystack & needles) != { }`.
+    // Equivalent to `(haystack & needles) != EnumT{ }`.
     //
 template <typename EnumT>
 gsl_NODISCARD constexpr bool
@@ -82,53 +58,6 @@ has_all_flags_of(EnumT haystack, EnumT needles)
     static_assert(is_bitmask_v<EnumT>, "arguments must be of bitmask type");
     return (haystack & needles) == needles;
 }
-
-
-    //
-    // Inherit from `define_type_enum<>` to define a named type enumeration.
-    //ᅟ
-    //ᅟ    struct FloatTypes : define_type_enum<FloatTypes, float, double> { using base::base; };
-    //ᅟ
-    //ᅟ    FloatTypes floatType = ...;
-    //ᅟ    switch (floatType)
-    //ᅟ    {
-    //ᅟ    case type_c<float>:  ...; break;
-    //ᅟ    case type_c<double>: ...; break;
-    //ᅟ    }
-    //
-template <typename TypeEnumT, typename... Ts>
-struct define_type_enum : detail::define_type_enum_base<TypeEnumT, Ts...>
-{
-    using _base_base = detail::define_type_enum_base<TypeEnumT, Ts...>;
-    using _base_base::_base_base;
-    using base = define_type_enum;
-};
-
-template <typename TypeEnumT>
-struct underlying_type<TypeEnumT, std::enable_if_t<std::is_base_of<detail::type_enum_base, TypeEnumT>::value>>
-{
-    using type = typename TypeEnumT::underlying_type;
-};
-
-
-    //
-    // Anonymous type enumeration.
-    //ᅟ
-    //ᅟ    using FloatTypes = type_enum<float, double>;
-    //ᅟ
-    //ᅟ    FloatTypes floatType = ...;
-    //ᅟ    switch (floatType)
-    //ᅟ    {
-    //ᅟ    case type_c<float>:  ...; break;
-    //ᅟ    case type_c<double>: ...; break;
-    //ᅟ    }
-    //
-template <typename... Ts>
-class type_enum final : public define_type_enum<type_enum<Ts...>, Ts...>
-{
-    using _base_base = define_type_enum<type_enum<Ts...>, Ts...>;
-    using _base_base::_base_base;
-};
 
 
 } // namespace makeshift

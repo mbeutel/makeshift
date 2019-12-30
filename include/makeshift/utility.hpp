@@ -3,7 +3,7 @@
 #define INCLUDED_MAKESHIFT_UTILITY_HPP_
 
 
-#include <gsl/gsl-lite.hpp> // for gsl_CPP17_OR_GREATER, gsl_NODISCARD
+#include <gsl-lite/gsl-lite.hpp> // for gsl_CPP17_OR_GREATER, gsl_NODISCARD
 
 #if !gsl_CPP17_OR_GREATER
 # include <tuple>      // for tuple_size<>, tuple_element<>
@@ -19,6 +19,9 @@
 
 namespace makeshift
 {
+
+
+namespace gsl = ::gsl_lite;
 
 
     //

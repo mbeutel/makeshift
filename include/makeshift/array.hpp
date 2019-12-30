@@ -6,13 +6,16 @@
 #include <array>
 #include <cstddef> // for size_t
 
-#include <gsl/gsl-lite.hpp> // for gsl_NODISCARD
+#include <gsl-lite/gsl-lite.hpp> // for gsl_NODISCARD
 
 #include <makeshift/detail/array.hpp>
 
 
 namespace makeshift
 {
+
+
+namespace gsl = ::gsl_lite;
 
 
     //

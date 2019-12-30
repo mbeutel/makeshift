@@ -8,7 +8,7 @@ cmake_minimum_required(VERSION 3.14)
 
 # dependencies
 find_package(CMakeshift 3.7 REQUIRED)
-find_package(gsl-lite 0.35.3 REQUIRED)
+find_package(gsl-lite 0.35.5 REQUIRED)
 
 # library target
 add_library(makeshift INTERFACE)

@@ -5,10 +5,11 @@
 
 #include <array>
 #include <cstddef>     // for size_t, ptrdiff_t
+#include <utility>     // for integer_sequence<>
 #include <exception>
-#include <type_traits> // for integral_constant<>, underlying_type<>, declval<>()
+#include <type_traits> // for integral_constant<>, underlying_type<>, declval<>(), remove_const<>, remove_reference<>
 
-#include <gsl/gsl-lite.hpp> // for gsl_CPP17_OR_GREATER
+#include <gsl-lite/gsl-lite.hpp> // for gsl_CPP17_OR_GREATER
 
 #include <makeshift/utility.hpp>  // for type_seq_<>
 #include <makeshift/constval.hpp> // for array_constant<>
@@ -16,6 +17,9 @@
 
 namespace makeshift
 {
+
+
+namespace gsl = ::gsl_lite;
 
 
     //
@@ -31,6 +35,13 @@ public:
 namespace detail
 {
 
+
+#if defined(_MSC_VER) && defined(__INTELLISENSE__)
+struct convertible_to_anything
+{
+    template <typename T> constexpr operator T(void) const;
+};
+#endif // defined(_MSC_VER) && defined(__INTELLISENSE__)
 
 template <template <typename...> class VariantT, typename ValuesC>
 struct constval_variant_map;
@@ -261,38 +272,6 @@ struct variant_transform_many_result_
 };
 template <template <typename...> class VariantT, typename F, typename... Vs>
 using variant_transform_many_result = typename variant_transform_many_result_<VariantT, F, Vs...>::type;
-
-//template <template <typename...> class VariantT, typename MonostateT, typename V> struct with_monostate_;
-//template <template <typename...> class VariantT, typename MonostateT, typename... Vs> struct with_monostate_<VariantT, MonostateT, VariantT<Vs...>> { using type = VariantT<MonostateT, Vs...>; };
-//template <template <typename...> class VariantT, typename MonostateT, typename V> struct without_monostate_;
-//template <template <typename...> class VariantT, typename MonostateT, typename... Vs> struct without_monostate_<VariantT, MonostateT, VariantT<MonostateT, Vs...>> { using type = VariantT<Vs...>; };
-
-//template <typename MonostateT, typename R>
-//struct monostate_filtering_visitor
-//{
-//    [[noreturn]] R operator ()(MonostateT) const
-//    {
-//        std::terminate();
-//    }
-//    template <typename T>
-//    constexpr R operator ()(T&& arg) const
-//    {
-//        return std::forward<T>(arg);
-//    }
-//};
-
-//template <template <typename...> class VariantT, typename... Vs>
-//struct variant_cat_;
-//template <template <typename...> class VariantT, typename... Ts>
-//struct variant_cat_<VariantT, VariantT<Ts...>>
-//{
-//    using type = VariantT<Ts...>;
-//};
-//template <template <typename...> class VariantT, typename... V0Ts, typename... V1Ts, typename... Vs>
-//struct variant_cat_<VariantT, VariantT<V0Ts...>, VariantT<V1Ts...>, Vs...>
-//    : variant_cat_<VariantT, VariantT<V0Ts..., V1Ts...>>
-//{
-//};
 
 
 } // namespace detail

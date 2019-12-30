@@ -7,7 +7,7 @@
 #include <cstddef>     // for size_t, ptrdiff_t
 #include <type_traits> // for remove_cv<>
 
-#include <gsl/gsl-lite.hpp> // for span<>, Expects()
+#include <gsl-lite/gsl-lite.hpp> // for span<>, gsl_Expects()
 
 #include <makeshift/type_traits.hpp> // for nth_type<>
 
@@ -16,6 +16,9 @@
 
 namespace makeshift
 {
+
+
+namespace gsl = ::gsl_lite;
 
 
     //
@@ -83,26 +86,26 @@ public:
 
     gsl_NODISCARD constexpr reference operator [](std::size_t i) const
     {
-        Expects(i < size_);
+        gsl_Expects(i < size_);
 
         return { data_, std::ptrdiff_t(i) };
     }
     gsl_NODISCARD constexpr reference front(void) const
     {
-        Expects(!empty());
+        gsl_Expects(!empty());
         
         return { data_, 0 };
     }
     gsl_NODISCARD constexpr reference back(void) const
     {
-        Expects(!empty());
+        gsl_Expects(!empty());
         
         return { data_, difference_type(size_ - 1) };
     }
 
     gsl_NODISCARD constexpr soa_span<Ts...> subspan(std::size_t offset, std::size_t count = std::size_t(-1)) const
     {
-        Expects(offset <= size() && (count == std::size_t(-1) || count <= size() - offset));
+        gsl_Expects(offset <= size() && (count == std::size_t(-1) || count <= size() - offset));
 
         std::size_t newSize = (count != std::size_t(-1))
             ? count
@@ -124,7 +127,7 @@ public:
     }
     gsl_NODISCARD constexpr soa_span<Ts...> last(std::size_t count) const
     {
-        Expects(count <= size());
+        gsl_Expects(count <= size());
 
         return subspan(size() - count, count);
     }

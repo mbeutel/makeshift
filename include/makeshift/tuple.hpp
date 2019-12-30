@@ -9,7 +9,7 @@
 #include <utility>     // for forward<>()
 #include <type_traits> // for decay<>
 
-#include <gsl/gsl-lite.hpp> // for gsl_NODISCARD
+#include <gsl-lite/gsl-lite.hpp> // for gsl_NODISCARD
 
 #include <makeshift/type_traits.hpp> // for can_instantiate<>, static_const<>
 
@@ -19,6 +19,9 @@
 
 namespace makeshift
 {
+
+
+namespace gsl = ::gsl_lite;
 
 
     //

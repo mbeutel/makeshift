@@ -1,12 +1,18 @@
 
+#include <makeshift/experimental/buffer.hpp>
+
 #include <type_traits> // for integral_constant<>
 
-#include <makeshift/buffer.hpp>
+#include <gsl-lite/gsl-lite.hpp>
 
 #include <catch2/catch.hpp>
 
 
-namespace mk = makeshift;
+namespace {
+
+
+namespace mk = ::makeshift;
+namespace gsl = ::gsl_lite;
 
 
 TEST_CASE("buffer")
@@ -23,3 +29,6 @@ TEST_CASE("buffer")
     auto buf7 = mk::make_buffer<int, 4>(7);
     buf7 = { 1, 4, 1, 4, 2, 1, 3 };
 }
+
+
+} // anonymous namespace

@@ -4,7 +4,7 @@
 
 
 #include <cstddef>     // for size_t
-#include <type_traits> // for integral_constant<>, declval<>(), is_enum<>, is_same<>, is_base_of<>
+#include <type_traits> // for integral_constant<>, declval<>(), is_enum<>, is_same<>
 
 #include <makeshift/detail/type_traits.hpp>
 
@@ -15,85 +15,22 @@ namespace makeshift
 
     //
     // Represents an integral constval.
+    // TODO: remove?
     //
 //template <typename T, T Value> constexpr std::integral_constant<T, Value> integral_c{ };
 
 
     //
     // Represents an integer constval.
+    // TODO: remove?
     //
 template <int Value> using int_constant = std::integral_constant<int, Value>;
 
     //
     // Represents an integer constval.
+    // TODO: remove?
     //
 //template <int Value> constexpr int_constant<Value> int_c{ };
-
-
-    //
-    // Represents a boolean constval.
-    // Equivalent to `std::bool_constant<>` in C++17.
-    // TODO: use bool_constant from gsl-lite instead
-    //
-template <bool Value> using bool_constant = std::integral_constant<bool, Value>;
-
-    //
-    // Represents a boolean constval.
-    //
-//template <bool Value> constexpr bool_constant<Value> bool_c{ };
-
-    //
-    // Represents the constval `false`.
-    //
-//constexpr inline bool_constant<false> false_c{ };
-
-    //
-    // Represents the constval `true`.
-    //
-//constexpr inline bool_constant<true> true_c{ };
-
-
-    //
-    // Returns the short-circuiting conjunction of the given Boolean traits.
-    // Equivalent to `std::conjunction<>` in C++17.
-    // TODO: put in gsl-lite instead
-    //
-template <typename... Ts> struct conjunction : detail::conjunction<Ts...> { };
-
-    //
-    // Returns the short-circuiting conjunction of the given Boolean traits.
-    // Equivalent to `std::conjunction_v<>` in C++17.
-    // TODO: put in gsl-lite instead
-    //
-template <typename... Ts> constexpr bool conjunction_v = conjunction<Ts...>::value;
-
-    //
-    // Returns the short-circuiting disjunction of the given Boolean traits.
-    // Equivalent to `std::disjunction<>` in C++17.
-    // TODO: put in gsl-lite instead
-    //
-template <typename... Ts> struct disjunction : detail::disjunction<Ts...> { };
-
-    //
-    // Returns the short-circuiting disjunction of the given Boolean traits.
-    // Equivalent to `std::disjunction_v<>` in C++17.
-    // TODO: put in gsl-lite instead
-    //
-template <typename... Ts> constexpr bool disjunction_v = disjunction<Ts...>::value;
-
-    //
-    // Returns the negation of the given Boolean trait.
-    // Equivalent to `std::negation<>` in C++17.
-    // TODO: put in gsl-lite instead
-    //
-template <typename T> struct negation : std::integral_constant<bool, !T::value> { };
-
-    //
-    // Returns the negation of the given Boolean trait.
-    // Equivalent to `std::negation_v<>` in C++17.
-    // TODO: put in gsl-lite instead
-    //
-template <typename T> constexpr bool negation_v = negation<T>::value;
 
 
     //
@@ -165,34 +102,6 @@ template <typename T> constexpr bool is_bitmask_v = is_bitmask<T>::value;
 
 
     //
-    // Determines the underlying type of the given enum type.
-    // This trait is like `std::underlying_type<>` but permits specialization with SFINAE. It also supports type enums.
-    // TODO: we should get rid of this, or make it private (do type enum bitmasks even work today?)
-    //
-template <typename T, typename = void> struct underlying_type : std::underlying_type<T> { };
-
-    //
-    // Determines the underlying type of the given enum type.
-    // This alias is like `std::underlying_type_t<>` but permits specialization with SFINAE. It also supports type enums.
-    // TODO: we should get rid of this, or make it private (do type enum bitmasks even work today?)
-    //
-template <typename T> using underlying_type_t = typename underlying_type<T>::type;
-
-
-    //
-    // Determines whether the given type is a type enum.
-    // TODO: we should get rid of this, or make it private
-    //
-template <typename T> struct is_type_enum : std::is_base_of<detail::type_enum_base, T> { };
-
-    //
-    // Determines whether the given type is a type enum.
-    // TODO: we should get rid of this, or make it private
-    //
-template <typename T> constexpr bool is_type_enum_v = is_type_enum<T>::value;
-
-
-    //
     // Determines whether the given type is in the list of types.
     //
 template <typename T, typename... Ts> struct is_in : detail::is_in_<T, Ts...> { };
@@ -249,12 +158,6 @@ template <typename T, typename R> struct is_constval_of : detail::is_constval_of
     // Determines whether the given type `T` is a constval returning the type `R`.
     //
 template <typename T, typename R> constexpr bool is_constval_of_v = is_constval_of<T, R>::value;
-
-
-    //
-    // Retrieves the given type as a dependent type. This can be useful to suppress type inference.
-    //
-template <typename T> using as_dependent_type = typename detail::as_dependent_type_<T>::type; // TODO: rename type_identity_t<>, move to gsl-lite (also have identity<> there)
 
 
     //

@@ -8,17 +8,21 @@
 #include <cstddef> // for size_t, ptrdiff_t
 #include <utility> // for integer_sequence<>, get<>()
 
-#include <gsl/gsl-lite.hpp> // for gsl_CPP17_OR_GREATER
+#include <gsl-lite/gsl-lite.hpp> // for conjunction<>, gsl_CPP17_OR_GREATER
 
 #include <makeshift/utility.hpp> // for type_sequence<>
 
 #include <makeshift/detail/range-index.hpp>     // for range_index_t
-#include <makeshift/detail/type_traits.hpp>     // for can_instantiate_<>, conjunction<>
+#include <makeshift/detail/type_traits.hpp>     // for can_instantiate_<>
 #include <makeshift/detail/tuple-transform.hpp> // for transform_element()
 
 
 namespace makeshift
 {
+
+
+namespace gsl = ::gsl_lite;
+
 
 namespace detail
 {
@@ -107,7 +111,7 @@ array_transform_impl(std::index_sequence<>, F&&, Ts&&...)
 {
     // extra overload to avoid unused-parameter warning
 
-    static_assert(conjunction<is_homogeneous_arg_<std::decay_t<Ts>>...>::value, "cannot infer array element type from empty tuple arguments");
+    static_assert(gsl::conjunction<is_homogeneous_arg_<std::decay_t<Ts>>...>::value, "cannot infer array element type from empty tuple arguments");
     using R = typename homogeneous_result_<0, true, F, Ts...>::type;
     return ArrayT<R, 0>{ };
 }
@@ -116,7 +120,7 @@ constexpr auto
 array_transform_impl(std::index_sequence<Is...>, F&& func, Ts&&... args)
 {
     (void) func;
-    using R = typename homogeneous_result_<sizeof...(Is), conjunction<is_homogeneous_arg_<std::decay_t<Ts>>...>::value, F, Ts...>::type;
+    using R = typename homogeneous_result_<sizeof...(Is), gsl::conjunction<is_homogeneous_arg_<std::decay_t<Ts>>...>::value, F, Ts...>::type;
     return ArrayT<R, sizeof...(Is)>{ detail::transform_element<Is>(func, std::forward<Ts>(args)...)... };
 }
 template <template <typename, std::size_t> class ArrayT, typename R, typename F, typename... Ts>

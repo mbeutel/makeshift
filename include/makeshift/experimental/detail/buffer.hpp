@@ -1,6 +1,6 @@
 ﻿
-#ifndef INCLUDED_MAKESHIFT_DETAIL_BUFFER_HPP_
-#define INCLUDED_MAKESHIFT_DETAIL_BUFFER_HPP_
+#ifndef INCLUDED_MAKESHIFT_EXPERIMENTAL_DETAIL_BUFFER_HPP_
+#define INCLUDED_MAKESHIFT_EXPERIMENTAL_DETAIL_BUFFER_HPP_
 
 
 #include <array>
@@ -8,11 +8,15 @@
 #include <algorithm>   // for copy()
 #include <type_traits> // for integral_constant<>
 
-#include <gsl/gsl-lite.hpp> // for Expects(), gsl_NODISCARD, gsl_constexpr17
+#include <gsl-lite/gsl-lite.hpp> // for gsl_Expects(), gsl_NODISCARD, gsl_constexpr17
 
 
 namespace makeshift
 {
+
+
+namespace gsl = ::gsl_lite;
+
 
 namespace detail
 {
@@ -72,22 +76,22 @@ public:
 
     gsl_NODISCARD gsl_constexpr17 reference front(void)
     {
-        Expects(!empty());
+        gsl_Expects(!empty());
         return _data()[0];
     }
     gsl_NODISCARD gsl_constexpr17 const_reference front(void) const
     {
-        Expects(!empty());
+        gsl_Expects(!empty());
         return _data()[0];
     }
     gsl_NODISCARD gsl_constexpr17 reference back(void)
     {
-        Expects(!empty());
+        gsl_Expects(!empty());
         return _data()[_size() - 1];
     }
     gsl_NODISCARD gsl_constexpr17 const_reference back(void) const
     {
-        Expects(!empty());
+        gsl_Expects(!empty());
         return _data()[_size() - 1];
     }
 };
@@ -329,22 +333,22 @@ constexpr std::ptrdiff_t buffer_extent_from_constval(std::integral_constant<T, V
 template <typename C>
 constexpr void check_buffer_extents(std::true_type /*dynamicExtent*/, std::ptrdiff_t /*expectedExtent*/, C actualExtent)
 {
-    Expects(actualExtent >= 0);
+    gsl_Expects(actualExtent >= 0);
 }
 template <typename C>
 constexpr void check_buffer_extents(std::false_type /*dynamicExtent*/, std::ptrdiff_t expectedExtent, C actualExtent)
 {
-    Expects(actualExtent == expectedExtent);
+    gsl_Expects(actualExtent == expectedExtent);
 }
 template <typename C>
 constexpr void check_fixed_buffer_extents(std::true_type /*dynamicExtent*/, std::ptrdiff_t /*expectedExtent*/, C actualExtent, std::ptrdiff_t maxBufferExtent)
 {
-    Expects(actualExtent >= 0 && actualExtent <= maxBufferExtent);
+    gsl_Expects(actualExtent >= 0 && actualExtent <= maxBufferExtent);
 }
 template <typename C>
 constexpr void check_fixed_buffer_extents(std::false_type /*dynamicExtent*/, std::ptrdiff_t expectedExtent, C actualExtent, std::ptrdiff_t /*maxBufferExtent*/)
 {
-    Expects(actualExtent == expectedExtent);
+    gsl_Expects(actualExtent == expectedExtent);
 }
 
 
@@ -353,4 +357,4 @@ constexpr void check_fixed_buffer_extents(std::false_type /*dynamicExtent*/, std
 } // namespace makeshift
 
 
-#endif // INCLUDED_MAKESHIFT_DETAIL_BUFFER_HPP_
+#endif // INCLUDED_MAKESHIFT_EXPERIMENTAL_DETAIL_BUFFER_HPP_

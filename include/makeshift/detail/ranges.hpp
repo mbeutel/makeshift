@@ -8,11 +8,15 @@
 #include <iterator>    // for iterator_traits<>, random_access_iterator_tag
 #include <type_traits> // for is_base_of<>, declval<>(), integral_constant<>
 
-#include <gsl/gsl-lite.hpp> // for Expects(), gsl_NODISCARD
+#include <gsl-lite/gsl-lite.hpp> // for gsl_Expects(), gsl_NODISCARD
 
 
 namespace makeshift
 {
+
+
+namespace gsl = ::gsl_lite;
+
 
 namespace detail
 {
@@ -57,7 +61,7 @@ public:
     }
     gsl_NODISCARD constexpr decltype(auto) operator [](std::size_t i) const noexcept
     {
-        Expects(i < last_ - first_);
+        gsl_Expects(i < last_ - first_);
         return first_[i];
     }
 };
@@ -83,7 +87,7 @@ public:
     }
     gsl_NODISCARD constexpr decltype(auto) operator [](std::size_t i) const noexcept
     {
-        Expects(i < std::size_t(Extent));
+        gsl_Expects(i < std::size_t(Extent));
         return first_[i];
     }
 };
@@ -107,7 +111,7 @@ constexpr std::ptrdiff_t range_extent_from_constval(std::integral_constant<T, V>
 template <typename T>
 constexpr void check_buffer_extents(std::true_type /*dynamicExtent*/, std::size_t expectedExtent, std::size_t actualExtent)
 {
-    Expects(expectedExtent == actualExtent);
+    gsl_Expects(expectedExtent == actualExtent);
 }
 template <typename T>
 constexpr void check_buffer_extents(std::false_type /*dynamicExtent*/, std::size_t /*expectedExtent*/, std::size_t /*actualExtent*/)

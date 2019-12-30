@@ -3,12 +3,14 @@
 #define INCLUDED_MAKESHIFT_VARIANT_HPP_
 
 
-#include <gsl/gsl-lite.hpp> // for gsl_CPP17_OR_GREATER, gsl_NODISCARD
+#include <gsl-lite/gsl-lite.hpp> // for gsl_CPP17_OR_GREATER, gsl_NODISCARD
 
 #if !gsl_CPP17_OR_GREATER
 # error Header <makeshift/variant.hpp> requires C++17 mode or higher.
 #endif // !gsl_CPP17_OR_GREATER
 
+#include <cstddef>     // for ptrdiff_t
+#include <utility>     // for forward<>()
 #include <variant>
 #include <optional>
 #include <type_traits> // for remove_cv<>, remove_reference<>
@@ -23,9 +25,12 @@ namespace makeshift
 {
 
 
+namespace gsl = ::gsl_lite;
+
+
     //
     // Given a runtime value and a constexpr array of values, `expand()` returns a variant of known constexpr values.
-    // `Expects()` is used to ensure that the runtime value is among the values in the array.
+    // `gsl_Expects()` is used to ensure that the runtime value is among the values in the array.
     //ᅟ
     //ᅟ    int bits = ...;
     //ᅟ    auto bitsV = expand(bits, MAKESHIFT_CONSTVAL(std::array{ 16, 32, 64 }));
@@ -42,13 +47,13 @@ gsl_NODISCARD constexpr typename detail::constval_variant_map<std::variant, Valu
 expand(T const& value, ValuesC valuesC)
 {
     std::ptrdiff_t index = detail::search_value_index(value, valuesC);
-    Expects(index >= 0);
+    gsl_Expects(index >= 0);
     return detail::constval_variant_map<std::variant, ValuesC>::values[index];
 }
 
     //
     // Given a runtime value of a type for which all possible values are known, `expand()` returns a variant of known constexpr values.
-    // `Expects()` is used to ensure that the runtime value is among the values in the array.
+    // `gsl_Expects()` is used to ensure that the runtime value is among the values in the array.
     //ᅟ
     //ᅟ    bool logging = ...;
     //ᅟ    auto loggingV = expand(logging);
@@ -182,9 +187,11 @@ visit(F&& func, Vs&&... args)
     -> decltype(std::visit(std::forward<F>(func), std::forward<Vs>(args)...))
 #endif // !(defined(_MSC_VER) && defined(__INTELLISENSE__))
 {
-#if !(defined(_MSC_VER) && defined(__INTELLISENSE__))
+#if defined(_MSC_VER) && defined(__INTELLISENSE__)
+    return detail::convertible_to_anything{ };
+#else
     return std::visit(std::forward<F>(func), std::forward<Vs>(args)...);
-#endif // !(defined(_MSC_VER) && defined(__INTELLISENSE__))
+#endif // defined(_MSC_VER) && defined(__INTELLISENSE__)
 }
 
     //
@@ -196,7 +203,9 @@ template <typename R, typename F, typename... Vs>
 gsl_NODISCARD constexpr R
 visit(F&& func, Vs&&... args)
 {
-#if !(defined(_MSC_VER) && defined(__INTELLISENSE__))
+#if defined(_MSC_VER) && defined(__INTELLISENSE__)
+    return detail::convertible_to_anything{ };
+#else
 # if gsl_CPP20_OR_GREATER
     return std::visit<R>(std::forward<F>(func), std::forward<Vs>(args)...);
 # else // gsl_CPP20_OR_GREATER
@@ -211,81 +220,6 @@ visit(F&& func, Vs&&... args)
 #endif // !(defined(_MSC_VER) && defined(__INTELLISENSE__))
 }
 
-    //
-    // Given an argument of type `std::variant<Ts...>`, this is `std::variant<std::monostate, Ts...>`.
-    //
-//template <typename V> using with_monostate = typename detail::with_monostate_<std::variant, std::monostate, V>::type;
-
-    //
-    // Given an argument of type `std::variant<std::monostate, Ts...>`, this is `std::variant<Ts...>`.
-    //
-//template <typename V> using without_monostate = typename detail::without_monostate_<std::variant, std::monostate, V>::type;
-
-    //
-    // Casts an argument of type `std::variant<Ts...>` to the given variant type.
-    //
-//template <typename DstV, typename SrcV>
-//gsl_NODISCARD constexpr DstV
-//variant_cast(SrcV&& variant)
-//{
-//#if !(defined(_MSC_VER) && defined(__INTELLISENSE__))
-//# if gsl_CPP20_OR_GREATER
-//    return std::visit<DstV>(
-//        [](auto&& arg) -> DstV
-//        {
-//            return std::forward<decltype(arg)>(arg);
-//        },
-//        std::forward<SrcV>(variant));
-//# else // gsl_CPP20_OR_GREATER
-//    return std::visit(
-//        [](auto&& arg) -> DstV
-//        {
-//            return std::forward<decltype(arg)>(arg);
-//        },
-//        std::forward<SrcV>(variant));
-//# endif // gsl_CPP20_OR_GREATER}
-//#endif // !(defined(_MSC_VER) && defined(__INTELLISENSE__))
-//}
-
-    //
-    // Converts an argument of type `std::variant<std::monostate, Ts...>` to `std::optional<std::variant<Ts...>>`.
-    //
-//template <typename V>
-//gsl_NODISCARD constexpr decltype(auto)
-//variant_to_optional(V&& variantWithMonostate)
-//{
-//    using R = without_monostate<std::remove_cv_t<std::remove_reference_t<V>>>;
-//    if (std::holds_alternative<std::monostate>(variantWithMonostate))
-//    {
-//        return std::optional<R>(std::nullopt);
-//    }
-//#if !(defined(_MSC_VER) && defined(__INTELLISENSE__))
-//# if gsl_CPP20_OR_GREATER
-//    return std::optional<R>(std::visit<R>(
-//        detail::monostate_filtering_visitor<std::monostate, R>{ },
-//        std::forward<V>(variantWithMonostate)));
-//# else // gsl_CPP20_OR_GREATER
-//    return std::optional<R>(std::visit(
-//        detail::monostate_filtering_visitor<std::monostate, R>{ },
-//        std::forward<V>(variantWithMonostate)));
-//# endif // gsl_CPP20_OR_GREATER}
-//#endif // !(defined(_MSC_VER) && defined(__INTELLISENSE__))
-//}
-
-    //
-    // Converts an argument of type `std::optional<std::variant<Ts...>>` to `std::variant<std::monostate, Ts...>`.
-    //
-//template <typename VO>
-//gsl_NODISCARD constexpr decltype(auto)
-//optional_to_variant(VO&& optionalVariant)
-//{
-//    using R = with_monostate<typename std::remove_cv_t<std::remove_reference_t<VO>>::value_type>;
-//    if (!optionalVariant.has_value())
-//    {
-//        return R{ std::monostate{ } };
-//    }
-//    return variant_cast<R>(*std::forward<VO>(optionalVariant));
-//}
 
     //
     // Similar to `std::visit()`, but permits the functor to map different argument types to different result types and returns a variant of the possible results.
@@ -302,7 +236,9 @@ variant_transform(F&& func, Vs&&... args)
     // cannot be distinguished by the visitor functor anyway, and because the choice of identically typed alternatives depends on the strides of the specialization table built by `visit()` (which is an implementation
     // detail) and hence cannot be reliably predicted by the caller.
 
-#if !(defined(_MSC_VER) && defined(__INTELLISENSE__))
+#if defined(_MSC_VER) && defined(__INTELLISENSE__)
+    return detail::convertible_to_anything{ };
+#else
     using R = detail::variant_transform_result<std::variant, F, Vs...>;
 # if gsl_CPP20_OR_GREATER
     return std::visit<R>(std::forward<F>(func), std::forward<Vs>(args)...);
@@ -315,7 +251,7 @@ variant_transform(F&& func, Vs&&... args)
         },
         std::forward<Vs>(args)...);
 # endif // gsl_CPP20_OR_GREATER
-#endif // !(defined(_MSC_VER) && defined(__INTELLISENSE__))
+#endif // defined(_MSC_VER) && defined(__INTELLISENSE__)
 }
 
     //
@@ -328,7 +264,9 @@ template <typename F, typename... Vs>
 gsl_NODISCARD constexpr decltype(auto)
 variant_transform_many(F&& func, Vs&&... args)
 {
-#if !(defined(_MSC_VER) && defined(__INTELLISENSE__))
+#if defined(_MSC_VER) && defined(__INTELLISENSE__)
+    return detail::convertible_to_anything{ };
+#else
     using R = detail::variant_transform_many_result<std::variant, F, Vs...>;
 # if gsl_CPP20_OR_GREATER
     return std::visit<R>(
@@ -357,14 +295,8 @@ variant_transform_many(F&& func, Vs&&... args)
         },
         std::forward<Vs>(args)...);
 # endif // gsl_CPP20_OR_GREATER
-#endif // !(defined(_MSC_VER) && defined(__INTELLISENSE__))
+#endif // defined(_MSC_VER) && defined(__INTELLISENSE__)
 }
-
-
-    //
-    // Concatenates the alternatives in the given variants.
-    //
-//template <typename... Vs> using variant_cat_t = typename detail::variant_cat_<std::variant, Vs...>::type;
 
 
 } // namespace makeshift

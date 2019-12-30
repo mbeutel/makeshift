@@ -8,15 +8,17 @@
 #include <iterator>    // for iterator_traits<>
 #include <type_traits> // for integral_constant<>, decay<>
 
-#include <gsl/gsl-lite.hpp> // for Expects()
+#include <gsl-lite/gsl-lite.hpp> // for gsl_Expects()
 
 #include <makeshift/detail/algorithm.hpp>
 #include <makeshift/detail/range-index.hpp> // for identity_transform_t, all_of_pred, none_of_pred
-#include <makeshift/detail/type_traits.hpp> // for disjunction<>
 
 
 namespace makeshift
 {
+
+
+namespace gsl = ::gsl_lite;
 
 
     //
@@ -47,12 +49,12 @@ apply_permutation(RandomIt first, RandomIt last, IndexRandomIt indices)
                     // Improve post-mortem debuggability by storing the out-of-range index in the array.
                 indices[i] = next;
 
-                Expects(false); // invalid index in permutation
+                gsl_Expects(false); // invalid index in permutation
             }
             if (next == current)
             {
                 indices[i] = next;
-                Expects(false); // not a permutation
+                gsl_Expects(false); // not a permutation
             }
             swap(first[current], first[next]);
             indices[current] = current;
@@ -84,8 +86,8 @@ apply_reverse_permutation(RandomIt first, RandomIt last, IndexRandomIt indices)
         while (i != indices[i])
         {
             Diff next = indices[i];
-            Expects(next >= 0 && next < length); // make sure index is valid
-            Expects(next != indices[next]); // make sure this is actually a permutation, which isn't the case if an index occurs more than once
+            gsl_Expects(next >= 0 && next < length); // make sure index is valid
+            gsl_Expects(next != indices[next]); // make sure this is actually a permutation, which isn't the case if an index occurs more than once
             swap(first[i], first[next]);
             swap(indices[i], indices[next]);
         }

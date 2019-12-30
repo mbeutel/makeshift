@@ -1,19 +1,24 @@
 
+#include <makeshift/constval.hpp>
+
 #include <array>
 #include <tuple>
 #include <type_traits> // for integral_constant<>, is_same<>
 #include <functional>  // for plus<>
 
-#include <gsl/gsl-lite.hpp> // for gsl_CPP17_OR_GREATER
-
-#include <makeshift/array.hpp>   // for array<>
-#include <makeshift/utility.hpp>
-#include <makeshift/constval.hpp>
+#include <gsl-lite/gsl-lite.hpp> // for type_identity<>, gsl_CPP17_OR_GREATER
 
 #include <catch2/catch.hpp>
 
+#include <makeshift/array.hpp>   // for array<>
+#include <makeshift/utility.hpp>
 
-namespace mk = makeshift;
+
+namespace {
+
+
+namespace mk = ::makeshift;
+namespace gsl = ::gsl_lite;
 
 
 template <typename... Ts>
@@ -26,12 +31,12 @@ void expect_constval_normalization(std::integral_constant<T, V>)
 {
 }
 
-template <typename T, mk::as_dependent_type<T>... Vs>
+template <typename T, gsl::std20::type_identity_t<T>... Vs>
 void expect_array_constval_normalization(mk::array_constant<T, Vs...>)
 {
 }
 
-template <typename T, mk::as_dependent_type<T>... Vs>
+template <typename T, gsl::std20::type_identity_t<T>... Vs>
 void expect_nested_array_constval_normalization(mk::array_constant<T, Vs...>)
 {
 #if gsl_CPP17_OR_GREATER
@@ -191,3 +196,6 @@ TEST_CASE("constval")
     expect_constval_normalization<int>(iCT);
 #endif // gsl_CPP17_OR_GREATER
 }
+
+
+} // anonymous namespace
