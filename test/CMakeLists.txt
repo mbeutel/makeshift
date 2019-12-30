@@ -9,7 +9,7 @@ cmake_minimum_required(VERSION 3.14)
 # dependencies
 find_package(Catch2 2.9 REQUIRED)
 find_package(CMakeshift 3.7 REQUIRED)
-find_package(gsl-lite 0.35.3 REQUIRED)
+find_package(gsl-lite 0.35.5 REQUIRED)
 find_package(mpark_variant REQUIRED)
 
 # common settings target
@@ -87,7 +87,7 @@ target_compile_definitions(test-makeshift-settings
     INTERFACE
         CATCH_CONFIG_CONSOLE_WIDTH=120
         CATCH_CLARA_CONFIG_CONSOLE_WIDTH=120
-        gsl_CONFIG_CONTRACT_VIOLATION_THROWS) # this makes GSL's Expects()/Ensures() throw `gsl::fail_fast` on failure
+        gsl_CONFIG_CONTRACT_VIOLATION_THROWS) # this makes GSL's gsl_Expects()/gsl_Ensures() throw `gsl::fail_fast` on failure
 
 # test dependencies
 target_link_libraries(test-makeshift-runner

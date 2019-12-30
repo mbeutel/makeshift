@@ -4,7 +4,7 @@ variables:
   system.debug: true
   vcpkgGitRef: e308474b85ff49f2b688a759351c4ec569636910
   vcpkgPortsOverlayRepo: 'https://mp-force.ziti.uni-heidelberg.de/asc/infrastructure/vcpkg-ports.git'
-  vcpkgPortsOverlayRef: c19ffbe03fd152a92bbbb70e68805087d2b98aef
+  vcpkgPortsOverlayRef: a08517fb77e9d48d00dd33c16e5acd01f8b31f29
   vcpkgTripletSuffix: ''
   cmakeBaseConfigArgs: '-DMAKESHIFT_BUILD_TESTS=ON'
   cmakeSanitizeConfigArgs: '-DCMAKESHIFT_PRIVATE_COMPILE_SETTINGS=runtime-checks;debug-stdlib'

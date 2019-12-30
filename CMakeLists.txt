@@ -27,4 +27,4 @@ include(CMakeshift/InstallBasicPackageFiles)
 cmakeshift_install_basic_package_files(makeshift
     COMPATIBILITY SameMajorVersion
     DEPENDENCIES
-        "gsl-lite 0.35.3")
+        "gsl-lite 0.35.5")
