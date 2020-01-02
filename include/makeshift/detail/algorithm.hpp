@@ -148,8 +148,8 @@ template <std::size_t I, typename R>
 struct MAKESHIFT_DETAIL_EMPTY_BASES range_iterator_leaf
     : range_iterator_leaf_base<I, R, range_iterator_leaf_mode_<std::decay_t<R>>::value>
 {
-    using base = range_iterator_leaf_base<I, R, range_iterator_leaf_mode_<std::decay_t<R>>::value>;
-    using base::base;
+    using leaf_base = range_iterator_leaf_base<I, R, range_iterator_leaf_mode_<std::decay_t<R>>::value>;
+    using leaf_base::leaf_base;
 };
 template <std::size_t I, typename R>
 constexpr range_iterator_leaf<I, R>& get_leaf(range_iterator_leaf<I, R>& self)
