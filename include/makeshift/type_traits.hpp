@@ -14,26 +14,6 @@ namespace makeshift
 
 
     //
-    // Represents an integral constval.
-    // TODO: remove?
-    //
-//template <typename T, T Value> constexpr std::integral_constant<T, Value> integral_c{ };
-
-
-    //
-    // Represents an integer constval.
-    // TODO: remove?
-    //
-template <int Value> using int_constant = std::integral_constant<int, Value>;
-
-    //
-    // Represents an integer constval.
-    // TODO: remove?
-    //
-//template <int Value> constexpr int_constant<Value> int_c{ };
-
-
-    //
     // Determines the `N`-th type in the variadic type sequence.
     //
 template <std::size_t N, typename... Ts> struct nth_type : detail::nth_type_<N, Ts...> { };

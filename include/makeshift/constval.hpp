@@ -56,6 +56,61 @@ namespace gsl = ::gsl_lite;
 
 
     //
+    // Represents an integer constval.
+    //
+template <int Value> using int_constant = std::integral_constant<int, Value>;
+
+    //
+    // Represents an integer constval.
+    //
+template <int Value> constexpr int_constant<Value> int_c{ };
+
+
+    //
+    // Represents an index constval.
+    //
+template <gsl::index Value> using index_constant = std::integral_constant<gsl::index, Value>;
+
+    //
+    // Represents an index constval.
+    //
+template <gsl::index Value> constexpr index_constant<Value> index_c{ };
+
+
+    //
+    // Represents a difference constval.
+    //
+template <gsl::diff Value> using diff_constant = std::integral_constant<gsl::diff, Value>;
+
+    //
+    // Represents a difference constval.
+    //
+template <gsl::diff Value> constexpr diff_constant<Value> diff_c{ };
+
+
+    //
+    // Represents a dimension constval.
+    //
+template <gsl::dim Value> using dim_constant = std::integral_constant<gsl::dim, Value>;
+
+    //
+    // Represents an dimension constval.
+    //
+template <gsl::dim Value> constexpr dim_constant<Value> dim_c{ };
+
+
+    //
+    // Represents an array stride constval.
+    //
+template <gsl::stride Value> using stride_constant = std::integral_constant<gsl::stride, Value>;
+
+    //
+    // Represents an array stride constval.
+    //
+template <gsl::stride Value> constexpr stride_constant<Value> stride_c{ };
+
+
+    //
     // Determines the normalized constval type for a given proto-constval type.
     //
 template <typename C> using constval_t = detail::constval_t<C>;
