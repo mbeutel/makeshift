@@ -37,14 +37,11 @@
     //
     // constval normalization leads to to the following guarantees:
     //
-    // - `xC` is of type `std::integral_constant<X, x>` if `X` is a valid non-type template parameter type (e.g. an integer or enumeration type).
-    // - `xC` is of type `array_constant<V, Vs...>` if `X` is `std::array<U, Us...>`, where `V` is `U` if `U` is a valid non-type template
+    // - `xC` is a subtype of `std::integral_constant<X, x>` if `X` is a valid non-type template parameter type (e.g. an integer or enumeration type).
+    // - `xC` is a subtype of `array_constant<V, Vs...>` if `X` is `std::array<U, Us...>`, where `V` is `U` if `U` is a valid non-type template
     //   parameter type, and `U const&` otherwise.
-    // - `xC` is of type  `tuple_constant<Cs...>` if `x` is `std::tuple{ us... }`, where `Cs...` is `decltype(MAKESHIFT_CONSTVAL(us))...`.
+    // - `xC` is a subtype of `tuple_constant<Cs...>` if `x` is `std::tuple{ us... }`, where `Cs...` is `decltype(MAKESHIFT_CONSTVAL(us))...`.
     // - `xC` is tuple-like if `x` is tuple-like; `std::get<I>(xC)` returns `MAKESHIFT_CONSTVAL(std::get<I>(x))`.
-
-
-// TODO: remove whatever can be done without
 
 
 namespace makeshift
