@@ -52,7 +52,7 @@ template <typename C> constexpr auto constval_value = C{ }(); // workaround for 
 
     // Returns the canonical constval representation of the given proto-constval.
 template <typename C> struct make_constval_;
-template <typename C> using make_constval_t = typename make_constval_<C>::type;
+template <typename C> using constval_t = typename make_constval_<C>::type;
 
     // Represents an object as a constval.
 template <typename T, typename F>
@@ -109,7 +109,7 @@ struct tuple_like_constval : constval<T, F>
 };
 template <std::size_t I, typename T, typename F>
 gsl_NODISCARD constexpr
-make_constval_t<tuple_accessor_functor<I, tuple_like_constval<T, F>>>
+constval_t<tuple_accessor_functor<I, tuple_like_constval<T, F>>>
 get(tuple_like_constval<T, F>) noexcept
 {
     static_assert(I < std::tuple_size<T>::value, "index out of range");
@@ -171,7 +171,7 @@ template <typename T, std::size_t... Is, typename C>
 struct make_array_constval_<false, T, std::index_sequence<Is...>, C>
 {
         // For types which are not valid NTTP types, we pass constexpr const references instead.
-    using type = array_constant<T const&, make_constval_t<array_accessor_functor<Is, C>>::value...>;
+    using type = array_constant<T const&, constval_t<array_accessor_functor<Is, C>>::value...>;
 };
 
     // Represent constvals of type `std::tuple<>` as `tuple_constant<>` of the constval types of the elements.
@@ -180,7 +180,7 @@ struct make_tuple_constval_;
 template <std::size_t... Is, typename C>
 struct make_tuple_constval_<std::index_sequence<Is...>, C>
 {
-    using type = tuple_constant<make_constval_t<tuple_accessor_functor<Is, C>>...>;
+    using type = tuple_constant<constval_t<tuple_accessor_functor<Is, C>>...>;
 };
 
     // Normalize constvals of tuple-like type.
@@ -264,7 +264,7 @@ struct constval_transform_functor
 template <typename F, typename... Cs>
 constexpr auto constval_transform_impl(std::true_type /*constvalArgs*/, Cs const&...) noexcept
 {
-    return make_constval_t<constval_transform_functor<F, Cs...>>{ };
+    return constval_t<constval_transform_functor<F, Cs...>>{ };
 }
 template <typename F, typename... Cs>
 constexpr auto constval_transform_impl(std::false_type /*constvalArgs*/, Cs const&... args)
@@ -278,14 +278,14 @@ struct constval_extend_functor
 {
     constexpr auto operator ()(void) const
     {
-        return CF{ }(make_constval_t<Cs>{ }...);
+        return CF{ }(constval_t<Cs>{ }...);
     }
 };
 
 template <typename CF, typename... Cs>
 constexpr auto constval_extend_impl(std::true_type /*constvalArgs*/, Cs const&...) noexcept
 {
-    return make_constval_t<constval_extend_functor<CF, Cs...>>{ };
+    return constval_t<constval_extend_functor<CF, Cs...>>{ };
 }
 template <typename CF, typename... Cs>
 constexpr auto constval_extend_impl(std::false_type /*constvalArgs*/, Cs const&... args)
@@ -318,7 +318,7 @@ static constexpr void constval_assert_impl(std::false_type /*isConstval*/, bool 
 
 
 template <typename C>
-constexpr make_constval_t<C> make_constval(C const&)
+constexpr constval_t<C> make_constval(C const&)
 {
     return { };
 }
@@ -366,7 +366,7 @@ template <std::size_t I, typename T, typename F>
 class tuple_element<I, makeshift::detail::tuple_like_constval<T, F>>
 {
 public:
-    using type = makeshift::detail::make_constval_t<makeshift::detail::tuple_accessor_functor<I, makeshift::detail::tuple_like_constval<T, F>>>;
+    using type = makeshift::detail::constval_t<makeshift::detail::tuple_accessor_functor<I, makeshift::detail::tuple_like_constval<T, F>>>;
 };
 
 

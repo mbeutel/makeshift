@@ -3,7 +3,7 @@
 #define INCLUDED_MAKESHIFT_REFLECT_HPP_
 
 
-#include <makeshift/constval.hpp>    // for make_constval_t<>
+#include <makeshift/constval.hpp>    // for constval_t<>
 #include <makeshift/type_traits.hpp> // for can_instantiate<>
 
 #include <makeshift/detail/reflect.hpp>

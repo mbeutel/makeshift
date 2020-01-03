@@ -73,7 +73,7 @@ gsl_NODISCARD constexpr auto
 expand(T const& value)
 {
     static_assert(have_values_of_v<T>, "expand() cannot find admissible values");
-    return makeshift::mpark::expand(value, makeshift::make_constval_t<detail::values_of_<T>>{ });
+    return makeshift::mpark::expand(value, makeshift::constval_t<detail::values_of_<T>>{ });
 }
 
     //
@@ -123,7 +123,7 @@ expand(T const& value)
 //try_expand(T const& value)
 //{
 //    static_assert(have_values_of_v<T>, "try_expand() cannot find admissible values");
-//    return makeshift::mpark::try_expand(value, makeshift::make_constval_t<detail::values_of_<T>>{ });
+//    return makeshift::mpark::try_expand(value, makeshift::constval_t<detail::values_of_<T>>{ });
 //}
 
     //
@@ -171,7 +171,7 @@ gsl_NODISCARD constexpr auto
 expand_or_throw(T const& value)
 {
     static_assert(have_values_of_v<T>, "expand_or_throw() cannot find admissible values");
-    return makeshift::mpark::expand_or_throw(value, makeshift::make_constval_t<detail::values_of_<T>>{ });
+    return makeshift::mpark::expand_or_throw(value, makeshift::constval_t<detail::values_of_<T>>{ });
 }
 
 

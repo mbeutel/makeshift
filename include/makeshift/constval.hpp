@@ -59,10 +59,9 @@ namespace gsl = ::gsl_lite;
 
 
     //
-    // A constval type representing the given nullary constexpr function object type. Applies normalization if applicable.
-    // TODO: either rename to constval_t or remove
+    // Determines the normalized constval type for a given proto-constval type.
     //
-template <typename C> using make_constval_t = detail::make_constval_t<C>;
+template <typename C> using constval_t = detail::constval_t<C>;
 
 
     //
@@ -217,7 +216,7 @@ array_constant(Cs...) -> array_constant<typename detail::array_constant_element_
     // Implement tuple-like protocol for `array_constant<>`.
 template <std::size_t I, typename T, gsl::std20::type_identity_t<T>... Vs>
 gsl_NODISCARD constexpr
-make_constval_t<detail::array_accessor_functor<I, array_constant<T, Vs...>>>
+constval_t<detail::array_accessor_functor<I, array_constant<T, Vs...>>>
 get(array_constant<T, Vs...>) noexcept
 {
     static_assert(I < sizeof...(Vs), "index out of range");
@@ -277,7 +276,7 @@ tuple_constant(Cs...) -> tuple_constant<Cs...>;
     // Implement tuple-like protocol for `tuple_constant<>`.
 template <std::size_t I, typename... Cs>
 gsl_NODISCARD constexpr
-make_constval_t<detail::tuple_accessor_functor<I, tuple_constant<Cs...>>>
+constval_t<detail::tuple_accessor_functor<I, tuple_constant<Cs...>>>
 get(tuple_constant<Cs...>) noexcept
 {
     static_assert(I < sizeof...(Cs), "index out of range");
@@ -348,11 +347,11 @@ namespace std
 
     // Implement tuple-like protocol for `array_constant<>`.
 template <typename T, gsl::std20::type_identity_t<T>... Vs> class tuple_size<makeshift::array_constant<T, Vs...>> : public std::integral_constant<std::size_t, sizeof...(Vs)> { };
-template <std::size_t I, typename T, gsl::std20::type_identity_t<T>... Vs> class tuple_element<I, makeshift::array_constant<T, Vs...>> { public: using type = makeshift::make_constval_t<makeshift::detail::array_accessor_functor<I, makeshift::array_constant<T, Vs...>>>; };
+template <std::size_t I, typename T, gsl::std20::type_identity_t<T>... Vs> class tuple_element<I, makeshift::array_constant<T, Vs...>> { public: using type = makeshift::constval_t<makeshift::detail::array_accessor_functor<I, makeshift::array_constant<T, Vs...>>>; };
 
     // Implement tuple-like protocol for `tuple_constant<>`.
 template <typename... Cs> class tuple_size<makeshift::tuple_constant<Cs...>> : public std::integral_constant<std::size_t, sizeof...(Cs)> { };
-template <std::size_t I, typename... Cs> class tuple_element<I, makeshift::tuple_constant<Cs...>> { public: using type = makeshift::make_constval_t<makeshift::detail::tuple_accessor_functor<I, makeshift::tuple_constant<Cs...>>>; };
+template <std::size_t I, typename... Cs> class tuple_element<I, makeshift::tuple_constant<Cs...>> { public: using type = makeshift::constval_t<makeshift::detail::tuple_accessor_functor<I, makeshift::tuple_constant<Cs...>>>; };
 
 
 } // namespace std
