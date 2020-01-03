@@ -85,8 +85,8 @@ template <typename T, T V> constexpr constant<T, V> c{ };
     //ᅟ
     // The object type must be a valid C++14 non-type template parameter type.
     //
-//template <auto V> using val_constant = std::integral_constant<decltype(V), V>; // Doing this would permit inferring V, but it would mean that `val_constant<std::array{ 1 }>`, which might be allowed by a future C++ standard, cannot be normalized, so we either have to constrain V to valid C++14 NTTPs or retain the dependent-ness of `val_constant<>`.
-template <auto V> using val_constant = constant<decltype(V), V>; // TODO: this is a dependent type, which makes inferring V impossible.
+template <auto V, typename = std::enable_if_t<detail::is_valid_nttp_<decltype(V)>::value>>
+using val_constant = std::integral_constant<decltype(V), V>;
 
     //
     // Constval that represents the given object.
