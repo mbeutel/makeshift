@@ -87,7 +87,8 @@ target_compile_definitions(test-makeshift-settings
     INTERFACE
         CATCH_CONFIG_CONSOLE_WIDTH=120
         CATCH_CLARA_CONFIG_CONSOLE_WIDTH=120
-        gsl_CONFIG_CONTRACT_VIOLATION_THROWS) # this makes GSL's gsl_Expects()/gsl_Ensures() throw `gsl::fail_fast` on failure
+        gsl_CONFIG_CONTRACT_CHECKING_AUDIT # run audit-level checks
+        gsl_CONFIG_CONTRACT_VIOLATION_THROWS) # this makes gsl-lite's precondition assertions throw `gsl::fail_fast` on failure
 
 # test dependencies
 target_link_libraries(test-makeshift-runner
