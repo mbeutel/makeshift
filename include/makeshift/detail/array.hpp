@@ -168,8 +168,8 @@ struct indices_2d_
         std::size_t r = 0;
         while (i >= sizes[r]) // compiler error if sizeof...(Ns) == 0 or i >= (Ns + ... + 0)
         {
-            ++r;
             i -= sizes[r];
+            ++r;
         }
         return r;
     }
@@ -179,8 +179,8 @@ struct indices_2d_
         std::size_t r = 0;
         while (i >= sizes[r]) // compiler error if sizeof...(Ns) == 0 or i >= (Ns + ... + 0)
         {
-            ++r;
             i -= sizes[r];
+            ++r;
         }
         return i;
     }
