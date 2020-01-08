@@ -282,7 +282,7 @@ constexpr std::ptrdiff_t range_size_1(std::true_type /*hasSize*/, R const& range
     return gsl::ssize(range);
 }
 template <typename R>
-constexpr ptrdiff_constant<unknown_size> range_size_1(std::true_type /*hasSize*/, R const&) noexcept
+constexpr ptrdiff_constant<unknown_size> range_size_1(std::false_type /*hasSize*/, R const&) noexcept
 {
     return { };
 }
