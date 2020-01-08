@@ -163,7 +163,7 @@ template <typename F, std::size_t... Is, typename... Rs>
 struct MAKESHIFT_DETAIL_EMPTY_BASES range_iterator_base<F, std::index_sequence<Is...>, Rs...>
     : F, range_iterator_leaf<Is, Rs>...
 {
-    range_iterator_base(F func, Rs&... ranges)
+    constexpr range_iterator_base(F func, Rs&... ranges)
         : F(std::move(func)), range_iterator_leaf<Is, Rs>(ranges)...
     {
     }
