@@ -183,27 +183,6 @@ range_transform_reduce(T&& initialValue, ReduceFuncT&& reduce, TransformFuncT&& 
 
 
     //
-    // Takes a size, an initial value, a reducer, a transformer, and a list of ranges and reduces them to a scalar value.
-    //ᅟ
-    //ᅟ    range_transform_reduce_n(3,
-    //ᅟ        gsl::index(0),
-    //ᅟ        std::plus<>{ },
-    //ᅟ        [](gsl::index i) { return i*i; },
-    //ᅟ        range_index);
-    //ᅟ    // returns 5
-    //
-template <typename T, typename SizeC, typename ReduceFuncT, typename TransformFuncT, typename... Rs>
-gsl_NODISCARD constexpr std::decay_t<T>
-range_transform_reduce_n(SizeC size, T&& initialValue, ReduceFuncT&& reduce, TransformFuncT&& transform, Rs&&... ranges)
-{
-    static_assert(std::is_convertible<SizeC, std::size_t>::value, "argument is not convertible to a size");
-
-    auto mergedSize = detail::merge_sizes(detail::to_ptrdiff_size(size), detail::range_size(ranges)...);
-    detail::range_transform_reduce(mergedSize, std::forward<T>(initialValue), std::forward<ReduceFuncT>(reduce), std::forward<TransformFuncT>(transform), ranges...);
-}
-
-
-    //
     // Takes an initial value, a reducer, and a range and reduces it to a scalar value.
     //ᅟ
     //ᅟ    range_reduce(
@@ -224,26 +203,6 @@ range_reduce(T&& initialValue, ReduceFuncT&& reduce, R&& range)
 
 
     //
-    // Takes a size, an initial value, a reducer, and a range and reduces them to a scalar value.
-    //ᅟ
-    //ᅟ    range_reduce_n(4,
-    //ᅟ        gsl::index(0),
-    //ᅟ        std::plus<>{ },
-    //ᅟ        range_index);
-    //ᅟ    // returns 6
-    //
-template <typename T, typename SizeC, typename ReduceFuncT, typename R>
-gsl_NODISCARD constexpr auto
-range_reduce_n(SizeC size, T&& initialValue, ReduceFuncT&& reduce, R&& range)
-{
-    static_assert(std::is_convertible<SizeC, std::size_t>::value, "argument is not convertible to a size");
-
-    auto mergedSize = detail::merge_sizes(detail::to_ptrdiff_size(size), detail::range_size(range));
-    return detail::range_transform_reduce(mergedSize, std::forward<T>(initialValue), std::forward<ReduceFuncT>(reduce), gsl::identity{ }, range);
-}
-
-
-    //
     // Takes a predicate and a list of ranges and counts the sets of range elements for which the predicate applies.
     //ᅟ
     //ᅟ    range_count_if(
@@ -258,24 +217,6 @@ range_count_if(PredT&& pred, Rs&&... ranges)
     static_assert(!gsl::conjunction_v<std::is_same<std::decay_t<Rs>, detail::range_index_t>...>, "no range argument and no size given");
 
     auto mergedSize = detail::merge_sizes(detail::range_size(ranges)...);
-    return detail::range_transform_reduce(mergedSize, std::ptrdiff_t(0), std::plus<std::ptrdiff_t>{ }, detail::count_if_fn<PredT>{ std::forward<PredT>(pred) }, ranges...);
-}
-
-    //
-    // Takes a predicate and a list of ranges and counts the sets of range elements for which the predicate applies.
-    //ᅟ
-    //ᅟ    range_count_if_n(3,
-    //ᅟ        [](gsl::index i) { return isPrime(i + 1); },
-    //ᅟ        range_index);
-    //ᅟ    // returns 2
-    //
-template <typename SizeC, typename PredT, typename... Rs>
-gsl_NODISCARD constexpr std::ptrdiff_t
-range_count_if_n(SizeC size, PredT&& pred, Rs&&... ranges)
-{
-    static_assert(std::is_convertible<SizeC, std::size_t>::value, "argument is not convertible to a size");
-
-    auto mergedSize = detail::merge_sizes(detail::to_ptrdiff_size(size), detail::range_size(ranges)...);
     return detail::range_transform_reduce(mergedSize, std::ptrdiff_t(0), std::plus<std::ptrdiff_t>{ }, detail::count_if_fn<PredT>{ std::forward<PredT>(pred) }, ranges...);
 }
 
@@ -300,24 +241,6 @@ range_all_of(PredicateT&& predicate, Rs&&... ranges)
 
 
     //
-    // Takes a predicate and a list of ranges and returns whether the predicate is satisfied for all sets of range elements.
-    //ᅟ
-    //ᅟ    range_all_of_n(3,
-    //ᅟ        [](std::size_t i) { return isPrime(i + 1); },
-    //ᅟ        range_index);
-    //
-template <typename SizeC, typename PredicateT, typename... Rs>
-gsl_NODISCARD constexpr bool
-range_all_of_n(SizeC size, PredicateT&& predicate, Rs&&... ranges)
-{
-    static_assert(std::is_convertible<SizeC, std::size_t>::value, "argument is not convertible to a size");
-
-    auto mergedSize = detail::merge_sizes(detail::to_ptrdiff_size(size), detail::range_size(ranges)...);
-    return detail::range_conjunction<gsl::identity>(mergedSize, std::forward<PredicateT>(predicate), ranges...);
-}
-
-
-    //
     // Takes a predicate and a list of ranges and returns whether the predicate is satisfied for any set of range elements.
     //ᅟ
     //ᅟ    range_any_of(
@@ -337,25 +260,6 @@ range_any_of(PredicateT&& predicate, Rs&&... ranges)
 
 
     //
-    // Takes a predicate and a list of ranges and returns whether the predicate is satisfied for all sets of range elements.
-    //ᅟ
-    //ᅟ    range_any_of_n(3,
-    //ᅟ        [](std::size_t i) { return isPrime(i + 1); },
-    //ᅟ        range_index);
-    //ᅟ    // returns true
-    //
-template <typename SizeC, typename PredicateT, typename... Rs>
-gsl_NODISCARD constexpr bool
-range_any_of_n(SizeC size, PredicateT&& predicate, Rs&&... ranges)
-{
-    static_assert(std::is_convertible<SizeC, std::size_t>::value, "argument is not convertible to a size");
-
-    auto mergedSize = detail::merge_sizes(detail::to_ptrdiff_size(size), detail::range_size(ranges)...);
-    return !detail::range_conjunction<detail::negation_fn>(mergedSize, std::forward<PredicateT>(predicate), ranges...);
-}
-
-
-    //
     // Takes a predicate and a list of ranges and returns whether the predicate is satisfied for no set of range elements.
     //ᅟ
     //ᅟ    range_none_of(
@@ -370,25 +274,6 @@ range_none_of(PredicateT&& predicate, Rs&&... ranges)
     static_assert(!gsl::conjunction_v<std::is_same<std::decay_t<Rs>, detail::range_index_t>...>, "no range argument and no size given");
 
     auto mergedSize = detail::merge_sizes(detail::range_size(ranges)...);
-    return detail::range_conjunction<detail::negation_fn>(mergedSize, std::forward<PredicateT>(predicate), ranges...);
-}
-
-
-    //
-    // Takes a predicate and a list of ranges and returns whether the predicate is satisfied for no set of range elements.
-    //ᅟ
-    //ᅟ    range_none_of_n(3,
-    //ᅟ        [](std::size_t i) { return isPrime(i); },
-    //ᅟ        range_index);
-    //ᅟ    // returns false
-    //
-template <typename SizeC, typename PredicateT, typename... Rs>
-gsl_NODISCARD constexpr bool
-range_none_of_n(SizeC size, PredicateT&& predicate, Rs&&... ranges)
-{
-    static_assert(std::is_convertible<SizeC, std::size_t>::value, "argument is not convertible to a size");
-
-    auto mergedSize = detail::merge_sizes(detail::to_ptrdiff_size(size), detail::range_size(ranges)...);
     return detail::range_conjunction<detail::negation_fn>(mergedSize, std::forward<PredicateT>(predicate), ranges...);
 }
 
