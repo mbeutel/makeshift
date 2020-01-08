@@ -209,7 +209,6 @@ struct range_iterator
 };
 
 
-
 template <typename F>
 struct count_if_fn
 {
@@ -227,27 +226,29 @@ constexpr std::ptrdiff_t unknown_size = -1;
 
 template <std::ptrdiff_t N> using ptrdiff_constant = std::integral_constant<std::ptrdiff_t, N>;
 
-template <typename T>
-constexpr auto merge_sizes_0(ptrdiff_constant<unknown_size>, T n)
+template <typename T> struct static_range_size_type_ : std::false_type { };
+template <> struct static_range_size_type_<ptrdiff_constant<unknown_size>> : std::false_type { };
+template <std::ptrdiff_t N> struct static_range_size_type_<ptrdiff_constant<N>> : std::true_type { using range_size_type = ptrdiff_constant<N>; };
+template <typename T> struct dynamic_range_size_type_ : std::false_type { };
+template <> struct dynamic_range_size_type_<std::ptrdiff_t> : std::true_type { using range_size_type = std::ptrdiff_t; };
+struct default_range_size_type_ : std::true_type { using range_size_type = ptrdiff_constant<unknown_size>; };
+template <typename... Ts> using range_size_type = typename gsl::disjunction<static_range_size_type_<Ts>..., dynamic_range_size_type_<Ts>..., default_range_size_type_>::range_size_type;
+
+constexpr std::ptrdiff_t merge_sizes_0(ptrdiff_constant<unknown_size>, std::ptrdiff_t n)
 {
     return n;
 }
 template <std::ptrdiff_t N>
-constexpr auto merge_sizes_0(ptrdiff_constant<N>, ptrdiff_constant<unknown_size>)
-{
-    return ptrdiff_constant<N>{ };
-}
-template <std::ptrdiff_t N, std::ptrdiff_t M>
-constexpr auto merge_sizes_0(ptrdiff_constant<N>, ptrdiff_constant<M>)
-{
-    static_assert(N == M, "inconsistent sizes");
-    return ptrdiff_constant<N>{ };
-}
-template <std::ptrdiff_t N>
-constexpr auto merge_sizes_0(ptrdiff_constant<N>, std::ptrdiff_t n)
+constexpr ptrdiff_constant<N> merge_sizes_0(ptrdiff_constant<N>, std::ptrdiff_t n)
 {
     gsl_Expects(n == N || n == unknown_size);
-    return ptrdiff_constant<N>{ };
+    return { };
+}
+template <std::ptrdiff_t N, std::ptrdiff_t M>
+constexpr ptrdiff_constant<N == unknown_size ? M : N> merge_sizes_0(ptrdiff_constant<N>, ptrdiff_constant<M>)
+{
+    static_assert(N == unknown_size || M == unknown_size || N == M, "inconsistent sizes");
+    return { };
 }
 template <std::ptrdiff_t N>
 constexpr auto merge_sizes_0(std::ptrdiff_t n, ptrdiff_constant<N>)
@@ -270,10 +271,38 @@ constexpr T merge_sizes(T n)
 {
     return n;
 }
-template <typename T1, typename T2, typename... Ts>
-constexpr auto merge_sizes(T1 n1, T2 n2, Ts... sizes)
+template <std::ptrdiff_t Size1, typename... Ts>
+constexpr range_size_type<ptrdiff_constant<Size1>, std::ptrdiff_t, Ts...>
+merge_sizes(ptrdiff_constant<Size1> size1, std::ptrdiff_t size2, Ts... sizes);
+template <std::ptrdiff_t Size2, typename... Ts>
+constexpr range_size_type<std::ptrdiff_t, ptrdiff_constant<Size2>, Ts...>
+merge_sizes(std::ptrdiff_t size1, ptrdiff_constant<Size2> size2, Ts... sizes);
+template <typename... Ts>
+constexpr range_size_type<std::ptrdiff_t, Ts...>
+merge_sizes(std::ptrdiff_t size1, std::ptrdiff_t size2, Ts... sizes);
+template <std::ptrdiff_t Size1, std::ptrdiff_t Size2, typename... Ts>
+constexpr range_size_type<ptrdiff_constant<Size1>, ptrdiff_constant<Size2>, Ts...>
+merge_sizes(ptrdiff_constant<Size1> size1, ptrdiff_constant<Size2> size2, Ts... sizes)
 {
-    return detail::merge_sizes(detail::merge_sizes_0(n1, n2), sizes...);
+    return detail::merge_sizes(detail::merge_sizes_0(size1, size2), sizes...);
+}
+template <std::ptrdiff_t Size1, typename... Ts>
+constexpr range_size_type<ptrdiff_constant<Size1>, std::ptrdiff_t, Ts...>
+merge_sizes(ptrdiff_constant<Size1> size1, std::ptrdiff_t size2, Ts... sizes)
+{
+    return detail::merge_sizes_0(size1, detail::merge_sizes(sizes..., size2));
+}
+template <std::ptrdiff_t Size2, typename... Ts>
+constexpr range_size_type<std::ptrdiff_t, ptrdiff_constant<Size2>, Ts...>
+merge_sizes(std::ptrdiff_t size1, ptrdiff_constant<Size2> size2, Ts... sizes)
+{
+    return detail::merge_sizes_0(size2, detail::merge_sizes(sizes..., size1));
+}
+template <typename... Ts>
+constexpr range_size_type<std::ptrdiff_t, Ts...>
+merge_sizes(std::ptrdiff_t size1, std::ptrdiff_t size2, Ts... sizes)
+{
+    return detail::merge_sizes_0(detail::merge_sizes(sizes..., size1), size2);
 }
 
 template <typename R>
