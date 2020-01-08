@@ -59,7 +59,7 @@ template <std::ptrdiff_t N, typename F, typename... Ts>
 struct homogeneous_result_<N, true, F, Ts...>
 {
         // all arguments are array types or array indices, so we can just extract their value types
-    using type = decltype(std::declval<F>()(std::declval<typename transfer_ref_<Ts, typename homogeneous_arg_type_<std::decay_t<Ts>>::type>::type>()...));
+    using type = std::decay_t<decltype(std::declval<F>()(std::declval<typename transfer_ref_<Ts, typename homogeneous_arg_type_<std::decay_t<Ts>>::type>::type>()...))>;
 };
 template <typename F, typename Rs, typename... Ts>
 struct check_homogeneous_result_;
@@ -161,15 +161,15 @@ constexpr R cadd(T0 v0, Ts... vs) noexcept
 template <std::size_t... Ns>
 struct indices_2d_
 {
-    static constexpr std::size_t size = cadd<std::size_t>(Ns...);
+    static constexpr std::size_t size = detail::cadd<std::size_t>(Ns...);
     static constexpr std::size_t row(std::size_t i) noexcept
     {
         std::size_t sizes[] = { Ns... };
         std::size_t r = 0;
         while (i >= sizes[r]) // compiler error if sizeof...(Ns) == 0 or i >= (Ns + ... + 0)
         {
-            ++r;
             i -= sizes[r];
+            ++r;
         }
         return r;
     }
@@ -179,18 +179,18 @@ struct indices_2d_
         std::size_t r = 0;
         while (i >= sizes[r]) // compiler error if sizeof...(Ns) == 0 or i >= (Ns + ... + 0)
         {
-            ++r;
             i -= sizes[r];
+            ++r;
         }
         return i;
     }
 };
 
-template <template <typename, std::size_t> class ArrayT, typename T, std::size_t... Is, typename IndicesT, typename... Ts>
-constexpr ArrayT<T, IndicesT::size> array_cat_impl(std::index_sequence<Is...>, IndicesT, std::tuple<Ts...> tupleOfTuples)
+template <template <typename, std::size_t> class ArrayT, typename T, typename IndicesT, std::size_t... Is, typename... Ts>
+constexpr ArrayT<T, IndicesT::size> array_cat_impl(std::index_sequence<Is...>, std::tuple<Ts...> tupleOfTuples)
 {
     using std::get;
-    return { get<IndicesT::col(Is)>(std::get<IndicesT::row(Is)>(tupleOfTuples))... };
+    return { std::move(get<IndicesT::col(Is)>(get<IndicesT::row(Is)>(tupleOfTuples)))... };
 }
 
 

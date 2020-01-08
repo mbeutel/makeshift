@@ -61,14 +61,14 @@ template_for(F&& func, Ts&&... args)
     //
     // Takes a scalar procedure (i.e. a function of non-tuple arguments which returns nothing) and calls the procedure for every element in the given tuples.
     //ᅟ
-    //ᅟ    template_for<3>(
+    //ᅟ    template_for_n<3>(
     //ᅟ        [](index i) { std::cout << i << '\n'; },
     //ᅟ        range_index);
     //ᅟ    // prints "0\n1\n2\n"
     //
 template <std::size_t N, typename F, typename... Ts>
 constexpr MAKESHIFT_DETAIL_FORCEINLINE void
-template_for(F&& func, Ts&&... args)
+template_for_n(F&& func, Ts&&... args)
 {
     static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
     constexpr std::size_t size = detail::tuple_transform_size<N, Ts...>();
@@ -93,7 +93,6 @@ tuple_transform(F&& func, Ts&&... args)
     return detail::tuple_transform_impl<std::tuple>(std::make_index_sequence<size>{ }, std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
-
     //
     // Takes a scalar function (i.e. a function of non-tuple arguments) and returns a tuple of the results of the function applied to the tuple elements.
     // The tuple is constructed using the given tuple template.
@@ -116,33 +115,32 @@ tuple_transform(F&& func, Ts&&... args)
     //
     // Takes a scalar function (i.e. a function of non-tuple arguments) and returns a tuple of the results of the function applied to the tuple elements.
     //ᅟ
-    //ᅟ    auto indices = tuple_transform<3>(
+    //ᅟ    auto indices = tuple_transform_n<3>(
     //ᅟ        [](index i) { return i; },
     //ᅟ        range_index);
     //ᅟ    // returns std::tuple{ 0, 1, 2 }
     //
 template <std::size_t N, typename F, typename... Ts>
 gsl_NODISCARD constexpr MAKESHIFT_DETAIL_FORCEINLINE auto
-tuple_transform(F&& func, Ts&&... args)
+tuple_transform_n(F&& func, Ts&&... args)
 {
     static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
     constexpr std::size_t size = detail::tuple_transform_size<N, Ts...>();
     return detail::tuple_transform_impl<std::tuple>(std::make_index_sequence<size>{ }, std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
-
     //
     // Takes a scalar function (i.e. a function of non-tuple arguments) and returns a tuple of the results of the function applied to the tuple elements.
     // The tuple is constructed using the given tuple template.
     //ᅟ
-    //ᅟ    auto indices = tuple_transform<MyTuple, 3>(
+    //ᅟ    auto indices = tuple_transform_n<MyTuple, 3>(
     //ᅟ        [](index i) { return i; },
     //ᅟ        range_index);
     //ᅟ    // returns MyTuple<index, index, index>{ 0, 1, 2 }
     //
 template <template <typename...> class TupleT, std::size_t N, typename F, typename... Ts>
 gsl_NODISCARD constexpr MAKESHIFT_DETAIL_FORCEINLINE auto
-tuple_transform(F&& func, Ts&&... args)
+tuple_transform_n(F&& func, Ts&&... args)
 {
     static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
     constexpr std::size_t size = detail::tuple_transform_size<N, Ts...>();
@@ -173,28 +171,6 @@ template_transform_reduce(InitialValueT&& initialValue, ReduceFuncT&& reduce, Tr
 
 
     //
-    // Takes an initial value, a reducer, a transformer, and a list of tuples and reduces them to a scalar value.
-    //ᅟ
-    //ᅟ    template_transform_reduce<3>(
-    //ᅟ        std::size_t(0),
-    //ᅟ        std::plus<std::size_t>{ },
-    //ᅟ        [](std::size_t i) { return i*i; },
-    //ᅟ        range_index);
-    //ᅟ    // returns 5
-    //
-template <std::size_t N, typename InitialValueT, typename ReduceFuncT, typename TransformFuncT, typename... Ts>
-gsl_NODISCARD constexpr MAKESHIFT_DETAIL_FORCEINLINE auto
-template_transform_reduce(InitialValueT&& initialValue, ReduceFuncT&& reduce, TransformFuncT&& transform, Ts&&... args)
-{
-    static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
-    constexpr std::size_t size = detail::tuple_transform_size<N, Ts...>();
-    return detail::transform_reduce_fn<true, size, ReduceFuncT, TransformFuncT>{
-        std::forward<ReduceFuncT>(reduce), std::forward<TransformFuncT>(transform)
-    }(std::integral_constant<std::size_t, 0>{ }, std::forward<InitialValueT>(initialValue), std::forward<Ts>(args)...);
-}
-
-
-    //
     // Takes an initial value, a reducer, and a tuple and reduces them to a scalar value.
     //ᅟ
     //ᅟ    template_reduce(
@@ -209,28 +185,7 @@ template_reduce(InitialValueT&& initialValue, ReduceFuncT&& reduce, T&& arg)
 {
     static_assert(detail::are_tuple_args_v<T>, "arguments must be tuples or tuple-like types");
     constexpr std::size_t size = detail::tuple_transform_size<-1, T>();
-    return detail::transform_reduce_fn<true, size, ReduceFuncT, detail::identity_transform_t>{
-        std::forward<ReduceFuncT>(reduce), { },
-    }(std::integral_constant<std::size_t, 0>{ }, std::forward<InitialValueT>(initialValue), std::forward<T>(arg));
-}
-
-
-    //
-    // Takes an initial value, a reducer, and a tuple and reduces them to a scalar value.
-    //ᅟ
-    //ᅟ    template_reduce<4>(
-    //ᅟ        std::size_t(0),
-    //ᅟ        std::plus<std::size_t>{ },
-    //ᅟ        range_index);
-    //ᅟ    // returns 6
-    //
-template <std::size_t N, typename InitialValueT, typename ReduceFuncT, typename T>
-gsl_NODISCARD constexpr MAKESHIFT_DETAIL_FORCEINLINE auto
-template_reduce(InitialValueT&& initialValue, ReduceFuncT&& reduce, T&& arg)
-{
-    static_assert(detail::are_tuple_args_v<T>, "arguments must be tuples or tuple-like types");
-    constexpr std::size_t size = detail::tuple_transform_size<N, T>();
-    return detail::transform_reduce_fn<true, size, ReduceFuncT, detail::identity_transform_t>{
+    return detail::transform_reduce_fn<true, size, ReduceFuncT, gsl::identity>{
         std::forward<ReduceFuncT>(reduce), { },
     }(std::integral_constant<std::size_t, 0>{ }, std::forward<InitialValueT>(initialValue), std::forward<T>(arg));
 }
@@ -250,26 +205,7 @@ template_all_of(PredicateT&& predicate, Ts&&... args)
 {
     static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
     constexpr std::size_t size = detail::tuple_transform_size<-1, Ts...>();
-    return detail::conjunction_fn<size, detail::all_of_pred, PredicateT>{
-        std::forward<PredicateT>(predicate)
-    }(std::integral_constant<std::size_t, 0>{ }, std::forward<Ts>(args)...);
-}
-
-
-    //
-    // Takes a predicate and a list of tuples and returns whether the predicate is satisfied for all sets of tuple elements.
-    //ᅟ
-    //ᅟ    template_all_of<3>(
-    //ᅟ        [](std::size_t i) { return isPrime(i + 1); },
-    //ᅟ        range_index);
-    //
-template <std::size_t N, typename PredicateT, typename... Ts>
-gsl_NODISCARD constexpr MAKESHIFT_DETAIL_FORCEINLINE bool
-template_all_of(PredicateT&& predicate, Ts&&... args)
-{
-    static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
-    constexpr std::size_t size = detail::tuple_transform_size<N, Ts...>();
-    return detail::conjunction_fn<size, detail::all_of_pred, PredicateT>{
+    return detail::conjunction_fn<size, gsl::identity, PredicateT>{
         std::forward<PredicateT>(predicate)
     }(std::integral_constant<std::size_t, 0>{ }, std::forward<Ts>(args)...);
 }
@@ -289,27 +225,7 @@ template_any_of(PredicateT&& predicate, Ts&&... args)
 {
     static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
     constexpr std::size_t size = detail::tuple_transform_size<-1, Ts...>();
-    return !detail::conjunction_fn<size, detail::none_of_pred, PredicateT>{
-        std::forward<PredicateT>(predicate)
-    }(std::integral_constant<std::size_t, 0>{ }, std::forward<Ts>(args)...);
-}
-
-
-    //
-    // Takes a predicate and a list of tuples and returns whether the predicate is satisfied for all sets of tuple elements.
-    //ᅟ
-    //ᅟ    template_any_of<3>(
-    //ᅟ        [](std::size_t i) { return isPrime(i + 1); },
-    //ᅟ        range_index);
-    //ᅟ    // returns true
-    //
-template <std::size_t N, typename PredicateT, typename... Ts>
-gsl_NODISCARD constexpr MAKESHIFT_DETAIL_FORCEINLINE bool
-template_any_of(PredicateT&& predicate, Ts&&... args)
-{
-    static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
-    constexpr std::size_t size = detail::tuple_transform_size<N, Ts...>();
-    return !detail::conjunction_fn<size, detail::none_of_pred, PredicateT>{
+    return !detail::conjunction_fn<size, detail::negation_fn, PredicateT>{
         std::forward<PredicateT>(predicate)
     }(std::integral_constant<std::size_t, 0>{ }, std::forward<Ts>(args)...);
 }
@@ -329,27 +245,7 @@ template_none_of(PredicateT&& predicate, Ts&&... args)
 {
     static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
     constexpr std::size_t size = detail::tuple_transform_size<-1, Ts...>();
-    return detail::conjunction_fn<size, detail::none_of_pred, PredicateT>{
-        std::forward<PredicateT>(predicate)
-    }(std::integral_constant<std::size_t, 0>{ }, std::forward<Ts>(args)...);
-}
-
-
-    //
-    // Takes a predicate and a list of tuples and returns whether the predicate is satisfied for no set of tuple elements.
-    //ᅟ
-    //ᅟ    template_none_of<3>(
-    //ᅟ        [](std::size_t i) { return isPrime(i); },
-    //ᅟ        range_index);
-    //ᅟ    // returns false
-    //
-template <std::size_t N, typename PredicateT, typename... Ts>
-gsl_NODISCARD constexpr MAKESHIFT_DETAIL_FORCEINLINE bool
-template_none_of(PredicateT&& predicate, Ts&&... args)
-{
-    static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
-    constexpr std::size_t size = detail::tuple_transform_size<N, Ts...>();
-    return detail::conjunction_fn<size, detail::none_of_pred, PredicateT>{
+    return detail::conjunction_fn<size, detail::negation_fn, PredicateT>{
         std::forward<PredicateT>(predicate)
     }(std::integral_constant<std::size_t, 0>{ }, std::forward<Ts>(args)...);
 }

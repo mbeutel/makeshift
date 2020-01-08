@@ -44,7 +44,6 @@ array_transform(F&& func, Ts&&... args)
     return detail::array_transform_impl<std::array>(std::make_index_sequence<size>{ }, std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
-
     //
     // Takes a scalar function (i.e. a function of non-tuple arguments) and returns an array of the results of the function applied to the tuple elements.
     //ᅟ
@@ -62,43 +61,6 @@ array_transform(F&& func, Ts&&... args)
     return detail::array_transform_impl<ArrayT>(std::make_index_sequence<size>{ }, std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
-
-    //
-    // Takes a scalar function (i.e. a function of non-tuple arguments) and returns an array of the results of the function applied to the tuple elements.
-    //ᅟ
-    //ᅟ    auto indices = array_transform<3>(
-    //ᅟ        [](std::size_t i) { return i; },
-    //ᅟ        range_index);
-    //ᅟ    // returns std::array{ 0, 1, 2 }
-    //
-template <std::size_t N, typename F, typename... Ts>
-gsl_NODISCARD constexpr auto
-array_transform(F&& func, Ts&&... args)
-{
-    static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
-    constexpr std::size_t size = detail::tuple_transform_size<N, Ts...>();
-    return detail::array_transform_impl<std::array>(std::make_index_sequence<size>{ }, std::forward<F>(func), std::forward<Ts>(args)...);
-}
-
-
-    //
-    // Takes a scalar function (i.e. a function of non-tuple arguments) and returns an array of the results of the function applied to the tuple elements.
-    //ᅟ
-    //ᅟ    auto indices = array_transform<MyArray, 3>(
-    //ᅟ        [](std::size_t i) { return i; },
-    //ᅟ        range_index);
-    //ᅟ    // returns MyArray<int, 3>{ 0, 1, 2 }
-    //
-template <template <typename, std::size_t> class ArrayT, std::size_t N, typename F, typename... Ts>
-gsl_NODISCARD constexpr auto
-array_transform(F&& func, Ts&&... args)
-{
-    static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
-    constexpr std::size_t size = detail::tuple_transform_size<N, Ts...>();
-    return detail::array_transform_impl<ArrayT>(std::make_index_sequence<size>{ }, std::forward<F>(func), std::forward<Ts>(args)...);
-}
-
-
     //
     // Takes a scalar function (i.e. a function of non-tuple arguments) and returns an array of the results of the function applied to the tuple elements.
     //ᅟ
@@ -115,7 +77,6 @@ array_transform(F&& func, Ts&&... args)
     constexpr std::size_t size = detail::tuple_transform_size<-1, Ts...>();
     return detail::array_transform_to_impl<std::array, T>(std::make_index_sequence<size>{ }, std::forward<F>(func), std::forward<Ts>(args)...);
 }
-
 
     //
     // Takes a scalar function (i.e. a function of non-tuple arguments) and returns an array of the results of the function applied to the tuple elements.
@@ -138,36 +99,122 @@ array_transform(F&& func, Ts&&... args)
     //
     // Takes a scalar function (i.e. a function of non-tuple arguments) and returns an array of the results of the function applied to the tuple elements.
     //ᅟ
-    //ᅟ    auto gridCoords = array_transform<double, 3>(
+    //ᅟ    auto indices = array_transform_n<3>(
+    //ᅟ        [](std::size_t i) { return i; },
+    //ᅟ        range_index);
+    //ᅟ    // returns std::array{ 0, 1, 2 }
+    //
+template <std::size_t N, typename F, typename... Ts>
+gsl_NODISCARD constexpr auto
+array_transform_n(F&& func, Ts&&... args)
+{
+    static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
+    constexpr std::size_t size = detail::tuple_transform_size<N, Ts...>();
+    return detail::array_transform_impl<std::array>(std::make_index_sequence<size>{ }, std::forward<F>(func), std::forward<Ts>(args)...);
+}
+
+    //
+    // Takes a scalar function (i.e. a function of non-tuple arguments) and returns an array of the results of the function applied to the tuple elements.
+    //ᅟ
+    //ᅟ    auto indices = array_transform_n<MyArray, 3>(
+    //ᅟ        [](std::size_t i) { return i; },
+    //ᅟ        range_index);
+    //ᅟ    // returns MyArray<int, 3>{ 0, 1, 2 }
+    //
+template <template <typename, std::size_t> class ArrayT, std::size_t N, typename F, typename... Ts>
+gsl_NODISCARD constexpr auto
+array_transform_n(F&& func, Ts&&... args)
+{
+    static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
+    constexpr std::size_t size = detail::tuple_transform_size<N, Ts...>();
+    return detail::array_transform_impl<ArrayT>(std::make_index_sequence<size>{ }, std::forward<F>(func), std::forward<Ts>(args)...);
+}
+
+    //
+    // Takes a scalar function (i.e. a function of non-tuple arguments) and returns an array of the results of the function applied to the tuple elements.
+    //ᅟ
+    //ᅟ    auto gridCoords = array_transform_n<double, 3>(
     //ᅟ        [dx = 1.0](mk::index i) { return i*dx; },
     //ᅟ        range_index);
     //ᅟ    // returns std::array{ 0.0, 1.0, 2.0 }
     //
 template <typename T, std::size_t N, typename F, typename... Ts>
 gsl_NODISCARD constexpr auto
-array_transform(F&& func, Ts&&... args)
+array_transform_n(F&& func, Ts&&... args)
 {
     static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
     constexpr std::size_t size = detail::tuple_transform_size<N, Ts...>();
     return detail::array_transform_to_impl<std::array, T>(std::make_index_sequence<size>{ }, std::forward<F>(func), std::forward<Ts>(args)...);
 }
 
-
     //
     // Takes a scalar function (i.e. a function of non-tuple arguments) and returns an array of the results of the function applied to the tuple elements.
     //ᅟ
-    //ᅟ    auto gridCoords = array_transform<MyArray, double, 3>(
+    //ᅟ    auto gridCoords = array_transform_n<MyArray, double, 3>(
     //ᅟ        [dx = 1.0](mk::index i) { return i*dx; },
     //ᅟ        range_index);
     //ᅟ    // returns MyArray<double, 3>{ 0.0, 1.0, 2.0 }
     //
 template <template <typename, std::size_t> class ArrayT, typename T, std::size_t N, typename F, typename... Ts>
 gsl_NODISCARD constexpr auto
-array_transform(F&& func, Ts&&... args)
+array_transform_n(F&& func, Ts&&... args)
 {
     static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
     constexpr std::size_t size = detail::tuple_transform_size<N, Ts...>();
-    return detail::array_transform_impl<ArrayT, T>(std::make_index_sequence<size>{ }, std::forward<F>(func), std::forward<Ts>(args)...);
+    return detail::array_transform_to_impl<ArrayT, T>(std::make_index_sequence<size>{ }, std::forward<F>(func), std::forward<Ts>(args)...);
+}
+
+
+    //
+    // Returns an array of size `N` filled with the given value.
+    //ᅟ
+    //ᅟ    auto indices = array_fill_n<3>(1);
+    //ᅟ    // returns std::array{ 1, 1, 1 }
+    //
+template <std::size_t N, typename T>
+gsl_NODISCARD constexpr std::array<T, N>
+array_fill_n(T const& value)
+{
+    return detail::array_transform_to_impl<std::array, T>(std::make_index_sequence<N>{ }, detail::fill_fn<T>{ value });
+}
+
+    //
+    // Returns an array of size `N` filled with the given value.
+    //ᅟ
+    //ᅟ    auto indices = array_fill_n<MyArray, 3>(1);
+    //ᅟ    // returns MyArray<int, 3>{ 1, 1, 1 }
+    //
+template <template <typename, std::size_t> class ArrayT, std::size_t N, typename T>
+gsl_NODISCARD constexpr auto
+array_fill_n(T const& value)
+{
+    return detail::array_transform_to_impl<ArrayT, T>(std::make_index_sequence<N>{ }, detail::fill_fn<T>{ value });
+}
+
+    //
+    // Returns an array of size `N` filled with the given value.
+    //ᅟ
+    //ᅟ    auto indices = array_fill_n<double, 3>(1);
+    //ᅟ    // returns std::array{ 1., 1., 1. }
+    //
+template <typename T, std::size_t N>
+gsl_NODISCARD constexpr std::array<T, N>
+array_fill_n(T const& value)
+{
+    return detail::array_transform_to_impl<std::array, T>(std::make_index_sequence<N>{ }, detail::fill_fn<T>{ value });
+}
+
+    //
+    // Returns an array of size `N` filled with the given value.
+    //ᅟ
+    //ᅟ    auto indices = array_fill_n<MyArray, double, 3>(1);
+    //ᅟ    // returns MyArray<double, 3>{ 1., 1., 1. }
+    //
+template <template <typename, std::size_t> class ArrayT, typename T, std::size_t N>
+gsl_NODISCARD constexpr auto
+array_fill_n(T const& value)
+{
+    return detail::array_transform_to_impl<ArrayT, T>(std::make_index_sequence<N>{ }, detail::fill_fn<T>{ value });
 }
 
 
@@ -184,10 +231,10 @@ gsl_NODISCARD constexpr auto
 array_cat(Ts&&... tuples)
 {
     static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
-    using Indices = detail::indices_2d_<std::tuple_size<std::decay_t<Ts>>::value...>;
-    return detail::array_cat_impl<std::array, T>(std::make_index_sequence<Indices::size>{ }, Indices{ }, std::tuple<Ts&&...>{ std::forward<Ts>(tuples)... });
-}
 
+    using Indices = detail::indices_2d_<std::tuple_size<std::decay_t<Ts>>::value...>;
+    return detail::array_cat_impl<std::array, T, Indices>(std::make_index_sequence<Indices::size>{ }, std::tuple<Ts&&...>{ std::forward<Ts>(tuples)... });
+}
 
     //
     // Takes a list of tuples and returns an array of concatenated elements.
@@ -203,8 +250,9 @@ gsl_NODISCARD constexpr auto
 array_cat(Ts&&... tuples)
 {
     static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
+
     using Indices = detail::indices_2d_<std::tuple_size<std::decay_t<Ts>>::value...>;
-    return detail::array_cat_impl<ArrayT, T>(std::make_index_sequence<Indices::size>{ }, Indices{ }, std::tuple<Ts&&...>{ std::forward<Ts>(tuples)... });
+    return detail::array_cat_impl<ArrayT, T, Indices>(std::make_index_sequence<Indices::size>{ }, std::tuple<Ts&&...>{ std::forward<Ts>(tuples)... });
 }
 
 
