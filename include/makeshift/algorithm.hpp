@@ -258,9 +258,8 @@ range_count_if(PredT&& pred, Rs&&... ranges)
     static_assert(!gsl::conjunction_v<std::is_same<std::decay_t<Rs>, detail::range_index_t>...>, "no range argument and no size given");
 
     auto mergedSize = detail::merge_sizes(detail::range_size(ranges)...);
-    detail::range_transform_reduce(mergedSize, std::ptrdiff_t(0), std::plus<std::ptrdiff_t>{ }, detail::count_if_fn<PredT>{ std::forward<PredT>(pred) }, ranges...);
+    return detail::range_transform_reduce(mergedSize, std::ptrdiff_t(0), std::plus<std::ptrdiff_t>{ }, detail::count_if_fn<PredT>{ std::forward<PredT>(pred) }, ranges...);
 }
-
 
     //
     // Takes a predicate and a list of ranges and counts the sets of range elements for which the predicate applies.
@@ -277,7 +276,7 @@ range_count_if_n(SizeC size, PredT&& pred, Rs&&... ranges)
     static_assert(std::is_convertible<SizeC, std::size_t>::value, "argument is not convertible to a size");
 
     auto mergedSize = detail::merge_sizes(detail::to_ptrdiff_size(size), detail::range_size(ranges)...);
-    detail::range_transform_reduce(mergedSize, std::ptrdiff_t(0), std::plus<std::ptrdiff_t>{ }, detail::count_if_fn<PredT>{ std::forward<PredT>(pred) }, ranges...);
+    return detail::range_transform_reduce(mergedSize, std::ptrdiff_t(0), std::plus<std::ptrdiff_t>{ }, detail::count_if_fn<PredT>{ std::forward<PredT>(pred) }, ranges...);
 }
 
 
@@ -309,7 +308,7 @@ range_all_of(PredicateT&& predicate, Rs&&... ranges)
     //
 template <typename SizeC, typename PredicateT, typename... Rs>
 gsl_NODISCARD constexpr bool
-range_all_of(SizeC size, PredicateT&& predicate, Rs&&... ranges)
+range_all_of_n(SizeC size, PredicateT&& predicate, Rs&&... ranges)
 {
     static_assert(std::is_convertible<SizeC, std::size_t>::value, "argument is not convertible to a size");
 
