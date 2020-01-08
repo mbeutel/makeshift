@@ -124,12 +124,11 @@ shuffle(RandomIt first, RandomIt last, URBG&& rng, UniformIntDistributionT dist)
 }
 
 
-
     //
     // Takes a scalar procedure (i.e. a function of non-range arguments which returns nothing) and calls the procedure for every set of elements in the given ranges.
     //ᅟ
     //ᅟ    range_for(
-    //ᅟ        [](index i, int val) { std::cout << "array[" << i << "]: " << val << '\n'; },
+    //ᅟ        [](gsl::index i, int val) { std::cout << "array[" << i << "]: " << val << '\n'; },
     //ᅟ        range_index, std::array{ 1, 2, 3 });
     //ᅟ    // prints "array[0]: 1\narray[1]: 2\narray[2]: 3\n"
     //
@@ -137,26 +136,28 @@ template <typename F, typename... Rs>
 constexpr void
 range_for(F&& func, Rs&&... ranges)
 {
-    constexpr std::ptrdiff_t staticSize = detail::static_ranges_size<Rs...>();
-    static_assert(staticSize != detail::inconsistent_size, "ranges have inconsistent sizes");
-    detail::range_for(detail::ranges_size<staticSize>(ranges...), std::forward<F>(func), ranges...);
+    static_assert(!gsl::conjunction_v<std::is_same<std::decay_t<Rs>, detail::range_index_t>...>, "no range argument and no size given");
+
+    auto mergedSize = detail::merge_sizes(detail::range_size(ranges)...);
+    detail::range_for(mergedSize, std::forward<F>(func), ranges...);
 }
 
     //
     // Takes a scalar procedure (i.e. a function of non-range arguments which returns nothing) and calls the procedure for every set of elements in the given ranges.
     //ᅟ
-    //ᅟ    range_for<3>(
-    //ᅟ        [](index i) { std::cout << i << '\n'; },
+    //ᅟ    range_for_n(3,
+    //ᅟ        [](gsl::index i) { std::cout << i << '\n'; },
     //ᅟ        range_index);
     //ᅟ    // prints "0\n1\n2\n"
     //
-template <std::size_t N, typename F, typename... Rs>
+template <typename SizeC, typename F, typename... Rs>
 constexpr void
-range_for(F&& func, Rs&&... ranges)
+range_for_n(SizeC size, F&& func, Rs&&... ranges)
 {
-    constexpr std::ptrdiff_t staticSize = detail::merge_sizes(detail::static_ranges_size<Rs...>(), N);
-    static_assert(staticSize != detail::inconsistent_size, "ranges have inconsistent sizes");
-    detail::range_for(detail::ranges_size<staticSize>(ranges...), std::forward<F>(func), ranges...);
+    static_assert(std::is_convertible<SizeC, std::size_t>::value, "argument is not convertible to a size");
+
+    auto mergedSize = detail::merge_sizes(detail::to_ptrdiff_size(size), detail::range_size(ranges)...);
+    detail::range_for(mergedSize, std::forward<F>(func), ranges...);
 }
 
 
@@ -164,7 +165,7 @@ range_for(F&& func, Rs&&... ranges)
     // Takes an initial value, a reducer, a transformer, and a list of ranges and reduces them to a scalar value.
     //ᅟ
     //ᅟ    range_transform_reduce(
-    //ᅟ        std::size_t(0),
+    //ᅟ        gsl::index(0),
     //ᅟ        std::plus<>{ },
     //ᅟ        [](auto&& str) { return str.length(); },
     //ᅟ        std::array{ "Hello, "sv, "World!"sv });
@@ -174,36 +175,36 @@ template <typename T, typename ReduceFuncT, typename TransformFuncT, typename...
 gsl_NODISCARD constexpr std::decay_t<T>
 range_transform_reduce(T&& initialValue, ReduceFuncT&& reduce, TransformFuncT&& transform, Rs&&... ranges)
 {
-    constexpr std::ptrdiff_t staticSize = detail::static_ranges_size<Rs...>();
-    static_assert(staticSize != detail::inconsistent_size, "ranges have inconsistent sizes");
-    return detail::range_transform_reduce(detail::ranges_size<staticSize>(ranges...),
-        std::forward<T>(initialValue), std::forward<ReduceFuncT>(reduce), std::forward<TransformFuncT>(transform), ranges...);
+    static_assert(!gsl::conjunction_v<std::is_same<std::decay_t<Rs>, detail::range_index_t>...>, "no range argument and no size given");
+
+    auto mergedSize = detail::merge_sizes(detail::range_size(ranges)...);
+    detail::range_transform_reduce(mergedSize, std::forward<T>(initialValue), std::forward<ReduceFuncT>(reduce), std::forward<TransformFuncT>(transform), ranges...);
 }
 
 
     //
-    // Takes an initial value, a reducer, a transformer, and a list of ranges and reduces them to a scalar value.
+    // Takes a size, an initial value, a reducer, a transformer, and a list of ranges and reduces them to a scalar value.
     //ᅟ
-    //ᅟ    range_transform_reduce<3>(
-    //ᅟ        std::size_t(0),
-    //ᅟ        std::plus<std::size_t>{ },
-    //ᅟ        [](std::size_t i) { return i*i; },
+    //ᅟ    range_transform_reduce_n(3,
+    //ᅟ        gsl::index(0),
+    //ᅟ        std::plus<>{ },
+    //ᅟ        [](gsl::index i) { return i*i; },
     //ᅟ        range_index);
     //ᅟ    // returns 5
     //
-template <std::size_t N, typename T, typename ReduceFuncT, typename TransformFuncT, typename... Rs>
+template <typename T, typename SizeC, typename ReduceFuncT, typename TransformFuncT, typename... Rs>
 gsl_NODISCARD constexpr std::decay_t<T>
-range_transform_reduce(T&& initialValue, ReduceFuncT&& reduce, TransformFuncT&& transform, Rs&&... ranges)
+range_transform_reduce_n(SizeC size, T&& initialValue, ReduceFuncT&& reduce, TransformFuncT&& transform, Rs&&... ranges)
 {
-    constexpr std::ptrdiff_t staticSize = detail::merge_sizes(detail::static_ranges_size<Rs...>(), N);
-    static_assert(staticSize != detail::inconsistent_size, "ranges have inconsistent sizes");
-    return detail::range_transform_reduce(detail::ranges_size<staticSize>(ranges...),
-        std::forward<T>(initialValue), std::forward<ReduceFuncT>(reduce), std::forward<TransformFuncT>(transform), ranges...);
+    static_assert(std::is_convertible<SizeC, std::size_t>::value, "argument is not convertible to a size");
+
+    auto mergedSize = detail::merge_sizes(detail::to_ptrdiff_size(size), detail::range_size(ranges)...);
+    detail::range_transform_reduce(mergedSize, std::forward<T>(initialValue), std::forward<ReduceFuncT>(reduce), std::forward<TransformFuncT>(transform), ranges...);
 }
 
 
     //
-    // Takes an initial value, a reducer, and a tuple and reduces them to a scalar value.
+    // Takes an initial value, a reducer, and a range and reduces it to a scalar value.
     //ᅟ
     //ᅟ    range_reduce(
     //ᅟ        std::string{ },
@@ -215,109 +216,148 @@ template <typename T, typename ReduceFuncT, typename R>
 gsl_NODISCARD constexpr auto
 range_reduce(T&& initialValue, ReduceFuncT&& reduce, R&& range)
 {
-    constexpr std::ptrdiff_t staticSize = detail::static_ranges_size<R>();
-    return detail::range_transform_reduce(detail::ranges_size<staticSize>(range),
-        std::forward<T>(initialValue), std::forward<ReduceFuncT>(reduce), detail::identity_transform_t{ }, range);
+    static_assert(!std::is_same<std::decay_t<R>, detail::range_index_t>::value, "no range argument and no size given");
+
+    auto mergedSize = detail::range_size(range);
+    return detail::range_transform_reduce(mergedSize, std::forward<T>(initialValue), std::forward<ReduceFuncT>(reduce), gsl::identity{ }, range);
 }
 
 
     //
-    // Takes an initial value, a reducer, and a tuple and reduces them to a scalar value.
+    // Takes a size, an initial value, a reducer, and a range and reduces them to a scalar value.
     //ᅟ
-    //ᅟ    range_reduce<4>(
-    //ᅟ        std::size_t(0),
-    //ᅟ        std::plus<std::size_t>{ },
+    //ᅟ    range_reduce_n(4,
+    //ᅟ        gsl::index(0),
+    //ᅟ        std::plus<>{ },
     //ᅟ        range_index);
     //ᅟ    // returns 6
     //
-template <std::size_t N, typename T, typename ReduceFuncT, typename R>
+template <typename T, typename SizeC, typename ReduceFuncT, typename R>
 gsl_NODISCARD constexpr auto
-range_reduce(T&& initialValue, ReduceFuncT&& reduce, R&& range)
+range_reduce_n(SizeC size, T&& initialValue, ReduceFuncT&& reduce, R&& range)
 {
-    constexpr std::ptrdiff_t staticSize = detail::merge_sizes(detail::static_ranges_size<R>(), N);
-    static_assert(staticSize != detail::inconsistent_size, "ranges have inconsistent sizes");
-    return detail::range_transform_reduce(detail::ranges_size<staticSize>(range),
-        std::forward<T>(initialValue), std::forward<ReduceFuncT>(reduce), detail::identity_transform_t{ }, range);
+    static_assert(std::is_convertible<SizeC, std::size_t>::value, "argument is not convertible to a size");
+
+    auto mergedSize = detail::merge_sizes(detail::to_ptrdiff_size(size), detail::range_size(range));
+    return detail::range_transform_reduce(mergedSize, std::forward<T>(initialValue), std::forward<ReduceFuncT>(reduce), gsl::identity{ }, range);
 }
 
 
     //
-    // Takes a predicate and a list of ranges and returns whether the predicate is satisfied for all sets of tuple elements.
+    // Takes a predicate and a list of ranges and counts the sets of range elements for which the predicate applies.
+    //ᅟ
+    //ᅟ    range_count_if(
+    //ᅟ        [](auto&& str) { return !str.empty(); },
+    //ᅟ        std::array{ "Hello, "sv, "World!"sv });
+    //ᅟ    // returns 2
+    //
+template <typename PredT, typename... Rs>
+gsl_NODISCARD constexpr std::ptrdiff_t
+range_count_if(PredT&& pred, Rs&&... ranges)
+{
+    static_assert(!gsl::conjunction_v<std::is_same<std::decay_t<Rs>, detail::range_index_t>...>, "no range argument and no size given");
+
+    auto mergedSize = detail::merge_sizes(detail::range_size(ranges)...);
+    detail::range_transform_reduce(mergedSize, std::ptrdiff_t(0), std::plus<std::ptrdiff_t>{ }, detail::count_if_fn<PredT>{ std::forward<PredT>(pred) }, ranges...);
+}
+
+
+    //
+    // Takes a predicate and a list of ranges and counts the sets of range elements for which the predicate applies.
+    //ᅟ
+    //ᅟ    range_count_if_n(3,
+    //ᅟ        [](gsl::index i) { return isPrime(i + 1); },
+    //ᅟ        range_index);
+    //ᅟ    // returns 2
+    //
+template <typename SizeC, typename PredT, typename... Rs>
+gsl_NODISCARD constexpr std::ptrdiff_t
+range_count_if_n(SizeC size, PredT&& pred, Rs&&... ranges)
+{
+    static_assert(std::is_convertible<SizeC, std::size_t>::value, "argument is not convertible to a size");
+
+    auto mergedSize = detail::merge_sizes(detail::to_ptrdiff_size(size), detail::range_size(ranges)...);
+    detail::range_transform_reduce(mergedSize, std::ptrdiff_t(0), std::plus<std::ptrdiff_t>{ }, detail::count_if_fn<PredT>{ std::forward<PredT>(pred) }, ranges...);
+}
+
+
+    //
+    // Takes a predicate and a list of ranges and returns whether the predicate is satisfied for all sets of range elements.
     //ᅟ
     //ᅟ    range_all_of(
     //ᅟ        [](auto&& str) { return str.empty(); },
-    //ᅟ        std::tuple{ "Hello, "sv, "World!"sv });
+    //ᅟ        std::array{ "Hello, "sv, "World!"sv });
     //ᅟ    // returns false
     //
 template <typename PredicateT, typename... Rs>
 gsl_NODISCARD constexpr bool
 range_all_of(PredicateT&& predicate, Rs&&... ranges)
 {
-    constexpr std::ptrdiff_t staticSize = detail::static_ranges_size<Rs...>();
-    static_assert(staticSize != detail::inconsistent_size, "ranges have inconsistent sizes");
-    return detail::range_conjunction<detail::all_of_pred>(detail::ranges_size<staticSize>(ranges...),
-        std::forward<PredicateT>(predicate), ranges...);
+    static_assert(!gsl::conjunction_v<std::is_same<std::decay_t<Rs>, detail::range_index_t>...>, "no range argument and no size given");
+
+    auto mergedSize = detail::merge_sizes(detail::range_size(ranges)...);
+    return detail::range_conjunction<gsl::identity>(mergedSize, std::forward<PredicateT>(predicate), ranges...);
 }
 
 
     //
-    // Takes a predicate and a list of ranges and returns whether the predicate is satisfied for all sets of tuple elements.
+    // Takes a predicate and a list of ranges and returns whether the predicate is satisfied for all sets of range elements.
     //ᅟ
-    //ᅟ    range_all_of<3>(
+    //ᅟ    range_all_of_n(3,
     //ᅟ        [](std::size_t i) { return isPrime(i + 1); },
     //ᅟ        range_index);
     //
-template <std::size_t N, typename PredicateT, typename... Rs>
+template <typename SizeC, typename PredicateT, typename... Rs>
 gsl_NODISCARD constexpr bool
-range_all_of(PredicateT&& predicate, Rs&&... ranges)
+range_all_of(SizeC size, PredicateT&& predicate, Rs&&... ranges)
 {
-    constexpr std::ptrdiff_t staticSize = detail::merge_sizes(detail::static_ranges_size<Rs...>(), N);
-    static_assert(staticSize != detail::inconsistent_size, "ranges have inconsistent sizes");
-    return detail::range_conjunction<detail::all_of_pred>(detail::ranges_size<staticSize>(ranges...),
-        std::forward<PredicateT>(predicate), ranges...);
+    static_assert(std::is_convertible<SizeC, std::size_t>::value, "argument is not convertible to a size");
+
+    auto mergedSize = detail::merge_sizes(detail::to_ptrdiff_size(size), detail::range_size(ranges)...);
+    return detail::range_conjunction<gsl::identity>(mergedSize, std::forward<PredicateT>(predicate), ranges...);
 }
 
 
     //
-    // Takes a predicate and a list of ranges and returns whether the predicate is satisfied for any set of tuple elements.
+    // Takes a predicate and a list of ranges and returns whether the predicate is satisfied for any set of range elements.
     //ᅟ
     //ᅟ    range_any_of(
     //ᅟ        [](auto&& str) { return str.empty(); },
-    //ᅟ        std::tuple{ "Hello, "sv, "World!"sv });
+    //ᅟ        std::array{ "Hello, "sv, "World!"sv });
     //ᅟ    // returns false
     //
 template <typename PredicateT, typename... Rs>
 gsl_NODISCARD constexpr bool
 range_any_of(PredicateT&& predicate, Rs&&... ranges)
 {
-    constexpr std::ptrdiff_t staticSize = detail::static_ranges_size<Rs...>();
-    static_assert(staticSize != detail::inconsistent_size, "ranges have inconsistent sizes");
-    return !detail::range_conjunction<detail::none_of_pred>(detail::ranges_size<staticSize>(ranges...),
-        std::forward<PredicateT>(predicate), ranges...);
+    static_assert(!gsl::conjunction_v<std::is_same<std::decay_t<Rs>, detail::range_index_t>...>, "no range argument and no size given");
+
+    auto mergedSize = detail::merge_sizes(detail::range_size(ranges)...);
+    return !detail::range_conjunction<detail::negation_fn>(mergedSize, std::forward<PredicateT>(predicate), ranges...);
 }
 
 
     //
-    // Takes a predicate and a list of ranges and returns whether the predicate is satisfied for all sets of tuple elements.
+    // Takes a predicate and a list of ranges and returns whether the predicate is satisfied for all sets of range elements.
     //ᅟ
-    //ᅟ    range_any_of<3>(
+    //ᅟ    range_any_of_n(3,
     //ᅟ        [](std::size_t i) { return isPrime(i + 1); },
     //ᅟ        range_index);
     //ᅟ    // returns true
     //
-template <std::size_t N, typename PredicateT, typename... Rs>
+template <typename SizeC, typename PredicateT, typename... Rs>
 gsl_NODISCARD constexpr bool
-range_any_of(PredicateT&& predicate, Rs&&... ranges)
+range_any_of_n(SizeC size, PredicateT&& predicate, Rs&&... ranges)
 {
-    constexpr std::ptrdiff_t staticSize = detail::merge_sizes(detail::static_ranges_size<Rs...>(), N);
-    static_assert(staticSize != detail::inconsistent_size, "ranges have inconsistent sizes");
-    return !detail::range_conjunction<detail::none_of_pred>(detail::ranges_size<staticSize>(ranges...),
-        std::forward<PredicateT>(predicate), ranges...);
+    static_assert(std::is_convertible<SizeC, std::size_t>::value, "argument is not convertible to a size");
+
+    auto mergedSize = detail::merge_sizes(detail::to_ptrdiff_size(size), detail::range_size(ranges)...);
+    return !detail::range_conjunction<detail::negation_fn>(mergedSize, std::forward<PredicateT>(predicate), ranges...);
 }
 
 
     //
-    // Takes a predicate and a list of ranges and returns whether the predicate is satisfied for no set of tuple elements.
+    // Takes a predicate and a list of ranges and returns whether the predicate is satisfied for no set of range elements.
     //ᅟ
     //ᅟ    range_none_of(
     //ᅟ        [](auto&& str) { return str.empty(); },
@@ -328,29 +368,29 @@ template <typename PredicateT, typename... Rs>
 gsl_NODISCARD constexpr bool
 range_none_of(PredicateT&& predicate, Rs&&... ranges)
 {
-    constexpr std::ptrdiff_t staticSize = detail::static_ranges_size<Rs...>();
-    static_assert(staticSize != detail::inconsistent_size, "ranges have inconsistent sizes");
-    return detail::range_conjunction<detail::none_of_pred>(detail::ranges_size<staticSize>(ranges...),
-        std::forward<PredicateT>(predicate), ranges...);
+    static_assert(!gsl::conjunction_v<std::is_same<std::decay_t<Rs>, detail::range_index_t>...>, "no range argument and no size given");
+
+    auto mergedSize = detail::merge_sizes(detail::range_size(ranges)...);
+    return detail::range_conjunction<detail::negation_fn>(mergedSize, std::forward<PredicateT>(predicate), ranges...);
 }
 
 
     //
-    // Takes a predicate and a list of ranges and returns whether the predicate is satisfied for no set of tuple elements.
+    // Takes a predicate and a list of ranges and returns whether the predicate is satisfied for no set of range elements.
     //ᅟ
-    //ᅟ    range_none_of<3>(
+    //ᅟ    range_none_of_n(3,
     //ᅟ        [](std::size_t i) { return isPrime(i); },
     //ᅟ        range_index);
     //ᅟ    // returns false
     //
-template <std::size_t N, typename PredicateT, typename... Rs>
+template <typename SizeC, typename PredicateT, typename... Rs>
 gsl_NODISCARD constexpr bool
-range_none_of(PredicateT&& predicate, Rs&&... ranges)
+range_none_of_n(SizeC size, PredicateT&& predicate, Rs&&... ranges)
 {
-    constexpr std::ptrdiff_t staticSize = detail::merge_sizes(detail::static_ranges_size<Rs...>(), N);
-    static_assert(staticSize != detail::inconsistent_size, "ranges have inconsistent sizes");
-    return detail::range_conjunction<detail::none_of_pred>(detail::ranges_size<staticSize>(ranges...),
-        std::forward<PredicateT>(predicate), ranges...);
+    static_assert(std::is_convertible<SizeC, std::size_t>::value, "argument is not convertible to a size");
+
+    auto mergedSize = detail::merge_sizes(detail::to_ptrdiff_size(size), detail::range_size(ranges)...);
+    return detail::range_conjunction<detail::negation_fn>(mergedSize, std::forward<PredicateT>(predicate), ranges...);
 }
 
 

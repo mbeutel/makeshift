@@ -85,7 +85,7 @@ constexpr MAKESHIFT_DETAIL_FORCEINLINE decltype(auto) get_element(T&& arg) noexc
 
 
 template <std::size_t I, typename... Ts, typename F>
-constexpr MAKESHIFT_DETAIL_FORCEINLINE decltype(auto)
+constexpr MAKESHIFT_DETAIL_FORCEINLINE auto
 transform_element(F&& func, Ts&&... args)
 {
     return func(detail::get_element<I>(std::forward<Ts>(args))...);

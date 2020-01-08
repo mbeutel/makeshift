@@ -14,6 +14,7 @@
 #include <type_traits> // for integral_constant<>, declval<>(), decay<>
 
 #include <makeshift/detail/macros.hpp>      // for MAKESHIFT_DETAIL_EMPTY_BASES
+#include <makeshift/detail/type_traits.hpp> // for is_tuple_like<>
 #include <makeshift/detail/range-index.hpp> // for range_index_t
 
 
@@ -208,110 +209,112 @@ struct range_iterator
 };
 
 
-constexpr std::ptrdiff_t inconsistent_size = -3;
-constexpr std::ptrdiff_t no_size = -2;
+
+template <typename F>
+struct count_if_fn
+{
+    F func;
+
+    template <typename... ArgsT>
+    constexpr std::ptrdiff_t operator ()(ArgsT&&... args) const
+    {
+        return func(std::forward<ArgsT>(args)...) ? std::ptrdiff_t(1) : std::ptrdiff_t(0);
+    }
+};
+
+
 constexpr std::ptrdiff_t unknown_size = -1;
 
-constexpr std::ptrdiff_t merge_sizes(std::ptrdiff_t size1, std::ptrdiff_t size2)
-{
-    if (size1 > size2)
-    {
-        std::swap(size1, size2);
-    }
+template <std::ptrdiff_t N> using ptrdiff_constant = std::integral_constant<std::ptrdiff_t, N>;
 
-    switch (size1)
-    {
-    case inconsistent_size:
-        return inconsistent_size;
-    case no_size:
-    case unknown_size: // `size1 <= size2`, so `size2` is either `unknown_size` or a valid size
-        return size2;
-    default:
-        return size2 == size1 ? size1 : inconsistent_size;
-    }
-}
-constexpr std::ptrdiff_t merge_sizes(std::ptrdiff_t size)
+template <typename T>
+constexpr auto merge_sizes_0(ptrdiff_constant<unknown_size>, T n)
 {
-    return size;
-}
-template <typename... Ts>
-constexpr std::ptrdiff_t merge_sizes(std::ptrdiff_t size1, std::ptrdiff_t size2, Ts... sizes)
-{
-    return merge_sizes(merge_sizes(size1, size2), sizes...);
-}
-
-template <typename R, typename = void> struct static_range_size : std::integral_constant<std::ptrdiff_t, unknown_size> { };
-template <typename R> struct static_range_size<R, gsl::void_t<decltype(std::tuple_size<R>::value)>> : std::integral_constant<std::ptrdiff_t, std::tuple_size<R>::value> { };
-
-template <typename R, typename = void>
-struct dynamic_range_size_
-{
-    constexpr std::ptrdiff_t operator ()(R const&) const
-    {
-        return unknown_size;
-    }
-};
-template <>
-struct dynamic_range_size_<range_index_t>
-{
-    constexpr std::ptrdiff_t operator ()(range_index_t) const
-    {
-        return no_size;
-    }
-};
-template <typename R>
-struct dynamic_range_size_<R, gsl::void_t<decltype(gsl::std20::ssize(std::declval<R>()))>>
-{
-    constexpr std::ptrdiff_t operator ()(R const& range) const
-    {
-        return gsl::std20::ssize(range);
-    }
-};
-
-template <typename... Rs>
-constexpr std::ptrdiff_t static_ranges_size(void)
-{
-    return detail::merge_sizes(static_range_size<std::decay_t<Rs>>::value...);
-}
-template <typename... Rs>
-constexpr std::ptrdiff_t dynamic_ranges_size(Rs&... ranges)
-{
-    return detail::merge_sizes(dynamic_range_size_<std::decay_t<Rs>>{ }(ranges)...);
-}
-
-constexpr std::ptrdiff_t dynamic_size = -4;
-
-template <typename... Rs>
-constexpr std::integral_constant<std::ptrdiff_t, unknown_size> ranges_size_0(std::integral_constant<std::ptrdiff_t, unknown_size>, Rs&...)
-{
-    return { };
-}
-template <std::ptrdiff_t N, typename... Rs>
-constexpr std::integral_constant<std::ptrdiff_t, N> ranges_size_0(std::integral_constant<std::ptrdiff_t, N>, Rs&... ranges)
-{
-        // Check that different ranges don't have different sizes.
-    gsl_Expects(detail::dynamic_ranges_size<Rs...>(ranges...) >= 0);
-
-    return { };
-}
-template <typename... Rs>
-constexpr std::ptrdiff_t ranges_size_0(std::integral_constant<std::ptrdiff_t, dynamic_size>, Rs&... ranges)
-{
-    std::ptrdiff_t n = detail::dynamic_ranges_size<Rs...>(ranges...);
-
-        // Check that different ranges don't have different sizes.
-    gsl_Expects(n >= 0);
-
     return n;
 }
-template <std::ptrdiff_t StaticSize, typename... Rs>
-constexpr auto ranges_size(Rs&... ranges)
+template <std::ptrdiff_t N>
+constexpr auto merge_sizes_0(ptrdiff_constant<N>, ptrdiff_constant<unknown_size>)
 {
-    constexpr std::ptrdiff_t staticSizeEx =
-        StaticSize != unknown_size ? StaticSize
-      : gsl::disjunction<detail::has_size<Rs>...>::value ? dynamic_size
-      : unknown_size;
-    return detail::ranges_size_0(std::integral_constant<std::ptrdiff_t, staticSizeEx>{ }, ranges...);
+    return ptrdiff_constant<N>{ };
+}
+template <std::ptrdiff_t N, std::ptrdiff_t M>
+constexpr auto merge_sizes_0(ptrdiff_constant<N>, ptrdiff_constant<M>)
+{
+    static_assert(N == M, "inconsistent sizes");
+    return ptrdiff_constant<N>{ };
+}
+template <std::ptrdiff_t N>
+constexpr auto merge_sizes_0(ptrdiff_constant<N>, std::ptrdiff_t n)
+{
+    gsl_Expects(n == N || n == unknown_size);
+    return ptrdiff_constant<N>{ };
+}
+template <std::ptrdiff_t N>
+constexpr auto merge_sizes_0(std::ptrdiff_t n, ptrdiff_constant<N>)
+{
+    return detail::merge_sizes_0(ptrdiff_constant<N>{ }, n);
+}
+constexpr auto merge_sizes_0(std::ptrdiff_t n, std::ptrdiff_t m)
+{
+    if (n == unknown_size || m == unknown_size) return unknown_size;
+    gsl_Expects(n == m);
+    return n;
+}
+
+constexpr ptrdiff_constant<unknown_size> merge_sizes(void)
+{
+    return { };
+}
+template <typename T>
+constexpr T merge_sizes(T n)
+{
+    return n;
+}
+template <typename T1, typename T2, typename... Ts>
+constexpr auto merge_sizes(T1 n1, T2 n2, Ts... sizes)
+{
+    return detail::merge_sizes(detail::merge_sizes_0(n1, n2), sizes...);
+}
+
+template <typename R>
+constexpr std::ptrdiff_t range_size_1(std::true_type /*hasSize*/, R const& range) noexcept
+{
+    return gsl::ssize(range);
+}
+template <typename R>
+constexpr ptrdiff_constant<unknown_size> range_size_1(std::true_type /*hasSize*/, R const&) noexcept
+{
+    return { };
+}
+template <typename R>
+constexpr ptrdiff_constant<std::tuple_size<R>::value> range_size_0(std::true_type /*isTupleLike*/, R const&) noexcept
+{
+    return { };
+}
+template <typename R>
+constexpr auto range_size_0(std::false_type /*isTupleLike*/, R const& range) noexcept
+{
+    return detail::range_size_1(has_size<R>{ }, range);
+}
+template <typename R>
+constexpr auto range_size(R const& range) noexcept
+{
+    return detail::range_size_0(is_tuple_like<R>{ }, range);
+}
+constexpr ptrdiff_constant<unknown_size> range_size(range_index_t) noexcept
+{
+    return { };
+}
+
+template <typename T, std::size_t Size>
+constexpr ptrdiff_constant<Size> to_ptrdiff_size(std::integral_constant<T, Size>) noexcept
+{
+    return { };
+}
+template <typename T>
+constexpr std::ptrdiff_t to_ptrdiff_size(T size) noexcept
+{
+    return std::ptrdiff_t(size);
 }
 
 
@@ -331,7 +334,7 @@ range_for(N n, F&& func, Rs&... ranges)
 
 template <typename F, typename... Rs>
 constexpr void
-range_for(std::integral_constant<std::ptrdiff_t, unknown_size>, F&& func, Rs&... ranges)
+range_for(ptrdiff_constant<unknown_size>, F&& func, Rs&... ranges)
 {
     auto rangeIterator = range_iterator<std::decay_t<F>, Rs...>{ std::forward<F>(func), ranges... };
     for (std::ptrdiff_t i = 0; !rangeIterator.is_end(); ++i, ++rangeIterator)
@@ -359,7 +362,7 @@ range_transform_reduce(N n, T&& initialValue, ReduceFuncT&& reduce, TransformFun
 
 template <typename T, typename ReduceFuncT, typename TransformFuncT, typename... Rs>
 constexpr std::decay_t<T>
-range_transform_reduce(std::integral_constant<std::ptrdiff_t, unknown_size>, T&& initialValue, ReduceFuncT&& reduce, TransformFuncT&& transform, Rs&... ranges)
+range_transform_reduce(ptrdiff_constant<unknown_size>, T&& initialValue, ReduceFuncT&& reduce, TransformFuncT&& transform, Rs&... ranges)
 {
     auto rangeIterator = range_iterator<std::decay_t<TransformFuncT>, Rs...>{ std::forward<TransformFuncT>(transform), ranges... };
     auto result = std::forward<T>(initialValue);
@@ -388,7 +391,7 @@ range_conjunction(N n, TransformFuncT&& transform, Rs&... ranges)
 
 template <typename PredFuncT, typename TransformFuncT, typename... Rs>
 constexpr bool
-range_conjunction(std::integral_constant<std::ptrdiff_t, unknown_size>, TransformFuncT&& transform, Rs&... ranges)
+range_conjunction(ptrdiff_constant<unknown_size>, TransformFuncT&& transform, Rs&... ranges)
 {
     auto rangeIterator = range_iterator<std::decay_t<TransformFuncT>, Rs...>{ std::forward<TransformFuncT>(transform), ranges... };
     for (std::ptrdiff_t i = 0; !rangeIterator.is_end(); ++i, ++rangeIterator)

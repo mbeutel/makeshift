@@ -15,27 +15,22 @@ namespace detail
 {
 
 
-struct identity_transform_t
-{
-    template <typename T>
-    constexpr auto operator ()(T&& arg) const
-    {
-        return std::forward<T>(arg);
-    }
-};
-
-struct all_of_pred
-{
-    constexpr bool operator ()(bool cond) const
-    {
-        return cond;
-    }
-};
-struct none_of_pred
+struct negation_fn
 {
     constexpr bool operator ()(bool cond) const
     {
         return !cond;
+    }
+};
+
+template <typename T>
+struct fill_fn
+{
+    T const& value;
+
+    constexpr T const& operator ()(void) const noexcept
+    {
+        return value;
     }
 };
 

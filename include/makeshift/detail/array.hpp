@@ -59,7 +59,7 @@ template <std::ptrdiff_t N, typename F, typename... Ts>
 struct homogeneous_result_<N, true, F, Ts...>
 {
         // all arguments are array types or array indices, so we can just extract their value types
-    using type = decltype(std::declval<F>()(std::declval<typename transfer_ref_<Ts, typename homogeneous_arg_type_<std::decay_t<Ts>>::type>::type>()...));
+    using type = std::decay_t<decltype(std::declval<F>()(std::declval<typename transfer_ref_<Ts, typename homogeneous_arg_type_<std::decay_t<Ts>>::type>::type>()...))>;
 };
 template <typename F, typename Rs, typename... Ts>
 struct check_homogeneous_result_;
