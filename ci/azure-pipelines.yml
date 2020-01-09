@@ -5,7 +5,7 @@ variables:
   revision: 4
 
   # Vcpkg repository
-  vcpkgRepo: 'https://github.com/microsoft/vcpkg.git' # optional
+#  vcpkgRepo: 'https://github.com/microsoft/vcpkg.git' # optional
   vcpkgRef: e308474b85ff49f2b688a759351c4ec569636910
 
   # Repository with additional port and triplet overlays
@@ -13,10 +13,8 @@ variables:
   vcpkgOverlayRef: a08517fb77e9d48d00dd33c16e5acd01f8b31f29 # optional
 
   # CMake build options
-  cmakeListsTxtPath: '$(Build.SourcesDirectory)/CMakeLists.txt' # optional
+#  cmakeListsTxtPath: '$(Build.SourcesDirectory)/CMakeLists.txt' # optional
   cmakeConfigArgs: '-DMAKESHIFT_BUILD_TESTS=ON -DCMAKESHIFT_PRIVATE_COMPILE_SETTINGS=$<$<CONFIG:Debug>:runtime-checks;debug-stdlib>' # optional
-
-  cmakeBuildConfigurations: ["Debug", "RelWithDebInfo"]
 
 trigger:
 - master
@@ -26,73 +24,16 @@ pr:
 - master
 
 jobs:
-  - job: Windows
+  - template: azure-pipelines-windows.yml
+    parameters:
+      compiler: MSVC
+      platforms: [x86, x64]
+      compilerVersion: [2019]
+      buildConfigurations: [Debug, RelWithDebInfo]
 
-    strategy:
-      matrix: 
-        MSVC_x86:
-          platform: x86
-          compiler: MSVC
-          compilerVersion: 2019
-        MSVC_x64:
-          platform: x64
-          compiler: MSVC
-          compilerVersion: 2019
-        #Clang_x86:
-        #  platform: x86
-        #  compiler: Clang
-        #  compilerVersion: 9
-        #Clang_x64:
-        #  platform: x64
-        #  compiler: Clang
-        #  compilerVersion: 9
-
-    pool:
-      name: Azure Pipelines
-      vmImage: 'windows-2019'
-
-    steps:
-      - template: azure-pipelines-windows.yml
-
-  - job: Ubuntu
-
-    variables:
-        vcpkgTripletSuffix: '-sanitize' # optional
-
-    strategy:
-      matrix: 
-        GCC:
-          platform: x64
-          compiler: GCC
-          compilerVersion: 9
-        Clang:
-          platform: x64
-          compiler: Clang
-          compilerVersion: 9
-
-    pool:
-      name: Azure Pipelines
-      vmImage: 'ubuntu-18.04'
-
-    steps:
-      - template: azure-pipelines-linux.yml
-
-  - job: MacOS
-
-    strategy:
-      matrix: 
-        GCC:
-          platform: x64
-          compiler: GCC
-          compilerVersion: 9
-        AppleClang:
-          platform: x64
-          compiler: AppleClang
-          compilerVersion: 11
-
-    pool:
-      name: Azure Pipelines
-      vmImage: 'macOS-10.14'
-      
-    steps:
-      - template: azure-pipelines-macos.yml
+#  - template: azure-pipelines-windows.yml
+#    parameters:
+#      compiler: Clang
+#      platforms: [x86, x64]
+#      compilerVersion: [9]
+#      buildConfigurations: [Debug, RelWithDebInfo]
