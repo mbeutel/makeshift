@@ -60,7 +60,7 @@ steps:
     displayName: Delete temporary files
     condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''))
 
-  - ${{ each config in parameters.cmakeBuildConfigurations }}
+  - ${{ each config in variables.cmakeBuildConfigurations }}
     - task: run-cmake@0
       displayName: 'Build ${{ config }}'
       inputs:

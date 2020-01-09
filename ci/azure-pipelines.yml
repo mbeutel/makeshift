@@ -16,7 +16,6 @@ variables:
   cmakeListsTxtPath: '$(Build.SourcesDirectory)/CMakeLists.txt' # optional
   cmakeConfigArgs: '-DMAKESHIFT_BUILD_TESTS=ON -DCMAKESHIFT_PRIVATE_COMPILE_SETTINGS=$<$<CONFIG:Debug>:runtime-checks;debug-stdlib>' # optional
 
-parameters:
   cmakeBuildConfigurations: ["Debug", "RelWithDebInfo"]
 
 trigger:

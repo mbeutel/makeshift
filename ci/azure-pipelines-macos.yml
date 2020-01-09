@@ -68,7 +68,7 @@ steps:
       fi
     displayName: Set environment variables
     
-  - ${{ each config in parameters.cmakeBuildConfigurations }}
+  - ${{ each config in variables.cmakeBuildConfigurations }}
     - task: run-cmake@0
       displayName: 'Build ${{ config }}'
       inputs:
