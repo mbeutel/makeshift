@@ -39,12 +39,12 @@ jobs:
         displayName: Set default values
 
       - task: CacheBeta@1
-          displayName: Cache dependencies
-          inputs:
-          key: '$(Build.SourcesDirectory)/ci/vcpkg.txt | "${{ variables.vcpkgRef }}" | "${{ variables.vcpkgOverlayRef }}" | "${{ platform }}-$(Agent.OS)${{ variables.vcpkgTripletSuffix }}" | "${{ parameters.compiler }}" | "${{ variables.revision }}"'
-          path: '$(Build.BinariesDirectory)/dependencies'
-          cacheHitVar: 'dependencyCacheHit'
-          condition: ne(variables.vcpkgRef, '')
+        displayName: Cache dependencies
+        inputs:
+        key: '$(Build.SourcesDirectory)/ci/vcpkg.txt | "${{ variables.vcpkgRef }}" | "${{ variables.vcpkgOverlayRef }}" | "${{ platform }}-$(Agent.OS)${{ variables.vcpkgTripletSuffix }}" | "${{ parameters.compiler }}" | "${{ variables.revision }}"'
+        path: '$(Build.BinariesDirectory)/dependencies'
+        cacheHitVar: 'dependencyCacheHit'
+        condition: ne(variables.vcpkgRef, '')
 
       - powershell: |
           if ("${{ parameters.compiler }}" -eq "Clang") {
@@ -75,13 +75,13 @@ jobs:
         condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''))
 
       - task: run-vcpkg@0
-          displayName: Run Vcpkg to install dependencies
-          inputs:
-          vcpkgDirectory: '$(Build.BinariesDirectory)/dependencies/vcpkg'
-          vcpkgGitCommitId: '$(vcpkgRef)'
-          vcpkgTriplet: '${{ platform }}-windows${{ variables.vcpkgTripletSuffix }}'
-          vcpkgArguments: '--overlay-ports="$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/ports" --overlay-triplets="$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/triplets" "@$(Build.SourcesDirectory)/ci/vcpkg.txt"'
-          condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''))
+        displayName: Run Vcpkg to install dependencies
+        inputs:
+        vcpkgDirectory: '$(Build.BinariesDirectory)/dependencies/vcpkg'
+        vcpkgGitCommitId: '$(vcpkgRef)'
+        vcpkgTriplet: '${{ platform }}-windows${{ variables.vcpkgTripletSuffix }}'
+        vcpkgArguments: '--overlay-ports="$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/ports" --overlay-triplets="$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/triplets" "@$(Build.SourcesDirectory)/ci/vcpkg.txt"'
+        condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''))
 
       - script: |
           rmdir /S /Q "$(Build.BinariesDirectory)/dependencies/vcpkg/buildtrees"
@@ -92,14 +92,14 @@ jobs:
 
       - ${{ each config in variables.buildConfigurations }}:
         - task: run-cmake@0
-            displayName: 'Build ${{ config }}'
-            inputs:
-              cmakeListsOrSettingsJson: 'CMakeListsTxtAdvanced'
-              cmakeListsTxtPath: '$(cmakeListsTxtPath)'
-              useVcpkgToolchainFile: true
-              buildDirectory: '$(Build.BinariesDirectory)/build/${{ config }}'
-              cmakeAppendedArgs: '-G Ninja ${{ variables.cmakeCompilerFlag }} -DCMAKE_BUILD_TYPE=${{ config }} ${{ variables.cmakeConfigArgs }}'
-              buildWithCMakeArgs: '--parallel -- -v'
+          displayName: 'Build ${{ config }}'
+          inputs:
+            cmakeListsOrSettingsJson: 'CMakeListsTxtAdvanced'
+            cmakeListsTxtPath: '$(cmakeListsTxtPath)'
+            useVcpkgToolchainFile: true
+            buildDirectory: '$(Build.BinariesDirectory)/build/${{ config }}'
+            cmakeAppendedArgs: '-G Ninja ${{ variables.cmakeCompilerFlag }} -DCMAKE_BUILD_TYPE=${{ config }} ${{ variables.cmakeConfigArgs }}'
+            buildWithCMakeArgs: '--parallel -- -v'
 
         - script: |
             ctest -V -T Test
@@ -107,8 +107,8 @@ jobs:
           workingDirectory: '$(Build.BinariesDirectory)/build/${{ config }}'
 
       - task: PublishTestResults@2
-          displayName: Publish test results
-          inputs:
-          testResultsFormat: 'cTest'
-          testResultsFiles: '$(Build.BinariesDirectory)/build/*/Testing/*/Test.xml'
-          testRunTitle: '$(Agent.JobName)'
+        displayName: Publish test results
+        inputs:
+        testResultsFormat: 'cTest'
+        testResultsFiles: '$(Build.BinariesDirectory)/build/*/Testing/*/Test.xml'
+        testRunTitle: '$(Agent.JobName)'
