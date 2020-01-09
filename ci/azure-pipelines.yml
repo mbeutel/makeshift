@@ -28,12 +28,12 @@ jobs:
     parameters:
       compiler: MSVC
       platforms: [x86, x64]
-      compilerVersion: [2019]
+      compilerVersions: [2019]
       buildConfigurations: [Debug, RelWithDebInfo]
 
 #  - template: azure-pipelines-windows.yml
 #    parameters:
 #      compiler: Clang
 #      platforms: [x86, x64]
-#      compilerVersion: [9]
+#      compilerVersions: [9]
 #      buildConfigurations: [Debug, RelWithDebInfo]
