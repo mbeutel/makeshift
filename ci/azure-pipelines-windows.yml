@@ -1,29 +1,29 @@
 parameters:
-- name: compiler
-  type: string
-  default: 'MSVC'
-- name: vmImage
-  type: string
-  default: 'windows-2019'
-- name: platforms
-  type: object
-  default: [x64]
-- name: compilerVersions
-  type: object
-  default: [2019]
-- name: buildConfigurations
-  type: object
-  default: [Debug, RelWithDebInfo]
-#  - compiler: 'MSVC'
-#  - vmImage: 'windows-2019'
-#  - platforms: [x64]
-#  - compilerVersions: [2019]
-#  - buildConfigurations: [Debug, RelWithDebInfo]
+  compiler: 'MSVC'
+  vmImage: 'windows-2019'
+  platforms: [x64]
+  compilerVersions: [2019]
+  buildConfigurations: [Debug, RelWithDebInfo]
+#- name: compiler
+#  type: string
+#  default: 'MSVC'
+#- name: vmImage
+#  type: string
+#  default: 'windows-2019'
+#- name: platforms
+#  type: object
+#  default: [x64]
+#- name: compilerVersions
+#  type: object
+#  default: [2019]
+#- name: buildConfigurations
+#  type: object
+#  default: [Debug, RelWithDebInfo]
 
 jobs:
 - ${{ each platform in parameters.platforms }}:
   - ${{ each compilerVersion in parameters.compilerVersions }}:
-    - job: 'Windows ${{ parameters.compiler }} ${{ compilerVersion }} ${{ platform }}'
+    - job: 'Windows_${{ parameters.compiler }}_${{ compilerVersion }}_${{ platform }}'
       pool:
         name: Azure Pipelines
         vmImage: ${{ parameters.vmImage }}
