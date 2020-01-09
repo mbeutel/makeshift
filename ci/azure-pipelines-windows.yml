@@ -14,7 +14,7 @@ parameters:
 #  buildConfigurations: [Debug, RelWithDebInfo]
   
 #  cmakeConfigArgs: '-DMAKESHIFT_BUILD_TESTS=ON -DCMAKESHIFT_PRIVATE_COMPILE_SETTINGS=$<$<CONFIG:Debug>:runtime-checks;debug-stdlib>' # optional
-  targets: []
+#  targets: []
 #  targets.image: 'windows-2019'
 #  targets.compiler: 'MSVC'
 #  targets.platforms: [x64]
@@ -23,7 +23,7 @@ parameters:
 #  targets.buildConfigurations: []
   image: 'windows-2019'
   buildConfigurations: [Debug, RelWithDebInfo]
-  compilers: 'MSVC'
+  compilers: []
 #  compilers.platforms: [x64]
 #  compilers.versions: [2019]
 
