@@ -40,16 +40,6 @@ jobs:
           vmImage: ${{ parameters.image }}
 
         steps:
-        - powershell: |
-            Write-Host "$env:vcpkgRef, $env:vcpkgFoo"
-            if ("$env:vcpkgRef" -and "$env:vcpkgFoo") {
-                Write-Host "##vso[task.setvariable variable=vcpkgRepo]https://github.com/microsoft/vcpkg.git"
-            }
-            if (!"${{ variables.cmakeListsTxtPath }}") {
-                Write-Host "##vso[task.setvariable variable=cmakeListsTxtPath]$(Build.SourcesDirectory)/CMakeLists.txt"
-            }
-          displayName: Set default values
-
         - task: CacheBeta@1
           displayName: Cache dependencies
           inputs:
@@ -63,8 +53,15 @@ jobs:
                 & choco install -y llvm
             }
           displayName: Install tools
+          condition: eq(variables.Agent.OS, 'Windows_NT')
 
         - powershell: |
+            if ("$env:vcpkgRef" -and !"$env:vcpkgRepo") {
+                Write-Host "##vso[task.setvariable variable=vcpkgRepo]https://github.com/microsoft/vcpkg.git"
+            }
+            if (!"$env:cmakeListsTxtPath") {
+                Write-Host "##vso[task.setvariable variable=cmakeListsTxtPath]$(Build.SourcesDirectory)/CMakeLists.txt"
+            }
             Write-Host "##vso[task.setvariable variable=Path]$(Build.BinariesDirectory)/dependencies/cmake/bin;${env:Path}"
             Write-Host "##vso[task.setvariable variable=VCPKG_ROOT]$(Build.BinariesDirectory)/dependencies/vcpkg"
             Write-Host "##vso[task.setvariable variable=VCPKG_TRIPLET]${{ platform }}-windows${{ variables.vcpkgTripletSuffix }}"
@@ -76,22 +73,23 @@ jobs:
                 Write-Host "##vso[task.setvariable variable=cmakeCompilerFlag]-DCMAKE_C_COMPILER=`"$clangClCompatPath`" -DCMAKE_CXX_COMPILER=`"$clangClCompatPath`""
             }
           displayName: Set environment variables
+          condition: eq(variables.Agent.OS, 'Windows_NT')
 
         - powershell: |
-            if ("${{ variables.vcpkgOverlayRepo }}") {
-                & git clone --depth 1 $(vcpkgOverlayRepo) "$(Build.BinariesDirectory)/dependencies/overlay-repo"
+            if ("$env:vcpkgOverlayRepo") {
+                & git clone --depth 1 "$env:vcpkgOverlayRepo" "$(Build.BinariesDirectory)/dependencies/overlay-repo"
             }
             mkdir -Force "$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/ports"
             mkdir -Force "$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/triplets"
           displayName: Clone Vcpkg overlay repository
-          condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''))
+          condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''), eq(variables.Agent.OS, 'Windows_NT'))
 
         - task: run-vcpkg@0
           displayName: Run Vcpkg to install dependencies
           inputs:
             vcpkgDirectory: '$(Build.BinariesDirectory)/dependencies/vcpkg'
             vcpkgGitCommitId: '$(vcpkgRef)'
-            vcpkgTriplet: '${{ platform }}-windows${{ variables.vcpkgTripletSuffix }}'
+            vcpkgTriplet: '${{ variables.VCPKG_TRIPLET }}'
             vcpkgArguments: '--overlay-ports="$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/ports" --overlay-triplets="$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/triplets" "@$(Build.SourcesDirectory)/ci/vcpkg.txt"'
             condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''))
 
@@ -100,7 +98,7 @@ jobs:
             rmdir /S /Q "$(Build.BinariesDirectory)/dependencies/vcpkg/downloads"
             rmdir /S /Q "$(Build.BinariesDirectory)/dependencies/vcpkg/packages"
           displayName: Delete temporary files
-          condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''))
+          condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''), eq(variables.Agent.OS, 'Windows_NT'))
 
         - ${{ each config in parameters.buildConfigurations }}:
           - task: run-cmake@0
