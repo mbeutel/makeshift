@@ -94,7 +94,7 @@ jobs:
             cmakeListsOrSettingsJson: 'CMakeListsTxtAdvanced'
             cmakeListsTxtPath: '$(cmakeListsTxtPath)'
             useVcpkgToolchainFile: true
-          workingDirectory: '$(Build.BinariesDirectory)/build/${{ config }}'
+            buildDirectory: '$(Build.BinariesDirectory)/build/${{ config }}'
             cmakeAppendedArgs: '-G Ninja ${{ variables.cmakeCompilerFlag }} -DCMAKE_BUILD_TYPE=${{ config }} ${{ variables.cmakeConfigArgs }}'
             buildWithCMakeArgs: '-- -j VERBOSE=1'
 
