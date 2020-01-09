@@ -1,97 +1,111 @@
-steps:
-  - script: |
-      if [[ "${{ variables.vcpkgRef }}" != "" && "${{ variables.vcpkgRepo }}" == "" ]]; then
-        echo "##vso[task.setvariable variable=vcpkgRepo]https://github.com/microsoft/vcpkg.git"
-      fi
-      if [[ "${{ variables.cmakeListsTxtPath }}" == "" ]]; then
-        echo "##vso[task.setvariable variable=cmakeListsTxtPath]$(Build.SourcesDirectory)/CMakeLists.txt"
-      fi
-    displayName: Set default values
+parameters:
+  compiler: 'GCC'
+  vmImage: 'ubuntu-18.04'
+  platforms: [x64]
+  compilerVersions: [9]
+  buildConfigurations: [Debug, RelWithDebInfo]
 
-  - script: |
-      wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | sudo apt-key add -
-      sudo apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main'
-      if [[ "$(compiler)" == "GCC" ]]; then
-        sudo apt-add-repository ppa:ubuntu-toolchain-r/test
-      elif [[ "$(compiler)" == "Clang" ]]; then
-        sudo apt-add-repository "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-$(compilerVersion) main"
-      fi
-      sudo apt-get update
-      if [[ "$(compiler)" == "GCC" ]]; then
-        sudo apt-get install cmake gcc-$(compilerVersion) g++-$(compilerVersion)
-      elif [[ "$(compiler)" == "Clang" ]]; then
-        sudo apt-get install cmake clang-$(compilerVersion)
-      fi
+jobs:
+- ${{ each platform in parameters.platforms }}:
+  - ${{ each compilerVersion in parameters.compilerVersions }}:
+    - job: 'Ubuntu_${{ parameters.compiler }}_${{ compilerVersion }}_${{ platform }}'
+      pool:
+        name: Azure Pipelines
+        vmImage: ${{ parameters.vmImage }}
 
-    displayName: Install tools
+      steps:
+      - script: |
+          if [[ "${{ variables.vcpkgRef }}" != "" && "${{ variables.vcpkgRepo }}" == "" ]]; then
+            echo "##vso[task.setvariable variable=vcpkgRepo]https://github.com/microsoft/vcpkg.git"
+          fi
+          if [[ "${{ variables.cmakeListsTxtPath }}" == "" ]]; then
+            echo "##vso[task.setvariable variable=cmakeListsTxtPath]$(Build.SourcesDirectory)/CMakeLists.txt"
+          fi
+        displayName: Set default values
 
-  - script: |
-      mkdir -p ~/bin
-      ln -s /usr/bin/cmake ~/bin/cmake
-      echo "##vso[task.setvariable variable=PATH]$HOME/bin:${PATH}"
-      echo "##vso[task.setvariable variable=VCPKG_ROOT]$(Build.BinariesDirectory)/dependencies/vcpkg"
-      echo "##vso[task.setvariable variable=VCPKG_TRIPLET]$(platform)-linux${{ variables.vcpkgTripletSuffix }}"
-      if [[ "$(compiler)" == "GCC" ]]; then
-        echo "##vso[task.setvariable variable=CC]gcc-$(compilerVersion)"
-        echo "##vso[task.setvariable variable=CXX]g++-$(compilerVersion)"
-      elif [[ "$(compiler)" == "Clang" ]]; then
-        echo "##vso[task.setvariable variable=CC]clang-$(compilerVersion)"
-        echo "##vso[task.setvariable variable=CXX]clang++-$(compilerVersion)"
-      fi
-    displayName: Set environment variables
+      - script: |
+          wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | sudo apt-key add -
+          sudo apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main'
+          if [[ "${{ parameters.compiler }}" == "GCC" ]]; then
+            sudo apt-add-repository ppa:ubuntu-toolchain-r/test
+          elif [[ "${{ parameters.compiler }}" == "Clang" ]]; then
+            sudo apt-add-repository "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-${{ compilerVersion }} main"
+          fi
+          sudo apt-get update
+          if [[ "${{ parameters.compiler }}" == "GCC" ]]; then
+            sudo apt-get install cmake gcc-${{ compilerVersion }} g++-${{ compilerVersion }}
+          elif [[ "${{ parameters.compiler }}" == "Clang" ]]; then
+            sudo apt-get install cmake clang-${{ compilerVersion }}
+          fi
+        displayName: Install tools
 
-  - task: CacheBeta@1
-    displayName: Cache dependencies
-    inputs:
-      key: '$(Build.SourcesDirectory)/ci/vcpkg.txt | "${{ variables.vcpkgRef }}" | "${{ variables.vcpkgOverlayRef }}" | "$(platform)-$(Agent.OS)${{ variables.vcpkgTripletSuffix }}" | "$(compiler)" | "${{ variables.revision }}"'
-      path: '$(Build.BinariesDirectory)/dependencies'
-      cacheHitVar: 'dependencyCacheHit'
-    condition: ne(variables.vcpkgRef, '')
+      - script: |
+          mkdir -p ~/bin
+          ln -s /usr/bin/cmake ~/bin/cmake
+          echo "##vso[task.setvariable variable=PATH]$HOME/bin:${PATH}"
+          echo "##vso[task.setvariable variable=VCPKG_ROOT]$(Build.BinariesDirectory)/dependencies/vcpkg"
+          echo "##vso[task.setvariable variable=VCPKG_TRIPLET]${{ platform }}-linux${{ variables.vcpkgTripletSuffix }}"
+          if [[ "${{ parameters.compiler }}" == "GCC" ]]; then
+            echo "##vso[task.setvariable variable=CC]gcc-${{ compilerVersion }}"
+            echo "##vso[task.setvariable variable=CXX]g++-${{ compilerVersion }}"
+          elif [[ "${{ parameters.compiler }}" == "Clang" ]]; then
+            echo "##vso[task.setvariable variable=CC]clang-${{ compilerVersion }}"
+            echo "##vso[task.setvariable variable=CXX]clang++-${{ compilerVersion }}"
+          fi
+        displayName: Set environment variables
 
-  - script: |
-      if [[ "$(vcpkgOverlayRepo)" != "" ]]; then
-          git clone --depth 1 $(vcpkgOverlayRepo) "$(Build.BinariesDirectory)/dependencies/overlay-repo"
-      fi
-      mkdir -p "$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/ports"
-      mkdir -p "$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/triplets"
-    displayName: Clone Vcpkg overlay repository
-    condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''))
+      - task: CacheBeta@1
+        displayName: Cache dependencies
+        inputs:
+          key: '$(Build.SourcesDirectory)/ci/vcpkg.txt | "${{ variables.vcpkgRef }}" | "${{ variables.vcpkgOverlayRef }}" | "${{ platform }}-$(Agent.OS)${{ variables.vcpkgTripletSuffix }}" | "${{ parameters.compiler }}" | "${{ variables.revision }}"'
+          path: '$(Build.BinariesDirectory)/dependencies'
+          cacheHitVar: 'dependencyCacheHit'
+        condition: ne(variables.vcpkgRef, '')
 
-  - task: run-vcpkg@0
-    displayName: Run Vcpkg to install dependencies
-    inputs:
-      vcpkgDirectory: '$(Build.BinariesDirectory)/dependencies/vcpkg'
-      vcpkgGitCommitId: '$(vcpkgRef)'
-      vcpkgTriplet: '$(platform)-linux${{ variables.vcpkgTripletSuffix }}'
-      vcpkgArguments: '--overlay-ports="$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/ports" --overlay-triplets="$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/triplets" "@$(Build.SourcesDirectory)/ci/vcpkg.txt"'
-    condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''))
+      - script: |
+          if [[ "$(vcpkgOverlayRepo)" != "" ]]; then
+              git clone --depth 1 $(vcpkgOverlayRepo) "$(Build.BinariesDirectory)/dependencies/overlay-repo"
+          fi
+          mkdir -p "$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/ports"
+          mkdir -p "$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/triplets"
+        displayName: Clone Vcpkg overlay repository
+        condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''))
 
-  - script: |
-      rm -rf "$(Build.BinariesDirectory)/dependencies/vcpkg/buildtrees"
-      rm -rf "$(Build.BinariesDirectory)/dependencies/vcpkg/downloads"
-      rm -rf "$(Build.BinariesDirectory)/dependencies/vcpkg/packages"
-    displayName: Delete temporary files
-    condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''))
+      - task: run-vcpkg@0
+        displayName: Run Vcpkg to install dependencies
+        inputs:
+          vcpkgDirectory: '$(Build.BinariesDirectory)/dependencies/vcpkg'
+          vcpkgGitCommitId: '$(vcpkgRef)'
+          vcpkgTriplet: '${{ platform }}-linux${{ variables.vcpkgTripletSuffix }}'
+          vcpkgArguments: '--overlay-ports="$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/ports" --overlay-triplets="$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/triplets" "@$(Build.SourcesDirectory)/ci/vcpkg.txt"'
+        condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''))
 
-  - ${{ each config in variables.cmakeBuildConfigurations }}
-    - task: run-cmake@0
-      displayName: 'Build ${{ config }}'
-      inputs:
-        cmakeListsOrSettingsJson: 'CMakeListsTxtAdvanced'
-        cmakeListsTxtPath: '$(cmakeListsTxtPath)'
-        useVcpkgToolchainFile: true
-      workingDirectory: '$(Build.BinariesDirectory)/build/${{ config }}'
-        cmakeAppendedArgs: '-G Ninja ${{ variables.cmakeCompilerFlag }} -DCMAKE_BUILD_TYPE=${{ config }} ${{ variables.cmakeConfigArgs }}'
-        buildWithCMakeArgs: '-- -j VERBOSE=1'
+      - script: |
+          rm -rf "$(Build.BinariesDirectory)/dependencies/vcpkg/buildtrees"
+          rm -rf "$(Build.BinariesDirectory)/dependencies/vcpkg/downloads"
+          rm -rf "$(Build.BinariesDirectory)/dependencies/vcpkg/packages"
+        displayName: Delete temporary files
+        condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''))
 
-    - script: |
-        ctest -V -T Test
-      displayName: 'Run tests in ${{ config }}'
-      workingDirectory: '$(Build.BinariesDirectory)/build/${{ config }}'
+      - ${{ each config in parameters.buildConfigurations }}:
+        - task: run-cmake@0
+          displayName: 'Build ${{ config }}'
+          inputs:
+            cmakeListsOrSettingsJson: 'CMakeListsTxtAdvanced'
+            cmakeListsTxtPath: '$(cmakeListsTxtPath)'
+            useVcpkgToolchainFile: true
+          workingDirectory: '$(Build.BinariesDirectory)/build/${{ config }}'
+            cmakeAppendedArgs: '-G Ninja ${{ variables.cmakeCompilerFlag }} -DCMAKE_BUILD_TYPE=${{ config }} ${{ variables.cmakeConfigArgs }}'
+            buildWithCMakeArgs: '-- -j VERBOSE=1'
 
-    - task: PublishTestResults@2
-      displayName: Publish test results
-      inputs:
-        testResultsFormat: 'cTest'
-        testResultsFiles: '$(Build.BinariesDirectory)/build/*/Testing/*/Test.xml'
-        testRunTitle: '$(Agent.JobName)'
+        - script: |
+            ctest -V -T Test
+          displayName: 'Run tests in ${{ config }}'
+          workingDirectory: '$(Build.BinariesDirectory)/build/${{ config }}'
+
+      - task: PublishTestResults@2
+        displayName: Publish test results
+        inputs:
+          testResultsFormat: 'cTest'
+          testResultsFiles: '$(Build.BinariesDirectory)/build/*/Testing/*/Test.xml'
+          testRunTitle: '$(Agent.JobName)-${{ parameters.compiler }}-${{ compilerVersion }}-${{ platform }}'

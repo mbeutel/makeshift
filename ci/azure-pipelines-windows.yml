@@ -4,21 +4,6 @@ parameters:
   platforms: [x64]
   compilerVersions: [2019]
   buildConfigurations: [Debug, RelWithDebInfo]
-#- name: compiler
-#  type: string
-#  default: 'MSVC'
-#- name: vmImage
-#  type: string
-#  default: 'windows-2019'
-#- name: platforms
-#  type: object
-#  default: [x64]
-#- name: compilerVersions
-#  type: object
-#  default: [2019]
-#- name: buildConfigurations
-#  type: object
-#  default: [Debug, RelWithDebInfo]
 
 jobs:
 - ${{ each platform in parameters.platforms }}:
@@ -27,7 +12,7 @@ jobs:
       pool:
         name: Azure Pipelines
         vmImage: ${{ parameters.vmImage }}
-          
+
       steps:
       - powershell: |
           if ("${{ variables.vcpkgRef }}" -and !"${{ variables.vcpkgRepo }}") {
@@ -63,7 +48,7 @@ jobs:
               $clangClCompatPath = $clangClPath -replace '\\','/'
               Write-Host "##vso[task.setvariable variable=cmakeCompilerFlag]-DCMAKE_C_COMPILER=`"$clangClCompatPath`" -DCMAKE_CXX_COMPILER=`"$clangClCompatPath`""
           }
-          displayName: Set environment variables
+        displayName: Set environment variables
 
       - powershell: |
           if ("${{ variables.vcpkgOverlayRepo }}") {
@@ -90,7 +75,7 @@ jobs:
         displayName: Delete temporary files
         condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''))
 
-      - ${{ each config in variables.buildConfigurations }}:
+      - ${{ each config in parameters.buildConfigurations }}:
         - task: run-cmake@0
           displayName: 'Build ${{ config }}'
           inputs:
@@ -111,4 +96,4 @@ jobs:
         inputs:
           testResultsFormat: 'cTest'
           testResultsFiles: '$(Build.BinariesDirectory)/build/*/Testing/*/Test.xml'
-          testRunTitle: '$(Agent.JobName)'
+          testRunTitle: '$(Agent.JobName)-${{ parameters.compiler }}-${{ compilerVersion }}-${{ platform }}'

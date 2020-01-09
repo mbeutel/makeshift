@@ -29,11 +29,39 @@ jobs:
       compiler: MSVC
       platforms: [x86, x64]
       compilerVersions: [2019]
-      buildConfigurations: [Debug, RelWithDebInfo]
 
 #  - template: azure-pipelines-windows.yml
 #    parameters:
 #      compiler: Clang
 #      platforms: [x86, x64]
 #      compilerVersions: [9]
-#      buildConfigurations: [Debug, RelWithDebInfo]
+
+  - template: azure-pipelines-linux.yml
+    parameters:
+      compiler: GCC
+      platforms: [x64]
+      compilerVersions: [8, 9]
+
+  - template: azure-pipelines-linux.yml
+    parameters:
+      compiler: Clang
+      platforms: [x64]
+      compilerVersions: [8, 9]
+
+  - template: azure-pipelines-macos.yml
+    parameters:
+      compiler: AppleClang
+      platforms: [x64]
+      compilerVersions: [11]
+
+  - template: azure-pipelines-macos.yml
+    parameters:
+      compiler: GCC
+      platforms: [x64]
+      compilerVersions: [9]
+
+#  - template: azure-pipelines-windows.yml
+#    parameters:
+#      compiler: Clang
+#      platforms: [x86, x64]
+#      compilerVersions: [9]
