@@ -68,10 +68,10 @@ jobs:
             if (!"$env:cmakeListsTxtPath") {
                 Write-Host "##vso[task.setvariable variable=cmakeListsTxtPath]$(Build.SourcesDirectory)/CMakeLists.txt"
             }
-            $vcpkgTriplet = "${{ coalesce(compiler.vcpkgTriplet, parameters.vcpkgTriplet, variables.vcpkgTriplet, '$(platform)-$(os)' }}" -replace "`$`(os`)","windows" -replace "`$`(platform`)","${{ platform }}"
-            Write-Host "##vso[task.setvariable variable=VCPKG_TRIPLET]${{ platform }}-windows${{ variables.vcpkgTripletSuffix }}"
-            Write-Host "##vso[task.setvariable variable=Path]$(Build.BinariesDirectory)/dependencies/cmake/bin;${env:Path}"
             Write-Host "##vso[task.setvariable variable=VCPKG_ROOT]$(Build.BinariesDirectory)/dependencies/vcpkg"
+            $vcpkgTriplet = "${{ coalesce(compiler.vcpkgTriplet, parameters.vcpkgTriplet, variables.vcpkgTriplet, '$(platform)-$(os)') }}" -replace "`$`(os`)","windows" -replace "`$`(platform`)","${{ platform }}"
+            Write-Host "##vso[task.setvariable variable=VCPKG_TRIPLET]$vcpkgTriplet"
+            #Write-Host "##vso[task.setvariable variable=Path]$(Build.BinariesDirectory)/dependencies/cmake/bin;${env:Path}"
             if ("${{ compiler.compiler }}" -eq "Clang") {
                 #$vsPath = &"${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"  -latest -prerelease -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
                 #$clangClPath = Join-Path $vsPath 'VC\Tools\Llvm\bin\clang-cl.exe'
