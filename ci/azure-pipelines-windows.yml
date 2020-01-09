@@ -15,8 +15,6 @@ jobs:
 
       steps:
       - powershell: |
-          if ("$(vcpkgFoo)" -and "${{ variables['vcpkgFoo'] }}" -and "${{ vcpkgFoo }}" -and "${{ variables.vcpkgFoo }}") {
-          }
           if ("$(vcpkgRef)" -and "${{ variables['vcpkgRef'] }}" -and "${{ vcpkgRef }}" -and "${{ variables.vcpkgRef }}" -and !"${{ variables.vcpkgRepo }}") {
               Write-Host "##vso[task.setvariable variable=vcpkgRepo]https://github.com/microsoft/vcpkg.git"
           }
