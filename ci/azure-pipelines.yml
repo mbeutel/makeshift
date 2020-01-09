@@ -31,12 +31,9 @@ jobs:
     - compiler: MSVC
       versions: [2019]
       platforms: [x86, x64]
-
-#  - template: azure-pipelines-windows.yml
-#    parameters:
-#      compiler: Clang
-#      platforms: [x86, x64]
-#      compilerVersions: [9]
+    - compiler: Clang
+      versions: [9]
+      platforms: [x86, x64]
 
 #  - template: azure-pipelines-linux.yml
 #    parameters:

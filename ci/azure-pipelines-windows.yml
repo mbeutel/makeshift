@@ -1,5 +1,5 @@
 ## Variables:
-#  revision: 4
+#  revision: 5
 
 ### Vcpkg repository
 #  vcpkgRepo: 'https://github.com/microsoft/vcpkg.git' # optional
@@ -9,24 +9,38 @@
 #  vcpkgOverlayRepo: '' # optional
 #  vcpkgOverlayRef: '' # optional
 
+### Vcpkg options
+#  vcpkgArgs: '' # optional
+#  vcpkgTriplet: '' # optional
+
 ### CMake build options
 #  cmakeListsTxtPath: '$(Build.SourcesDirectory)/CMakeLists.txt' # optional
 #  cmakeConfigArgs: '' # optional
+#  ninjaBuildArgs: '' # optional
 
 parameters:
   image: 'windows-2019'
   buildConfigurations: [Debug, RelWithDebInfo]
-  cmakeConfigArgs: ''
+  cmakeConfigArgs: '' # appends to the eponymous variable
+  ninjaBuildArgs: '' # appends to the eponymous variable
+  vcpkgArgs: '' # appends to the eponymous variable
+  vcpkgTriplet: '' # overrides the eponymous variable
   compilers: []
-#  compilers.platforms: []
-#  compilers.versions: []
-#  compilers.cmakeConfigArgs: ''
+#    compiler.platforms: []
+#    compiler.versions: []
+#    compiler.cmakeConfigArgs: '' # appends to the eponymous parameter
+#    compiler.ninjaBuildArgs: '' # appends to the eponymous parameter
+#    compiler.vcpkgArgs: '' # appends to the eponymous parameter
+#    compiler.vcpkgTriplet: '' # overrides the eponymous parameter
+
+variables:
+  templateRevision: 1
 
 jobs:
 - ${{ each compiler in parameters.compilers }}:
   - ${{ each platform in compiler.platforms }}:
     - ${{ each compilerVersion in compiler.versions }}:
-      - job: 'Windows_${{ compiler.compiler }}_${{ compilerVersion }}_${{ platform }}'
+      - job: '${{ variables['Agent.OS'] }}_${{ compiler.compiler }}_${{ compilerVersion }}_${{ platform }}'
         pool:
           name: Azure Pipelines
           vmImage: ${{ parameters.image }}
@@ -35,7 +49,7 @@ jobs:
         - task: CacheBeta@1
           displayName: Cache dependencies
           inputs:
-            key: '$(Build.SourcesDirectory)/ci/vcpkg.txt | "${{ variables.vcpkgRef }}" | "${{ variables.vcpkgOverlayRef }}" | "${{ platform }}-$(Agent.OS)${{ variables.vcpkgTripletSuffix }}" | "${{ compiler.compiler }}" | "${{ variables.revision }}"'
+            key: '$(Build.SourcesDirectory)/ci/vcpkg.txt | " ${{ variables.vcpkgRepo }}" | " ${{ variables.vcpkgRef }}" | " ${{ variables.vcpkgOverlayRepo }}" | " ${{ variables.vcpkgOverlayRef }}" | " ${{ variables.vcpkgArgs }}" | "${{ platform }}-$(Agent.OS)${{ variables.vcpkgTripletSuffix }}" | "${{ compiler.compiler }}" | " ${{ variables.revision }}" | " ${{ variables.templateRevision }}"'
             path: '$(Build.BinariesDirectory)/dependencies'
             cacheHitVar: 'dependencyCacheHit'
             condition: ne(variables.vcpkgRef, '')
@@ -54,9 +68,10 @@ jobs:
             if (!"$env:cmakeListsTxtPath") {
                 Write-Host "##vso[task.setvariable variable=cmakeListsTxtPath]$(Build.SourcesDirectory)/CMakeLists.txt"
             }
+            $vcpkgTriplet = "${{ coalesce(compiler.vcpkgTriplet, parameters.vcpkgTriplet, variables.vcpkgTriplet, '$(platform)-$(os)' }}" -replace "`$`(os`)","windows" -replace "`$`(platform`)","${{ platform }}"
+            Write-Host "##vso[task.setvariable variable=VCPKG_TRIPLET]${{ platform }}-windows${{ variables.vcpkgTripletSuffix }}"
             Write-Host "##vso[task.setvariable variable=Path]$(Build.BinariesDirectory)/dependencies/cmake/bin;${env:Path}"
             Write-Host "##vso[task.setvariable variable=VCPKG_ROOT]$(Build.BinariesDirectory)/dependencies/vcpkg"
-            Write-Host "##vso[task.setvariable variable=VCPKG_TRIPLET]${{ platform }}-windows${{ variables.vcpkgTripletSuffix }}"
             if ("${{ compiler.compiler }}" -eq "Clang") {
                 #$vsPath = &"${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"  -latest -prerelease -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
                 #$clangClPath = Join-Path $vsPath 'VC\Tools\Llvm\bin\clang-cl.exe'
@@ -69,10 +84,15 @@ jobs:
 
         - powershell: |
             if ("$env:vcpkgOverlayRepo") {
-                & git clone --depth 1 "$env:vcpkgOverlayRepo" "$(Build.BinariesDirectory)/dependencies/overlay-repo"
+                & git clone "$env:vcpkgOverlayRepo" -- "$(Build.BinariesDirectory)/dependencies/overlay-repo"
+                & git checkout --force "$env:vcpkgOverlayRef"
+                mkdir -Force "$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/ports"
+                mkdir -Force "$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/triplets"
+                Write-Host "##vso[task.setvariable variable=vcpkgOverlayArgs] --overlay-ports=`"$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/ports`" --overlay-triplets=`"$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/triplets`"
             }
-            mkdir -Force "$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/ports"
-            mkdir -Force "$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/triplets"
+            else {
+                Write-Host "##vso[task.setvariable variable=vcpkgOverlayArgs]"
+            }
           displayName: Clone Vcpkg overlay repository
           condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''), eq(variables['Agent.OS'], 'Windows_NT'))
 
@@ -80,10 +100,11 @@ jobs:
           displayName: Run Vcpkg to install dependencies
           inputs:
             vcpkgDirectory: '$(Build.BinariesDirectory)/dependencies/vcpkg'
+            vcpkgGitURL: '$(vcpkgRepo)'
             vcpkgGitCommitId: '$(vcpkgRef)'
             vcpkgTriplet: '$(VCPKG_TRIPLET)'
-            vcpkgArguments: '--overlay-ports="$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/ports" --overlay-triplets="$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/triplets" "@$(Build.SourcesDirectory)/ci/vcpkg.txt"'
-            condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''))
+            vcpkgArguments: '$(vcpkgOverlayArgs) "@$(Build.SourcesDirectory)/ci/vcpkg.txt"'
+          condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''))
 
         - script: |
             rmdir /S /Q "$(Build.BinariesDirectory)/dependencies/vcpkg/buildtrees"
@@ -101,7 +122,7 @@ jobs:
               useVcpkgToolchainFile: true
               buildDirectory: '$(Build.BinariesDirectory)/build/${{ config }}'
               cmakeAppendedArgs: '-G Ninja ${{ variables.cmakeCompilerFlag }} -DCMAKE_BUILD_TYPE=${{ config }} ${{ variables.cmakeConfigArgs }} ${{ parameters.cmakeConfigArgs }} ${{ compiler.cmakeConfigArgs }}'
-              buildWithCMakeArgs: '--parallel -- -v'
+              buildWithCMakeArgs: '--parallel -- -v ${{ variables.ninjaBuildArgs }} ${{ parameters.ninjaBuildArgs }} ${{ compiler.ninjaBuildArgs }}'
 
           - script: |
               ctest -V -T Test
@@ -113,4 +134,4 @@ jobs:
           inputs:
             testResultsFormat: 'cTest'
             testResultsFiles: '$(Build.BinariesDirectory)/build/*/Testing/*/Test.xml'
-            testRunTitle: '$(Agent.JobName)-${{ compiler.compiler }}-${{ compilerVersion }}-${{ platform }}'
+            testRunTitle: '$(Agent.JobName)'
