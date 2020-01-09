@@ -116,12 +116,12 @@ array_transform_n(F&& func, Ts&&... args)
     //
     // Takes a scalar function (i.e. a function of non-tuple arguments) and returns an array of the results of the function applied to the tuple elements.
     //ᅟ
-    //ᅟ    auto indices = array_transform_n<MyArray, 3>(
+    //ᅟ    auto indices = array_transform_n<3, MyArray>(
     //ᅟ        [](std::size_t i) { return i; },
     //ᅟ        range_index);
     //ᅟ    // returns MyArray<int, 3>{ 0, 1, 2 }
     //
-template <template <typename, std::size_t> class ArrayT, std::size_t N, typename F, typename... Ts>
+template <std::size_t N, template <typename, std::size_t> class ArrayT, typename F, typename... Ts>
 gsl_NODISCARD constexpr auto
 array_transform_n(F&& func, Ts&&... args)
 {
@@ -133,12 +133,12 @@ array_transform_n(F&& func, Ts&&... args)
     //
     // Takes a scalar function (i.e. a function of non-tuple arguments) and returns an array of the results of the function applied to the tuple elements.
     //ᅟ
-    //ᅟ    auto gridCoords = array_transform_n<double, 3>(
+    //ᅟ    auto gridCoords = array_transform_n<3, double>(
     //ᅟ        [dx = 1.0](mk::index i) { return i*dx; },
     //ᅟ        range_index);
     //ᅟ    // returns std::array{ 0.0, 1.0, 2.0 }
     //
-template <typename T, std::size_t N, typename F, typename... Ts>
+template <std::size_t N, typename T, typename F, typename... Ts>
 gsl_NODISCARD constexpr auto
 array_transform_n(F&& func, Ts&&... args)
 {
@@ -150,12 +150,12 @@ array_transform_n(F&& func, Ts&&... args)
     //
     // Takes a scalar function (i.e. a function of non-tuple arguments) and returns an array of the results of the function applied to the tuple elements.
     //ᅟ
-    //ᅟ    auto gridCoords = array_transform_n<MyArray, double, 3>(
+    //ᅟ    auto gridCoords = array_transform_n<3, MyArray, double>(
     //ᅟ        [dx = 1.0](mk::index i) { return i*dx; },
     //ᅟ        range_index);
     //ᅟ    // returns MyArray<double, 3>{ 0.0, 1.0, 2.0 }
     //
-template <template <typename, std::size_t> class ArrayT, typename T, std::size_t N, typename F, typename... Ts>
+template <std::size_t N, template <typename, std::size_t> class ArrayT, typename T, typename F, typename... Ts>
 gsl_NODISCARD constexpr auto
 array_transform_n(F&& func, Ts&&... args)
 {
@@ -184,33 +184,7 @@ array_fill_n(T const& value)
     //ᅟ    auto indices = array_fill_n<MyArray, 3>(1);
     //ᅟ    // returns MyArray<int, 3>{ 1, 1, 1 }
     //
-template <template <typename, std::size_t> class ArrayT, std::size_t N, typename T>
-gsl_NODISCARD constexpr auto
-array_fill_n(T const& value)
-{
-    return detail::array_transform_to_impl<ArrayT, T>(std::make_index_sequence<N>{ }, detail::fill_fn<T>{ value });
-}
-
-    //
-    // Returns an array of size `N` filled with the given value.
-    //ᅟ
-    //ᅟ    auto indices = array_fill_n<double, 3>(1);
-    //ᅟ    // returns std::array{ 1., 1., 1. }
-    //
-template <typename T, std::size_t N>
-gsl_NODISCARD constexpr std::array<T, N>
-array_fill_n(T const& value)
-{
-    return detail::array_transform_to_impl<std::array, T>(std::make_index_sequence<N>{ }, detail::fill_fn<T>{ value });
-}
-
-    //
-    // Returns an array of size `N` filled with the given value.
-    //ᅟ
-    //ᅟ    auto indices = array_fill_n<MyArray, double, 3>(1);
-    //ᅟ    // returns MyArray<double, 3>{ 1., 1., 1. }
-    //
-template <template <typename, std::size_t> class ArrayT, typename T, std::size_t N>
+template <std::size_t N, template <typename, std::size_t> class ArrayT, typename T>
 gsl_NODISCARD constexpr auto
 array_fill_n(T const& value)
 {
