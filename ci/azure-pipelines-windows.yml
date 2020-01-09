@@ -17,24 +17,24 @@ parameters:
   targets: []
 #  targets.image: 'windows-2019'
 #  targets.compiler: 'MSVC'
-#  targets.archs: [x64]
+#  targets.platforms: [x64]
 #  targets.compilerVersions: [2019]
 #  targets.cmakeConfigArgs: ''
 #  targets.buildConfigurations: []
   image: 'windows-2019'
   buildConfigurations: [Debug, RelWithDebInfo]
   compilers: 'MSVC'
-#  compilers.archs: [x64]
+#  compilers.platforms: [x64]
 #  compilers.versions: [2019]
 
 jobs:
 #- ${{ each target in parameters.targets }}:
-#  - ${{ each arch in target.archs }}:
+#  - ${{ each platform in target.platforms }}:
 #    - ${{ each compilerVersion in target.compilerVersions }}:
 - ${{ each compiler in parameters.compilers }}:
-  - ${{ each arch in compiler.archs }}:
+  - ${{ each platform in compiler.platforms }}:
     - ${{ each compilerVersion in compiler.versions }}:
-      - job: 'Windows_${{ compiler }}_${{ compilerVersion }}_${{ arch }}'
+      - job: 'Windows_${{ compiler }}_${{ compilerVersion }}_${{ platform }}'
         pool:
           name: Azure Pipelines
           vmImage: ${{ parameters.image }}
@@ -52,7 +52,7 @@ jobs:
         - task: CacheBeta@1
           displayName: Cache dependencies
           inputs:
-            key: '$(Build.SourcesDirectory)/ci/vcpkg.txt | "${{ variables.vcpkgRef }}" | "${{ variables.vcpkgOverlayRef }}" | "${{ arch }}-$(Agent.OS)${{ variables.vcpkgTripletSuffix }}" | "${{ compiler }}" | "${{ variables.revision }}"'
+            key: '$(Build.SourcesDirectory)/ci/vcpkg.txt | "${{ variables.vcpkgRef }}" | "${{ variables.vcpkgOverlayRef }}" | "${{ platform }}-$(Agent.OS)${{ variables.vcpkgTripletSuffix }}" | "${{ compiler }}" | "${{ variables.revision }}"'
             path: '$(Build.BinariesDirectory)/dependencies'
             cacheHitVar: 'dependencyCacheHit'
             condition: ne(variables.vcpkgRef, '')
@@ -66,7 +66,7 @@ jobs:
         - powershell: |
             Write-Host "##vso[task.setvariable variable=Path]$(Build.BinariesDirectory)/dependencies/cmake/bin;${env:Path}"
             Write-Host "##vso[task.setvariable variable=VCPKG_ROOT]$(Build.BinariesDirectory)/dependencies/vcpkg"
-            Write-Host "##vso[task.setvariable variable=VCPKG_TRIPLET]${{ arch }}-windows${{ variables.vcpkgTripletSuffix }}"
+            Write-Host "##vso[task.setvariable variable=VCPKG_TRIPLET]${{ platform }}-windows${{ variables.vcpkgTripletSuffix }}"
             if ("${{ compiler }}" -eq "Clang") {
                 #$vsPath = &"${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"  -latest -prerelease -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
                 #$clangClPath = Join-Path $vsPath 'VC\Tools\Llvm\bin\clang-cl.exe'
@@ -90,7 +90,7 @@ jobs:
           inputs:
             vcpkgDirectory: '$(Build.BinariesDirectory)/dependencies/vcpkg'
             vcpkgGitCommitId: '$(vcpkgRef)'
-            vcpkgTriplet: '${{ arch }}-windows${{ variables.vcpkgTripletSuffix }}'
+            vcpkgTriplet: '${{ platform }}-windows${{ variables.vcpkgTripletSuffix }}'
             vcpkgArguments: '--overlay-ports="$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/ports" --overlay-triplets="$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/triplets" "@$(Build.SourcesDirectory)/ci/vcpkg.txt"'
             condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''))
 
@@ -122,4 +122,4 @@ jobs:
           inputs:
             testResultsFormat: 'cTest'
             testResultsFiles: '$(Build.BinariesDirectory)/build/*/Testing/*/Test.xml'
-            testRunTitle: '$(Agent.JobName)-${{ compiler }}-${{ compilerVersion }}-${{ arch }}'
+            testRunTitle: '$(Agent.JobName)-${{ compiler }}-${{ compilerVersion }}-${{ platform }}'
