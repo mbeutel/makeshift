@@ -41,7 +41,7 @@ jobs:
 - ${{ each compiler in parameters.compilers }}:
   - ${{ each platform in compiler.platforms }}:
     - ${{ each compilerVersion in compiler.versions }}:
-      - job: '$(Agent.OS)_${{ compiler.compiler }}_${{ compilerVersion }}_${{ platform }}'
+      - job: '{{ variables[''Agent.OS''] }}_${{ compiler.compiler }}_${{ compilerVersion }}_${{ platform }}'
         pool:
           name: Azure Pipelines
           vmImage: ${{ coalesce(compiler.image, parameters.image, variables.image) }}
