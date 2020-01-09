@@ -53,7 +53,7 @@ jobs:
                 & choco install -y llvm
             }
           displayName: Install tools
-          condition: eq(variables.Agent.OS, 'Windows_NT')
+          condition: eq(variables['Agent.OS'], 'Windows_NT')
 
         - powershell: |
             if ("$env:vcpkgRef" -and !"$env:vcpkgRepo") {
@@ -73,7 +73,7 @@ jobs:
                 Write-Host "##vso[task.setvariable variable=cmakeCompilerFlag]-DCMAKE_C_COMPILER=`"$clangClCompatPath`" -DCMAKE_CXX_COMPILER=`"$clangClCompatPath`""
             }
           displayName: Set environment variables
-          condition: eq(variables.Agent.OS, 'Windows_NT')
+          condition: eq(variables['Agent.OS'], 'Windows_NT')
 
         - powershell: |
             if ("$env:vcpkgOverlayRepo") {
@@ -82,7 +82,7 @@ jobs:
             mkdir -Force "$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/ports"
             mkdir -Force "$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/triplets"
           displayName: Clone Vcpkg overlay repository
-          condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''), eq(variables.Agent.OS, 'Windows_NT'))
+          condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''), eq(variables['Agent.OS'], 'Windows_NT'))
 
         - task: run-vcpkg@0
           displayName: Run Vcpkg to install dependencies
@@ -98,7 +98,7 @@ jobs:
             rmdir /S /Q "$(Build.BinariesDirectory)/dependencies/vcpkg/downloads"
             rmdir /S /Q "$(Build.BinariesDirectory)/dependencies/vcpkg/packages"
           displayName: Delete temporary files
-          condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''), eq(variables.Agent.OS, 'Windows_NT'))
+          condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''), eq(variables['Agent.OS'], 'Windows_NT'))
 
         - ${{ each config in parameters.buildConfigurations }}:
           - task: run-cmake@0
