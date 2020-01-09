@@ -1,36 +1,28 @@
-parameters:
+## Variables:
 #  revision: 4
 
-  # Vcpkg repository
-#  vcpkgRepo: 'https://github.com/microsoft/vcpkg.git'
-#  vcpkgRef: <ref>
+### Vcpkg repository
+#  vcpkgRepo: 'https://github.com/microsoft/vcpkg.git' # optional
+#  vcpkgRef:
 
-  # Repository with additional port and triplet overlays
-#  vcpkgOverlayRepo: ''
-#  vcpkgOverlayRef: ''
+### Repository with additional port and triplet overlays
+#  vcpkgOverlayRepo: '' # optional
+#  vcpkgOverlayRef: '' # optional
 
-  # CMake build options
-#  cmakeListsTxtPath: '$(Build.SourcesDirectory)/CMakeLists.txt'
-#  buildConfigurations: [Debug, RelWithDebInfo]
-  
-#  cmakeConfigArgs: '-DMAKESHIFT_BUILD_TESTS=ON -DCMAKESHIFT_PRIVATE_COMPILE_SETTINGS=$<$<CONFIG:Debug>:runtime-checks;debug-stdlib>' # optional
-#  targets: []
-#  targets.image: 'windows-2019'
-#  targets.compiler: 'MSVC'
-#  targets.platforms: [x64]
-#  targets.compilerVersions: [2019]
-#  targets.cmakeConfigArgs: ''
-#  targets.buildConfigurations: []
+### CMake build options
+#  cmakeListsTxtPath: '$(Build.SourcesDirectory)/CMakeLists.txt' # optional
+#  cmakeConfigArgs: '' # optional
+
+parameters:
   image: 'windows-2019'
   buildConfigurations: [Debug, RelWithDebInfo]
+  cmakeConfigArgs: ''
   compilers: []
-#  compilers.platforms: [x64]
-#  compilers.versions: [2019]
+#  compilers.platforms: []
+#  compilers.versions: []
+#  compilers.cmakeConfigArgs: ''
 
 jobs:
-#- ${{ each target in parameters.targets }}:
-#  - ${{ each platform in target.platforms }}:
-#    - ${{ each compilerVersion in target.compilerVersions }}:
 - ${{ each compiler in parameters.compilers }}:
   - ${{ each platform in compiler.platforms }}:
     - ${{ each compilerVersion in compiler.versions }}:
@@ -89,7 +81,7 @@ jobs:
           inputs:
             vcpkgDirectory: '$(Build.BinariesDirectory)/dependencies/vcpkg'
             vcpkgGitCommitId: '$(vcpkgRef)'
-            vcpkgTriplet: '${{ variables.VCPKG_TRIPLET }}'
+            vcpkgTriplet: '$(VCPKG_TRIPLET)'
             vcpkgArguments: '--overlay-ports="$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/ports" --overlay-triplets="$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/triplets" "@$(Build.SourcesDirectory)/ci/vcpkg.txt"'
             condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''))
 
@@ -108,7 +100,7 @@ jobs:
               cmakeListsTxtPath: '$(cmakeListsTxtPath)'
               useVcpkgToolchainFile: true
               buildDirectory: '$(Build.BinariesDirectory)/build/${{ config }}'
-              cmakeAppendedArgs: '-G Ninja ${{ variables.cmakeCompilerFlag }} -DCMAKE_BUILD_TYPE=${{ config }} ${{ variables.cmakeConfigArgs }}'
+              cmakeAppendedArgs: '-G Ninja ${{ variables.cmakeCompilerFlag }} -DCMAKE_BUILD_TYPE=${{ config }} ${{ variables.cmakeConfigArgs }} ${{ parameters.cmakeConfigArgs }} ${{ compiler.cmakeConfigArgs }}'
               buildWithCMakeArgs: '--parallel -- -v'
 
           - script: |
