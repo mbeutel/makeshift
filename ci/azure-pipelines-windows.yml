@@ -1,99 +1,125 @@
 parameters:
-  compiler: 'MSVC'
-  vmImage: 'windows-2019'
-  platforms: [x64]
-  compilerVersions: [2019]
+#  revision: 4
+
+  # Vcpkg repository
+#  vcpkgRepo: 'https://github.com/microsoft/vcpkg.git'
+#  vcpkgRef: <ref>
+
+  # Repository with additional port and triplet overlays
+#  vcpkgOverlayRepo: ''
+#  vcpkgOverlayRef: ''
+
+  # CMake build options
+#  cmakeListsTxtPath: '$(Build.SourcesDirectory)/CMakeLists.txt'
+#  buildConfigurations: [Debug, RelWithDebInfo]
+  
+#  cmakeConfigArgs: '-DMAKESHIFT_BUILD_TESTS=ON -DCMAKESHIFT_PRIVATE_COMPILE_SETTINGS=$<$<CONFIG:Debug>:runtime-checks;debug-stdlib>' # optional
+  targets: []
+#  targets.image: 'windows-2019'
+#  targets.compiler: 'MSVC'
+#  targets.archs: [x64]
+#  targets.compilerVersions: [2019]
+#  targets.cmakeConfigArgs: ''
+#  targets.buildConfigurations: []
+  image: 'windows-2019'
   buildConfigurations: [Debug, RelWithDebInfo]
+  compilers: 'MSVC'
+#  compilers.archs: [x64]
+#  compilers.versions: [2019]
 
 jobs:
-- ${{ each platform in parameters.platforms }}:
-  - ${{ each compilerVersion in parameters.compilerVersions }}:
-    - job: 'Windows_${{ parameters.compiler }}_${{ compilerVersion }}_${{ platform }}'
-      pool:
-        name: Azure Pipelines
-        vmImage: ${{ parameters.vmImage }}
+#- ${{ each target in parameters.targets }}:
+#  - ${{ each arch in target.archs }}:
+#    - ${{ each compilerVersion in target.compilerVersions }}:
+- ${{ each compiler in parameters.compilers }}:
+  - ${{ each arch in compiler.archs }}:
+    - ${{ each compilerVersion in compiler.versions }}:
+      - job: 'Windows_${{ compiler }}_${{ compilerVersion }}_${{ arch }}'
+        pool:
+          name: Azure Pipelines
+          vmImage: ${{ parameters.image }}
 
-      steps:
-      - powershell: |
-          if ("$(vcpkgRef)" -and "${{ variables['vcpkgRef'] }}" -and "${{ vcpkgRef }}" -and "${{ variables.vcpkgRef }}" -and !"${{ variables.vcpkgRepo }}") {
-              Write-Host "##vso[task.setvariable variable=vcpkgRepo]https://github.com/microsoft/vcpkg.git"
-          }
-          if (!"${{ variables.cmakeListsTxtPath }}") {
-              Write-Host "##vso[task.setvariable variable=cmakeListsTxtPath]$(Build.SourcesDirectory)/CMakeLists.txt"
-          }
-        displayName: Set default values
+        steps:
+        - powershell: |
+            if ("${{ variables['vcpkgRef'] }}" -and "$env:vcpkgRef" -and "$env:vcpkgFoo" -and "${{ vcpkgRef }}" -and "${{ variables.vcpkgRef }}" -and !"${{ variables.vcpkgRepo }}") {
+                Write-Host "##vso[task.setvariable variable=vcpkgRepo]https://github.com/microsoft/vcpkg.git"
+            }
+            if (!"${{ variables.cmakeListsTxtPath }}") {
+                Write-Host "##vso[task.setvariable variable=cmakeListsTxtPath]$(Build.SourcesDirectory)/CMakeLists.txt"
+            }
+          displayName: Set default values
 
-      - task: CacheBeta@1
-        displayName: Cache dependencies
-        inputs:
-          key: '$(Build.SourcesDirectory)/ci/vcpkg.txt | "${{ variables.vcpkgRef }}" | "${{ variables.vcpkgOverlayRef }}" | "${{ platform }}-$(Agent.OS)${{ variables.vcpkgTripletSuffix }}" | "${{ parameters.compiler }}" | "${{ variables.revision }}"'
-          path: '$(Build.BinariesDirectory)/dependencies'
-          cacheHitVar: 'dependencyCacheHit'
-          condition: ne(variables.vcpkgRef, '')
+        - task: CacheBeta@1
+          displayName: Cache dependencies
+          inputs:
+            key: '$(Build.SourcesDirectory)/ci/vcpkg.txt | "${{ variables.vcpkgRef }}" | "${{ variables.vcpkgOverlayRef }}" | "${{ arch }}-$(Agent.OS)${{ variables.vcpkgTripletSuffix }}" | "${{ compiler }}" | "${{ variables.revision }}"'
+            path: '$(Build.BinariesDirectory)/dependencies'
+            cacheHitVar: 'dependencyCacheHit'
+            condition: ne(variables.vcpkgRef, '')
 
-      - powershell: |
-          if ("${{ parameters.compiler }}" -eq "Clang") {
-              & choco install -y llvm
-          }
-        displayName: Install tools
+        - powershell: |
+            if ("${{ compiler }}" -eq "Clang") {
+                & choco install -y llvm
+            }
+          displayName: Install tools
 
-      - powershell: |
-          Write-Host "##vso[task.setvariable variable=Path]$(Build.BinariesDirectory)/dependencies/cmake/bin;${env:Path}"
-          Write-Host "##vso[task.setvariable variable=VCPKG_ROOT]$(Build.BinariesDirectory)/dependencies/vcpkg"
-          Write-Host "##vso[task.setvariable variable=VCPKG_TRIPLET]${{ platform }}-windows${{ variables.vcpkgTripletSuffix }}"
-          if ("${{ parameters.compiler }}" -eq "Clang") {
-              #$vsPath = &"${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"  -latest -prerelease -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
-              #$clangClPath = Join-Path $vsPath 'VC\Tools\Llvm\bin\clang-cl.exe'
-              $clangClPath = "${env:ProgramFiles}\LLVM\bin\clang-cl.exe"
-              $clangClCompatPath = $clangClPath -replace '\\','/'
-              Write-Host "##vso[task.setvariable variable=cmakeCompilerFlag]-DCMAKE_C_COMPILER=`"$clangClCompatPath`" -DCMAKE_CXX_COMPILER=`"$clangClCompatPath`""
-          }
-        displayName: Set environment variables
+        - powershell: |
+            Write-Host "##vso[task.setvariable variable=Path]$(Build.BinariesDirectory)/dependencies/cmake/bin;${env:Path}"
+            Write-Host "##vso[task.setvariable variable=VCPKG_ROOT]$(Build.BinariesDirectory)/dependencies/vcpkg"
+            Write-Host "##vso[task.setvariable variable=VCPKG_TRIPLET]${{ arch }}-windows${{ variables.vcpkgTripletSuffix }}"
+            if ("${{ compiler }}" -eq "Clang") {
+                #$vsPath = &"${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"  -latest -prerelease -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+                #$clangClPath = Join-Path $vsPath 'VC\Tools\Llvm\bin\clang-cl.exe'
+                $clangClPath = "${env:ProgramFiles}\LLVM\bin\clang-cl.exe"
+                $clangClCompatPath = $clangClPath -replace '\\','/'
+                Write-Host "##vso[task.setvariable variable=cmakeCompilerFlag]-DCMAKE_C_COMPILER=`"$clangClCompatPath`" -DCMAKE_CXX_COMPILER=`"$clangClCompatPath`""
+            }
+          displayName: Set environment variables
 
-      - powershell: |
-          if ("${{ variables.vcpkgOverlayRepo }}") {
-              & git clone --depth 1 $(vcpkgOverlayRepo) "$(Build.BinariesDirectory)/dependencies/overlay-repo"
-          }
-          mkdir -Force "$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/ports"
-          mkdir -Force "$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/triplets"
-        displayName: Clone Vcpkg overlay repository
-        condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''))
-
-      - task: run-vcpkg@0
-        displayName: Run Vcpkg to install dependencies
-        inputs:
-          vcpkgDirectory: '$(Build.BinariesDirectory)/dependencies/vcpkg'
-          vcpkgGitCommitId: '$(vcpkgRef)'
-          vcpkgTriplet: '${{ platform }}-windows${{ variables.vcpkgTripletSuffix }}'
-          vcpkgArguments: '--overlay-ports="$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/ports" --overlay-triplets="$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/triplets" "@$(Build.SourcesDirectory)/ci/vcpkg.txt"'
+        - powershell: |
+            if ("${{ variables.vcpkgOverlayRepo }}") {
+                & git clone --depth 1 $(vcpkgOverlayRepo) "$(Build.BinariesDirectory)/dependencies/overlay-repo"
+            }
+            mkdir -Force "$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/ports"
+            mkdir -Force "$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/triplets"
+          displayName: Clone Vcpkg overlay repository
           condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''))
 
-      - script: |
-          rmdir /S /Q "$(Build.BinariesDirectory)/dependencies/vcpkg/buildtrees"
-          rmdir /S /Q "$(Build.BinariesDirectory)/dependencies/vcpkg/downloads"
-          rmdir /S /Q "$(Build.BinariesDirectory)/dependencies/vcpkg/packages"
-        displayName: Delete temporary files
-        condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''))
-
-      - ${{ each config in parameters.buildConfigurations }}:
-        - task: run-cmake@0
-          displayName: 'Build ${{ config }}'
+        - task: run-vcpkg@0
+          displayName: Run Vcpkg to install dependencies
           inputs:
-            cmakeListsOrSettingsJson: 'CMakeListsTxtAdvanced'
-            cmakeListsTxtPath: '$(cmakeListsTxtPath)'
-            useVcpkgToolchainFile: true
-            buildDirectory: '$(Build.BinariesDirectory)/build/${{ config }}'
-            cmakeAppendedArgs: '-G Ninja ${{ variables.cmakeCompilerFlag }} -DCMAKE_BUILD_TYPE=${{ config }} ${{ variables.cmakeConfigArgs }}'
-            buildWithCMakeArgs: '--parallel -- -v'
+            vcpkgDirectory: '$(Build.BinariesDirectory)/dependencies/vcpkg'
+            vcpkgGitCommitId: '$(vcpkgRef)'
+            vcpkgTriplet: '${{ arch }}-windows${{ variables.vcpkgTripletSuffix }}'
+            vcpkgArguments: '--overlay-ports="$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/ports" --overlay-triplets="$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/triplets" "@$(Build.SourcesDirectory)/ci/vcpkg.txt"'
+            condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''))
 
         - script: |
-            ctest -V -T Test
-          displayName: 'Run tests in ${{ config }}'
-          workingDirectory: '$(Build.BinariesDirectory)/build/${{ config }}'
+            rmdir /S /Q "$(Build.BinariesDirectory)/dependencies/vcpkg/buildtrees"
+            rmdir /S /Q "$(Build.BinariesDirectory)/dependencies/vcpkg/downloads"
+            rmdir /S /Q "$(Build.BinariesDirectory)/dependencies/vcpkg/packages"
+          displayName: Delete temporary files
+          condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''))
 
-      - task: PublishTestResults@2
-        displayName: Publish test results
-        inputs:
-          testResultsFormat: 'cTest'
-          testResultsFiles: '$(Build.BinariesDirectory)/build/*/Testing/*/Test.xml'
-          testRunTitle: '$(Agent.JobName)-${{ parameters.compiler }}-${{ compilerVersion }}-${{ platform }}'
+        - ${{ each config in parameters.buildConfigurations }}:
+          - task: run-cmake@0
+            displayName: 'Build ${{ config }}'
+            inputs:
+              cmakeListsOrSettingsJson: 'CMakeListsTxtAdvanced'
+              cmakeListsTxtPath: '$(cmakeListsTxtPath)'
+              useVcpkgToolchainFile: true
+              buildDirectory: '$(Build.BinariesDirectory)/build/${{ config }}'
+              cmakeAppendedArgs: '-G Ninja ${{ variables.cmakeCompilerFlag }} -DCMAKE_BUILD_TYPE=${{ config }} ${{ variables.cmakeConfigArgs }}'
+              buildWithCMakeArgs: '--parallel -- -v'
+
+          - script: |
+              ctest -V -T Test
+            displayName: 'Run tests in ${{ config }}'
+            workingDirectory: '$(Build.BinariesDirectory)/build/${{ config }}'
+
+        - task: PublishTestResults@2
+          displayName: Publish test results
+          inputs:
+            testResultsFormat: 'cTest'
+            testResultsFiles: '$(Build.BinariesDirectory)/build/*/Testing/*/Test.xml'
+            testRunTitle: '$(Agent.JobName)-${{ compiler }}-${{ compilerVersion }}-${{ arch }}'
