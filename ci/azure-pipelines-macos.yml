@@ -8,7 +8,7 @@ parameters:
 jobs:
 - ${{ each platform in parameters.platforms }}:
   - ${{ each compilerVersion in parameters.compilerVersions }}:
-    - job: 'Ubuntu_${{ parameters.compiler }}_${{ compilerVersion }}_${{ platform }}'
+    - job: 'MacOS_${{ parameters.compiler }}_${{ compilerVersion }}_${{ platform }}'
       pool:
         name: Azure Pipelines
         vmImage: ${{ parameters.vmImage }}
