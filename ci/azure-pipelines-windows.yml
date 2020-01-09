@@ -1,19 +1,33 @@
 parameters:
-  - compiler: 'MSVC'
-  - platforms: [x64]
-  - compilerVersions: [2019]
-  - buildConfigurations: [Debug, RelWithDebInfo]
-  - vmImage: 'windows-2019'
+- name: compiler
+  type: string
+  default: 'MSVC'
+- name: vmImage
+  type: string
+  default: 'windows-2019'
+- name: platforms
+  type: object
+  default: [x64]
+- name: compilerVersions
+  type: object
+  default: [2019]
+- name: buildConfigurations
+  type: object
+  default: [Debug, RelWithDebInfo]
+#  - compiler: 'MSVC'
+#  - vmImage: 'windows-2019'
+#  - platforms: [x64]
+#  - compilerVersions: [2019]
+#  - buildConfigurations: [Debug, RelWithDebInfo]
 
 jobs:
-  - ${{ each platform in parameters.platforms }}:
-    - ${{ each compilerVersion in parameters.compilerVersions }}:
-      - job: 'Windows ${{ parameters.compiler }} ${{ compilerVersion }} ${{ platform }}'
-
+- ${{ each platform in parameters.platforms }}:
+  - ${{ each compilerVersion in parameters.compilerVersions }}:
+    - job: 'Windows ${{ parameters.compiler }} ${{ compilerVersion }} ${{ platform }}'
         pool:
           name: Azure Pipelines
           vmImage: ${{ parameters.vmImage }}
-
+          
         steps:
         - powershell: |
             if ("${{ variables.vcpkgRef }}" -and !"${{ variables.vcpkgRepo }}") {
@@ -22,7 +36,7 @@ jobs:
             if (!"${{ variables.cmakeListsTxtPath }}") {
                 Write-Host "##vso[task.setvariable variable=cmakeListsTxtPath]$(Build.SourcesDirectory)/CMakeLists.txt"
             }
-            displayName: Set default values
+          displayName: Set default values
 
         - task: CacheBeta@1
             displayName: Cache dependencies
@@ -36,7 +50,7 @@ jobs:
             if ("${{ parameters.compiler }}" -eq "Clang") {
                 & choco install -y llvm
             }
-            displayName: Install tools
+          displayName: Install tools
 
         - powershell: |
             Write-Host "##vso[task.setvariable variable=Path]$(Build.BinariesDirectory)/dependencies/cmake/bin;${env:Path}"
@@ -57,8 +71,8 @@ jobs:
             }
             mkdir -Force "$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/ports"
             mkdir -Force "$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/triplets"
-            displayName: Clone Vcpkg overlay repository
-            condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''))
+          displayName: Clone Vcpkg overlay repository
+          condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''))
 
         - task: run-vcpkg@0
             displayName: Run Vcpkg to install dependencies
@@ -73,13 +87,13 @@ jobs:
             rmdir /S /Q "$(Build.BinariesDirectory)/dependencies/vcpkg/buildtrees"
             rmdir /S /Q "$(Build.BinariesDirectory)/dependencies/vcpkg/downloads"
             rmdir /S /Q "$(Build.BinariesDirectory)/dependencies/vcpkg/packages"
-            displayName: Delete temporary files
-            condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''))
+          displayName: Delete temporary files
+          condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''))
 
         - ${{ each config in variables.buildConfigurations }}:
-            - task: run-cmake@0
-            displayName: 'Build ${{ config }}'
-            inputs:
+          - task: run-cmake@0
+              displayName: 'Build ${{ config }}'
+              inputs:
                 cmakeListsOrSettingsJson: 'CMakeListsTxtAdvanced'
                 cmakeListsTxtPath: '$(cmakeListsTxtPath)'
                 useVcpkgToolchainFile: true
@@ -87,8 +101,8 @@ jobs:
                 cmakeAppendedArgs: '-G Ninja ${{ variables.cmakeCompilerFlag }} -DCMAKE_BUILD_TYPE=${{ config }} ${{ variables.cmakeConfigArgs }}'
                 buildWithCMakeArgs: '--parallel -- -v'
 
-            - script: |
-                ctest -V -T Test
+          - script: |
+              ctest -V -T Test
             displayName: 'Run tests in ${{ config }}'
             workingDirectory: '$(Build.BinariesDirectory)/build/${{ config }}'
 
