@@ -125,6 +125,25 @@ shuffle(RandomIt first, RandomIt last, URBG&& rng, UniformIntDistributionT dist)
 
 
     //
+    // Given a list of ranges, returns a range of tuples.
+    //ᅟ
+    //ᅟ    for (auto&& [i, val] : range_zip(range_index, std::array{ 1, 2, 3 })) {
+    //ᅟ        std::cout << "array[" << i << "]: " << val << '\n';
+    //ᅟ    }
+    //ᅟ    // prints "array[0]: 1\narray[1]: 2\narray[2]: 3\n"
+    //
+template <typename... Rs>
+constexpr auto
+range_zip(Rs&&... ranges)
+{
+    static_assert(!gsl::conjunction_v<std::is_same<std::decay_t<Rs>, detail::range_index_t>...>, "no range argument and no size given");
+
+    auto mergedSize = detail::merge_sizes(detail::range_size(ranges)...);
+    return detail::make_zip_range(mergedSize, std::forward<Rs>(ranges)...);
+}
+
+
+    //
     // Takes a scalar procedure (i.e. a function of non-range arguments which returns nothing) and calls the procedure for every set of elements in the given ranges.
     //ᅟ
     //ᅟ    range_for(
@@ -139,25 +158,12 @@ range_for(F&& func, Rs&&... ranges)
     static_assert(!gsl::conjunction_v<std::is_same<std::decay_t<Rs>, detail::range_index_t>...>, "no range argument and no size given");
 
     auto mergedSize = detail::merge_sizes(detail::range_size(ranges)...);
-    detail::range_for(mergedSize, std::forward<F>(func), ranges...);
-}
-
-    //
-    // Takes a scalar procedure (i.e. a function of non-range arguments which returns nothing) and calls the procedure for every set of elements in the given ranges.
-    //ᅟ
-    //ᅟ    range_for_n(3,
-    //ᅟ        [](gsl::index i) { std::cout << i << '\n'; },
-    //ᅟ        range_index);
-    //ᅟ    // prints "0\n1\n2\n"
-    //
-template <typename SizeC, typename F, typename... Rs>
-constexpr void
-range_for_n(SizeC size, F&& func, Rs&&... ranges)
-{
-    static_assert(std::is_convertible<SizeC, std::size_t>::value, "argument is not convertible to a size");
-
-    auto mergedSize = detail::merge_sizes(detail::to_ptrdiff_size(size), detail::range_size(ranges)...);
-    detail::range_for(mergedSize, std::forward<F>(func), ranges...);
+    auto it = detail::make_zip_iterator(mergedSize, ranges...);
+    auto end = detail::make_zip_iterator_sentinel(mergedSize);
+    for (; it != end; ++it)
+    {
+        it.invoke(func);
+    }
 }
 
 
@@ -178,7 +184,14 @@ range_transform_reduce(T&& initialValue, ReduceFuncT&& reduce, TransformFuncT&& 
     static_assert(!gsl::conjunction_v<std::is_same<std::decay_t<Rs>, detail::range_index_t>...>, "no range argument and no size given");
 
     auto mergedSize = detail::merge_sizes(detail::range_size(ranges)...);
-    detail::range_transform_reduce(mergedSize, std::forward<T>(initialValue), std::forward<ReduceFuncT>(reduce), std::forward<TransformFuncT>(transform), ranges...);
+    auto result = std::forward<T>(initialValue);
+    auto it = detail::make_zip_iterator(mergedSize, ranges...);
+    auto end = detail::make_zip_iterator_sentinel(mergedSize);
+    for (; it != end; ++it)
+    {
+        result = reduce(std::move(result), it.invoke(transform));
+    }
+    return result;
 }
 
 
@@ -197,8 +210,14 @@ range_reduce(T&& initialValue, ReduceFuncT&& reduce, R&& range)
 {
     static_assert(!std::is_same<std::decay_t<R>, detail::range_index_t>::value, "no range argument and no size given");
 
-    auto mergedSize = detail::range_size(range);
-    return detail::range_transform_reduce(mergedSize, std::forward<T>(initialValue), std::forward<ReduceFuncT>(reduce), gsl::identity{ }, range);
+    auto result = std::forward<T>(initialValue);
+    auto it = range.begin();
+    auto end = range.end();
+    for (; it != end; ++it)
+    {
+        result = reduce(std::move(result), *it);
+    }
+    return result;
 }
 
 
@@ -210,14 +229,21 @@ range_reduce(T&& initialValue, ReduceFuncT&& reduce, R&& range)
     //ᅟ        std::array{ "Hello, "sv, "World!"sv });
     //ᅟ    // returns 2
     //
-template <typename PredT, typename... Rs>
+template <typename PredicateT, typename... Rs>
 gsl_NODISCARD constexpr std::ptrdiff_t
-range_count_if(PredT&& pred, Rs&&... ranges)
+range_count_if(PredicateT&& predicate, Rs&&... ranges)
 {
     static_assert(!gsl::conjunction_v<std::is_same<std::decay_t<Rs>, detail::range_index_t>...>, "no range argument and no size given");
 
     auto mergedSize = detail::merge_sizes(detail::range_size(ranges)...);
-    return detail::range_transform_reduce(mergedSize, std::ptrdiff_t(0), std::plus<std::ptrdiff_t>{ }, detail::count_if_fn<PredT>{ std::forward<PredT>(pred) }, ranges...);
+    auto it = detail::make_zip_iterator(mergedSize, ranges...);
+    auto end = detail::make_zip_iterator_sentinel(mergedSize);
+    auto result = std::ptrdiff_t(0);
+    for (; it != end; ++it)
+    {
+        if (it.invoke(predicate)) ++result;
+    }
+    return result;
 }
 
 
@@ -236,7 +262,13 @@ range_all_of(PredicateT&& predicate, Rs&&... ranges)
     static_assert(!gsl::conjunction_v<std::is_same<std::decay_t<Rs>, detail::range_index_t>...>, "no range argument and no size given");
 
     auto mergedSize = detail::merge_sizes(detail::range_size(ranges)...);
-    return detail::range_conjunction<gsl::identity>(mergedSize, std::forward<PredicateT>(predicate), ranges...);
+    auto it = detail::make_zip_iterator(mergedSize, ranges...);
+    auto end = detail::make_zip_iterator_sentinel(mergedSize);
+    for (; it != end; ++it)
+    {
+        if (!it.invoke(predicate)) return false;
+    }
+    return true;
 }
 
 
@@ -255,7 +287,13 @@ range_any_of(PredicateT&& predicate, Rs&&... ranges)
     static_assert(!gsl::conjunction_v<std::is_same<std::decay_t<Rs>, detail::range_index_t>...>, "no range argument and no size given");
 
     auto mergedSize = detail::merge_sizes(detail::range_size(ranges)...);
-    return !detail::range_conjunction<detail::negation_fn>(mergedSize, std::forward<PredicateT>(predicate), ranges...);
+    auto it = detail::make_zip_iterator(mergedSize, ranges...);
+    auto end = detail::make_zip_iterator_sentinel(mergedSize);
+    for (; it != end; ++it)
+    {
+        if (it.invoke(predicate)) return true;
+    }
+    return false;
 }
 
 
@@ -273,8 +311,7 @@ range_none_of(PredicateT&& predicate, Rs&&... ranges)
 {
     static_assert(!gsl::conjunction_v<std::is_same<std::decay_t<Rs>, detail::range_index_t>...>, "no range argument and no size given");
 
-    auto mergedSize = detail::merge_sizes(detail::range_size(ranges)...);
-    return detail::range_conjunction<detail::negation_fn>(mergedSize, std::forward<PredicateT>(predicate), ranges...);
+    return range_any_of(std::forward<PredicateT>(predicate), std::forward<Rs>(ranges)...);
 }
 
 
