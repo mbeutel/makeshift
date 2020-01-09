@@ -27,9 +27,10 @@ jobs:
   - template: azure-pipelines-windows.yml
     parameters:
       image: windows-2019
-      compiler: MSVC
-        versions: [2019]
-        platforms: [x86, x64]
+      compilers:
+        - compiler: MSVC
+        - versions: [2019]
+        - platforms: [x86, x64]
 
 #  - template: azure-pipelines-windows.yml
 #    parameters:
