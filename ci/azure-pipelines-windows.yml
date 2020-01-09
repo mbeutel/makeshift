@@ -37,9 +37,6 @@ parameters:
 #    compiler.vcpkgArgs: '' # appends to the eponymous parameter
 #    compiler.vcpkgTriplet: '' # overrides the eponymous parameter
 
-variables:
-  templateRevision: 1
-
 jobs:
 - ${{ each compiler in parameters.compilers }}:
   - ${{ each platform in compiler.platforms }}:
@@ -58,7 +55,7 @@ jobs:
                 Write-Host "##vso[task.setvariable variable=cmakeListsTxtPath]$(Build.SourcesDirectory)/CMakeLists.txt"
             }
             $vcpkgTriplet = "${{ coalesce(compiler.vcpkgTriplet, parameters.vcpkgTriplet, variables.vcpkgTriplet, '$(platform)-$(os)') }}" -replace "`$`(os`)","windows" -replace "`$`(platform`)","${{ platform }}"
-            Write-Host "##vso[task.setvariable variable=buildCacheKey]$env:vcpkgRepo $env:vcpkgRef $env:vcpkgOverlayRepo $env:vcpkgOverlayRef $env:vcpkgArgs $vcpkgTriplet ${{ compiler.compiler }} $env:revision $env:templateRevision"
+            Write-Host "##vso[task.setvariable variable=buildCacheKey]$env:vcpkgRepo $env:vcpkgRef $env:vcpkgOverlayRepo $env:vcpkgOverlayRef $env:vcpkgArgs $vcpkgTriplet ${{ compiler.compiler }} $env:revision 1"
             #Write-Host "##vso[task.setvariable variable=Path]$(Build.BinariesDirectory)/dependencies/cmake/bin;${env:Path}"
             Write-Host "##vso[task.setvariable variable=VCPKG_ROOT]$(Build.BinariesDirectory)/dependencies/vcpkg"
             Write-Host "##vso[task.setvariable variable=VCPKG_TRIPLET]$vcpkgTriplet"
@@ -81,7 +78,7 @@ jobs:
             vcpkgTriplet='${{ coalesce(compiler.vcpkgTriplet, parameters.vcpkgTriplet, variables.vcpkgTriplet, '$(platform)-$(os)') }}'
             vcpkgTriplet=${vcpkgTriplet/\$\(os\)/linux}
             vcpkgTriplet=${vcpkgTriplet/\$\(platform\)/${{ platform }}}
-            echo "##vso[task.setvariable variable=buildCacheKey]$vcpkgRepo $vcpkgRef $vcpkgOverlayRepo $vcpkgOverlayRef $vcpkgArgs $vcpkgTriplet ${{ compiler.compiler }} $revision $templateRevision"
+            echo "##vso[task.setvariable variable=buildCacheKey]$vcpkgRepo $vcpkgRef $vcpkgOverlayRepo $vcpkgOverlayRef $vcpkgArgs $vcpkgTriplet ${{ compiler.compiler }} $revision 1"
             echo "##vso[task.setvariable variable=PATH]$HOME/bin:${PATH}"
             echo "##vso[task.setvariable variable=VCPKG_ROOT]$(Build.BinariesDirectory)/dependencies/vcpkg"
             echo "##vso[task.setvariable variable=VCPKG_TRIPLET]$vcpkgTriplet"
