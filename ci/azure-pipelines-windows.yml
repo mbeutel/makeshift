@@ -60,21 +60,21 @@ steps:
     displayName: Delete temporary files
     condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''))
 
-  - ${{ each config in variables.cmakeBuildConfigs }}
+  - ${{ each config in parameters.cmakeBuildConfigurations }}
     - task: run-cmake@0
-      displayName: 'Build $(config)'
+      displayName: 'Build ${{ config }}'
       inputs:
         cmakeListsOrSettingsJson: 'CMakeListsTxtAdvanced'
         cmakeListsTxtPath: '$(cmakeListsTxtPath)'
         useVcpkgToolchainFile: true
-        buildDirectory: '$(Build.BinariesDirectory)/build/$(config)'
-        cmakeAppendedArgs: '-G Ninja ${{ variables.cmakeCompilerFlag }} -DCMAKE_BUILD_TYPE=$(config) ${{ variables.cmakeConfigArgs }}'
+        buildDirectory: '$(Build.BinariesDirectory)/build/${{ config }}'
+        cmakeAppendedArgs: '-G Ninja ${{ variables.cmakeCompilerFlag }} -DCMAKE_BUILD_TYPE=${{ config }} ${{ variables.cmakeConfigArgs }}'
         buildWithCMakeArgs: '--parallel -- -v'
 
     - script: |
         ctest -V -T Test
-      displayName: 'Run tests in $(config)'
-      workingDirectory: '$(Build.BinariesDirectory)/build/$(config)'
+      displayName: 'Run tests in ${{ config }}'
+      workingDirectory: '$(Build.BinariesDirectory)/build/${{ config }}'
 
   - task: PublishTestResults@2
     displayName: Publish test results

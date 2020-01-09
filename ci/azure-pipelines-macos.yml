@@ -68,21 +68,21 @@ steps:
       fi
     displayName: Set environment variables
     
-  - ${{ each config in variables.cmakeBuildConfigs }}
+  - ${{ each config in parameters.cmakeBuildConfigurations }}
     - task: run-cmake@0
-      displayName: 'Build $(config)'
+      displayName: 'Build ${{ config }}'
       inputs:
         cmakeListsOrSettingsJson: 'CMakeListsTxtAdvanced'
         cmakeListsTxtPath: '$(cmakeListsTxtPath)'
         useVcpkgToolchainFile: true
-      workingDirectory: '$(Build.BinariesDirectory)/build/$(config)'
-        cmakeAppendedArgs: '-G Ninja ${{ variables.cmakeCompilerFlag }} -DCMAKE_BUILD_TYPE=$(config) ${{ variables.cmakeConfigArgs }}'
+      workingDirectory: '$(Build.BinariesDirectory)/build/${{ config }}'
+        cmakeAppendedArgs: '-G Ninja ${{ variables.cmakeCompilerFlag }} -DCMAKE_BUILD_TYPE=${{ config }} ${{ variables.cmakeConfigArgs }}'
         buildWithCMakeArgs: '-- -j VERBOSE=1'
 
     - script: |
         ctest -V -T Test
-      displayName: 'Run tests in $(config)'
-      workingDirectory: '$(Build.BinariesDirectory)/build/$(config)'
+      displayName: 'Run tests in ${{ config }}'
+      workingDirectory: '$(Build.BinariesDirectory)/build/${{ config }}'
 
     - task: PublishTestResults@2
       displayName: Publish test results
