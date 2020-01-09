@@ -1,79 +1,92 @@
 steps:
   - script: |
+      if [[ "${{ variables.vcpkgRef }}" != "" && "${{ variables.vcpkgRepo }}" == "" ]]; then
+        echo "##vso[task.setvariable variable=vcpkgRepo]https://github.com/microsoft/vcpkg.git"
+      fi
+      if [[ "${{ variables.cmakeListsTxtPath }}" == ""  ]]; then
+        echo "##vso[task.setvariable variable=cmakeListsTxtPath]$(Build.SourcesDirectory)/CMakeLists.txt"
+      fi
+    displayName: Set default values
+
+  - script: |
       sudo xcode-select -s /Applications/Xcode_10.3.app/Contents/Developer
-      brew install gcc@9
+      brew install gcc@$(compilerVersion)
     displayName: Install tools
 
   - script: |
       echo "##vso[task.setvariable variable=VCPKG_ROOT]$(Build.BinariesDirectory)/dependencies/vcpkg"
       echo "##vso[task.setvariable variable=VCPKG_TRIPLET]$(Platform)-osx$(vcpkgTripletSuffix)"
-      if [ "$(Compiler)" == "GCC" ]; then
+      if [[ "$(Compiler)" == "GCC" ]]; then
         echo "##vso[task.setvariable variable=CXXFLAGS_OLD]$CXXFLAGS"
         echo "##vso[task.setvariable variable=CXXFLAGS]$CXXFLAGS -fvisibility=hidden -fvisibility-inlines-hidden"
-        echo "##vso[task.setvariable variable=CC]gcc-9"
-        echo "##vso[task.setvariable variable=CXX]g++-9"
+        echo "##vso[task.setvariable variable=CC]gcc-$(compilerVersion)"
+        echo "##vso[task.setvariable variable=CXX]g++-$(compilerVersion)"
       fi
     displayName: Set environment variables
 
   - task: CacheBeta@1
     displayName: Cache dependencies
     inputs:
-      key: '$(Build.SourcesDirectory)/ci/vcpkg.txt | "$(vcpkgGitRef)" | "$(vcpkgPortsOverlayRef)" | "$(Platform)-$(Agent.OS)$(vcpkgTripletSuffix)" | "$(Compiler)" | "$(revision)"'
+      key: '$(Build.SourcesDirectory)/ci/vcpkg.txt | "${{ variables.vcpkgRef }}" | "${{ variables.vcpkgOverlayRef }}" | "$(platform)-$(Agent.OS)${{ variables.vcpkgTripletSuffix }}" | "$(compiler)" | "${{ variables.revision }}"'
       path: '$(Build.BinariesDirectory)/dependencies'
       cacheHitVar: 'dependencyCacheHit'
+    condition: ne(variables.vcpkgRef, '')
 
   - script: |
-      if [ "$(vcpkgPortsOverlayRepo)" != "" ]; then
-          git clone --depth 1 $(vcpkgPortsOverlayRepo) "$(Build.BinariesDirectory)/dependencies/ports-overlay-repo"
-      mkdir -p "$(Build.BinariesDirectory)/dependencies/ports-overlay-repo/vcpkg/ports"
+      if [[ "$(vcpkgOverlayRepo)" != "" ]]; then
+          git clone --depth 1 $(vcpkgOverlayRepo) "$(Build.BinariesDirectory)/dependencies/overlay-repo"
       fi
-    displayName: Clone ports overlay repository
-    condition: ne(variables.dependencyCacheHit, 'true')
-      
+      mkdir -p "$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/ports"
+      mkdir -p "$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/triplets"
+    displayName: Clone Vcpkg overlay repository
+    condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''))
+
   - task: run-vcpkg@0
     displayName: Run Vcpkg to install dependencies
     inputs:
       vcpkgDirectory: '$(Build.BinariesDirectory)/dependencies/vcpkg'
-      vcpkgGitCommitId: '$(vcpkgGitRef)'
-      vcpkgTriplet: '$(Platform)-osx$(vcpkgTripletSuffix)'
-      vcpkgArguments: '--overlay-ports="$(Build.BinariesDirectory)/dependencies/ports-overlay-repo/vcpkg/ports" --overlay-triplets="$(Build.BinariesDirectory)/dependencies/ports-overlay-repo/vcpkg/triplets" "@$(Build.SourcesDirectory)/ci/vcpkg.txt"'
-    condition: ne(variables.dependencyCacheHit, 'true')
+      vcpkgGitCommitId: '$(vcpkgRef)'
+      vcpkgTriplet: '$(platform)-osx${{ variables.vcpkgTripletSuffix }}'
+      vcpkgArguments: '--overlay-ports="$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/ports" --overlay-triplets="$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/triplets" "@$(Build.SourcesDirectory)/ci/vcpkg.txt"'
+    condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''))
 
   - script: |
       rm -rf "$(Build.BinariesDirectory)/dependencies/vcpkg/buildtrees"
       rm -rf "$(Build.BinariesDirectory)/dependencies/vcpkg/downloads"
       rm -rf "$(Build.BinariesDirectory)/dependencies/vcpkg/packages"
     displayName: Delete temporary files
-    condition: ne(variables.dependencyCacheHit, 'true')
+    condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''))
 
   - script: |
-      if [ "$(Compiler)" == "GCC" ]; then
+      if [[ "$(Compiler)" == "GCC" ]]; then
         echo "##vso[task.setvariable variable=CXXFLAGS]$CXXFLAGS_OLD"
       fi
-      if [ "$(Compiler)" == "Clang" ]; then
+      if [[ "$(Compiler)" == "AppleClang" ]]; then
         sudo xcode-select -s /Applications/Xcode_11.1.app/Contents/Developer
         echo "##vso[task.setvariable variable=CC]clang"
         echo "##vso[task.setvariable variable=CXX]clang++"
       fi
     displayName: Set environment variables
     
-  - task: run-cmake@0
-    displayName: Build
-    inputs:
-      cmakeListsOrSettingsJson: 'CMakeListsTxtAdvanced'
-      useVcpkgToolchainFile: true
-      buildDirectory: '$(Build.BinariesDirectory)/build'
-      cmakeAppendedArgs: '-DCMAKE_BUILD_TYPE=$(Config) $(cmakeConfigArgs)'
-      buildWithCMakeArgs: '-- -j VERBOSE=1'
+  - ${{ each config in variables.cmakeBuildConfigs }}
+    - task: run-cmake@0
+      displayName: 'Build $(config)'
+      inputs:
+        cmakeListsOrSettingsJson: 'CMakeListsTxtAdvanced'
+        cmakeListsTxtPath: '$(cmakeListsTxtPath)'
+        useVcpkgToolchainFile: true
+      workingDirectory: '$(Build.BinariesDirectory)/build/$(config)'
+        cmakeAppendedArgs: '-G Ninja ${{ variables.cmakeCompilerFlag }} -DCMAKE_BUILD_TYPE=$(config) ${{ variables.cmakeConfigArgs }}'
+        buildWithCMakeArgs: '-- -j VERBOSE=1'
 
-  - script: |
-      ctest -V -T Test
-    displayName: Run tests
-    workingDirectory: '$(Build.BinariesDirectory)/build'
+    - script: |
+        ctest -V -T Test
+      displayName: 'Run tests in $(config)'
+      workingDirectory: '$(Build.BinariesDirectory)/build/$(config)'
 
-  - task: PublishTestResults@2
-    displayName: Publish test results
-    inputs:
-      testResultsFormat: 'cTest'
-      testResultsFiles: '$(Build.BinariesDirectory)/build/Testing/*/Test.xml'
-      testRunTitle: '$(Agent.JobName)'
+    - task: PublishTestResults@2
+      displayName: Publish test results
+      inputs:
+        testResultsFormat: 'cTest'
+        testResultsFiles: '$(Build.BinariesDirectory)/build/*/Testing/*/Test.xml'
+        testRunTitle: '$(Agent.JobName)'

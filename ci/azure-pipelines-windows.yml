@@ -1,13 +1,23 @@
 steps:
+  - powershell: |
+      if ("${{ variables.vcpkgRef }}" -and !"${{ variables.vcpkgRepo }}") {
+          Write-Host "##vso[task.setvariable variable=vcpkgRepo]https://github.com/microsoft/vcpkg.git"
+      }
+      if (!"${{ variables.cmakeListsTxtPath }}") {
+          Write-Host "##vso[task.setvariable variable=cmakeListsTxtPath]$(Build.SourcesDirectory)/CMakeLists.txt"
+      }
+    displayName: Set default values
+
   - task: CacheBeta@1
     displayName: Cache dependencies
     inputs:
-      key: '$(Build.SourcesDirectory)/ci/vcpkg.txt | "$(vcpkgGitRef)" | "$(vcpkgPortsOverlayRef)" | "$(Platform)-$(Agent.OS)$(vcpkgTripletSuffix)" | "$(Compiler)" | "$(revision)"'
+      key: '$(Build.SourcesDirectory)/ci/vcpkg.txt | "${{ variables.vcpkgRef }}" | "${{ variables.vcpkgOverlayRef }}" | "$(platform)-$(Agent.OS)${{ variables.vcpkgTripletSuffix }}" | "$(compiler)" | "${{ variables.revision }}"'
       path: '$(Build.BinariesDirectory)/dependencies'
       cacheHitVar: 'dependencyCacheHit'
+    condition: ne(variables.vcpkgRef, '')
 
   - powershell: |
-      if ("$(Compiler)" -eq "Clang") {
+      if ("$(compiler)" -eq "Clang") {
         & choco install -y llvm
       }
     displayName: Install tools
@@ -15,59 +25,60 @@ steps:
   - powershell: |
       Write-Host "##vso[task.setvariable variable=Path]$(Build.BinariesDirectory)/dependencies/cmake/bin;${env:Path}"
       Write-Host "##vso[task.setvariable variable=VCPKG_ROOT]$(Build.BinariesDirectory)/dependencies/vcpkg"
-      Write-Host "##vso[task.setvariable variable=VCPKG_TRIPLET]$(Platform)-windows$(vcpkgTripletSuffix)"
-      if ("$(Compiler)" -eq "Clang") {
+      Write-Host "##vso[task.setvariable variable=VCPKG_TRIPLET]$(platform)-windows${{ variables.vcpkgTripletSuffix }}"
+      if ("$(compiler)" -eq "Clang") {
         #$vsPath = &"${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"  -latest -prerelease -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
         #$clangClPath = Join-Path $vsPath 'VC\Tools\Llvm\bin\clang-cl.exe'
         $clangClPath = "${env:ProgramFiles}\LLVM\bin\clang-cl.exe"
         $clangClCompatPath = $clangClPath -replace '\\','/'
-        Write-Host "##vso[task.setvariable variable=CMakeCompilerFlag]-DCMAKE_C_COMPILER=`"$clangClCompatPath`" -DCMAKE_CXX_COMPILER=`"$clangClCompatPath`""
-      } else {
-        Write-Host "##vso[task.setvariable variable=CMakeCompilerFlag]"
+        Write-Host "##vso[task.setvariable variable=cmakeCompilerFlag]-DCMAKE_C_COMPILER=`"$clangClCompatPath`" -DCMAKE_CXX_COMPILER=`"$clangClCompatPath`""
       }
     displayName: Set environment variables
 
   - powershell: |
-      if ("$(vcpkgPortsOverlayRepo)") {
-        & git clone --depth 1 $(vcpkgPortsOverlayRepo) "$(Build.BinariesDirectory)/dependencies/ports-overlay-repo"
+      if ("${{ variables.vcpkgOverlayRepo }}") {
+        & git clone --depth 1 $(vcpkgOverlayRepo) "$(Build.BinariesDirectory)/dependencies/overlay-repo"
       }
-      mkdir -Force "$(Build.BinariesDirectory)/dependencies/ports-overlay-repo/vcpkg/ports"
-    displayName: Clone ports overlay repository
-    condition: ne(variables.dependencyCacheHit, 'true')
+      mkdir -Force "$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/ports"
+      mkdir -Force "$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/triplets"
+    displayName: Clone Vcpkg overlay repository
+    condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''))
 
   - task: run-vcpkg@0
     displayName: Run Vcpkg to install dependencies
     inputs:
       vcpkgDirectory: '$(Build.BinariesDirectory)/dependencies/vcpkg'
-      vcpkgGitCommitId: '$(vcpkgGitRef)'
-      vcpkgTriplet: '$(Platform)-windows$(vcpkgTripletSuffix)'
-      vcpkgArguments: '--overlay-ports="$(Build.BinariesDirectory)/dependencies/ports-overlay-repo/vcpkg/ports" --overlay-triplets="$(Build.BinariesDirectory)/dependencies/ports-overlay-repo/vcpkg/triplets" "@$(Build.SourcesDirectory)/ci/vcpkg.txt"'
-    condition: ne(variables.dependencyCacheHit, 'true')
+      vcpkgGitCommitId: '$(vcpkgRef)'
+      vcpkgTriplet: '$(platform)-windows${{ variables.vcpkgTripletSuffix }}'
+      vcpkgArguments: '--overlay-ports="$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/ports" --overlay-triplets="$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/triplets" "@$(Build.SourcesDirectory)/ci/vcpkg.txt"'
+    condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''))
 
   - script: |
       rmdir /S /Q "$(Build.BinariesDirectory)/dependencies/vcpkg/buildtrees"
       rmdir /S /Q "$(Build.BinariesDirectory)/dependencies/vcpkg/downloads"
       rmdir /S /Q "$(Build.BinariesDirectory)/dependencies/vcpkg/packages"
     displayName: Delete temporary files
-    condition: ne(variables.dependencyCacheHit, 'true')
+    condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''))
 
-  - task: run-cmake@0
-    displayName: Build
-    inputs:
-      cmakeListsOrSettingsJson: 'CMakeListsTxtAdvanced'
-      useVcpkgToolchainFile: true
-      buildDirectory: '$(Build.BinariesDirectory)/build'
-      cmakeAppendedArgs: '-G Ninja $(CMakeCompilerFlag) -DCMAKE_BUILD_TYPE=$(Config) $(cmakeConfigArgs)'
-      buildWithCMakeArgs: '--parallel -- -v'
+  - ${{ each config in variables.cmakeBuildConfigs }}
+    - task: run-cmake@0
+      displayName: 'Build $(config)'
+      inputs:
+        cmakeListsOrSettingsJson: 'CMakeListsTxtAdvanced'
+        cmakeListsTxtPath: '$(cmakeListsTxtPath)'
+        useVcpkgToolchainFile: true
+        buildDirectory: '$(Build.BinariesDirectory)/build/$(config)'
+        cmakeAppendedArgs: '-G Ninja ${{ variables.cmakeCompilerFlag }} -DCMAKE_BUILD_TYPE=$(config) ${{ variables.cmakeConfigArgs }}'
+        buildWithCMakeArgs: '--parallel -- -v'
 
-  - script: |
-      ctest -V -T Test
-    displayName: Run tests
-    workingDirectory: '$(Build.BinariesDirectory)/build'
+    - script: |
+        ctest -V -T Test
+      displayName: 'Run tests in $(config)'
+      workingDirectory: '$(Build.BinariesDirectory)/build/$(config)'
 
   - task: PublishTestResults@2
     displayName: Publish test results
     inputs:
       testResultsFormat: 'cTest'
-      testResultsFiles: '$(Build.BinariesDirectory)/build/Testing/*/Test.xml'
+      testResultsFiles: '$(Build.BinariesDirectory)/build/*/Testing/*/Test.xml'
       testRunTitle: '$(Agent.JobName)'

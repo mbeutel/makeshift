@@ -2,14 +2,20 @@
 
 variables:
   system.debug: true
-  vcpkgGitRef: e308474b85ff49f2b688a759351c4ec569636910
-  vcpkgPortsOverlayRepo: 'https://mp-force.ziti.uni-heidelberg.de/asc/infrastructure/vcpkg-ports.git'
-  vcpkgPortsOverlayRef: a08517fb77e9d48d00dd33c16e5acd01f8b31f29
-  vcpkgTripletSuffix: ''
-  cmakeBaseConfigArgs: '-DMAKESHIFT_BUILD_TESTS=ON'
-  cmakeSanitizeConfigArgs: '-DCMAKESHIFT_PRIVATE_COMPILE_SETTINGS=runtime-checks;debug-stdlib'
-  cmakeConfigArgs: '$(cmakeBaseConfigArgs)'
   revision: 4
+
+  # Vcpkg repository
+  vcpkgRepo: 'https://github.com/microsoft/vcpkg.git' # optional
+  vcpkgRef: e308474b85ff49f2b688a759351c4ec569636910
+
+  # Repository with additional port and triplet overlays
+  vcpkgOverlayRepo: 'https://mp-force.ziti.uni-heidelberg.de/asc/infrastructure/vcpkg-ports.git' # optional
+  vcpkgOverlayRef: a08517fb77e9d48d00dd33c16e5acd01f8b31f29 # optional
+
+  # CMake build options
+  cmakeListsTxtPath: '$(Build.SourcesDirectory)/CMakeLists.txt' # optional
+  cmakeBuildConfigs: [Debug, RelWithDebInfo]
+  cmakeConfigArgs: '-DMAKESHIFT_BUILD_TESTS=ON -DCMAKESHIFT_PRIVATE_COMPILE_SETTINGS=$<$<CONFIG:Debug>:runtime-checks;debug-stdlib>' # optional
 
 trigger:
 - master
@@ -23,38 +29,22 @@ jobs:
 
     strategy:
       matrix: 
-        MSVC_Debug_x86:
-          Config: Debug
-          Platform: x86
-          Compiler: MSVC
-        MSVC_Release_x86:
-          Config: RelWithDebInfo
-          Platform: x86
-          Compiler: MSVC
-        MSVC_Debug_x64:
-          Config: Debug
-          Platform: x64
-          Compiler: MSVC
-        MSVC_Release_x64:
-          Config: RelWithDebInfo
-          Platform: x64
-          Compiler: MSVC
-        #Clang_Debug_x86:
-        #  Config: Debug
-        #  Platform: x86
-        #  Compiler: Clang
-        #Clang_Release_x86:
-        #  Config: RelWithDebInfo
-        #  Platform: x86
-        #  Compiler: Clang
-        #Clang_Debug_x64:
-        #  Config: Debug
-        #  Platform: x64
-        #  Compiler: Clang
-        #Clang_Release_x64:
-        #  Config: RelWithDebInfo
-        #  Platform: x64
-        #  Compiler: Clang
+        MSVC_x86:
+          platform: x86
+          compiler: MSVC
+          compilerVersion: 2019
+        MSVC_x64:
+          platform: x64
+          compiler: MSVC
+          compilerVersion: 2019
+        #Clang_x86:
+        #  platform: x86
+        #  compiler: Clang
+        #  compilerVersion: 9
+        #Clang_x64:
+        #  platform: x64
+        #  compiler: Clang
+        #  compilerVersion: 9
 
     pool:
       name: Azure Pipelines
@@ -66,26 +56,18 @@ jobs:
   - job: Ubuntu
 
     variables:
-        vcpkgTripletSuffix: '-sanitize'
+        vcpkgTripletSuffix: '-sanitize' # optional
 
     strategy:
       matrix: 
-        GCC_Debug:
-          Config: Debug
-          Platform: x64
-          Compiler: GCC
-        GCC_Release:
-          Config: RelWithDebInfo
-          Platform: x64
-          Compiler: GCC
-        Clang_Debug:
-          Config: Debug
-          Platform: x64
-          Compiler: Clang
-        Clang_Release:
-          Config: RelWithDebInfo
-          Platform: x64
-          Compiler: Clang
+        GCC:
+          platform: x64
+          compiler: GCC
+          compilerVersion: 9
+        Clang:
+          platform: x64
+          compiler: Clang
+          compilerVersion: 9
 
     pool:
       name: Azure Pipelines
@@ -98,22 +80,14 @@ jobs:
 
     strategy:
       matrix: 
-        GCC_Debug:
-          Config: Debug
-          Platform: x64
-          Compiler: GCC
-        GCC_Release:
-          Config: RelWithDebInfo
-          Platform: x64
-          Compiler: GCC
-        AppleClang_Debug:
-          Config: Debug
-          Platform: x64
-          Compiler: Clang
-        AppleClang_Release:
-          Config: RelWithDebInfo
-          Platform: x64
-          Compiler: Clang
+        GCC:
+          platform: x64
+          compiler: GCC
+          compilerVersion: 9
+        AppleClang:
+          platform: x64
+          compiler: AppleClang
+          compilerVersion: 11
 
     pool:
       name: Azure Pipelines
