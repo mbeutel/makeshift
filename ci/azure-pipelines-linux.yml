@@ -96,7 +96,7 @@ jobs:
             useVcpkgToolchainFile: true
             buildDirectory: '$(Build.BinariesDirectory)/build/${{ config }}'
             cmakeAppendedArgs: '-G Ninja ${{ variables.cmakeCompilerFlag }} -DCMAKE_BUILD_TYPE=${{ config }} ${{ variables.cmakeConfigArgs }}'
-            buildWithCMakeArgs: '-- -j VERBOSE=1'
+            buildWithCMakeArgs: '--parallel -- -v'
 
         - script: |
             ctest -V -T Test
