@@ -41,15 +41,27 @@ jobs:
 
     - os: Linux
       cxxCompiler: GCC
-      cxxCompilerVersions: [6, 7, 8, 9]
+      cxxCompilerVersions: [6, 7, 8]
       platforms: [x64]
+
+    - os: Linux
+      cxxCompiler: Clang
+      cxxCompilerVersions: [5, 6, 7, 8]
+      platforms: [x64]
+
+    - os: Linux
+      cxxCompiler: GCC
+      cxxCompilerVersions: [9]
+      platforms: [x64]
+      displayTag: 'sanitize'
       vcpkgTriplet: <platform>-<os>-sanitize
       cmakeConfigArgs: '-DCMAKESHIFT_PRIVATE_COMPILE_SETTINGS=runtime-checks;debug-stdlib'
 
     - os: Linux
       cxxCompiler: Clang
-      cxxCompilerVersions: [5, 6, 7, 8, 9]
+      cxxCompilerVersions: [9]
       platforms: [x64]
+      displayTag: 'sanitize'
       vcpkgTriplet: <platform>-<os>-sanitize
       cmakeConfigArgs: '-DCMAKESHIFT_PRIVATE_COMPILE_SETTINGS=runtime-checks;debug-stdlib'
 
