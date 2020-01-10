@@ -21,7 +21,7 @@ parameters:
   # CUDA options
   cudaCompiler: ''
   cudaCompilerVersion: ''
-  cudaPackages: [] # cf. https://docs.nvidia.com/cuda/cuda-installation-guide-microsoft-windows/index.html#install-cuda-software and https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html#package-manager-metas
+  cudaPackages: [] # cf. https://docs.nvidia.com/cuda/cuda-installation-guide-microsoft-windows/index.html#install-cuda-software for Windows, https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/ for Linux
 
   # Vcpkg options
   vcpkgTriplet: '<platform>-<os>'
@@ -179,8 +179,8 @@ jobs:
                     & sudo dpkg -i $cudaVersion_URL[$cudaVersion]
                     & wget https://developer.download.nvidia.com/compute/cuda/repos/$ubuntuVersion/x86_64/7fa2af80.pub
                     & sudo apt-key add 7fa2af80.pub
-                    #$cudaPackages = "cuda-core;cuda-cudart-dev;${{ join(';', parameters.cudaPackages) }};${{ join(';', target.cudaPackages) }};" -replace ";;",";" -replace ";;",";" -replace ";","-$cudaVersion_Dash " -split " "
-                    $cudaPackages = "cuda-compiler;cuda-libraries-dev;${{ join(';', parameters.cudaPackages) }};${{ join(';', target.cudaPackages) }};" -replace ";;",";" -replace ";;",";" -replace ";","-$cudaVersion_Dash " -split " "
+                    $cudaPackages = "cuda-core;cuda-cudart-dev;${{ join(';', parameters.cudaPackages) }};${{ join(';', target.cudaPackages) }};" -replace ";;",";" -replace ";;",";" -replace ";","-$cudaVersion_Dash " -split " "
+                    #$cudaPackages = "cuda-compiler;cuda-libraries-dev;${{ join(';', parameters.cudaPackages) }};${{ join(';', target.cudaPackages) }};" -replace ";;",";" -replace ";;",";" -replace ";","-$cudaVersion_Dash " -split " "
                     $packages += $cudaPackages
                     echo "packages (CUDA): $packages"
                 }

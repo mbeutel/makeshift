@@ -64,11 +64,11 @@ struct constval : constval_tag
     {
         return F{ }();
     }
-#if defined(_MSC_VER) && !defined(__clang__) && !defined(__INTELLISENSE__)
+#if defined(_MSC_VER) && !defined(__clang__) && !defined(__NVCC__) && !defined(__INTELLISENSE__)
     gsl_NODISCARD constexpr operator auto(void) const -> value_type // workaround for VC++ bug, cf. https://developercommunity.visualstudio.com/content/problem/149701/c2833-with-operator-decltype.html#reply-152822
-#else // defined(_MSC_VER) && !defined(__clang__) && !defined(__INTELLISENSE__)
+#else // defined(_MSC_VER) && !defined(__clang__) && !defined(__NVCC__) && !defined(__INTELLISENSE__)
     gsl_NODISCARD constexpr operator value_type(void) const
-#endif // defined(_MSC_VER) && !defined(__clang__) && !defined(__INTELLISENSE__)
+#endif // defined(_MSC_VER) && !defined(__clang__) && !defined(__NVCC__) && !defined(__INTELLISENSE__)
     {
         return (*this)();
     }

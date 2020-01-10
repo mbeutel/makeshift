@@ -141,9 +141,9 @@ TEST_CASE("constval")
     (void) ncA1;
 
     auto cAA1 = MAKESHIFT_CONSTVAL(std::array<std::array<int, 1>, 2>{ std::array<int, 1>{ 4 }, std::array<int, 1>{ 2 } });
-#if !gsl_BETWEEN(gsl_COMPILER_GNUC_VERSION, 1, 700) // GCC 6 wrongly attempts to deduce a dependent type argument
+#if !defined(__EDG__) && !defined(__NVCC__) && !gsl_BETWEEN(gsl_COMPILER_GNUC_VERSION, 1, 700) // EDG and GCC 6 wrongly attempt to deduce a dependent type argument
     expect_nested_array_constval_normalization(cAA1);
-#endif // !gsl_BETWEEN(gsl_COMPILER_GNUC_VERSION, 1, 700)
+#endif // !defined(__EDG__) && !defined(__NVCC__) && !gsl_BETWEEN(gsl_COMPILER_GNUC_VERSION, 1, 700)
     mk::mdarray<int, 2, 1> ncAA1 = cAA1;
     (void) ncAA1;
 
@@ -172,9 +172,9 @@ TEST_CASE("constval")
         });
     auto cCTA = mk::constval_transform(ToArrayTransform{ }, cCT);
     expect_tuple_like(cCTA);
-#if !gsl_BETWEEN(gsl_COMPILER_GNUC_VERSION, 1, 700) // GCC 6 wrongly attempts to deduce a dependent type argument
+#if !defined(__EDG__) && !defined(__NVCC__) && !gsl_BETWEEN(gsl_COMPILER_GNUC_VERSION, 1, 700) // GCC 6 wrongly attempts to deduce a dependent type argument
     expect_array_constval_normalization(cCTA);
-#endif // !gsl_BETWEEN(gsl_COMPILER_GNUC_VERSION, 1, 700)
+#endif // !defined(__EDG__) && !defined(__NVCC__) && !gsl_BETWEEN(gsl_COMPILER_GNUC_VERSION, 1, 700)
 
     auto cCTV = mk::constval_transform(ToTupleTransform{ }, cCT);
     expect_tuple_like(cCTV);
