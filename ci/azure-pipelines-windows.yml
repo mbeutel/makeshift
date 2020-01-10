@@ -1,3 +1,6 @@
+# Azure Pipelines job template for CMake builds
+# Author: Moritz Beutel
+
 ## Variables:
 #  revision: 5
 
@@ -51,7 +54,6 @@ jobs:
             - 'ubuntu-18.04'
           - ${{ if eq(parameters, 'MacOS') }}:
             - 'macOS-10.14'
-          #vmImage: ${{ coalesce(compiler.image, parameters.image, variables.image) }}
 
         steps:
         - powershell: |
@@ -132,6 +134,36 @@ jobs:
             ln -s /usr/bin/cmake ~/bin/cmake
           displayName: Install tools
           condition: eq(variables['Agent.OS'], 'Linux')
+        - script: |
+            sudo xcode-select -s /Applications/Xcode_10.3.app/Contents/Developer
+            brew install gcc@9
+            if [[ "${{ parameters.compiler }}" == "GCC" ]]; then
+              brew install gcc@${{ compilerVersion }}
+            fi
+          displayName: Install tools
+          condition: eq(variables['Agent.OS'], 'Darwin')
+
+        - script: |
+            if [[ "$vcpkgRef" != "" && "$vcpkgRepo" == "" ]]; then
+              echo "##vso[task.setvariable variable=vcpkgRepo]https://github.com/microsoft/vcpkg.git"
+            fi
+            if [[ "$cmakeListsTxtPath" == "" ]]; then
+              echo "##vso[task.setvariable variable=cmakeListsTxtPath]$(Build.SourcesDirectory)/CMakeLists.txt"
+            fi
+            vcpkgTriplet='${{ coalesce(compiler.vcpkgTriplet, parameters.vcpkgTriplet, variables.vcpkgTriplet, '$(platform)-$(os)') }}'
+            vcpkgTriplet=${vcpkgTriplet/\$\(os\)/osx}
+            vcpkgTriplet=${vcpkgTriplet/\$\(platform\)/${{ platform }}}
+            echo "##vso[task.setvariable variable=buildCacheKey]$vcpkgRepo $vcpkgRef $vcpkgOverlayRepo $vcpkgOverlayRef $vcpkgArgs $vcpkgTriplet ${{ compiler.compiler }} $revision 1"
+            echo "##vso[task.setvariable variable=VCPKG_ROOT]$(Build.BinariesDirectory)/dependencies/vcpkg"
+            echo "##vso[task.setvariable variable=VCPKG_TRIPLET]$vcpkgTriplet"
+            if [[ "${{ parameters.compiler }}" == "GCC" ]]; then
+              echo "##vso[task.setvariable variable=CXXFLAGS_OLD]$CXXFLAGS"
+              echo "##vso[task.setvariable variable=CXXFLAGS]$CXXFLAGS -fvisibility=hidden -fvisibility-inlines-hidden"
+              echo "##vso[task.setvariable variable=CC]gcc-${{ compilerVersion }}"
+              echo "##vso[task.setvariable variable=CXX]g++-${{ compilerVersion }}"
+            fi
+          displayName: Set environment variables
+          condition: eq(variables['Agent.OS'], 'Darwin')
 
         - powershell: |
             if ("$env:vcpkgOverlayRepo") {
@@ -157,7 +189,7 @@ jobs:
                 echo "##vso[task.setvariable variable=vcpkgOverlayArgs]"
             fi
           displayName: Clone Vcpkg overlay repository
-          condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''), eq(variables['Agent.OS'], 'Linux'))
+          condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''), or(eq(variables['Agent.OS'], 'Linux'), eq(variables['Agent.OS'], 'Darwin')))
         
         - task: run-vcpkg@0
           displayName: Run Vcpkg to install dependencies
@@ -180,7 +212,19 @@ jobs:
             rm -rf "$(Build.BinariesDirectory)/dependencies/vcpkg/downloads"
             rm -rf "$(Build.BinariesDirectory)/dependencies/vcpkg/packages"
           displayName: Delete temporary files
-          condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''), eq(variables['Agent.OS'], 'Linux'))
+          condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''), or(eq(variables['Agent.OS'], 'Linux'), eq(variables['Agent.OS'], 'Darwin')))
+
+        - script: |
+            if [[ "${{ parameters.compiler }}" == "GCC" ]]; then
+              echo "##vso[task.setvariable variable=CXXFLAGS]$CXXFLAGS_OLD"
+            fi
+            if [[ "${{ parameters.compiler }}" == "AppleClang" ]]; then
+              sudo xcode-select -s /Applications/Xcode_11.1.app/Contents/Developer
+              echo "##vso[task.setvariable variable=CC]clang"
+              echo "##vso[task.setvariable variable=CXX]clang++"
+            fi
+          displayName: Set environment variables
+          condition: eq(variables['Agent.OS'], 'Darwin')
 
         - ${{ each config in parameters.buildConfigurations }}:
           - task: run-cmake@0
