@@ -35,7 +35,6 @@ parameters:
   cmakeBuildArgs: ''
   cmakeTestArgs: ''
 
-  os: ''
   targets: []
 #    target.os: '' # overrides parameters.os
 #    target.platforms: []
