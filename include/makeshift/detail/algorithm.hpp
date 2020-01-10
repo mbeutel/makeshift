@@ -384,7 +384,7 @@ constexpr dim_constant<N> merge_sizes_0(dim_constant<N>, gsl::dim n)
     return { };
 }
 template <gsl::dim N, gsl::dim M>
-constexpr dim_constant<N == unknown_size ? M : N> merge_sizes_0(dim_constant<N>, dim_constant<M>)
+constexpr dim_constant<(N == unknown_size ? M : N)> merge_sizes_0(dim_constant<N>, dim_constant<M>)
 {
     static_assert(N == unknown_size || M == unknown_size || N == M, "inconsistent sizes");
     return { };
