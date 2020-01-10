@@ -16,6 +16,23 @@
 # limitations under the License.
 
 
+# Supported compiler versions:
+#
+# Windows:
+#   MSVC: 2015, 2017, 2019
+#   Clang: 9
+#   NVCC: 10_1, 10_2
+#
+# Linux:
+#   GCC: 5, 6, 7, 8, 9
+#   Clang: 4, 5, 6, 7, 8, 9
+#   NVCC: 10_1, 10_2
+#
+# MacOS:
+#   GCC: 5, 6, 7, 8, 9
+#   AppleClang: 8_1, 9, 9_1, 10, 10_0_1, 11
+
+
 parameters:
 
   # Vcpkg repository
@@ -156,7 +173,9 @@ jobs:
         - pwsh: |
             if ($IsWindows) {
                 if ("${{ coalesce(target.cxxCompiler, parameters.cxxCompiler) }}" -eq "Clang") {
-                    & choco install -y llvm
+                    $clangVersion = "${{ cxxCompilerVersion }}.0.0"
+                    Invoke-WebRequest http://releases.llvm.org/$clangVersion/LLVM-$clangVersion-win64.exe -OutFile LLVM-$clangVersion-win64.exe
+                    & LLVM-$clangVersion-win64.exe /s
                 }
                 if ("${{ coalesce(target.cudaCompiler, parameters.cudaCompiler) }}") {
                     $cudaVersion = "${{ coalesce(target.cudaCompilerVersion, parameters.cudaCompilerVersion) }}" -replace "_","."
@@ -198,8 +217,7 @@ jobs:
                     & sudo dpkg -i $installer
                     & wget https://developer.download.nvidia.com/compute/cuda/repos/$ubuntuVersion/x86_64/7fa2af80.pub
                     & sudo apt-key add 7fa2af80.pub
-                    $cudaPackages = "cuda-core;${{ join(';', parameters.cudaPackages) }};${{ join(';', target.cudaPackages) }};" -replace ";;",";" -replace ";;",";" -replace ";","-$cudaVersion_Dash " -split " "
-                    #$cudaPackages = "cuda-core;cuda-cudart-dev;${{ join(';', parameters.cudaPackages) }};${{ join(';', target.cudaPackages) }};" -replace ";;",";" -replace ";;",";" -replace ";","-$cudaVersion_Dash " -split " "
+                    $cudaPackages = "cuda-core;cuda-cudart-dev;${{ join(';', parameters.cudaPackages) }};${{ join(';', target.cudaPackages) }};" -replace ";;",";" -replace ";;",";" -replace ";","-$cudaVersion_Dash " -split " "
                     $packages += $cudaPackages
                 }
                 & sudo apt-get update
@@ -208,14 +226,12 @@ jobs:
             }
             elseif ($IsMacOS) {
                 # This version of Xcode is known to be compatible with most GCC versions for building Vcpkg.
+                & sudo xcode-select -s /Applications/Xcode_10.1.app/Contents/Developer
                 if ("${{ coalesce(target.cxxCompiler, parameters.cxxCompiler) }}" -eq "GCC") {
-                    & sudo xcode-select -s /Applications/Xcode_10.3.app/Contents/Developer
+                    #& sudo xcode-select -s /Applications/Xcode_10.3.app/Contents/Developer
                     & brew install gcc@${{ cxxCompilerVersion }}
-                    echo "##vso[task.setvariable variable=CC]gcc"
-                    echo "##vso[task.setvariable variable=CXX]g++"
                 }
                 else {
-                    & sudo xcode-select -s /Applications/Xcode_10.1.app/Contents/Developer
                 }
                 & brew install gcc@9
             }
@@ -256,6 +272,8 @@ jobs:
         - pwsh: |
             if ("${{ coalesce(target.cxxCompiler, parameters.cxxCompiler) }}" -eq "GCC") {
                 echo "##vso[task.setvariable variable=CXXFLAGS]$CXXFLAGS_OLD"
+                echo "##vso[task.setvariable variable=CC]gcc"
+                echo "##vso[task.setvariable variable=CXX]g++"
             }
             elseif ("${{ coalesce(target.cxxCompiler, parameters.cxxCompiler) }}" -eq "AppleClang") {
                 $appleClangVersion_xcodeVersion = @{
