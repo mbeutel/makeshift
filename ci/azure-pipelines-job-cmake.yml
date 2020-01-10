@@ -41,8 +41,12 @@ jobs:
       - job: '${{ coalesce(compiler.os, parameters.os) }}_${{ compiler.compiler }}${{ compilerVersion }}_${{ platform }}'
         pool:
           name: Azure Pipelines
-          ${{ if eq(coalesce(compiler.os, parameters.os), 'Windows') }}:
+          ${{ if and(eq(coalesce(compiler.os, parameters.os), 'Windows'), or(and(eq(compiler.compiler, 'Clang'), le(9, compilerVersion)), and(eq(compiler.compiler, 'MSVC'), eq(compilerVersion, '2019')))) }}:
             vmImage: 'windows-2019'
+          ${{ if and(eq(coalesce(compiler.os, parameters.os), 'Windows'), eq(compilerVersion, '2017')) }}:
+            vmImage: 'vs2017-win2016'
+          ${{ if and(eq(coalesce(compiler.os, parameters.os), 'Windows'), eq(compilerVersion, '2015')) }}:
+            vmImage: 'vs2015-win2012r2'
           ${{ if eq(coalesce(compiler.os, parameters.os), 'Linux') }}:
             vmImage: 'ubuntu-18.04'
           ${{ if eq(coalesce(compiler.os, parameters.os), 'MacOS') }}:
@@ -116,17 +120,16 @@ jobs:
                 & sudo apt-add-repository "deb https://apt.kitware.com/ubuntu/ bionic main"
                 if ("${{ compiler.compiler }}" -eq "GCC") {
                     & sudo apt-add-repository ppa:ubuntu-toolchain-r/test
-                }
-                elseif ("${{ compiler.compiler }}" -eq "Clang") {
-                    & sudo apt-add-repository "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-${{ compilerVersion }} main"
-                }
-                & sudo apt-get update
-                if ("${{ compiler.compiler }}" -eq "GCC") {
+                    & sudo apt-get update
                     & sudo apt-get install cmake gcc-${{ compilerVersion }} g++-${{ compilerVersion }}
                 }
                 elseif ("${{ compiler.compiler }}" -eq "Clang") {
-                    & sudo apt-get install cmake clang-${{ compilerVersion }}
+                    & sudo apt-get update
+                    & wget -O "$HOME/llvm.sh" https://apt.llvm.org/llvm.sh
+                    & chmod +x "$HOME/llvm.sh"
+                    & sudo "$HOME/llvm.sh" ${{ compilerVersion }}
                 }
+                & sudo apt-get install cmake
                 & ln -s /usr/bin/cmake $HOME/bin/cmake
             }
             elseif ($IsMacOS) {
