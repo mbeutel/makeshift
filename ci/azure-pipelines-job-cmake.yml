@@ -175,7 +175,7 @@ jobs:
                 if ("${{ coalesce(target.cxxCompiler, parameters.cxxCompiler) }}" -eq "Clang") {
                     $clangVersion = "${{ cxxCompilerVersion }}.0.0"
                     Invoke-WebRequest http://releases.llvm.org/$clangVersion/LLVM-${clangVersion}-win64.exe -OutFile "$HOME/LLVM-installer.exe"
-                    & "$HOME/LLVM-installer.exe" /S
+                    Start-Process -Wait "$HOME/LLVM-installer.exe" /S
                 }
                 if ("${{ coalesce(target.cudaCompiler, parameters.cudaCompiler) }}") {
                     $cudaVersion = "${{ coalesce(target.cudaCompilerVersion, parameters.cudaCompilerVersion) }}" -replace "_","."
@@ -185,7 +185,7 @@ jobs:
                     }
                     $cudaPackages = "nvcc;${{ join(';', parameters.cudaPackages) }};${{ join(';', target.cudaPackages) }};" -replace ";;",";" -replace ";;",";" -replace ";","_$cudaVersion " -split " "
                     Invoke-WebRequest $cudaVersion_URL[$cudaVersion] -OutFile "$HOME/cuda_installer_network.exe"
-                    & "$HOME/cuda_installer_network.exe" -s $cudaPackages
+                    Start-Process -Wait "$HOME/cuda_installer_network.exe" -s $cudaPackages
                 }
             }
             elseif ($IsLinux) {

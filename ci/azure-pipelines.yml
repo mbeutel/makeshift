@@ -1,8 +1,5 @@
 # Azure Pipelines configuration
 
-variables:
-  system.debug: true
-
 trigger:
 - master
 - mr/*
