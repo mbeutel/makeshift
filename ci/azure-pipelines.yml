@@ -13,7 +13,8 @@ jobs:
     vcpkgRef: e308474b85ff49f2b688a759351c4ec569636910
     vcpkgOverlayRepo: 'https://mp-force.ziti.uni-heidelberg.de/asc/infrastructure/vcpkg-ports.git'
     vcpkgOverlayRef: a08517fb77e9d48d00dd33c16e5acd01f8b31f29
-  
+    vcpkgPackages: ['cmakeshift', 'gsl-lite', 'catch2', 'mpark-variant']
+
     cmakeConfigArgs: '-DMAKESHIFT_BUILD_TESTS=ON'
 
     compilers:

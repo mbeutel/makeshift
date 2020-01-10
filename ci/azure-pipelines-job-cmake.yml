@@ -1,5 +1,5 @@
 # Azure Pipelines job template for CMake builds
-# Revision 1
+# Version 0.1.1
 # Author: Moritz Beutel
 
 parameters:
@@ -15,6 +15,7 @@ parameters:
   # Vcpkg options
   vcpkgTriplet: '<platform>-<os>'
   vcpkgArgs: ''
+  vcpkgPackages: []
 
   # Build options
   cmakeListsTxtPath: '$(Build.SourcesDirectory)/CMakeLists.txt'
@@ -29,6 +30,7 @@ parameters:
 #    compiler.versions: []
 #    compiler.vcpkgTriplet: '' # overrides parameters.vcpkgTriplet
 #    compiler.vcpkgArgs: '' # appends to parameters.vcpkgArgs
+#    compiler.vcpkgPackages: '' # appends to parameters.vcpkgPackages
 #    compiler.cmakeConfigArgs: '' # appends to parameters.cmakeConfigArgs
 #    compiler.ninjaBuildArgs: '' # appends to parameters.ninjaBuildArgs
 
@@ -52,7 +54,7 @@ jobs:
             elseif ($IsLinux) { $tripletOS = "linux" }
             elseif ($IsMacOS) { $tripletOS = "osx" }
             $vcpkgTriplet = "${{ coalesce(compiler.vcpkgTriplet, parameters.vcpkgTriplet) }}" -replace "<os>","$tripletOS" -replace "<platform>","${{ platform }}"
-            echo "##vso[task.setvariable variable=buildCacheKey]${{ parameters.vcpkgRepo }} ${{ parameters.vcpkgRef }} ${{ parameters.vcpkgOverlayRepo }} ${{ parameters.vcpkgOverlayRef }} ${{ parameters.vcpkgArgs }} ${{ compiler.vcpkgArgs }} $vcpkgTriplet ${{ compiler.compiler }} 1"
+            echo "##vso[task.setvariable variable=buildCacheKey]1 ${{ compiler.compiler }} $vcpkgTriplet ${{ parameters.vcpkgRepo }} ${{ parameters.vcpkgRef }} ${{ parameters.vcpkgOverlayRepo }} ${{ parameters.vcpkgOverlayRef }} ${{ parameters.vcpkgArgs }} ${{ compiler.vcpkgArgs }} ${{ join('' '', parameters.vcpkgPackages) }} ${{ join('' '', compiler.vcpkgPackages) }}"
             #echo "##vso[task.setvariable variable=Path]$(Build.BinariesDirectory)/dependencies/cmake/bin;${env:Path}"
             echo "##vso[task.setvariable variable=VCPKG_ROOT]$(Build.BinariesDirectory)/dependencies/vcpkg"
             echo "##vso[task.setvariable variable=VCPKG_TRIPLET]$vcpkgTriplet"
@@ -97,7 +99,7 @@ jobs:
         - task: CacheBeta@1
           displayName: Cache dependencies
           inputs:
-            key: '$(Build.SourcesDirectory)/ci/vcpkg.txt | "$(buildCacheKey)"'
+            key: '"$(buildCacheKey)"'
             path: '$(Build.BinariesDirectory)/dependencies'
             cacheHitVar: 'dependencyCacheHit'
             condition: ne('${{ parameters.vcpkgRef }}', '')
@@ -158,7 +160,7 @@ jobs:
             vcpkgGitURL: '${{ parameters.vcpkgRepo }}'
             vcpkgGitCommitId: '${{ parameters.vcpkgRef }}'
             vcpkgTriplet: '$(VCPKG_TRIPLET)'
-            vcpkgArguments: '$(vcpkgOverlayArgs) "@$(Build.SourcesDirectory)/ci/vcpkg.txt"'
+            vcpkgArguments: '$(vcpkgOverlayArgs) ${{ parameters.vcpkgArgs }} ${{ compiler.vcpkgArgs }} ${{ join('' '', parameters.vcpkgPackages) }} ${{ join('' '', compiler.vcpkgPackages) }}'
           condition: and(ne(variables.dependencyCacheHit, 'true'), ne('${{ parameters.vcpkgRef }}', ''))
 
         - pwsh: |

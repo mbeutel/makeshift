@@ -1,4 +1,0 @@
-cmakeshift
-gsl-lite
-catch2
-mpark-variant
