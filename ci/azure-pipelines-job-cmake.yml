@@ -175,7 +175,7 @@ jobs:
                 if ("${{ coalesce(target.cxxCompiler, parameters.cxxCompiler) }}" -eq "Clang") {
                     $clangVersion = "${{ cxxCompilerVersion }}.0.0"
                     Invoke-WebRequest http://releases.llvm.org/$clangVersion/LLVM-$clangVersion-win64.exe -OutFile LLVM-$clangVersion-win64.exe
-                    & LLVM-$clangVersion-win64.exe /s
+                    & .\LLVM-$clangVersion-win64.exe /s
                 }
                 if ("${{ coalesce(target.cudaCompiler, parameters.cudaCompiler) }}") {
                     $cudaVersion = "${{ coalesce(target.cudaCompilerVersion, parameters.cudaCompilerVersion) }}" -replace "_","."
