@@ -44,7 +44,7 @@ jobs:
 - ${{ each compiler in parameters.compilers }}:
   - ${{ each platform in compiler.platforms }}:
     - ${{ each compilerVersion in compiler.versions }}:
-      - job: '${{ coalesce(compiler.os, parameters.os, variables.os) }}_${{ compiler.compiler }}_${{ compilerVersion }}_${{ platform }}'
+      - job: '${{ coalesce(compiler.os, parameters.os, variables.os) }}_${{ compiler.compiler }}${{ compilerVersion }}_${{ platform }}'
         pool:
           name: Azure Pipelines
           ${{ if eq(coalesce(compiler.os, parameters.os, variables.os), 'Windows') }}:
@@ -168,7 +168,7 @@ jobs:
             if ("$env:vcpkgOverlayRepo" -and "$env:vcpkgOverlayRef") {
                 & git clone "$env:vcpkgOverlayRepo" "$(Build.BinariesDirectory)/dependencies/overlay-repo"
                 cd "$(Build.BinariesDirectory)/dependencies/overlay-repo"
-                & git checkout --force "$env:vcpkgOverlayRef"
+                & git checkout --quiet --force "$env:vcpkgOverlayRef"
                 mkdir -Force "$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/ports"
                 mkdir -Force "$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/triplets"
                 Write-Host "##vso[task.setvariable variable=vcpkgOverlayArgs]--overlay-ports=`"$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/ports`" --overlay-triplets=`"$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/triplets`"
@@ -180,14 +180,14 @@ jobs:
           condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''), eq(variables['Agent.OS'], 'Windows_NT'))
         - bash: |
             if [[ "$vcpkgOverlayRepo" != "" && "$vcpkgOverlayRef" != "" ]]; then
-                git clone "$vcpkgOverlayRepo" "$(Build.BinariesDirectory)/dependencies/overlay-repo"
-                cd "$(Build.BinariesDirectory)/dependencies/overlay-repo"
-                git checkout --force "$vcpkgOverlayRef"
-                mkdir -p "$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/ports"
-                mkdir -p "$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/triplets"
-                echo "##vso[task.setvariable variable=vcpkgOverlayArgs]--overlay-ports=`"$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/ports`" --overlay-triplets=`"$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/triplets`"
+              git clone "$vcpkgOverlayRepo" "$(Build.BinariesDirectory)/dependencies/overlay-repo"
+              cd "$(Build.BinariesDirectory)/dependencies/overlay-repo"
+              git checkout --quiet --force "$vcpkgOverlayRef"
+              mkdir -p "$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/ports"
+              mkdir -p "$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/triplets"
+              echo '##vso[task.setvariable variable=vcpkgOverlayArgs]--overlay-ports="$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/ports" --overlay-triplets="$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/triplets"'
             else
-                echo "##vso[task.setvariable variable=vcpkgOverlayArgs]"
+              echo "##vso[task.setvariable variable=vcpkgOverlayArgs]"
             fi
           displayName: Clone Vcpkg overlay repository
           condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''), or(eq(variables['Agent.OS'], 'Linux'), eq(variables['Agent.OS'], 'Darwin')))
