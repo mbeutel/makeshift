@@ -21,7 +21,7 @@ parameters:
   # CUDA options
   cudaCompiler: ''
   cudaCompilerVersion: ''
-  cudaSubpackages: []
+  cudaPackages: [] # cf. https://docs.nvidia.com/cuda/cuda-installation-guide-microsoft-windows/index.html#install-cuda-software and https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html#package-manager-metas
 
   # Vcpkg options
   vcpkgTriplet: '<platform>-<os>'
@@ -45,7 +45,7 @@ parameters:
 #    target.vcpkgTriplet: '' # overrides parameters.vcpkgTriplet
 #    target.vcpkgArgs: '' # appends to parameters.vcpkgArgs
 #    target.vcpkgPackages: '' # appends to parameters.vcpkgPackages
-#    target.cudaSubpackages: [] # appends to parameters.cudaSubpackages
+#    target.cudaPackages: [] # appends to parameters.cudaPackages
 #    target.cmakeConfigArgs: '' # appends to parameters.cmakeConfigArgs
 #    target.cmakeBuildArgs: '' # appends to parameters.cmakeBuildArgs
 #    target.cmakeTestArgs: '' # appends to parameters.cmakeTestArgs
@@ -74,7 +74,7 @@ jobs:
             elseif ($IsLinux) { $tripletOS = "linux" }
             elseif ($IsMacOS) { $tripletOS = "osx" }
             $vcpkgTriplet = "${{ coalesce(target.vcpkgTriplet, parameters.vcpkgTriplet) }}" -replace "<os>","$tripletOS" -replace "<platform>","${{ platform }}"
-            echo "##vso[task.setvariable variable=buildCacheKey]1 ${{ coalesce(target.cxxCompiler, parameters.cxxCompiler) }}${{ cxxCompilerVersion }} ${{ coalesce(target.cudaCompiler, parameters.cudaCompiler) }}${{ coalesce(target.cudaCompilerVersion, parameters.cudaCompilerVersion) }} $vcpkgTriplet;${{ parameters.vcpkgRepo }} ${{ parameters.vcpkgRef }};${{ parameters.vcpkgOverlayRepo }} ${{ parameters.vcpkgOverlayRef }};${{ parameters.vcpkgArgs }} ${{ target.vcpkgArgs }};${{ join(' ', parameters.vcpkgPackages) }} ${{ join(' ', target.vcpkgPackages) }};${{ join(' ', parameters.cudaSubpackages) }} ${{ join(' ', target.cudaSubpackages) }}"
+            echo "##vso[task.setvariable variable=buildCacheKey]1 ${{ coalesce(target.cxxCompiler, parameters.cxxCompiler) }}${{ cxxCompilerVersion }} ${{ coalesce(target.cudaCompiler, parameters.cudaCompiler) }}${{ coalesce(target.cudaCompilerVersion, parameters.cudaCompilerVersion) }} $vcpkgTriplet;${{ parameters.vcpkgRepo }} ${{ parameters.vcpkgRef }};${{ parameters.vcpkgOverlayRepo }} ${{ parameters.vcpkgOverlayRef }};${{ parameters.vcpkgArgs }} ${{ target.vcpkgArgs }};${{ join(' ', parameters.vcpkgPackages) }} ${{ join(' ', target.vcpkgPackages) }};${{ join(' ', parameters.cudaPackages) }} ${{ join(' ', target.cudaPackages) }}"
             #echo "##vso[task.setvariable variable=Path]$(Build.BinariesDirectory)/dependencies/cmake/bin;${env:Path}"
             echo "##vso[task.setvariable variable=VCPKG_ROOT]$(Build.BinariesDirectory)/dependencies/vcpkg"
             echo "##vso[task.setvariable variable=VCPKG_TRIPLET]$vcpkgTriplet"
@@ -147,9 +147,9 @@ jobs:
                         '10.1'='http://developer.download.nvidia.com/compute/cuda/10.1/Prod/network_installers/cuda_10.1.105_win10_network.exe'
                         '10.2'='http://developer.download.nvidia.com/compute/cuda/10.2/Prod/network_installers/cuda_10.2.89_win10_network.exe'
                     }
-                    $cudaSubpackages = "nvcc;${{ join(';', parameters.cudaSubpackages) }};${{ join(';', target.cudaSubpackages) }};" -replace ";;",";" -replace ";;",";" -replace ";","_$cudaVersion " -split " "
+                    $cudaPackages = "nvcc;${{ join(';', parameters.cudaPackages) }};${{ join(';', target.cudaPackages) }};" -replace ";;",";" -replace ";;",";" -replace ";","_$cudaVersion " -split " "
                     Invoke-WebRequest $cudaVersion_URL[$cudaVersion] -OutFile "$HOME/cuda_installer_network.exe"
-                    & "$HOME/cuda_installer_network.exe" -s $cudaSubpackages
+                    & "$HOME/cuda_installer_network.exe" -s $cudaPackages
                 }
             }
             elseif ($IsLinux) {
@@ -159,18 +159,14 @@ jobs:
                 & sudo apt-add-repository "deb https://apt.kitware.com/ubuntu/ bionic main"
                 if ("${{ coalesce(target.cxxCompiler, parameters.cxxCompiler) }}" -eq "GCC") {
                     & sudo apt-add-repository ppa:ubuntu-toolchain-r/test
-                    #& sudo apt-get update
                     $packages += ('gcc-${{ cxxCompilerVersion }}', 'g++-${{ cxxCompilerVersion }}')
-                    #& sudo apt-get install cmake gcc-${{ cxxCompilerVersion }} g++-${{ cxxCompilerVersion }}
                 }
                 elseif ("${{ coalesce(target.cxxCompiler, parameters.cxxCompiler) }}" -eq "Clang") {
                     if (${{ cxxCompilerVersion }} -lt 7) {
                         $versionSuffix = ".0"
                     }
                     & sudo apt-add-repository "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-${{ cxxCompilerVersion }} main"
-                    #& sudo apt-get update
                     $packages += 'clang-${{ cxxCompilerVersion }}$versionSuffix'
-                    #& sudo apt-get install cmake clang-${{ cxxCompilerVersion }}$versionSuffix
                 }
                 if ("${{ coalesce(target.cudaCompiler, parameters.cudaCompiler) }}") {
                     $cudaVersion = "${{ coalesce(target.cudaCompilerVersion, parameters.cudaCompilerVersion) }}" -replace "_","."
@@ -183,10 +179,11 @@ jobs:
                     & sudo dpkg -i $cudaVersion_URL[$cudaVersion]
                     & wget https://developer.download.nvidia.com/compute/cuda/repos/$ubuntuVersion/x86_64/7fa2af80.pub
                     & sudo apt-key add 7fa2af80.pub
-                    & sudo apt update -qq
-                    $cudaSubpackages = "cuda-core;cuda-cudart-dev;${{ join(';', parameters.cudaSubpackages) }};${{ join(';', target.cudaSubpackages) }};" -replace ";;",";" -replace ";;",";" -replace ";","-$cudaVersion_Dash " -split " "
-                    $packages += $cudaSubpackages
+                    #$cudaPackages = "cuda-core;cuda-cudart-dev;${{ join(';', parameters.cudaPackages) }};${{ join(';', target.cudaPackages) }};" -replace ";;",";" -replace ";;",";" -replace ";","-$cudaVersion_Dash " -split " "
+                    $cudaPackages = "cuda-compiler;cuda-libraries-dev;${{ join(';', parameters.cudaPackages) }};${{ join(';', target.cudaPackages) }};" -replace ";;",";" -replace ";;",";" -replace ";","-$cudaVersion_Dash " -split " "
+                    $packages += $cudaPackages
                 }
+                & sudo apt-get update
                 & sudo apt-get install $packages
                 & ln -s /usr/bin/cmake $HOME/bin/cmake
             }
