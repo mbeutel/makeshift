@@ -1,8 +1,9 @@
 # Azure Pipelines job template for CMake builds
+# Revision 1
 # Author: Moritz Beutel
 
 ## Variables:
-#  revision: 5
+#  revision:
 
 ### Vcpkg repository
 #  vcpkgRepo: 'https://github.com/microsoft/vcpkg.git' # optional
@@ -55,72 +56,51 @@ jobs:
             vmImage: 'macOS-10.14'
 
         steps:
-        - powershell: |
+        - pwsh: |
             if ("$env:vcpkgRef" -and !"$env:vcpkgRepo") {
-                Write-Host "##vso[task.setvariable variable=vcpkgRepo]https://github.com/microsoft/vcpkg.git"
+                echo "##vso[task.setvariable variable=vcpkgRepo]https://github.com/microsoft/vcpkg.git"
             }
             if (!"$env:cmakeListsTxtPath") {
-                Write-Host "##vso[task.setvariable variable=cmakeListsTxtPath]$(Build.SourcesDirectory)/CMakeLists.txt"
+                echo "##vso[task.setvariable variable=cmakeListsTxtPath]$(Build.SourcesDirectory)/CMakeLists.txt"
             }
-            $vcpkgTriplet = "${{ coalesce(compiler.vcpkgTriplet, parameters.vcpkgTriplet, variables.vcpkgTriplet, '<platform>-<os>') }}" -replace "<os>","windows" -replace "<platform>","${{ platform }}"
-            Write-Host "##vso[task.setvariable variable=buildCacheKey]$env:vcpkgRepo $env:vcpkgRef $env:vcpkgOverlayRepo $env:vcpkgOverlayRef $env:vcpkgArgs $vcpkgTriplet ${{ compiler.compiler }} $env:revision 1"
-            #Write-Host "##vso[task.setvariable variable=Path]$(Build.BinariesDirectory)/dependencies/cmake/bin;${env:Path}"
-            Write-Host "##vso[task.setvariable variable=VCPKG_ROOT]$(Build.BinariesDirectory)/dependencies/vcpkg"
-            Write-Host "##vso[task.setvariable variable=VCPKG_TRIPLET]$vcpkgTriplet"
-            if ("${{ compiler.compiler }}" -eq "Clang") {
-                #$vsPath = &"${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"  -latest -prerelease -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
-                #$clangClPath = Join-Path $vsPath 'VC\Tools\Llvm\bin\clang-cl.exe'
-                $clangClPath = "${env:ProgramFiles}\LLVM\bin\clang-cl.exe"
-                $clangClCompatPath = $clangClPath -replace '\\','/'
-                Write-Host "##vso[task.setvariable variable=cmakeCompilerFlag]-DCMAKE_C_COMPILER=`"$clangClCompatPath`" -DCMAKE_CXX_COMPILER=`"$clangClCompatPath`""
-            }
-          displayName: Set environment variables
-          condition: eq(variables['Agent.OS'], 'Windows_NT')
-        - bash: |
-            if [[ "$vcpkgRef" && -z "$vcpkgRepo" ]]; then
-              echo "##vso[task.setvariable variable=vcpkgRepo]https://github.com/microsoft/vcpkg.git"
-            fi
-            if [[ -z "$cmakeListsTxtPath" ]]; then
-              echo "##vso[task.setvariable variable=cmakeListsTxtPath]$(Build.SourcesDirectory)/CMakeLists.txt"
-            fi
-            vcpkgTriplet='${{ coalesce(compiler.vcpkgTriplet, parameters.vcpkgTriplet, variables.vcpkgTriplet, '<platform>-<os>') }}'
-            vcpkgTriplet=${vcpkgTriplet/<os>/linux}
-            vcpkgTriplet=${vcpkgTriplet/<platform>/${{ platform }}}
-            echo "##vso[task.setvariable variable=buildCacheKey]$vcpkgRepo $vcpkgRef $vcpkgOverlayRepo $vcpkgOverlayRef $vcpkgArgs $vcpkgTriplet ${{ compiler.compiler }} $revision 1"
-            echo "##vso[task.setvariable variable=PATH]$HOME/bin:${PATH}"
+            if ($IsWindows) { $tripletOS = "windows" }
+            elseif ($IsLinux) { $tripletOS = "linux" }
+            elseif ($IsMacOS) { $tripletOS = "osx" }
+            $vcpkgTriplet = "${{ coalesce(compiler.vcpkgTriplet, parameters.vcpkgTriplet, variables.vcpkgTriplet, '<platform>-<os>') }}" -replace "<os>","$tripletOS" -replace "<platform>","${{ platform }}"
+            echo "##vso[task.setvariable variable=buildCacheKey]$env:vcpkgRepo $env:vcpkgRef $env:vcpkgOverlayRepo $env:vcpkgOverlayRef $env:vcpkgArgs $vcpkgTriplet ${{ compiler.compiler }} $env:revision 1"
+            #echo "##vso[task.setvariable variable=Path]$(Build.BinariesDirectory)/dependencies/cmake/bin;${env:Path}"
             echo "##vso[task.setvariable variable=VCPKG_ROOT]$(Build.BinariesDirectory)/dependencies/vcpkg"
             echo "##vso[task.setvariable variable=VCPKG_TRIPLET]$vcpkgTriplet"
-            #echo "##vso[task.setvariable variable=VCPKG_TRIPLET]${{ platform }}-linux${{ variables.vcpkgTripletSuffix }}"
-            if [[ "${{ compiler.compiler }}" == "GCC" ]]; then
-              echo "##vso[task.setvariable variable=CC]gcc-${{ compilerVersion }}"
-              echo "##vso[task.setvariable variable=CXX]g++-${{ compilerVersion }}"
-            elif [[ "${{ compiler.compiler }}" == "Clang" ]]; then
-              echo "##vso[task.setvariable variable=CC]clang-${{ compilerVersion }}"
-              echo "##vso[task.setvariable variable=CXX]clang++-${{ compilerVersion }}"
-            fi
+            if ($IsWindows) {
+                if ("${{ compiler.compiler }}" -eq "Clang") {
+                    #$vsPath = &"${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"  -latest -prerelease -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+                    #$clangClPath = Join-Path $vsPath 'VC\Tools\Llvm\bin\clang-cl.exe'
+                    $clangClPath = "${env:ProgramFiles}\LLVM\bin\clang-cl.exe"
+                    $clangClCompatPath = $clangClPath -replace '\\','/'
+                    $cmakeCompilerFlag = "-DCMAKE_C_COMPILER=`"$clangClCompatPath`" -DCMAKE_CXX_COMPILER=`"$clangClCompatPath`""
+                }
+            }
+            elseif ($IsLinux) {
+                if ("${{ compiler.compiler }}" == "GCC") {
+                    echo "##vso[task.setvariable variable=CC]gcc-${{ compilerVersion }}"
+                    echo "##vso[task.setvariable variable=CXX]g++-${{ compilerVersion }}"
+                }
+                elseif ("${{ compiler.compiler }}" == "Clang") {
+                    echo "##vso[task.setvariable variable=CC]clang-${{ compilerVersion }}"
+                    echo "##vso[task.setvariable variable=CXX]clang++-${{ compilerVersion }}"
+                }
+            }
+            elseif ($IsMacOS) {
+                if ("${{ compiler.compiler }}" == "GCC") {
+                    echo "##vso[task.setvariable variable=CXXFLAGS_OLD]$CXXFLAGS"
+                    echo "##vso[task.setvariable variable=CXXFLAGS]$CXXFLAGS -fvisibility=hidden -fvisibility-inlines-hidden"
+                    echo "##vso[task.setvariable variable=CC]gcc-${{ compilerVersion }}"
+                    echo "##vso[task.setvariable variable=CXX]g++-${{ compilerVersion }}"
+                }
+            }
+            echo "##vso[task.setvariable variable=finalCMakeConfigArgs]$cmakeCompilerFlag $env:cmakeConfigArgs ${{ parameters.cmakeConfigArgs }} ${{ compiler.cmakeConfigArgs }}"
+            echo "##vso[task.setvariable variable=finalNinjaBuildArgs]$env:ninjaBuildArgs ${{ parameters.ninjaBuildArgs }} ${{ compiler.ninjaBuildArgs }}"
           displayName: Set environment variables
-          condition: eq(variables['Agent.OS'], 'Linux')
-        - script: |
-            if [[ "$vcpkgRef" && -z "$vcpkgRepo" ]]; then
-              echo "##vso[task.setvariable variable=vcpkgRepo]https://github.com/microsoft/vcpkg.git"
-            fi
-            if [[ -z "$cmakeListsTxtPath" ]]; then
-              echo "##vso[task.setvariable variable=cmakeListsTxtPath]$(Build.SourcesDirectory)/CMakeLists.txt"
-            fi
-            vcpkgTriplet='${{ coalesce(compiler.vcpkgTriplet, parameters.vcpkgTriplet, variables.vcpkgTriplet, '<platform>-<os>') }}'
-            vcpkgTriplet=${vcpkgTriplet/<os>/osx}
-            vcpkgTriplet=${vcpkgTriplet/<platform>/${{ platform }}}
-            echo "##vso[task.setvariable variable=buildCacheKey]$vcpkgRepo $vcpkgRef $vcpkgOverlayRepo $vcpkgOverlayRef $vcpkgArgs $vcpkgTriplet ${{ compiler.compiler }} $revision 1"
-            echo "##vso[task.setvariable variable=VCPKG_ROOT]$(Build.BinariesDirectory)/dependencies/vcpkg"
-            echo "##vso[task.setvariable variable=VCPKG_TRIPLET]$vcpkgTriplet"
-            if [[ "${{ parameters.compiler }}" == "GCC" ]]; then
-              echo "##vso[task.setvariable variable=CXXFLAGS_OLD]$CXXFLAGS"
-              echo "##vso[task.setvariable variable=CXXFLAGS]$CXXFLAGS -fvisibility=hidden -fvisibility-inlines-hidden"
-              echo "##vso[task.setvariable variable=CC]gcc-${{ compilerVersion }}"
-              echo "##vso[task.setvariable variable=CXX]g++-${{ compilerVersion }}"
-            fi
-          displayName: Set environment variables
-          condition: eq(variables['Agent.OS'], 'Darwin')
 
         - task: CacheBeta@1
           displayName: Cache dependencies
@@ -130,66 +110,54 @@ jobs:
             cacheHitVar: 'dependencyCacheHit'
             condition: ne(variables.vcpkgRef, '')
 
-        - powershell: |
-            if ("${{ compiler.compiler }}" -eq "Clang") {
-                & choco install -y llvm
+        - pwsh: |
+            if ($IsWindows) {
+                if ("${{ compiler.compiler }}" -eq "Clang") {
+                    & choco install -y llvm
+                }
+            }
+            elseif ($IsLinux) {
+                & wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | sudo apt-key add -
+                & sudo apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main'
+                if ("${{ compiler.compiler }}" == "GCC") {
+                    & sudo apt-add-repository ppa:ubuntu-toolchain-r/test
+                }
+                elseif ("${{ compiler.compiler }}" == "Clang") {
+                    & sudo apt-add-repository "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-${{ compilerVersion }} main"
+                }
+                & sudo apt-get update
+                if ("${{ compiler.compiler }}" == "GCC") {
+                    & sudo apt-get install cmake gcc-${{ compilerVersion }} g++-${{ compilerVersion }}
+                }
+                elseif ("${{ compiler.compiler }}" == "Clang") {
+                    & sudo apt-get install cmake clang-${{ compilerVersion }}
+                }
+                mkdir -Force ~/bin
+                & ln -s /usr/bin/cmake ~/bin/cmake
+            }
+            elseif ($IsMacOS) {
+                & sudo xcode-select -s /Applications/Xcode_10.3.app/Contents/Developer
+                & brew install gcc@9
+                if ("${{ compiler.compiler }}" == "GCC") {
+                    & brew install gcc@${{ compilerVersion }}
+                }
             }
           displayName: Install tools
-          condition: eq(variables['Agent.OS'], 'Windows_NT')
-        - bash: |
-            wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | sudo apt-key add -
-            sudo apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main'
-            if [[ "${{ compiler.compiler }}" == "GCC" ]]; then
-              sudo apt-add-repository ppa:ubuntu-toolchain-r/test
-            elif [[ "${{ compiler.compiler }}" == "Clang" ]]; then
-              sudo apt-add-repository "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-${{ compilerVersion }} main"
-            fi
-            sudo apt-get update
-            if [[ "${{ compiler.compiler }}" == "GCC" ]]; then
-              sudo apt-get install cmake gcc-${{ compilerVersion }} g++-${{ compilerVersion }}
-            elif [[ "${{ compiler.compiler }}" == "Clang" ]]; then
-              sudo apt-get install cmake clang-${{ compilerVersion }}
-            fi
-            mkdir -p ~/bin
-            ln -s /usr/bin/cmake ~/bin/cmake
-          displayName: Install tools
-          condition: eq(variables['Agent.OS'], 'Linux')
-        - script: |
-            sudo xcode-select -s /Applications/Xcode_10.3.app/Contents/Developer
-            brew install gcc@9
-            if [[ "${{ parameters.compiler }}" == "GCC" ]]; then
-              brew install gcc@${{ compilerVersion }}
-            fi
-          displayName: Install tools
-          condition: eq(variables['Agent.OS'], 'Darwin')
 
-        - powershell: |
+        - pwsh: |
             if ("$env:vcpkgOverlayRepo" -and "$env:vcpkgOverlayRef") {
                 & git clone "$env:vcpkgOverlayRepo" "$(Build.BinariesDirectory)/dependencies/overlay-repo"
                 cd "$(Build.BinariesDirectory)/dependencies/overlay-repo"
                 & git checkout --quiet --force "$env:vcpkgOverlayRef"
                 mkdir -Force "$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/ports"
                 mkdir -Force "$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/triplets"
-                Write-Host "##vso[task.setvariable variable=vcpkgOverlayArgs]--overlay-ports=`"$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/ports`" --overlay-triplets=`"$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/triplets`"
+                echo "##vso[task.setvariable variable=vcpkgOverlayArgs]--overlay-ports=`"$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/ports`" --overlay-triplets=`"$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/triplets`"
             }
             else {
-                Write-Host "##vso[task.setvariable variable=vcpkgOverlayArgs]"
+                echo "##vso[task.setvariable variable=vcpkgOverlayArgs]"
             }
           displayName: Clone Vcpkg overlay repository
-          condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''), eq(variables['Agent.OS'], 'Windows_NT'))
-        - bash: |
-            if [[ "$vcpkgOverlayRepo" && "$vcpkgOverlayRef" ]]; then
-              git clone "$vcpkgOverlayRepo" "$(Build.BinariesDirectory)/dependencies/overlay-repo"
-              cd "$(Build.BinariesDirectory)/dependencies/overlay-repo"
-              git checkout --quiet --force "$vcpkgOverlayRef"
-              mkdir -p "$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/ports"
-              mkdir -p "$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/triplets"
-              echo '##vso[task.setvariable variable=vcpkgOverlayArgs]--overlay-ports="$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/ports" --overlay-triplets="$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/triplets"'
-            else
-              echo "##vso[task.setvariable variable=vcpkgOverlayArgs]"
-            fi
-          displayName: Clone Vcpkg overlay repository
-          condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''), or(eq(variables['Agent.OS'], 'Linux'), eq(variables['Agent.OS'], 'Darwin')))
+          condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''))
         
         - task: run-vcpkg@0
           displayName: Run Vcpkg to install dependencies
@@ -201,28 +169,22 @@ jobs:
             vcpkgArguments: '$(vcpkgOverlayArgs) "@$(Build.SourcesDirectory)/ci/vcpkg.txt"'
           condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''))
 
-        - script: |
-            rmdir /S /Q "$(Build.BinariesDirectory)/dependencies/vcpkg/buildtrees"
-            rmdir /S /Q "$(Build.BinariesDirectory)/dependencies/vcpkg/downloads"
-            rmdir /S /Q "$(Build.BinariesDirectory)/dependencies/vcpkg/packages"
+        - pwsh: |
+            Remove-Item -Recurse -Force "$(Build.BinariesDirectory)/dependencies/vcpkg/buildtrees"
+            Remove-Item -Recurse -Force "$(Build.BinariesDirectory)/dependencies/vcpkg/downloads"
+            Remove-Item -Recurse -Force "$(Build.BinariesDirectory)/dependencies/vcpkg/packages"
           displayName: Delete temporary files
-          condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''), eq(variables['Agent.OS'], 'Windows_NT'))
-        - script: |
-            rm -rf "$(Build.BinariesDirectory)/dependencies/vcpkg/buildtrees"
-            rm -rf "$(Build.BinariesDirectory)/dependencies/vcpkg/downloads"
-            rm -rf "$(Build.BinariesDirectory)/dependencies/vcpkg/packages"
-          displayName: Delete temporary files
-          condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''), or(eq(variables['Agent.OS'], 'Linux'), eq(variables['Agent.OS'], 'Darwin')))
+          condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''))
 
-        - script: |
-            if [[ "${{ parameters.compiler }}" == "GCC" ]]; then
-              echo "##vso[task.setvariable variable=CXXFLAGS]$CXXFLAGS_OLD"
-            fi
-            if [[ "${{ parameters.compiler }}" == "AppleClang" ]]; then
-              sudo xcode-select -s /Applications/Xcode_11.1.app/Contents/Developer
-              echo "##vso[task.setvariable variable=CC]clang"
-              echo "##vso[task.setvariable variable=CXX]clang++"
-            fi
+        - pwsh: |
+            if ("${{ compiler.compiler }}" == "GCC") {
+                echo "##vso[task.setvariable variable=CXXFLAGS]$CXXFLAGS_OLD"
+            }
+            elseif ("${{ compiler.compiler }}" == "AppleClang") {
+                & sudo xcode-select -s /Applications/Xcode_11.1.app/Contents/Developer
+                echo "##vso[task.setvariable variable=CC]clang"
+                echo "##vso[task.setvariable variable=CXX]clang++"
+            }
           displayName: Set environment variables
           condition: eq(variables['Agent.OS'], 'Darwin')
 
@@ -234,8 +196,8 @@ jobs:
               cmakeListsTxtPath: '$(cmakeListsTxtPath)'
               useVcpkgToolchainFile: true
               buildDirectory: '$(Build.BinariesDirectory)/build/${{ config }}'
-              cmakeAppendedArgs: '-G Ninja ${{ variables.cmakeCompilerFlag }} -DCMAKE_BUILD_TYPE=${{ config }} ${{ variables.cmakeConfigArgs }} ${{ parameters.cmakeConfigArgs }} ${{ compiler.cmakeConfigArgs }}'
-              buildWithCMakeArgs: '--parallel -- -v ${{ variables.ninjaBuildArgs }} ${{ parameters.ninjaBuildArgs }} ${{ compiler.ninjaBuildArgs }}'
+              cmakeAppendedArgs: '-G Ninja $(finalCMakeConfigArgs) -DCMAKE_BUILD_TYPE=${{ config }}'
+              buildWithCMakeArgs: '--parallel -- -v $(finalNinjaBuildArgs)'
 
           - script: |
               ctest -V -T Test
