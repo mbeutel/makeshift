@@ -32,7 +32,7 @@ jobs:
       cxxCompiler: MSVC
       cxxCompilerVersions: [2019]
       cudaCompiler: NVCC
-      cudaCompilerVersions: 10_2
+      cudaCompilerVersion: 10_2
       platforms: [x64]
       cmakeConfigArgs: '-DMAKESHIFT_BUILD_CUDA_TESTS=ON'
 
@@ -55,13 +55,13 @@ jobs:
       vcpkgTriplet: <platform>-<os>-sanitize
       cmakeConfigArgs: '-DCMAKESHIFT_PRIVATE_COMPILE_SETTINGS=runtime-checks;debug-stdlib'
 
-    #- os: Linux
-    #  cxxCompiler: GCC
-    #  cxxCompilerVersions: [9]
-    #  cudaCompiler: NVCC
-    #  cudaCompilerVersions: 10_2
-    #  platforms: [x64]
-    #  cmakeConfigArgs: '-DMAKESHIFT_BUILD_CUDA_TESTS=ON'
+    - os: Linux
+      cxxCompiler: GCC
+      cxxCompilerVersions: [9]
+      cudaCompiler: NVCC
+      cudaCompilerVersion: 10_2
+      platforms: [x64]
+      cmakeConfigArgs: '-DMAKESHIFT_BUILD_CUDA_TESTS=ON'
 
     - os: MacOS
       cxxCompiler: GCC
