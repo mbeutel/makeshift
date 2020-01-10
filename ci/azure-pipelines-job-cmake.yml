@@ -144,42 +144,50 @@ jobs:
                 if ("${{ coalesce(target.cudaCompiler, parameters.cudaCompiler) }}") {
                     $cudaVersion = "${{ coalesce(target.cudaCompilerVersion, parameters.cudaCompilerVersion) }}" -replace "_","."
                     $cudaVersion_URL = @{
+                        '10.1'='http://developer.download.nvidia.com/compute/cuda/10.1/Prod/network_installers/cuda_10.1.105_win10_network.exe',
                         '10.2'='http://developer.download.nvidia.com/compute/cuda/10.2/Prod/network_installers/cuda_10.2.89_win10_network.exe'
                     }
                     $cudaSubpackages = "nvcc;${{ join(';', parameters.cudaSubpackages) }};${{ join(';', target.cudaSubpackages) }};" -replace ";;",";" -replace ";;",";" -replace ";","_$cudaVersion " -split " "
                     Invoke-WebRequest $cudaVersion_URL[$cudaVersion] -OutFile "$HOME/cuda_installer_network.exe"
-                    echo $cudaSubpackages
                     & "$HOME/cuda_installer_network.exe" -s $cudaSubpackages
                 }
             }
             elseif ($IsLinux) {
+                $packages = @('cmake')
                 & wget -O "$HOME/kitware-archive-latest.asc" https://apt.kitware.com/keys/kitware-archive-latest.asc
                 & sudo apt-key add "$HOME/kitware-archive-latest.asc"
                 & sudo apt-add-repository "deb https://apt.kitware.com/ubuntu/ bionic main"
                 if ("${{ coalesce(target.cxxCompiler, parameters.cxxCompiler) }}" -eq "GCC") {
                     & sudo apt-add-repository ppa:ubuntu-toolchain-r/test
-                    & sudo apt-get update
-                    & sudo apt-get install cmake gcc-${{ cxxCompilerVersion }} g++-${{ cxxCompilerVersion }}
+                    #& sudo apt-get update
+                    $packages += ('gcc-${{ cxxCompilerVersion }}', 'g++-${{ cxxCompilerVersion }}')
+                    #& sudo apt-get install cmake gcc-${{ cxxCompilerVersion }} g++-${{ cxxCompilerVersion }}
                 }
                 elseif ("${{ coalesce(target.cxxCompiler, parameters.cxxCompiler) }}" -eq "Clang") {
                     if (${{ cxxCompilerVersion }} -lt 7) {
                         $versionSuffix = ".0"
                     }
                     & sudo apt-add-repository "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-${{ cxxCompilerVersion }} main"
-                    & sudo apt-get update
-                    & sudo apt-get install cmake clang-${{ cxxCompilerVersion }}$versionSuffix
+                    #& sudo apt-get update
+                    $packages += 'clang-${{ cxxCompilerVersion }}$versionSuffix'
+                    #& sudo apt-get install cmake clang-${{ cxxCompilerVersion }}$versionSuffix
                 }
                 if ("${{ coalesce(target.cudaCompiler, parameters.cudaCompiler) }}") {
-                    $cudaVersion = "${{ coalesce(target.cudaCompilerVersion, parameters.cudaCompilerVersion) }}" -replace "_","-"
-                    $cudaSubpackages = "cuda-core;cuda-cudart-dev;${{ join(';', parameters.cudaSubpackages) }};${{ join(';', target.cudaSubpackages) }};" -replace ";;",";" -replace ";;",";" -replace ";","-$cudaVersion "
-                    & wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/cuda-ubuntu1804.pin
-                    & sudo mv cuda-ubuntu1804.pin /etc/apt/preferences.d/cuda-repository-pin-600
-                    & sudo apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/7fa2af80.pub
-                    & sudo add-apt-repository "deb http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/ /"
-                    & sudo apt-get update
-                    & sudo apt-get -y install $cudaSubpackages
+                    $cudaVersion = "${{ coalesce(target.cudaCompilerVersion, parameters.cudaCompilerVersion) }}" -replace "_","."
+                    $cudaVersion_Dash = $cudaVersion -replace ".","-"
+                    $ubuntuVersion = "ubuntu1804"
+                    $cudaVersion_URL = @{
+                        '10.1'="http://developer.download.nvidia.com/compute/cuda/repos/$ubuntuVersion/x86_64/cuda-repo-${ubuntuVersion}_10.1.105-1_amd64.deb",
+                        '10.2'="http://developer.download.nvidia.com/compute/cuda/repos/$ubuntuVersion/x86_64/cuda-repo-${ubuntuVersion}_10.2.89-1_amd64.deb"
+                    }
+                    & sudo dpkg -i $cudaVersion_URL[$cudaVersion]
+                    & wget https://developer.download.nvidia.com/compute/cuda/repos/$ubuntuVersion/x86_64/7fa2af80.pub
+                    & sudo apt-key add 7fa2af80.pub
+                    & sudo apt update -qq
+                    $cudaSubpackages = "cuda-core;cuda-cudart-dev;${{ join(';', parameters.cudaSubpackages) }};${{ join(';', target.cudaSubpackages) }};" -replace ";;",";" -replace ";;",";" -replace ";","-$cudaVersion_Dash " -split " "
+                    $packages += $cudaSubpackages
                 }
-                & sudo apt-get install cmake
+                & sudo apt-get install $packages
                 & ln -s /usr/bin/cmake $HOME/bin/cmake
             }
             elseif ($IsMacOS) {
@@ -247,7 +255,7 @@ jobs:
               buildWithCMakeArgs: '--parallel --verbose $(finalCMakeBuildArgs)'
 
           - pwsh: |
-              & ctest -V -T Test env:$finalCMakeTestArgs
+              & ctest -V -T Test $env:finalCMakeTestArgs
             displayName: 'Run tests for ${{ config }}'
             workingDirectory: '$(Build.BinariesDirectory)/build/${{ config }}'
 
