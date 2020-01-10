@@ -139,11 +139,15 @@ jobs:
                 }
                 if ("${{ coalesce(target.cudaCompiler, parameters.cudaCompiler) }}") {
                     $cudaVersion = "${{ coalesce(target.cudaCompilerVersion, parameters.cudaCompilerVersion) }}" -replace "_","."
+                    echo "${{ coalesce(target.cudaCompilerVersion, parameters.cudaCompilerVersion) }}"
+                    echo $cudaVersion
                     $cudaVersion_URL = @{
                         '10.2'='http://developer.download.nvidia.com/compute/cuda/10.2/Prod/network_installers/cuda_10.2.89_win10_network.exe'
                     }
-                    Invoke-WebRequest $cudaVersion_URL[$cudaVersion] -OutFile "$HOME/cuda_installer_network.exe"
+                    echo $cudaVersion_URL[$cudaVersion]
                     $cudaSubpackages = "nvcc;${{ join(';', parameters.cudaSubpackages) }};${{ join(';', target.cudaSubpackages) }};" -replace ";;",";" -replace ";;",";" -replace ";","_$cudaVersion "
+                    echo $cudaSubpackages
+                    Invoke-WebRequest $cudaVersion_URL[$cudaVersion] -OutFile "$HOME/cuda_installer_network.exe"
                     & "$HOME/cuda_installer_network.exe" /s $cudaSubpackages
                 }
             }
