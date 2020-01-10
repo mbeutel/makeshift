@@ -160,6 +160,7 @@ struct array_accessor_functor
         return std::get<I>(C{ }());
     }
 };
+
 template <bool IsElementValidNTTP, typename T, typename Is, typename C>
 struct make_array_constval_;
 template <typename T, std::size_t... Is, typename C>
