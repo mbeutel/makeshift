@@ -63,9 +63,16 @@ jobs:
                     $clangClPath = "${env:ProgramFiles}\LLVM\bin\clang-cl.exe"
                     $clangClCompatPath = $clangClPath -replace '\\','/'
                     $cmakeCompilerFlag = "-DCMAKE_C_COMPILER=`"$clangClCompatPath`" -DCMAKE_CXX_COMPILER=`"$clangClCompatPath`""
+                    if ("${{ platform }}" -eq "x86") {
+                        # Workaround for https://gitlab.kitware.com/cmake/cmake/issues/16259
+                        echo "##vso[task.setvariable variable=CFLAGS]-m32"
+                        echo "##vso[task.setvariable variable=CXXFLAGS]-m32"
+                    }
                 }
             }
             elseif ($IsLinux) {
+                New-Item -Type Directory -Force $HOME/bin
+                echo "##vso[task.setvariable variable=PATH]$HOME/bin:${env:PATH}"
                 if ("${{ compiler.compiler }}" -eq "GCC") {
                     echo "##vso[task.setvariable variable=CC]gcc-${{ compilerVersion }}"
                     echo "##vso[task.setvariable variable=CXX]g++-${{ compilerVersion }}"
@@ -118,8 +125,7 @@ jobs:
                 elseif ("${{ compiler.compiler }}" -eq "Clang") {
                     & sudo apt-get install cmake clang-${{ compilerVersion }}
                 }
-                #& New-Item -Type Directory -Force $HOME/bin
-                #& ln -s /usr/bin/cmake $HOME/bin/cmake
+                & ln -s /usr/bin/cmake $HOME/bin/cmake
             }
             elseif ($IsMacOS) {
                 & sudo xcode-select -s /Applications/Xcode_10.3.app/Contents/Developer
