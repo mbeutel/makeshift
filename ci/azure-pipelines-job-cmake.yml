@@ -1,6 +1,20 @@
 # Azure Pipelines job template for CMake builds
 # Version 0.1.1
 # Author: Moritz Beutel
+#
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#     http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 
 parameters:
 
@@ -76,7 +90,7 @@ jobs:
             elseif ($IsLinux) { $tripletOS = "linux" }
             elseif ($IsMacOS) { $tripletOS = "osx" }
             $vcpkgTriplet = "${{ coalesce(target.vcpkgTriplet, parameters.vcpkgTriplet) }}" -replace "<os>","$tripletOS" -replace "<platform>","${{ platform }}"
-            echo "##vso[task.setvariable variable=buildCacheKey]3 ${{ coalesce(target.cxxCompiler, parameters.cxxCompiler) }}${{ cxxCompilerVersion }} ${{ coalesce(target.cudaCompiler, parameters.cudaCompiler) }}${{ coalesce(target.cudaCompilerVersion, parameters.cudaCompilerVersion) }} $vcpkgTriplet;${{ parameters.vcpkgRepo }} ${{ parameters.vcpkgRef }};${{ parameters.vcpkgOverlayRepo }} ${{ parameters.vcpkgOverlayRef }};${{ parameters.vcpkgArgs }} ${{ target.vcpkgArgs }};${{ join(' ', parameters.vcpkgPackages) }} ${{ join(' ', target.vcpkgPackages) }};${{ join(' ', parameters.cudaPackages) }} ${{ join(' ', target.cudaPackages) }}"
+            echo "##vso[task.setvariable variable=buildCacheKey]revision-1b ${{ coalesce(target.cxxCompiler, parameters.cxxCompiler) }}${{ cxxCompilerVersion }} ${{ coalesce(target.cudaCompiler, parameters.cudaCompiler) }}${{ coalesce(target.cudaCompilerVersion, parameters.cudaCompilerVersion) }} $vcpkgTriplet;${{ parameters.vcpkgRepo }} ${{ parameters.vcpkgRef }};${{ parameters.vcpkgOverlayRepo }} ${{ parameters.vcpkgOverlayRef }};${{ parameters.vcpkgArgs }} ${{ target.vcpkgArgs }};${{ join(' ', parameters.vcpkgPackages) }} ${{ join(' ', target.vcpkgPackages) }};${{ join(' ', parameters.cudaPackages) }} ${{ join(' ', target.cudaPackages) }}"
             #echo "##vso[task.setvariable variable=Path]$(Build.BinariesDirectory)/dependencies/cmake/bin;${env:Path}"
             echo "##vso[task.setvariable variable=VCPKG_ROOT]$(Build.BinariesDirectory)/dependencies/vcpkg"
             echo "##vso[task.setvariable variable=VCPKG_TRIPLET]$vcpkgTriplet"
@@ -174,11 +188,13 @@ jobs:
                     $cudaVersion = "${{ coalesce(target.cudaCompilerVersion, parameters.cudaCompilerVersion) }}" -replace "_","."
                     $cudaVersion_Dash = $cudaVersion -replace "\.","-"
                     $ubuntuVersion = "ubuntu1804"
-                    $cudaVersion_URL = @{
-                        '10.1' = "http://developer.download.nvidia.com/compute/cuda/repos/$ubuntuVersion/x86_64/cuda-repo-${ubuntuVersion}_10.1.105-1_amd64.deb"
-                        '10.2' = "http://developer.download.nvidia.com/compute/cuda/repos/$ubuntuVersion/x86_64/cuda-repo-${ubuntuVersion}_10.2.89-1_amd64.deb"
+                    $cudaVersion_installer = @{
+                        '10.1' = "cuda-repo-${ubuntuVersion}_10.1.105-1_amd64.deb"
+                        '10.2' = "cuda-repo-${ubuntuVersion}_10.2.89-1_amd64.deb"
                     }
-                    & sudo dpkg -i $cudaVersion_URL[$cudaVersion]
+                    $installer = $cudaVersion_installer[$cudaVersion]
+                    & wget http://developer.download.nvidia.com/compute/cuda/repos/$ubuntuVersion/x86_64/$installer
+                    & sudo dpkg -i $installer
                     & wget https://developer.download.nvidia.com/compute/cuda/repos/$ubuntuVersion/x86_64/7fa2af80.pub
                     & sudo apt-key add 7fa2af80.pub
                     $cudaPackages = "cuda-core;cuda-cudart-dev;${{ join(';', parameters.cudaPackages) }};${{ join(';', target.cudaPackages) }};" -replace ";;",";" -replace ";;",";" -replace ";","-$cudaVersion_Dash " -split " "
@@ -240,15 +256,15 @@ jobs:
                 echo "##vso[task.setvariable variable=CXXFLAGS]$CXXFLAGS_OLD"
             }
             elseif ("${{ coalesce(target.cxxCompiler, parameters.cxxCompiler) }}" -eq "AppleClang") {
-                $xcodeVersion = "${{ cxxCompilerVersion }}" -replace "_","."
                 $appleClangVersion_xcodeVersion = @{
                     '8_1'    = '8.3.3'
-                    '9'      = '9.2'
+                    '9'      = '9.2'   # also 9.1, 9.0.1, 9.0
                     '9_1'    = '9.4.1'
-                    '10'     = '10.1' # also 10
-                    '10_0_1' = '10.3' # also 10.2, 10.2.1
-                    '11'     = '11.3' # also 11.1, 11.2, 11.2.1
+                    '10'     = '10.1'  # also 10
+                    '10_0_1' = '10.3'  # also 10.2, 10.2.1
+                    '11'     = '11.3'  # also 11.1, 11.2, 11.2.1
                 }
+                $xcodeVersion = $appleClangVersion_xcodeVersion["${{ cxxCompilerVersion }}"]
                 & sudo xcode-select -s /Applications/Xcode_$xcodeVersion.app/Contents/Developer
                 echo "##vso[task.setvariable variable=CC]clang"
                 echo "##vso[task.setvariable variable=CXX]clang++"
