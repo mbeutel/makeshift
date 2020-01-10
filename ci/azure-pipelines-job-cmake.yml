@@ -1,5 +1,5 @@
 # Azure Pipelines job template for CMake builds
-# Version 0.1.1
+# Version 0.1.2
 # Author: Moritz Beutel
 #
 #
@@ -90,6 +90,8 @@ jobs:
             if ($IsWindows) { $tripletOS = "windows" }
             elseif ($IsLinux) { $tripletOS = "linux" }
             elseif ($IsMacOS) { $tripletOS = "osx" }
+            $cmakeCompilerFlag = ""
+            $cmakeCudaCompilerFlag = ""
             $vcpkgTriplet = "${{ coalesce(target.vcpkgTriplet, parameters.vcpkgTriplet) }}" -replace "<os>","$tripletOS" -replace "<platform>","${{ platform }}"
             echo "##vso[task.setvariable variable=buildCacheKey]revision-$revision ${{ coalesce(target.cxxCompiler, parameters.cxxCompiler) }}${{ cxxCompilerVersion }} ${{ coalesce(target.cudaCompiler, parameters.cudaCompiler) }}${{ coalesce(target.cudaCompilerVersion, parameters.cudaCompilerVersion) }} $vcpkgTriplet;${{ parameters.vcpkgRepo }} ${{ parameters.vcpkgRef }};${{ parameters.vcpkgOverlayRepo }} ${{ parameters.vcpkgOverlayRef }};${{ parameters.vcpkgArgs }} ${{ target.vcpkgArgs }};${{ join(' ', parameters.vcpkgPackages) }} ${{ join(' ', target.vcpkgPackages) }};${{ join(' ', parameters.cudaPackages) }} ${{ join(' ', target.cudaPackages) }}"
             #echo "##vso[task.setvariable variable=Path]$(Build.BinariesDirectory)/dependencies/cmake/bin;${env:Path}"
@@ -121,6 +123,7 @@ jobs:
                     echo "##vso[task.setvariable variable=CXX]g++-${{ cxxCompilerVersion }}"
                 }
                 elseif ("${{ coalesce(target.cxxCompiler, parameters.cxxCompiler) }}" -eq "Clang") {
+                    $versionSuffix = ""
                     if (${{ cxxCompilerVersion }} -lt 7) {
                         $versionSuffix = ".0"
                     }
@@ -198,10 +201,9 @@ jobs:
                     & sudo dpkg -i $installer
                     & wget https://developer.download.nvidia.com/compute/cuda/repos/$ubuntuVersion/x86_64/7fa2af80.pub
                     & sudo apt-key add 7fa2af80.pub
-                    $cudaPackages = "cuda-core;cuda-cudart-dev;${{ join(';', parameters.cudaPackages) }};${{ join(';', target.cudaPackages) }};" -replace ";;",";" -replace ";;",";" -replace ";","-$cudaVersion_Dash " -split " "
-                    #$cudaPackages = "cuda-compiler;cuda-libraries-dev;${{ join(';', parameters.cudaPackages) }};${{ join(';', target.cudaPackages) }};" -replace ";;",";" -replace ";;",";" -replace ";","-$cudaVersion_Dash " -split " "
+                    $cudaPackages = "cuda-core;${{ join(';', parameters.cudaPackages) }};${{ join(';', target.cudaPackages) }};" -replace ";;",";" -replace ";;",";" -replace ";","-$cudaVersion_Dash " -split " "
+                    #$cudaPackages = "cuda-core;cuda-cudart-dev;${{ join(';', parameters.cudaPackages) }};${{ join(';', target.cudaPackages) }};" -replace ";;",";" -replace ";;",";" -replace ";","-$cudaVersion_Dash " -split " "
                     $packages += $cudaPackages
-                    echo "packages (CUDA): $packages"
                 }
                 & sudo apt-get update
                 & sudo apt-get install $packages
