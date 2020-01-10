@@ -40,6 +40,11 @@ target_link_libraries(test-makeshift-settings
         gsl::gsl-lite-v1
         Catch2::Catch2
         makeshift)
+if(CMAKE_CXX_COMPILER_ID MATCHES "AppleClang" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 10.0.0)
+    target_compile_options(test-makeshift-settings
+        INTERFACE
+            -Wno-missing-braces)
+endif()
 if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.16)
     target_precompile_headers(test-makeshift-settings
         INTERFACE
