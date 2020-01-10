@@ -174,7 +174,7 @@ jobs:
             if ($IsWindows) {
                 if ("${{ coalesce(target.cxxCompiler, parameters.cxxCompiler) }}" -eq "Clang") {
                     $clangVersion = "${{ cxxCompilerVersion }}.0.0"
-                    Invoke-WebRequest http://releases.llvm.org/$clangVersion/LLVM-$clangVersion-win64.exe -OutFile "$HOME/LLVM-installer.exe"
+                    Invoke-WebRequest -Verbose http://releases.llvm.org/$clangVersion/LLVM-${clangVersion}-win64.exe -OutFile "$HOME/LLVM-installer.exe"
                     & "$HOME/LLVM-installer.exe" /s
                 }
                 if ("${{ coalesce(target.cudaCompiler, parameters.cudaCompiler) }}") {
