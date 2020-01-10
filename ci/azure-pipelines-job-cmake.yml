@@ -146,9 +146,10 @@ jobs:
                     $cudaVersion_URL = @{
                         '10.2'='http://developer.download.nvidia.com/compute/cuda/10.2/Prod/network_installers/cuda_10.2.89_win10_network.exe'
                     }
-                    $cudaSubpackages = "nvcc;${{ join(';', parameters.cudaSubpackages) }};${{ join(';', target.cudaSubpackages) }};" -replace ";;",";" -replace ";;",";" -replace ";","_$cudaVersion "
+                    $cudaSubpackages = "nvcc;${{ join(';', parameters.cudaSubpackages) }};${{ join(';', target.cudaSubpackages) }};" -replace ";;",";" -replace ";;",";" -replace ";","_$cudaVersion " -split " "
                     Invoke-WebRequest $cudaVersion_URL[$cudaVersion] -OutFile "$HOME/cuda_installer_network.exe"
-                    & "$HOME/cuda_installer_network.exe" /s $cudaSubpackages
+                    echo $cudaSubpackages
+                    & "$HOME/cuda_installer_network.exe" -s $cudaSubpackages
                 }
             }
             elseif ($IsLinux) {
@@ -170,7 +171,7 @@ jobs:
                 }
                 if ("${{ coalesce(target.cudaCompiler, parameters.cudaCompiler) }}") {
                     $cudaVersion = "${{ coalesce(target.cudaCompilerVersion, parameters.cudaCompilerVersion) }}" -replace "_","-"
-                    $cudaSubpackages = "cuda-compiler;${{ join(';', parameters.cudaSubpackages) }};${{ join(';', target.cudaSubpackages) }};" -replace ";;",";" -replace ";;",";" -replace ";","-$cudaVersion "
+                    $cudaSubpackages = "cuda-core;cuda-cudart-dev;${{ join(';', parameters.cudaSubpackages) }};${{ join(';', target.cudaSubpackages) }};" -replace ";;",";" -replace ";;",";" -replace ";","-$cudaVersion "
                     & wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/cuda-ubuntu1804.pin
                     & sudo mv cuda-ubuntu1804.pin /etc/apt/preferences.d/cuda-repository-pin-600
                     & sudo apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/7fa2af80.pub
