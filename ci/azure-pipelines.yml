@@ -16,38 +16,56 @@ jobs:
     vcpkgPackages: ['cmakeshift', 'gsl-lite', 'catch2', 'mpark-variant']
 
     cmakeConfigArgs: '-DMAKESHIFT_BUILD_TESTS=ON'
+    cmakeTestArgs: '--exclude-regex "cuda"' # do not run CUDA tests
 
-    compilers:
+    targets:
+
     - os: Windows
-      compiler: MSVC
-      versions: [2019]
+      cxxCompiler: MSVC
+      cxxCompilerVersions: [2019]
       platforms: [x86, x64]
 
     - os: Windows
-      compiler: Clang
-      versions: [9]
+      cxxCompiler: MSVC
+      cxxCompilerVersions: [2019]
+      cudaCompiler: NVCC
+      cudaCompilerVersions: 10_2
+      platforms: [x64]
+      cmakeConfigArgs: '-DMAKESHIFT_BUILD_CUDA_TESTS=ON'
+
+    - os: Windows
+      cxxCompiler: Clang
+      cxxCompilerVersions: [9]
       platforms: [x86, x64]
 
     - os: Linux
-      compiler: GCC
-      versions: [6, 7, 8, 9]
+      cxxCompiler: GCC
+      cxxCompilerVersions: [6, 7, 8, 9]
       platforms: [x64]
       vcpkgTriplet: <platform>-<os>-sanitize
       cmakeConfigArgs: '-DCMAKESHIFT_PRIVATE_COMPILE_SETTINGS=runtime-checks;debug-stdlib'
 
     - os: Linux
-      compiler: Clang
-      versions: [4, 5, 6, 7, 8, 9]
+      cxxCompiler: Clang
+      cxxCompilerVersions: [4, 5, 6, 7, 8, 9]
       platforms: [x64]
       vcpkgTriplet: <platform>-<os>-sanitize
       cmakeConfigArgs: '-DCMAKESHIFT_PRIVATE_COMPILE_SETTINGS=runtime-checks;debug-stdlib'
 
+    #- os: Linux
+    #  cxxCompiler: GCC
+    #  cxxCompilerVersions: [9]
+    #  cudaCompiler: NVCC
+    #  cudaCompilerVersions: 10_2
+    #  platforms: [x64]
+    #  cmakeConfigArgs: '-DMAKESHIFT_BUILD_CUDA_TESTS=ON'
+
     - os: MacOS
-      compiler: GCC
-      versions: [6, 7, 8, 9]
+      cxxCompiler: GCC
+      cxxCompilerVersions: [6, 7, 8, 9]
       platforms: [x64]
 
     - os: MacOS
-      compiler: AppleClang
-      versions: [11]
+      cxxCompiler: AppleClang
+      cxxCompilerVersions: [11_2]
       platforms: [x64]
