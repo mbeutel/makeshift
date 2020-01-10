@@ -47,12 +47,13 @@ jobs:
       - job: '${{ coalesce(compiler.os, parameters.os, variables.os) }}_${{ compiler.compiler }}_${{ compilerVersion }}_${{ platform }}'
         pool:
           name: Azure Pipelines
-          ${{ if eq(parameters.os, 'Windows') }}:
-            vmImage: 'windows-2019'
-          ${{ if eq(parameters.os, 'Linux') }}:
-            vmImage: 'ubuntu-18.04'
-          ${{ if eq(parameters.os, 'MacOS') }}:
-            vmImage: 'macOS-10.14'
+          vmImage:
+            ${{ if eq(parameters.os, 'Windows') }}:
+              'windows-2019'
+            ${{ if eq(parameters.os, 'Linux') }}:
+              'ubuntu-18.04'
+            ${{ if eq(parameters.os, 'MacOS') }}:
+              'macOS-10.14'
 
         steps:
         - powershell: |
