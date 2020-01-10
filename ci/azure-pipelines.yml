@@ -30,21 +30,21 @@ jobs:
 
     - os: Linux
       compiler: GCC
-      versions: [9]
+      versions: [5, 6, 7, 8, 9]
       platforms: [x64]
       vcpkgTriplet: <platform>-<os>-sanitize
       cmakeConfigArgs: '-DCMAKESHIFT_PRIVATE_COMPILE_SETTINGS=runtime-checks;debug-stdlib'
 
     - os: Linux
       compiler: Clang
-      versions: [9]
+      versions: [5, 6, 7, 8, 9]
       platforms: [x64]
       vcpkgTriplet: <platform>-<os>-sanitize
       cmakeConfigArgs: '-DCMAKESHIFT_PRIVATE_COMPILE_SETTINGS=runtime-checks;debug-stdlib'
 
     - os: MacOS
       compiler: GCC
-      versions: [9]
+      versions: [5, 6, 7, 8, 9]
       platforms: [x64]
 
     - os: MacOS
