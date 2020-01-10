@@ -193,7 +193,7 @@ jobs:
 
           - script: |
               ctest -V -T Test
-            displayName: 'Run tests in ${{ config }}'
+            displayName: 'Run tests for ${{ config }}'
             workingDirectory: '$(Build.BinariesDirectory)/build/${{ config }}'
 
         - task: PublishTestResults@2
