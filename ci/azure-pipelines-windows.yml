@@ -18,18 +18,18 @@
 #  cmakeConfigArgs: '' # optional
 #  ninjaBuildArgs: '' # optional
 
-### Image
-# image: '' # optional
+### Operating system
+# os: '' # optional
 
 parameters:
-  image: '' # overrides the eponymous variable
+  os: '' # overrides the eponymous variable
   buildConfigurations: [Debug, RelWithDebInfo]
   cmakeConfigArgs: '' # appends to the eponymous variable
   ninjaBuildArgs: '' # appends to the eponymous variable
   vcpkgArgs: '' # appends to the eponymous variable
   vcpkgTriplet: '' # overrides the eponymous variable
   compilers: []
-#    compiler.image: '' # overrides the eponymous parameter
+#    compiler.os: '' # overrides the eponymous parameter
 #    compiler.platforms: []
 #    compiler.versions: []
 #    compiler.cmakeConfigArgs: '' # appends to the eponymous parameter
@@ -41,10 +41,17 @@ jobs:
 - ${{ each compiler in parameters.compilers }}:
   - ${{ each platform in compiler.platforms }}:
     - ${{ each compilerVersion in compiler.versions }}:
-      - job: '${{ variables[''Agent.OS''] }}_${{ compiler.compiler }}_${{ compilerVersion }}_${{ platform }}'
+      - job: '${{ contains(coalesce(compiler.os, parameters.os, variables.os),''windows'') ${{ variables[''Agent.OS''] }}_${{ compiler.compiler }}_${{ compilerVersion }}_${{ platform }}'
         pool:
           name: Azure Pipelines
-          vmImage: ${{ coalesce(compiler.image, parameters.image, variables.image) }}
+          vmImage:
+          - ${{ if eq(parameters, 'Windows') }}:
+            - 'windows-2019'
+          - ${{ if eq(parameters, 'Linux') }}:
+            - 'ubuntu-18.04'
+          - ${{ if eq(parameters, 'MacOS') }}:
+            - 'macOS-10.14'
+          #vmImage: ${{ coalesce(compiler.image, parameters.image, variables.image) }}
 
         steps:
         - powershell: |

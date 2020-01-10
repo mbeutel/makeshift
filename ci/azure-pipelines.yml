@@ -28,17 +28,17 @@ jobs:
   parameters:
     compilers:
 
-    - image: windows-2019
+    - os: Windows
       compiler: MSVC
       versions: [2019]
       platforms: [x86, x64]
 
-    - image: windows-2019
+    - os: Windows
       compiler: Clang
       versions: [9]
       platforms: [x86, x64]
 
-    - image: ubuntu-18.04
+    - os: Linux
       compiler: GCC
       versions: [9]
       platforms: [x64]
