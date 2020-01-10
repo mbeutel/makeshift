@@ -93,7 +93,7 @@ jobs:
             key: '$(Build.SourcesDirectory)/ci/vcpkg.txt | "$(buildCacheKey)"'
             path: '$(Build.BinariesDirectory)/dependencies'
             cacheHitVar: 'dependencyCacheHit'
-            condition: ne(${{ parameters.vcpkgRef }}, '')
+            condition: ne('${{ parameters.vcpkgRef }}', '')
 
         - pwsh: |
             if ($IsWindows) {
@@ -142,7 +142,7 @@ jobs:
                 echo "##vso[task.setvariable variable=vcpkgOverlayArgs]"
             }
           displayName: Clone Vcpkg overlay repository
-          condition: and(ne(variables.dependencyCacheHit, 'true'), ne(${{ parameters.vcpkgRef }}, ''))
+          condition: and(ne(variables.dependencyCacheHit, 'true'), ne('${{ parameters.vcpkgRef }}', ''))
         
         - task: run-vcpkg@0
           displayName: Run Vcpkg to install dependencies
@@ -152,14 +152,14 @@ jobs:
             vcpkgGitCommitId: '${{ parameters.vcpkgRef }}'
             vcpkgTriplet: '$(VCPKG_TRIPLET)'
             vcpkgArguments: '$(vcpkgOverlayArgs) "@$(Build.SourcesDirectory)/ci/vcpkg.txt"'
-          condition: and(ne(variables.dependencyCacheHit, 'true'), ne(${{ parameters.vcpkgRef }}, ''))
+          condition: and(ne(variables.dependencyCacheHit, 'true'), ne('${{ parameters.vcpkgRef }}', ''))
 
         - pwsh: |
             Remove-Item -Recurse -Force "$(Build.BinariesDirectory)/dependencies/vcpkg/buildtrees"
             Remove-Item -Recurse -Force "$(Build.BinariesDirectory)/dependencies/vcpkg/downloads"
             Remove-Item -Recurse -Force "$(Build.BinariesDirectory)/dependencies/vcpkg/packages"
           displayName: Delete temporary files
-          condition: and(ne(variables.dependencyCacheHit, 'true'), ne(${{ parameters.vcpkgRef }}, ''))
+          condition: and(ne(variables.dependencyCacheHit, 'true'), ne('${{ parameters.vcpkgRef }}', ''))
 
         - pwsh: |
             if ("${{ compiler.compiler }}" -eq "GCC") {
