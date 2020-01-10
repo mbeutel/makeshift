@@ -40,12 +40,12 @@ template <template <typename...> class Z, typename... Ts> struct can_instantiate
 template <std::size_t I, typename T>
 struct type_pack_index_base
 {
-    static constexpr std::size_t index = I;
+    static constexpr std::ptrdiff_t index = I;
     using type = T;
 };
 struct type_pack_no_match
 {
-    static constexpr std::size_t index = std::size_t(-1);
+    static constexpr std::ptrdiff_t index = -1;
 };
 template <typename IsT, typename... Ts> struct type_pack_indexer;
 template <std::size_t... Is, typename... Ts> struct type_pack_indexer<std::index_sequence<Is...>, Ts...> : type_pack_index_base<Is, Ts>... { };
@@ -67,14 +67,14 @@ template <typename T, typename... Ts>
 struct try_type_pack_index_
 {
     using index_base = decltype(detail::select_type_seq_entry_by_type<T>(type_pack_indexer<std::make_index_sequence<sizeof...(Ts)>, Ts...>{ }));
-    static constexpr std::size_t value = index_base::index;
+    static constexpr std::ptrdiff_t value = index_base::index;
 };
 
 template <typename T, typename... Ts>
 struct type_pack_index_
 {
-    static constexpr std::size_t value = type_pack_index_<T, Ts...>::value;
-    static_assert(value != ~std::size_t(0), "type T does not appear in type sequence");
+    static constexpr std::size_t value = std::size_t(try_type_pack_index_<T, Ts...>::value);
+    static_assert(std::ptrdiff_t(value) != -1, "type T does not appear in type sequence");
 };
 
 
@@ -93,7 +93,7 @@ template <std::size_t I, typename... Ts> using nth_type_ = type_pack_element_<I,
 
 #undef MAKESHIFT_BUILTIN_TYPE_PACK_ELEMENT_
 
-template <typename T, typename... Ts> using try_index_of_type = std::integral_constant<std::size_t, detail::try_type_pack_index_<T, Ts...>::value>;
+template <typename T, typename... Ts> using try_index_of_type = std::integral_constant<std::ptrdiff_t, detail::try_type_pack_index_<T, Ts...>::value>;
 
 template <template <typename...> class Z, typename SeqT> struct instantiate_;
 template <template <typename...> class Z, template <typename...> class SeqT, typename... Ts> struct instantiate_<Z, SeqT<Ts...>> { using type = Z<Ts...>; };

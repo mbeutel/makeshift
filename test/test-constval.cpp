@@ -14,15 +14,9 @@
 #include <makeshift/utility.hpp>
 
 
-#if defined(__NVCC__)
-# define MAYBE_UNUSED __attribute__((unused)) // NVCC doesn't suppress the "variable <var> was set but never used" warning when casting to void.
-#else
-# define MAYBE_UNUSED
-#endif
-
 #if defined(__NVCC__) || gsl_BETWEEN(gsl_COMPILER_GNUC_VERSION, 1, 700) || gsl_BETWEEN(gsl_COMPILER_APPLECLANG_VERSION, 1, 900) || defined(__EDG__)
 // These compilers wrongly attempt to deduce a dependent type argument in some cases.
-# define WRONG_DEPENDENT_TYPE_DEDUCTION
+# define ERRONEOUS_DEPENDENT_TYPE_DEDUCTION
 #endif // defined(__NVCC__) || gsl_BETWEEN(gsl_COMPILER_GNUC_VERSION, 1, 700) || gsl_BETWEEN(gsl_COMPILER_APPLECLANG_VERSION, 1, 900) || defined(__EDG__)
 
 
@@ -86,14 +80,14 @@ void expect_type_sequence_tag(mk::type_sequence<Ts...>)
 template <typename C>
 void expect_tuple_like(C c)
 {
-    (void) c;
+    discard_args(c);
 
 #if gsl_CPP17_OR_GREATER
     if constexpr (std::tuple_size_v<C> > 0)
     {
         using std::get;
         std::tuple_element_t<0, C> c0 = get<0>(c);
-        (void) c0;
+        discard_args(c0);
     }
 #endif // gsl_CPP17_OR_GREATER
 }
@@ -149,20 +143,20 @@ TEST_CASE("constval")
 
     auto cA1 = MAKESHIFT_CONSTVAL(std::array<int, 2>{ 4, 2 });
     expect_array_constval_normalization<int, 4, 2>(cA1);
-    mk::mdarray<int, 2> MAYBE_UNUSED ncA1 = cA1;
-    (void) ncA1;
+    mk::mdarray<int, 2> ncA1 = cA1;
+    discard_args(ncA1);
 
     auto cAA1 = MAKESHIFT_CONSTVAL(std::array<std::array<int, 1>, 2>{ std::array<int, 1>{ 4 }, std::array<int, 1>{ 2 } });
-#ifndef WRONG_DEPENDENT_TYPE_DEDUCTION
+#ifndef ERRONEOUS_DEPENDENT_TYPE_DEDUCTION
     expect_nested_array_constval_normalization(cAA1);
-#endif // WRONG_DEPENDENT_TYPE_DEDUCTION
-    mk::mdarray<int, 2, 1> MAYBE_UNUSED ncAA1 = cAA1;
-    (void) ncAA1;
+#endif // ERRONEOUS_DEPENDENT_TYPE_DEDUCTION
+    mk::mdarray<int, 2, 1> ncAA1 = cAA1;
+    discard_args(ncAA1);
 
     auto cTA1 = MAKESHIFT_CONSTVAL(std::make_tuple(std::array<int, 1>{ 3 }, std::array<int, 2>{ 1, 4 }));
     expect_array_tuple_constval_normalization(cTA1);
-    std::tuple<std::array<int, 1>, std::array<int, 2>> MAYBE_UNUSED ncTA1 = cTA1;
-    (void) ncTA1;
+    std::tuple<std::array<int, 1>, std::array<int, 2>> ncTA1 = cTA1;
+    discard_args(ncTA1);
 
     auto cT1 = MAKESHIFT_CONSTVAL(mk::type_c<int>);
     expect_type_tag<int>(cT1);
@@ -184,9 +178,9 @@ TEST_CASE("constval")
         });
     auto cCTA = mk::constval_transform(ToArrayTransform{ }, cCT);
     expect_tuple_like(cCTA);
-#ifndef WRONG_DEPENDENT_TYPE_DEDUCTION
+#ifndef ERRONEOUS_DEPENDENT_TYPE_DEDUCTION
     expect_array_constval_normalization(cCTA);
-#endif // WRONG_DEPENDENT_TYPE_DEDUCTION
+#endif // ERRONEOUS_DEPENDENT_TYPE_DEDUCTION
 
     auto cCTV = mk::constval_transform(ToTupleTransform{ }, cCT);
     expect_tuple_like(cCTV);
@@ -194,13 +188,13 @@ TEST_CASE("constval")
 
     auto cCT1 = mk::c<CustomType const&, SomeClass::ct>;
     static constexpr CustomType c2 = cCT1();
-    (void) c2;
+    discard_args(c2);
     auto cA3 = mk::c<std::array<int, 2> const&, SomeClass::ca>;
     expect_array_constval_normalization(cA3);
 #if gsl_CPP17_OR_GREATER
     auto cCT2 = mk::ref_c<SomeClass::ct>;
     static constexpr CustomType c3 = cCT2();
-    (void) c3;
+    discard_args(c3);
     auto cA4 = mk::ref_c<SomeClass::ca>;
     expect_array_constval_normalization(cA4);
 #endif // gsl_CPP17_OR_GREATER

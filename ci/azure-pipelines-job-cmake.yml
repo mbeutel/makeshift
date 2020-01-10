@@ -90,8 +90,6 @@ jobs:
             if ($IsWindows) { $tripletOS = "windows" }
             elseif ($IsLinux) { $tripletOS = "linux" }
             elseif ($IsMacOS) { $tripletOS = "osx" }
-            $cmakeCompilerFlag = ""
-            $cmakeCudaCompilerFlag = ""
             $vcpkgTriplet = "${{ coalesce(target.vcpkgTriplet, parameters.vcpkgTriplet) }}" -replace "<os>","$tripletOS" -replace "<platform>","${{ platform }}"
             echo "##vso[task.setvariable variable=buildCacheKey]revision-$revision ${{ coalesce(target.cxxCompiler, parameters.cxxCompiler) }}${{ cxxCompilerVersion }} ${{ coalesce(target.cudaCompiler, parameters.cudaCompiler) }}${{ coalesce(target.cudaCompilerVersion, parameters.cudaCompilerVersion) }} $vcpkgTriplet;${{ parameters.vcpkgRepo }} ${{ parameters.vcpkgRef }};${{ parameters.vcpkgOverlayRepo }} ${{ parameters.vcpkgOverlayRef }};${{ parameters.vcpkgArgs }} ${{ target.vcpkgArgs }};${{ join(' ', parameters.vcpkgPackages) }} ${{ join(' ', target.vcpkgPackages) }};${{ join(' ', parameters.cudaPackages) }} ${{ join(' ', target.cudaPackages) }}"
             #echo "##vso[task.setvariable variable=Path]$(Build.BinariesDirectory)/dependencies/cmake/bin;${env:Path}"
@@ -123,7 +121,6 @@ jobs:
                     echo "##vso[task.setvariable variable=CXX]g++-${{ cxxCompilerVersion }}"
                 }
                 elseif ("${{ coalesce(target.cxxCompiler, parameters.cxxCompiler) }}" -eq "Clang") {
-                    $versionSuffix = ""
                     if (${{ cxxCompilerVersion }} -lt 7) {
                         $versionSuffix = ".0"
                     }
@@ -186,7 +183,7 @@ jobs:
                         $versionSuffix = ".0"
                     }
                     & sudo apt-add-repository "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-${{ cxxCompilerVersion }} main"
-                    $packages += 'clang-${{ cxxCompilerVersion }}$versionSuffix'
+                    $packages += "clang-${{ cxxCompilerVersion }}$versionSuffix"
                 }
                 if ("${{ coalesce(target.cudaCompiler, parameters.cudaCompiler) }}") {
                     $cudaVersion = "${{ coalesce(target.cudaCompilerVersion, parameters.cudaCompilerVersion) }}" -replace "_","."
@@ -211,14 +208,16 @@ jobs:
             }
             elseif ($IsMacOS) {
                 # This version of Xcode is known to be compatible with most GCC versions for building Vcpkg.
-                #& sudo xcode-select -s /Applications/Xcode_10.3.app/Contents/Developer
-                & sudo xcode-select -s /Applications/Xcode_10.1.app/Contents/Developer
-                & brew install gcc@9
                 if ("${{ coalesce(target.cxxCompiler, parameters.cxxCompiler) }}" -eq "GCC") {
+                    & sudo xcode-select -s /Applications/Xcode_10.3.app/Contents/Developer
                     & brew install gcc@${{ cxxCompilerVersion }}
                     echo "##vso[task.setvariable variable=CC]gcc"
                     echo "##vso[task.setvariable variable=CXX]g++"
                 }
+                else {
+                    & sudo xcode-select -s /Applications/Xcode_10.1.app/Contents/Developer
+                }
+                & brew install gcc@9
             }
           displayName: Install tools
 
