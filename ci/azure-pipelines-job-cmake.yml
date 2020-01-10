@@ -93,7 +93,7 @@ jobs:
                 }
                 if("${{ coalesce(target.cudaCompiler, parameters.cudaCompiler) }}") {
                     $cudaVersion = "${{ coalesce(target.cudaCompilerVersion, parameters.cudaCompilerVersion) }}" -replace "_","."
-                    $cmakeCudaCompilerFlag="-DCMAKE_CUDA_COMPILER=`"$env:SystemDrive/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v$cudaVersion/bin`""
+                    $cmakeCudaCompilerFlag="-DCMAKE_CUDA_COMPILER=`"$env:SystemDrive/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v$cudaVersion/bin/nvcc.exe`""
                 }
             }
             elseif ($IsLinux) {
