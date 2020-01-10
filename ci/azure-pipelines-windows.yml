@@ -47,12 +47,11 @@ jobs:
       - job: '${{ coalesce(compiler.os, parameters.os, variables.os) }}_${{ compiler.compiler }}_${{ compilerVersion }}_${{ platform }}'
         pool:
           name: Azure Pipelines
-          vmImage: 'windows-2019'
-          ${{ if eq(parameters.os, 'Windows') }}:
+          ${{ if eq(coalesce(compiler.os, parameters.os, variables.os), 'Windows') }}:
             vmImage: 'windows-2019'
-          ${{ if eq(parameters.os, 'Linux') }}:
+          ${{ if eq(coalesce(compiler.os, parameters.os, variables.os), 'Linux') }}:
             vmImage: 'ubuntu-18.04'
-          ${{ if eq(parameters.os, 'MacOS') }}:
+          ${{ if eq(coalesce(compiler.os, parameters.os, variables.os), 'MacOS') }}:
             vmImage: 'macOS-10.14'
 
         steps:
@@ -63,7 +62,7 @@ jobs:
             if (!"$env:cmakeListsTxtPath") {
                 Write-Host "##vso[task.setvariable variable=cmakeListsTxtPath]$(Build.SourcesDirectory)/CMakeLists.txt"
             }
-            $vcpkgTriplet = "${{ coalesce(compiler.vcpkgTriplet, parameters.vcpkgTriplet, variables.vcpkgTriplet, '$(platform)-$(os)') }}" -replace "`$`(os`)","windows" -replace "`$`(platform`)","${{ platform }}"
+            $vcpkgTriplet = "${{ coalesce(compiler.vcpkgTriplet, parameters.vcpkgTriplet, variables.vcpkgTriplet, '<platform>-<os>') }}" -replace "<os>","windows" -replace "<platform>","${{ platform }}"
             Write-Host "##vso[task.setvariable variable=buildCacheKey]$env:vcpkgRepo $env:vcpkgRef $env:vcpkgOverlayRepo $env:vcpkgOverlayRef $env:vcpkgArgs $vcpkgTriplet ${{ compiler.compiler }} $env:revision 1"
             #Write-Host "##vso[task.setvariable variable=Path]$(Build.BinariesDirectory)/dependencies/cmake/bin;${env:Path}"
             Write-Host "##vso[task.setvariable variable=VCPKG_ROOT]$(Build.BinariesDirectory)/dependencies/vcpkg"
@@ -84,9 +83,9 @@ jobs:
             if [[ "$cmakeListsTxtPath" == "" ]]; then
               echo "##vso[task.setvariable variable=cmakeListsTxtPath]$(Build.SourcesDirectory)/CMakeLists.txt"
             fi
-            vcpkgTriplet='${{ coalesce(compiler.vcpkgTriplet, parameters.vcpkgTriplet, variables.vcpkgTriplet, '$(platform)-$(os)') }}'
-            vcpkgTriplet=${vcpkgTriplet/\$\(os\)/linux}
-            vcpkgTriplet=${vcpkgTriplet/\$\(platform\)/${{ platform }}}
+            vcpkgTriplet='${{ coalesce(compiler.vcpkgTriplet, parameters.vcpkgTriplet, variables.vcpkgTriplet, '<platform>-<os>') }}'
+            vcpkgTriplet=${vcpkgTriplet/<os>/linux}
+            vcpkgTriplet=${vcpkgTriplet/<platform>/${{ platform }}}
             echo "##vso[task.setvariable variable=buildCacheKey]$vcpkgRepo $vcpkgRef $vcpkgOverlayRepo $vcpkgOverlayRef $vcpkgArgs $vcpkgTriplet ${{ compiler.compiler }} $revision 1"
             echo "##vso[task.setvariable variable=PATH]$HOME/bin:${PATH}"
             echo "##vso[task.setvariable variable=VCPKG_ROOT]$(Build.BinariesDirectory)/dependencies/vcpkg"
@@ -150,9 +149,9 @@ jobs:
             if [[ "$cmakeListsTxtPath" == "" ]]; then
               echo "##vso[task.setvariable variable=cmakeListsTxtPath]$(Build.SourcesDirectory)/CMakeLists.txt"
             fi
-            vcpkgTriplet='${{ coalesce(compiler.vcpkgTriplet, parameters.vcpkgTriplet, variables.vcpkgTriplet, '$(platform)-$(os)') }}'
-            vcpkgTriplet=${vcpkgTriplet/\$\(os\)/osx}
-            vcpkgTriplet=${vcpkgTriplet/\$\(platform\)/${{ platform }}}
+            vcpkgTriplet='${{ coalesce(compiler.vcpkgTriplet, parameters.vcpkgTriplet, variables.vcpkgTriplet, '<platform>-<os>') }}'
+            vcpkgTriplet=${vcpkgTriplet/<os>/osx}
+            vcpkgTriplet=${vcpkgTriplet/<platform>/${{ platform }}}
             echo "##vso[task.setvariable variable=buildCacheKey]$vcpkgRepo $vcpkgRef $vcpkgOverlayRepo $vcpkgOverlayRef $vcpkgArgs $vcpkgTriplet ${{ compiler.compiler }} $revision 1"
             echo "##vso[task.setvariable variable=VCPKG_ROOT]$(Build.BinariesDirectory)/dependencies/vcpkg"
             echo "##vso[task.setvariable variable=VCPKG_TRIPLET]$vcpkgTriplet"
@@ -166,8 +165,9 @@ jobs:
           condition: eq(variables['Agent.OS'], 'Darwin')
 
         - powershell: |
-            if ("$env:vcpkgOverlayRepo") {
-                & git clone "$env:vcpkgOverlayRepo" -- "$(Build.BinariesDirectory)/dependencies/overlay-repo"
+            if ("$env:vcpkgOverlayRepo" -and "$env:vcpkgOverlayRef") {
+                & git clone "$env:vcpkgOverlayRepo" "$(Build.BinariesDirectory)/dependencies/overlay-repo"
+                cd "$(Build.BinariesDirectory)/dependencies/overlay-repo"
                 & git checkout --force "$env:vcpkgOverlayRef"
                 mkdir -Force "$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/ports"
                 mkdir -Force "$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/triplets"
@@ -179,8 +179,9 @@ jobs:
           displayName: Clone Vcpkg overlay repository
           condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''), eq(variables['Agent.OS'], 'Windows_NT'))
         - bash: |
-            if [[ "$vcpkgOverlayRepo" != "" ]]; then
+            if [[ "$vcpkgOverlayRepo" != "" && "$vcpkgOverlayRef" != "" ]]; then
                 git clone "$vcpkgOverlayRepo" "$(Build.BinariesDirectory)/dependencies/overlay-repo"
+                cd "$(Build.BinariesDirectory)/dependencies/overlay-repo"
                 git checkout --force "$vcpkgOverlayRef"
                 mkdir -p "$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/ports"
                 mkdir -p "$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/triplets"

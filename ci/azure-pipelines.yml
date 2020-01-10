@@ -40,11 +40,13 @@ jobs:
       compiler: GCC
       versions: [9]
       platforms: [x64]
+      vcpkgTriplet: <platform>-<os>-sanitize
 
     - os: Linux
       compiler: Clang
       versions: [9]
       platforms: [x64]
+      vcpkgTriplet: <platform>-<os>-sanitize
 
     - os: MacOS
       compiler: GCC
