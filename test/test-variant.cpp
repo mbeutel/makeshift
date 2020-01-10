@@ -1,5 +1,5 @@
 
-#if defined(__clang__) || (!defined(__apple_build_version__) || __apple_build_version__ >= 10010046) || (!defined(__GNUC__) || __GNUC__ >= 7) // GCC <=6 and AppleClang <=10.0.0 don't have <variant>
+#if (!defined(__apple_build_version__) || __apple_build_version__ >= 10010046) && (!defined(__GNUC__) || defined(__clang__) || __GNUC__ >= 7) // GCC <=6 and AppleClang <=10.0.0 don't have <variant>
 #include <makeshift/variant.hpp>
 #include <makeshift/experimental/variant.hpp>
 
@@ -60,4 +60,4 @@ TEST_CASE("variant")
 
 
 } // anonymous namespace
-#endif // defined(__clang__) || (!defined(__apple_build_version__) || __apple_build_version__ >= 10010046) || (!defined(__GNUC__) || __GNUC__ >= 7)
+#endif // (!defined(__apple_build_version__) || __apple_build_version__ >= 10010046) && (!defined(__GNUC__) || defined(__clang__) || __GNUC__ >= 7)

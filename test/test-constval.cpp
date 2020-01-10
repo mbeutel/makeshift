@@ -14,6 +14,18 @@
 #include <makeshift/utility.hpp>
 
 
+#if defined(__NVCC__)
+# define MAYBE_UNUSED __attribute__((unused)) // NVCC doesn't suppress the "variable <var> was set but never used" warning when casting to void.
+#else
+# define MAYBE_UNUSED
+#endif
+
+#if defined(__NVCC__) || gsl_BETWEEN(gsl_COMPILER_GNUC_VERSION, 1, 700) || gsl_BETWEEN(gsl_COMPILER_APPLECLANG_VERSION, 1, 900) || defined(__EDG__)
+// These compilers wrongly attempt to deduce a dependent type argument in some cases.
+# define WRONG_DEPENDENT_TYPE_DEDUCTION
+#endif // defined(__NVCC__) || gsl_BETWEEN(gsl_COMPILER_GNUC_VERSION, 1, 700) || gsl_BETWEEN(gsl_COMPILER_APPLECLANG_VERSION, 1, 900) || defined(__EDG__)
+
+
 namespace {
 
 
@@ -137,19 +149,19 @@ TEST_CASE("constval")
 
     auto cA1 = MAKESHIFT_CONSTVAL(std::array<int, 2>{ 4, 2 });
     expect_array_constval_normalization<int, 4, 2>(cA1);
-    mk::mdarray<int, 2> ncA1 = cA1;
+    mk::mdarray<int, 2> MAYBE_UNUSED ncA1 = cA1;
     (void) ncA1;
 
     auto cAA1 = MAKESHIFT_CONSTVAL(std::array<std::array<int, 1>, 2>{ std::array<int, 1>{ 4 }, std::array<int, 1>{ 2 } });
-#if !defined(__EDG__) && !defined(__NVCC__) && !gsl_BETWEEN(gsl_COMPILER_GNUC_VERSION, 1, 700) // EDG and GCC 6 wrongly attempt to deduce a dependent type argument
+#ifndef WRONG_DEPENDENT_TYPE_DEDUCTION
     expect_nested_array_constval_normalization(cAA1);
-#endif // !defined(__EDG__) && !defined(__NVCC__) && !gsl_BETWEEN(gsl_COMPILER_GNUC_VERSION, 1, 700)
-    mk::mdarray<int, 2, 1> ncAA1 = cAA1;
+#endif // WRONG_DEPENDENT_TYPE_DEDUCTION
+    mk::mdarray<int, 2, 1> MAYBE_UNUSED ncAA1 = cAA1;
     (void) ncAA1;
 
     auto cTA1 = MAKESHIFT_CONSTVAL(std::make_tuple(std::array<int, 1>{ 3 }, std::array<int, 2>{ 1, 4 }));
     expect_array_tuple_constval_normalization(cTA1);
-    std::tuple<std::array<int, 1>, std::array<int, 2>> ncTA1 = cTA1;
+    std::tuple<std::array<int, 1>, std::array<int, 2>> MAYBE_UNUSED ncTA1 = cTA1;
     (void) ncTA1;
 
     auto cT1 = MAKESHIFT_CONSTVAL(mk::type_c<int>);
@@ -172,9 +184,9 @@ TEST_CASE("constval")
         });
     auto cCTA = mk::constval_transform(ToArrayTransform{ }, cCT);
     expect_tuple_like(cCTA);
-#if !defined(__EDG__) && !defined(__NVCC__) && !gsl_BETWEEN(gsl_COMPILER_GNUC_VERSION, 1, 700) // GCC 6 wrongly attempts to deduce a dependent type argument
+#ifndef WRONG_DEPENDENT_TYPE_DEDUCTION
     expect_array_constval_normalization(cCTA);
-#endif // !defined(__EDG__) && !defined(__NVCC__) && !gsl_BETWEEN(gsl_COMPILER_GNUC_VERSION, 1, 700)
+#endif // WRONG_DEPENDENT_TYPE_DEDUCTION
 
     auto cCTV = mk::constval_transform(ToTupleTransform{ }, cCT);
     expect_tuple_like(cCTV);
