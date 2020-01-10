@@ -71,5 +71,5 @@ jobs:
 
     - os: MacOS
       cxxCompiler: AppleClang
-      cxxCompilerVersions: [9_4_1, 10_0, 10_1, 10_2, 10_2_1, 10_3, 11_0, 11_1, 11_2, 11_2_1, 11_3]
+      cxxCompilerVersions: [9_4_1, 10, 10_1, 10_2, 10_2_1, 10_3, 11, 11_1, 11_2, 11_2_1, 11_3]
       platforms: [x64]

@@ -74,7 +74,7 @@ jobs:
             elseif ($IsLinux) { $tripletOS = "linux" }
             elseif ($IsMacOS) { $tripletOS = "osx" }
             $vcpkgTriplet = "${{ coalesce(target.vcpkgTriplet, parameters.vcpkgTriplet) }}" -replace "<os>","$tripletOS" -replace "<platform>","${{ platform }}"
-            echo "##vso[task.setvariable variable=buildCacheKey]1 ${{ coalesce(target.cxxCompiler, parameters.cxxCompiler) }}${{ cxxCompilerVersion }} ${{ coalesce(target.cudaCompiler, parameters.cudaCompiler) }}${{ coalesce(target.cudaCompilerVersion, parameters.cudaCompilerVersion) }} $vcpkgTriplet;${{ parameters.vcpkgRepo }} ${{ parameters.vcpkgRef }};${{ parameters.vcpkgOverlayRepo }} ${{ parameters.vcpkgOverlayRef }};${{ parameters.vcpkgArgs }} ${{ target.vcpkgArgs }};${{ join(' ', parameters.vcpkgPackages) }} ${{ join(' ', target.vcpkgPackages) }};${{ join(' ', parameters.cudaPackages) }} ${{ join(' ', target.cudaPackages) }}"
+            echo "##vso[task.setvariable variable=buildCacheKey]2 ${{ coalesce(target.cxxCompiler, parameters.cxxCompiler) }}${{ cxxCompilerVersion }} ${{ coalesce(target.cudaCompiler, parameters.cudaCompiler) }}${{ coalesce(target.cudaCompilerVersion, parameters.cudaCompilerVersion) }} $vcpkgTriplet;${{ parameters.vcpkgRepo }} ${{ parameters.vcpkgRef }};${{ parameters.vcpkgOverlayRepo }} ${{ parameters.vcpkgOverlayRef }};${{ parameters.vcpkgArgs }} ${{ target.vcpkgArgs }};${{ join(' ', parameters.vcpkgPackages) }} ${{ join(' ', target.vcpkgPackages) }};${{ join(' ', parameters.cudaPackages) }} ${{ join(' ', target.cudaPackages) }}"
             #echo "##vso[task.setvariable variable=Path]$(Build.BinariesDirectory)/dependencies/cmake/bin;${env:Path}"
             echo "##vso[task.setvariable variable=VCPKG_ROOT]$(Build.BinariesDirectory)/dependencies/vcpkg"
             echo "##vso[task.setvariable variable=VCPKG_TRIPLET]$vcpkgTriplet"
@@ -160,7 +160,6 @@ jobs:
                 if ("${{ coalesce(target.cxxCompiler, parameters.cxxCompiler) }}" -eq "GCC") {
                     & sudo apt-add-repository ppa:ubuntu-toolchain-r/test
                     $packages += ('gcc-${{ cxxCompilerVersion }}', 'g++-${{ cxxCompilerVersion }}')
-                    echo "packages (GCC): $packages"
                 }
                 elseif ("${{ coalesce(target.cxxCompiler, parameters.cxxCompiler) }}" -eq "Clang") {
                     if (${{ cxxCompilerVersion }} -lt 7) {
@@ -168,11 +167,10 @@ jobs:
                     }
                     & sudo apt-add-repository "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-${{ cxxCompilerVersion }} main"
                     $packages += 'clang-${{ cxxCompilerVersion }}$versionSuffix'
-                    echo "packages (Clang): $packages"
                 }
                 if ("${{ coalesce(target.cudaCompiler, parameters.cudaCompiler) }}") {
                     $cudaVersion = "${{ coalesce(target.cudaCompilerVersion, parameters.cudaCompilerVersion) }}" -replace "_","."
-                    $cudaVersion_Dash = $cudaVersion -replace ".","-"
+                    $cudaVersion_Dash = $cudaVersion -replace "\.","-"
                     $ubuntuVersion = "ubuntu1804"
                     $cudaVersion_URL = @{
                         '10.1'="http://developer.download.nvidia.com/compute/cuda/repos/$ubuntuVersion/x86_64/cuda-repo-${ubuntuVersion}_10.1.105-1_amd64.deb"
@@ -187,7 +185,6 @@ jobs:
                     echo "packages (CUDA): $packages"
                 }
                 & sudo apt-get update
-                echo "packages: $packages"
                 & sudo apt-get install $packages
                 & ln -s /usr/bin/cmake $HOME/bin/cmake
             }
@@ -199,8 +196,8 @@ jobs:
                     echo "##vso[task.setvariable variable=CC]gcc"
                     echo "##vso[task.setvariable variable=CXX]g++"
                 }
-                $xcodeVersion = "${{ cxxCompilerVersion }}" -replace "_","."
-                & sudo xcode-select -s /Applications/Xcode_$xcodeVersion.app/Contents/Developer
+                #$xcodeVersion = "${{ cxxCompilerVersion }}" -replace "_","."
+                #& sudo xcode-select -s /Applications/Xcode_$xcodeVersion.app/Contents/Developer
                 #if ("${{ coalesce(target.cxxCompiler, parameters.cxxCompiler) }}" -eq "AppleClang") {
                 #    echo "##vso[task.setvariable variable=CC]clang"
                 #    echo "##vso[task.setvariable variable=CXX]clang++"
