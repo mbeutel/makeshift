@@ -17,7 +17,7 @@ jobs:
     vcpkgOverlayRepo: 'https://mp-force.ziti.uni-heidelberg.de/asc/infrastructure/vcpkg-ports.git'
     vcpkgOverlayRef: a08517fb77e9d48d00dd33c16e5acd01f8b31f29
   
-    cmakeConfigArgs: '-DMAKESHIFT_BUILD_TESTS=ON -DCMAKESHIFT_PRIVATE_COMPILE_SETTINGS=$<$<CONFIG:Debug>:runtime-checks;debug-stdlib>'
+    cmakeConfigArgs: '-DMAKESHIFT_BUILD_TESTS=ON'
 
     compilers:
     - os: Windows
@@ -35,12 +35,14 @@ jobs:
       versions: [9]
       platforms: [x64]
       vcpkgTriplet: <platform>-<os>-sanitize
+      cmakeConfigArgs: '-DCMAKESHIFT_PRIVATE_COMPILE_SETTINGS=runtime-checks;debug-stdlib'
 
     - os: Linux
       compiler: Clang
       versions: [9]
       platforms: [x64]
       vcpkgTriplet: <platform>-<os>-sanitize
+      cmakeConfigArgs: '-DCMAKESHIFT_PRIVATE_COMPILE_SETTINGS=runtime-checks;debug-stdlib'
 
     - os: MacOS
       compiler: GCC

@@ -102,7 +102,8 @@ jobs:
                 }
             }
             elseif ($IsLinux) {
-                & wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>$null | & sudo apt-key add -
+                & wget -O "$HOME/kitware-archive-latest.asc" https://apt.kitware.com/keys/kitware-archive-latest.asc
+                & sudo apt-key add "$HOME/kitware-archive-latest.asc"
                 & sudo apt-add-repository "deb https://apt.kitware.com/ubuntu/ bionic main"
                 if ("${{ compiler.compiler }}" -eq "GCC") {
                     & sudo apt-add-repository ppa:ubuntu-toolchain-r/test
@@ -117,8 +118,8 @@ jobs:
                 elseif ("${{ compiler.compiler }}" -eq "Clang") {
                     & sudo apt-get install cmake clang-${{ compilerVersion }}
                 }
-                mkdir -Force ~/bin
-                & ln -s /usr/bin/cmake ~/bin/cmake
+                #& New-Item -Type Directory -Force $HOME/bin
+                #& ln -s /usr/bin/cmake $HOME/bin/cmake
             }
             elseif ($IsMacOS) {
                 & sudo xcode-select -s /Applications/Xcode_10.3.app/Contents/Developer
@@ -134,8 +135,8 @@ jobs:
                 & git clone ${{ parameters.vcpkgOverlayRepo }} "$(Build.BinariesDirectory)/dependencies/overlay-repo"
                 cd "$(Build.BinariesDirectory)/dependencies/overlay-repo"
                 & git checkout --quiet --force ${{ parameters.vcpkgOverlayRef }}
-                mkdir -Force "$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/ports"
-                mkdir -Force "$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/triplets"
+                New-Item -Type Directory -Force "$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/ports"
+                New-Item -Type Directory -Force "$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/triplets"
                 echo "##vso[task.setvariable variable=vcpkgOverlayArgs]--overlay-ports=`"$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/ports`" --overlay-triplets=`"$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/triplets`"
             }
             else {
