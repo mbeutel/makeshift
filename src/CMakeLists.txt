@@ -12,16 +12,10 @@ find_package(gsl-lite 0.35.5 REQUIRED)
 
 # library target
 add_library(makeshift INTERFACE)
-
-# library properties
+target_compile_features(makeshift INTERFACE cxx_std_14)
 target_include_directories(makeshift
     INTERFACE
         "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>")
-target_compile_features(makeshift
-    INTERFACE
-        cxx_std_14)
-
-# library dependencies
 target_link_libraries(makeshift
     INTERFACE
         gsl::gsl-lite-v1)

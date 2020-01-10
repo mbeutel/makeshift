@@ -12,10 +12,30 @@ find_package(CMakeshift 3.7 REQUIRED)
 find_package(gsl-lite 0.35.5 REQUIRED)
 find_package(mpark_variant REQUIRED)
 
+include(CMakeshift/TargetCompileSettings)
+
+# test runner target
+add_library(test-makeshift-runner OBJECT
+    "main.cpp")
+target_compile_features(test-makeshift-runner PRIVATE cxx_std_14)
+cmakeshift_target_compile_settings(test-makeshift-runner PRIVATE default)
+target_link_libraries(test-makeshift-runner
+    PRIVATE
+        Catch2::Catch2)
+
 # common settings target
 add_library(test-makeshift-settings INTERFACE)
-
-# precompiled headers
+target_compile_definitions(test-makeshift-settings
+    INTERFACE
+        CATCH_CONFIG_CONSOLE_WIDTH=120
+        CATCH_CLARA_CONFIG_CONSOLE_WIDTH=120
+        gsl_CONFIG_CONTRACT_CHECKING_AUDIT # run audit-level checks
+        gsl_CONFIG_CONTRACT_VIOLATION_THROWS) # this makes gsl-lite's precondition assertions throw `gsl::fail_fast` on failure
+target_link_libraries(test-makeshift-settings
+    INTERFACE
+        gsl::gsl-lite-v1
+        Catch2::Catch2
+        makeshift)
 if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.16)
     target_precompile_headers(test-makeshift-settings
         INTERFACE
@@ -27,8 +47,7 @@ if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.16)
             <tuple>
             <iosfwd>
             <utility>
-            <iterator>  # TODO: ?
-            <algorithm> # TODO: ?
+            <iterator>
             <exception>
             <type_traits>
             # other libraries
@@ -37,10 +56,8 @@ if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.16)
 endif()
 
 # test runner target
-add_library(test-makeshift-runner OBJECT
-    "main.cpp")
 
-# test targets
+# C++14 tests
 add_executable(test-makeshift-cxx14
     "test-algorithm.cpp"
     "test-array.cpp"
@@ -56,64 +73,39 @@ add_executable(test-makeshift-cxx14
     "test-tuple.cpp"
     "test-type_traits.cpp"
     "test-utility.cpp")
-add_executable(test-makeshift-cxx17
-    "test-constval.cpp"
-    "test-variant.cpp")
-add_executable(test-makeshift-cxx20
-    "test-concepts.cpp"
-    "test-constval.cpp")
-
-# compiler settings
-include(CMakeshift/TargetCompileSettings)
-cmakeshift_target_compile_settings(
-    TARGETS test-makeshift-cxx14 test-makeshift-cxx17 test-makeshift-cxx20
-    PRIVATE
-        default)
-target_compile_features(test-makeshift-runner
-    PRIVATE
-        cxx_std_14)
-target_compile_features(test-makeshift-cxx14
-    PRIVATE
-        cxx_std_14)
-target_compile_features(test-makeshift-cxx17
-    PRIVATE
-        cxx_std_17)
-target_compile_features(test-makeshift-cxx20
-    PRIVATE
-        cxx_std_20)
-
-# test properties
-target_compile_definitions(test-makeshift-settings
-    INTERFACE
-        CATCH_CONFIG_CONSOLE_WIDTH=120
-        CATCH_CLARA_CONFIG_CONSOLE_WIDTH=120
-        gsl_CONFIG_CONTRACT_CHECKING_AUDIT # run audit-level checks
-        gsl_CONFIG_CONTRACT_VIOLATION_THROWS) # this makes gsl-lite's precondition assertions throw `gsl::fail_fast` on failure
-
-# test dependencies
-target_link_libraries(test-makeshift-runner
-    PRIVATE
-        Catch2::Catch2)
-target_link_libraries(test-makeshift-settings
-    INTERFACE
-        gsl::gsl-lite-v1
-        Catch2::Catch2
-        makeshift)
+target_compile_features(test-makeshift-cxx14 PRIVATE cxx_std_14)
+cmakeshift_target_compile_settings(test-makeshift-cxx14 PRIVATE default)
 target_link_libraries(test-makeshift-cxx14
     PRIVATE
         test-makeshift-runner
         test-makeshift-settings
         mpark_variant)
-target_link_libraries(test-makeshift-cxx17
-    PRIVATE
-        test-makeshift-runner
-        test-makeshift-settings)
-target_link_libraries(test-makeshift-cxx20
-    PRIVATE
-        test-makeshift-runner
-        test-makeshift-settings)
-
-# register tests
 add_test(NAME test-makeshift-cxx14 COMMAND test-makeshift-cxx14)
-add_test(NAME test-makeshift-cxx17 COMMAND test-makeshift-cxx17)
-add_test(NAME test-makeshift-cxx20 COMMAND test-makeshift-cxx20)
+
+# C++17 tests
+if(cxx_std_17 IN_LIST CMAKE_CXX_COMPILE_FEATURES)
+    add_executable(test-makeshift-cxx17
+        "test-constval.cpp"
+        "test-variant.cpp")
+    target_compile_features(test-makeshift-cxx17 PRIVATE cxx_std_17)
+    cmakeshift_target_compile_settings(test-makeshift-cxx17 PRIVATE default)
+    target_link_libraries(test-makeshift-cxx17
+        PRIVATE
+            test-makeshift-runner
+            test-makeshift-settings)
+    add_test(NAME test-makeshift-cxx17 COMMAND test-makeshift-cxx17)
+endif()
+
+# C++20 tests
+if(cxx_std_20 IN_LIST CMAKE_CXX_COMPILE_FEATURES)
+    add_executable(test-makeshift-cxx20
+        "test-concepts.cpp"
+        "test-constval.cpp")
+    target_compile_features(test-makeshift-cxx20 PRIVATE cxx_std_20)
+    cmakeshift_target_compile_settings(test-makeshift-cxx20 PRIVATE default)
+    target_link_libraries(test-makeshift-cxx20
+        PRIVATE
+            test-makeshift-runner
+            test-makeshift-settings)
+    add_test(NAME test-makeshift-cxx20 COMMAND test-makeshift-cxx20)
+endif()
