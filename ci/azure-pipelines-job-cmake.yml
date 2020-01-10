@@ -84,8 +84,11 @@ jobs:
                     echo "##vso[task.setvariable variable=CXX]g++-${{ compilerVersion }}"
                 }
                 elseif ("${{ compiler.compiler }}" -eq "Clang") {
-                    echo "##vso[task.setvariable variable=CC]clang-${{ compilerVersion }}"
-                    echo "##vso[task.setvariable variable=CXX]clang++-${{ compilerVersion }}"
+                    if (${{ compilerVersion }} -lt 7) {
+                        $versionSuffix = ".0"
+                    }
+                    echo "##vso[task.setvariable variable=CC]clang-${{ compilerVersion }}$versionSuffix"
+                    echo "##vso[task.setvariable variable=CXX]clang++-${{ compilerVersion }}$versionSuffix"
                 }
             }
             elseif ($IsMacOS) {
@@ -124,10 +127,12 @@ jobs:
                     & sudo apt-get install cmake gcc-${{ compilerVersion }} g++-${{ compilerVersion }}
                 }
                 elseif ("${{ compiler.compiler }}" -eq "Clang") {
+                    if (${{ compilerVersion }} -lt 7) {
+                        $versionSuffix = ".0"
+                    }
+                    & sudo apt-add-repository "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-${{ compilerVersion }} main"
                     & sudo apt-get update
-                    & wget -O "$HOME/llvm.sh" https://apt.llvm.org/llvm.sh
-                    & chmod +x "$HOME/llvm.sh"
-                    & sudo "$HOME/llvm.sh" ${{ compilerVersion }}
+                    & sudo apt-get install cmake clang-${{ compilerVersion }}$versionSuffix
                 }
                 & sudo apt-get install cmake
                 & ln -s /usr/bin/cmake $HOME/bin/cmake
