@@ -93,7 +93,7 @@ jobs:
                 }
                 if("${{ coalesce(target.cudaCompiler, parameters.cudaCompiler) }}") {
                     $cudaVersion = "${{ coalesce(target.cudaCompilerVersion, parameters.cudaCompilerVersion) }}" -replace "_","."
-                    $cmakeCudaCompilerFlag="-DCMAKE_CUDA_COMPILER=`"$env:SystemDrive\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v$cudaVersion\bin`""
+                    $cmakeCudaCompilerFlag="-DCMAKE_CUDA_COMPILER=`"$env:SystemDrive/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v$cudaVersion/bin`""
                 }
             }
             elseif ($IsLinux) {
@@ -109,6 +109,10 @@ jobs:
                     }
                     echo "##vso[task.setvariable variable=CC]clang-${{ cxxCompilerVersion }}$versionSuffix"
                     echo "##vso[task.setvariable variable=CXX]clang++-${{ cxxCompilerVersion }}$versionSuffix"
+                }
+                if("${{ coalesce(target.cudaCompiler, parameters.cudaCompiler) }}") {
+                    $cudaVersion = "${{ coalesce(target.cudaCompilerVersion, parameters.cudaCompilerVersion) }}" -replace "_","."
+                    $cmakeCudaCompilerFlag="-DCMAKE_CUDA_COMPILER=`"/usr/local/cuda-$cudaVersion/bin/nvcc`""
                 }
             }
             elseif ($IsMacOS) {
@@ -139,14 +143,10 @@ jobs:
                 }
                 if ("${{ coalesce(target.cudaCompiler, parameters.cudaCompiler) }}") {
                     $cudaVersion = "${{ coalesce(target.cudaCompilerVersion, parameters.cudaCompilerVersion) }}" -replace "_","."
-                    echo "${{ coalesce(target.cudaCompilerVersion, parameters.cudaCompilerVersion) }}"
-                    echo $cudaVersion
                     $cudaVersion_URL = @{
                         '10.2'='http://developer.download.nvidia.com/compute/cuda/10.2/Prod/network_installers/cuda_10.2.89_win10_network.exe'
                     }
-                    echo $cudaVersion_URL[$cudaVersion]
                     $cudaSubpackages = "nvcc;${{ join(';', parameters.cudaSubpackages) }};${{ join(';', target.cudaSubpackages) }};" -replace ";;",";" -replace ";;",";" -replace ";","_$cudaVersion "
-                    echo $cudaSubpackages
                     Invoke-WebRequest $cudaVersion_URL[$cudaVersion] -OutFile "$HOME/cuda_installer_network.exe"
                     & "$HOME/cuda_installer_network.exe" /s $cudaSubpackages
                 }
