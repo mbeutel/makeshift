@@ -160,6 +160,7 @@ jobs:
                 if ("${{ coalesce(target.cxxCompiler, parameters.cxxCompiler) }}" -eq "GCC") {
                     & sudo apt-add-repository ppa:ubuntu-toolchain-r/test
                     $packages += ('gcc-${{ cxxCompilerVersion }}', 'g++-${{ cxxCompilerVersion }}')
+                    echo "packages (GCC): $packages"
                 }
                 elseif ("${{ coalesce(target.cxxCompiler, parameters.cxxCompiler) }}" -eq "Clang") {
                     if (${{ cxxCompilerVersion }} -lt 7) {
@@ -167,6 +168,7 @@ jobs:
                     }
                     & sudo apt-add-repository "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-${{ cxxCompilerVersion }} main"
                     $packages += 'clang-${{ cxxCompilerVersion }}$versionSuffix'
+                    echo "packages (Clang): $packages"
                 }
                 if ("${{ coalesce(target.cudaCompiler, parameters.cudaCompiler) }}") {
                     $cudaVersion = "${{ coalesce(target.cudaCompilerVersion, parameters.cudaCompilerVersion) }}" -replace "_","."
@@ -182,8 +184,10 @@ jobs:
                     #$cudaPackages = "cuda-core;cuda-cudart-dev;${{ join(';', parameters.cudaPackages) }};${{ join(';', target.cudaPackages) }};" -replace ";;",";" -replace ";;",";" -replace ";","-$cudaVersion_Dash " -split " "
                     $cudaPackages = "cuda-compiler;cuda-libraries-dev;${{ join(';', parameters.cudaPackages) }};${{ join(';', target.cudaPackages) }};" -replace ";;",";" -replace ";;",";" -replace ";","-$cudaVersion_Dash " -split " "
                     $packages += $cudaPackages
+                    echo "packages (CUDA): $packages"
                 }
                 & sudo apt-get update
+                echo "packages: $packages"
                 & sudo apt-get install $packages
                 & ln -s /usr/bin/cmake $HOME/bin/cmake
             }
@@ -197,10 +201,10 @@ jobs:
                 }
                 $xcodeVersion = "${{ cxxCompilerVersion }}" -replace "_","."
                 & sudo xcode-select -s /Applications/Xcode_$xcodeVersion.app/Contents/Developer
-                if ("${{ coalesce(target.cxxCompiler, parameters.cxxCompiler) }}" -eq "AppleClang") {
-                    echo "##vso[task.setvariable variable=CC]clang"
-                    echo "##vso[task.setvariable variable=CXX]clang++"
-                }
+                #if ("${{ coalesce(target.cxxCompiler, parameters.cxxCompiler) }}" -eq "AppleClang") {
+                #    echo "##vso[task.setvariable variable=CC]clang"
+                #    echo "##vso[task.setvariable variable=CXX]clang++"
+                #}
             }
           displayName: Install tools
 
