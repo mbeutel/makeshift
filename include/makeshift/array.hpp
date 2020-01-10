@@ -3,10 +3,15 @@
 #define INCLUDED_MAKESHIFT_ARRAY_HPP_
 
 
+#include <gsl-lite/gsl-lite.hpp> // for gsl_NODISCARD, gsl_CPP17_OR_GREATER
+
+#if !gsl_CPP17_OR_GREATER
+# include <tuple>      // for tuple_size<>
+#endif // !gsl_CPP17_OR_GREATER
+
 #include <array>
 #include <cstddef> // for size_t
-
-#include <gsl-lite/gsl-lite.hpp> // for gsl_NODISCARD
+#include <utility> // for integer_sequence<>, get<>(), tuple_size<> (C++17)
 
 #include <makeshift/detail/array.hpp>
 

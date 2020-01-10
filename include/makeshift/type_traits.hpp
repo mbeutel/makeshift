@@ -34,7 +34,7 @@ template <typename T, typename... Ts> struct try_index_of_type : detail::try_ind
     // Determines the index of the type `T` in the variadic type sequence.
     // Returns `size_t(-1)` if `T` does not appear in the type sequence, or if it appears more than once.
     //
-template <typename T, typename... Ts> constexpr std::size_t try_index_of_type_v = try_index_of_type<T, Ts...>::value;
+template <typename T, typename... Ts> constexpr std::ptrdiff_t try_index_of_type_v = try_index_of_type<T, Ts...>::value;
 
 
     //

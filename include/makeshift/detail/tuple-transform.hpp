@@ -51,7 +51,7 @@ template <typename T> constexpr bool is_tuple_arg_v = is_tuple_arg<T>::value;
 template <typename... Ts> struct are_tuple_args : gsl::conjunction<is_tuple_arg<Ts>...> { };
 template <typename... Ts> constexpr bool are_tuple_args_v = are_tuple_args<Ts...>::value;
 
-template <typename T> struct maybe_tuple_size_ : std::tuple_size<T> { };
+template <typename T> struct maybe_tuple_size_ : std::integral_constant<std::ptrdiff_t, std::tuple_size<T>::value> { };
 template <> struct maybe_tuple_size_<range_index_t> : std::integral_constant<std::ptrdiff_t, -1> { };
 template <> struct maybe_tuple_size_<tuple_index_t> : std::integral_constant<std::ptrdiff_t, -1> { };
 
