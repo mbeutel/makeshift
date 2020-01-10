@@ -2,17 +2,6 @@
 
 variables:
   system.debug: true
-  revision: 4
-
-  # Vcpkg repository
-  vcpkgRef: e308474b85ff49f2b688a759351c4ec569636910
-
-  # Repository with additional port and triplet overlays
-  vcpkgOverlayRepo: 'https://mp-force.ziti.uni-heidelberg.de/asc/infrastructure/vcpkg-ports.git'
-  vcpkgOverlayRef: a08517fb77e9d48d00dd33c16e5acd01f8b31f29
-
-  # CMake build options
-  cmakeConfigArgs: '-DMAKESHIFT_BUILD_TESTS=ON -DCMAKESHIFT_PRIVATE_COMPILE_SETTINGS=$<$<CONFIG:Debug>:runtime-checks;debug-stdlib>'
 
 trigger:
 - master
@@ -22,10 +11,22 @@ pr:
 - master
 
 jobs:
-- template: azure-pipelines-windows.yml
+- template: azure-pipelines-job-cmake.yml
   parameters:
-    compilers:
 
+    revision: 4
+
+    # Vcpkg repository
+    vcpkgRef: e308474b85ff49f2b688a759351c4ec569636910
+  
+    # Repository with additional port and triplet overlays
+    vcpkgOverlayRepo: 'https://mp-force.ziti.uni-heidelberg.de/asc/infrastructure/vcpkg-ports.git'
+    vcpkgOverlayRef: a08517fb77e9d48d00dd33c16e5acd01f8b31f29
+  
+    # CMake build options
+    cmakeConfigArgs: '-DMAKESHIFT_BUILD_TESTS=ON -DCMAKESHIFT_PRIVATE_COMPILE_SETTINGS=$<$<CONFIG:Debug>:runtime-checks;debug-stdlib>'
+
+    compilers:
     - os: Windows
       compiler: MSVC
       versions: [2019]

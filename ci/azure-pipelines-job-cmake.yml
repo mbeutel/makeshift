@@ -2,72 +2,57 @@
 # Revision 1
 # Author: Moritz Beutel
 
-## Variables:
-#  revision:
-
-### Vcpkg repository
-#  vcpkgRepo: 'https://github.com/microsoft/vcpkg.git' # optional
-#  vcpkgRef:
-
-### Repository with additional port and triplet overlays
-#  vcpkgOverlayRepo: '' # optional
-#  vcpkgOverlayRef: '' # optional
-
-### Vcpkg options
-#  vcpkgArgs: '' # optional
-#  vcpkgTriplet: '' # optional
-
-### CMake build options
-#  cmakeListsTxtPath: '$(Build.SourcesDirectory)/CMakeLists.txt' # optional
-#  cmakeConfigArgs: '' # optional
-#  ninjaBuildArgs: '' # optional
-
-### Operating system
-# os: '' # optional
-
 parameters:
-  os: '' # overrides the eponymous variable
-  buildConfigurations: [Debug, RelWithDebInfo]
-  cmakeConfigArgs: '' # appends to the eponymous variable
-  ninjaBuildArgs: '' # appends to the eponymous variable
-  vcpkgArgs: '' # appends to the eponymous variable
-  vcpkgTriplet: '' # overrides the eponymous variable
+
+  # Vcpkg repository
+  vcpkgRepo: 'https://github.com/microsoft/vcpkg.git'
+  vcpkgRef: ''
+
+  # Repository with additional port and triplet overlays
+  vcpkgOverlayRepo: ''
+  vcpkgOverlayRef: ''
+
+  # Vcpkg options
+  vcpkgTriplet: '<platform>-<os>'
+  vcpkgArgs: ''
+
+  # Build options
+  cmakeListsTxtPath: '$(Build.SourcesDirectory)/CMakeLists.txt'
+  cmakeConfigArgs: ''
+  cmakeBuildConfigurations: [Debug, RelWithDebInfo]
+  ninjaBuildArgs: ''
+
+  os: ''
   compilers: []
-#    compiler.os: '' # overrides the eponymous parameter
+#    compiler.os: '' # overrides parameters.os
 #    compiler.platforms: []
 #    compiler.versions: []
-#    compiler.cmakeConfigArgs: '' # appends to the eponymous parameter
-#    compiler.ninjaBuildArgs: '' # appends to the eponymous parameter
-#    compiler.vcpkgArgs: '' # appends to the eponymous parameter
-#    compiler.vcpkgTriplet: '' # overrides the eponymous parameter
+#    compiler.vcpkgTriplet: '' # overrides parameters.vcpkgTriplet
+#    compiler.vcpkgArgs: '' # appends to parameters.vcpkgArgs
+#    compiler.cmakeConfigArgs: '' # appends to parameters.cmakeConfigArgs
+#    compiler.ninjaBuildArgs: '' # appends to parameters.ninjaBuildArgs
 
 jobs:
 - ${{ each compiler in parameters.compilers }}:
   - ${{ each platform in compiler.platforms }}:
     - ${{ each compilerVersion in compiler.versions }}:
-      - job: '${{ coalesce(compiler.os, parameters.os, variables.os) }}_${{ compiler.compiler }}${{ compilerVersion }}_${{ platform }}'
+      - job: '${{ coalesce(compiler.os, parameters.os) }}_${{ compiler.compiler }}${{ compilerVersion }}_${{ platform }}'
         pool:
           name: Azure Pipelines
-          ${{ if eq(coalesce(compiler.os, parameters.os, variables.os), 'Windows') }}:
+          ${{ if eq(coalesce(compiler.os, parameters.os), 'Windows') }}:
             vmImage: 'windows-2019'
-          ${{ if eq(coalesce(compiler.os, parameters.os, variables.os), 'Linux') }}:
+          ${{ if eq(coalesce(compiler.os, parameters.os), 'Linux') }}:
             vmImage: 'ubuntu-18.04'
-          ${{ if eq(coalesce(compiler.os, parameters.os, variables.os), 'MacOS') }}:
+          ${{ if eq(coalesce(compiler.os, parameters.os), 'MacOS') }}:
             vmImage: 'macOS-10.14'
 
         steps:
         - pwsh: |
-            if ("$env:vcpkgRef" -and !"$env:vcpkgRepo") {
-                echo "##vso[task.setvariable variable=vcpkgRepo]https://github.com/microsoft/vcpkg.git"
-            }
-            if (!"$env:cmakeListsTxtPath") {
-                echo "##vso[task.setvariable variable=cmakeListsTxtPath]$(Build.SourcesDirectory)/CMakeLists.txt"
-            }
             if ($IsWindows) { $tripletOS = "windows" }
             elseif ($IsLinux) { $tripletOS = "linux" }
             elseif ($IsMacOS) { $tripletOS = "osx" }
-            $vcpkgTriplet = "${{ coalesce(compiler.vcpkgTriplet, parameters.vcpkgTriplet, variables.vcpkgTriplet, '<platform>-<os>') }}" -replace "<os>","$tripletOS" -replace "<platform>","${{ platform }}"
-            echo "##vso[task.setvariable variable=buildCacheKey]$env:vcpkgRepo $env:vcpkgRef $env:vcpkgOverlayRepo $env:vcpkgOverlayRef $env:vcpkgArgs $vcpkgTriplet ${{ compiler.compiler }} $env:revision 1"
+            $vcpkgTriplet = "${{ coalesce(compiler.vcpkgTriplet, parameters.vcpkgTriplet) }}" -replace "<os>","$tripletOS" -replace "<platform>","${{ platform }}"
+            echo "##vso[task.setvariable variable=buildCacheKey]${{ parameters.vcpkgRepo }} ${{ parameters.vcpkgRef }} ${{ parameters.vcpkgOverlayRepo }} ${{ parameters.vcpkgOverlayRef }} ${{ parameters.vcpkgArgs }} ${{ compiler.vcpkgArgs }} $vcpkgTriplet ${{ compiler.compiler }} 1"
             #echo "##vso[task.setvariable variable=Path]$(Build.BinariesDirectory)/dependencies/cmake/bin;${env:Path}"
             echo "##vso[task.setvariable variable=VCPKG_ROOT]$(Build.BinariesDirectory)/dependencies/vcpkg"
             echo "##vso[task.setvariable variable=VCPKG_TRIPLET]$vcpkgTriplet"
@@ -108,7 +93,7 @@ jobs:
             key: '$(Build.SourcesDirectory)/ci/vcpkg.txt | "$(buildCacheKey)"'
             path: '$(Build.BinariesDirectory)/dependencies'
             cacheHitVar: 'dependencyCacheHit'
-            condition: ne(variables.vcpkgRef, '')
+            condition: ne(parameters.vcpkgRef, '')
 
         - pwsh: |
             if ($IsWindows) {
@@ -117,8 +102,8 @@ jobs:
                 }
             }
             elseif ($IsLinux) {
-                & wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | sudo apt-key add -
-                & sudo apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main'
+                & wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>$null | & sudo apt-key add -
+                & sudo apt-add-repository "deb https://apt.kitware.com/ubuntu/ bionic main"
                 if ("${{ compiler.compiler }}" -eq "GCC") {
                     & sudo apt-add-repository ppa:ubuntu-toolchain-r/test
                 }
@@ -145,10 +130,10 @@ jobs:
           displayName: Install tools
 
         - pwsh: |
-            if ("$env:vcpkgOverlayRepo" -and "$env:vcpkgOverlayRef") {
-                & git clone "$env:vcpkgOverlayRepo" "$(Build.BinariesDirectory)/dependencies/overlay-repo"
+            if ("${{ parameters.vcpkgOverlayRepo }}" -and "${{ parameters.vcpkgOverlayRef }}") {
+                & git clone ${{ parameters.vcpkgOverlayRepo }} "$(Build.BinariesDirectory)/dependencies/overlay-repo"
                 cd "$(Build.BinariesDirectory)/dependencies/overlay-repo"
-                & git checkout --quiet --force "$env:vcpkgOverlayRef"
+                & git checkout --quiet --force ${{ parameters.vcpkgOverlayRef }}
                 mkdir -Force "$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/ports"
                 mkdir -Force "$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/triplets"
                 echo "##vso[task.setvariable variable=vcpkgOverlayArgs]--overlay-ports=`"$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/ports`" --overlay-triplets=`"$(Build.BinariesDirectory)/dependencies/overlay-repo/vcpkg/triplets`"
@@ -157,24 +142,24 @@ jobs:
                 echo "##vso[task.setvariable variable=vcpkgOverlayArgs]"
             }
           displayName: Clone Vcpkg overlay repository
-          condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''))
+          condition: and(ne(variables.dependencyCacheHit, 'true'), ne(parameters.vcpkgRef, ''))
         
         - task: run-vcpkg@0
           displayName: Run Vcpkg to install dependencies
           inputs:
             vcpkgDirectory: '$(Build.BinariesDirectory)/dependencies/vcpkg'
-            vcpkgGitURL: '$(vcpkgRepo)'
-            vcpkgGitCommitId: '$(vcpkgRef)'
+            vcpkgGitURL: '${{ parameters.vcpkgRepo }}'
+            vcpkgGitCommitId: '${{ parameters.vcpkgRef }}'
             vcpkgTriplet: '$(VCPKG_TRIPLET)'
             vcpkgArguments: '$(vcpkgOverlayArgs) "@$(Build.SourcesDirectory)/ci/vcpkg.txt"'
-          condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''))
+          condition: and(ne(variables.dependencyCacheHit, 'true'), ne(parameters.vcpkgRef, ''))
 
         - pwsh: |
             Remove-Item -Recurse -Force "$(Build.BinariesDirectory)/dependencies/vcpkg/buildtrees"
             Remove-Item -Recurse -Force "$(Build.BinariesDirectory)/dependencies/vcpkg/downloads"
             Remove-Item -Recurse -Force "$(Build.BinariesDirectory)/dependencies/vcpkg/packages"
           displayName: Delete temporary files
-          condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''))
+          condition: and(ne(variables.dependencyCacheHit, 'true'), ne(parameters.vcpkgRef, ''))
 
         - pwsh: |
             if ("${{ compiler.compiler }}" -eq "GCC") {
@@ -188,12 +173,12 @@ jobs:
           displayName: Set environment variables
           condition: eq(variables['Agent.OS'], 'Darwin')
 
-        - ${{ each config in parameters.buildConfigurations }}:
+        - ${{ each config in parameters.cmakeBuildConfigurations }}:
           - task: run-cmake@0
             displayName: 'Build ${{ config }}'
             inputs:
               cmakeListsOrSettingsJson: 'CMakeListsTxtAdvanced'
-              cmakeListsTxtPath: '$(cmakeListsTxtPath)'
+              cmakeListsTxtPath: '${{ parameters.cmakeListsTxtPath }}'
               useVcpkgToolchainFile: true
               buildDirectory: '$(Build.BinariesDirectory)/build/${{ config }}'
               cmakeAppendedArgs: '-G Ninja $(finalCMakeConfigArgs) -DCMAKE_BUILD_TYPE=${{ config }}'
