@@ -81,17 +81,17 @@ jobs:
                 }
             }
             elseif ($IsLinux) {
-                if ("${{ compiler.compiler }}" == "GCC") {
+                if ("${{ compiler.compiler }}" -eq "GCC") {
                     echo "##vso[task.setvariable variable=CC]gcc-${{ compilerVersion }}"
                     echo "##vso[task.setvariable variable=CXX]g++-${{ compilerVersion }}"
                 }
-                elseif ("${{ compiler.compiler }}" == "Clang") {
+                elseif ("${{ compiler.compiler }}" -eq "Clang") {
                     echo "##vso[task.setvariable variable=CC]clang-${{ compilerVersion }}"
                     echo "##vso[task.setvariable variable=CXX]clang++-${{ compilerVersion }}"
                 }
             }
             elseif ($IsMacOS) {
-                if ("${{ compiler.compiler }}" == "GCC") {
+                if ("${{ compiler.compiler }}" -eq "GCC") {
                     echo "##vso[task.setvariable variable=CXXFLAGS_OLD]$CXXFLAGS"
                     echo "##vso[task.setvariable variable=CXXFLAGS]$CXXFLAGS -fvisibility=hidden -fvisibility-inlines-hidden"
                     echo "##vso[task.setvariable variable=CC]gcc-${{ compilerVersion }}"
@@ -119,17 +119,17 @@ jobs:
             elseif ($IsLinux) {
                 & wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | sudo apt-key add -
                 & sudo apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main'
-                if ("${{ compiler.compiler }}" == "GCC") {
+                if ("${{ compiler.compiler }}" -eq "GCC") {
                     & sudo apt-add-repository ppa:ubuntu-toolchain-r/test
                 }
-                elseif ("${{ compiler.compiler }}" == "Clang") {
+                elseif ("${{ compiler.compiler }}" -eq "Clang") {
                     & sudo apt-add-repository "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-${{ compilerVersion }} main"
                 }
                 & sudo apt-get update
-                if ("${{ compiler.compiler }}" == "GCC") {
+                if ("${{ compiler.compiler }}" -eq "GCC") {
                     & sudo apt-get install cmake gcc-${{ compilerVersion }} g++-${{ compilerVersion }}
                 }
-                elseif ("${{ compiler.compiler }}" == "Clang") {
+                elseif ("${{ compiler.compiler }}" -eq "Clang") {
                     & sudo apt-get install cmake clang-${{ compilerVersion }}
                 }
                 mkdir -Force ~/bin
@@ -138,7 +138,7 @@ jobs:
             elseif ($IsMacOS) {
                 & sudo xcode-select -s /Applications/Xcode_10.3.app/Contents/Developer
                 & brew install gcc@9
-                if ("${{ compiler.compiler }}" == "GCC") {
+                if ("${{ compiler.compiler }}" -eq "GCC") {
                     & brew install gcc@${{ compilerVersion }}
                 }
             }
@@ -177,10 +177,10 @@ jobs:
           condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''))
 
         - pwsh: |
-            if ("${{ compiler.compiler }}" == "GCC") {
+            if ("${{ compiler.compiler }}" -eq "GCC") {
                 echo "##vso[task.setvariable variable=CXXFLAGS]$CXXFLAGS_OLD"
             }
-            elseif ("${{ compiler.compiler }}" == "AppleClang") {
+            elseif ("${{ compiler.compiler }}" -eq "AppleClang") {
                 & sudo xcode-select -s /Applications/Xcode_11.1.app/Contents/Developer
                 echo "##vso[task.setvariable variable=CC]clang"
                 echo "##vso[task.setvariable variable=CXX]clang++"
