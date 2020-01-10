@@ -21,7 +21,7 @@ parameters:
   cmakeListsTxtPath: '$(Build.SourcesDirectory)/CMakeLists.txt'
   cmakeConfigArgs: ''
   cmakeBuildConfigurations: [Debug, RelWithDebInfo]
-  ninjaBuildArgs: ''
+  cmakeBuildArgs: ''
 
   os: ''
   compilers: []
@@ -32,7 +32,7 @@ parameters:
 #    compiler.vcpkgArgs: '' # appends to parameters.vcpkgArgs
 #    compiler.vcpkgPackages: '' # appends to parameters.vcpkgPackages
 #    compiler.cmakeConfigArgs: '' # appends to parameters.cmakeConfigArgs
-#    compiler.ninjaBuildArgs: '' # appends to parameters.ninjaBuildArgs
+#    compiler.cmakeBuildArgs: '' # appends to parameters.cmakeBuildArgs
 
 jobs:
 - ${{ each compiler in parameters.compilers }}:
@@ -54,7 +54,7 @@ jobs:
             elseif ($IsLinux) { $tripletOS = "linux" }
             elseif ($IsMacOS) { $tripletOS = "osx" }
             $vcpkgTriplet = "${{ coalesce(compiler.vcpkgTriplet, parameters.vcpkgTriplet) }}" -replace "<os>","$tripletOS" -replace "<platform>","${{ platform }}"
-            echo "##vso[task.setvariable variable=buildCacheKey]1 ${{ compiler.compiler }} $vcpkgTriplet ${{ parameters.vcpkgRepo }} ${{ parameters.vcpkgRef }} ${{ parameters.vcpkgOverlayRepo }} ${{ parameters.vcpkgOverlayRef }} ${{ parameters.vcpkgArgs }} ${{ compiler.vcpkgArgs }} ${{ join('' '', parameters.vcpkgPackages) }} ${{ join('' '', compiler.vcpkgPackages) }}"
+            echo "##vso[task.setvariable variable=buildCacheKey]1 ${{ compiler.compiler }} $vcpkgTriplet ${{ parameters.vcpkgRepo }} ${{ parameters.vcpkgRef }} ${{ parameters.vcpkgOverlayRepo }} ${{ parameters.vcpkgOverlayRef }} ${{ parameters.vcpkgArgs }} ${{ compiler.vcpkgArgs }} ${{ join(' ', parameters.vcpkgPackages) }} ${{ join(' ', compiler.vcpkgPackages) }}"
             #echo "##vso[task.setvariable variable=Path]$(Build.BinariesDirectory)/dependencies/cmake/bin;${env:Path}"
             echo "##vso[task.setvariable variable=VCPKG_ROOT]$(Build.BinariesDirectory)/dependencies/vcpkg"
             echo "##vso[task.setvariable variable=VCPKG_TRIPLET]$vcpkgTriplet"
@@ -93,7 +93,7 @@ jobs:
                 }
             }
             echo "##vso[task.setvariable variable=finalCMakeConfigArgs]$cmakeCompilerFlag $env:cmakeConfigArgs ${{ parameters.cmakeConfigArgs }} ${{ compiler.cmakeConfigArgs }}"
-            echo "##vso[task.setvariable variable=finalNinjaBuildArgs]$env:ninjaBuildArgs ${{ parameters.ninjaBuildArgs }} ${{ compiler.ninjaBuildArgs }}"
+            echo "##vso[task.setvariable variable=finalCMakeBuildArgs]$env:cmakeBuildArgs ${{ parameters.cmakeBuildArgs }} ${{ compiler.cmakeBuildArgs }}"
           displayName: Set environment variables
 
         - task: CacheBeta@1
@@ -191,7 +191,7 @@ jobs:
               useVcpkgToolchainFile: true
               buildDirectory: '$(Build.BinariesDirectory)/build/${{ config }}'
               cmakeAppendedArgs: '-G Ninja $(finalCMakeConfigArgs) -DCMAKE_BUILD_TYPE=${{ config }}'
-              buildWithCMakeArgs: '--parallel -- -v $(finalNinjaBuildArgs)'
+              buildWithCMakeArgs: '--parallel --verbose $(finalCMakeBuildArgs)'
 
           - script: |
               ctest -V -T Test
