@@ -32,8 +32,7 @@ jobs:
       cxxCompiler: MSVC
       cxxCompilerVersions: [2019]
       cudaCompiler: NVCC
-      #cudaCompilerVersion: 10_2
-      cudaCompilerVersion: 10_1
+      cudaCompilerVersion: 10_2
       platforms: [x64]
       cmakeConfigArgs: '-DMAKESHIFT_BUILD_CUDA_TESTS=ON'
 
@@ -71,5 +70,5 @@ jobs:
 
     - os: MacOS
       cxxCompiler: AppleClang
-      cxxCompilerVersions: [9_4_1, 10, 10_1, 10_2, 10_2_1, 10_3, 11, 11_1, 11_2, 11_2_1, 11_3]
+      cxxCompilerVersions: [8_1, 9, 9_1, 10, 10_1, 11]
       platforms: [x64]
