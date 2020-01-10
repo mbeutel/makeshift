@@ -91,9 +91,9 @@ jobs:
                         echo "##vso[task.setvariable variable=CXXFLAGS]-m32"
                     }
                 }
-                if() {
+                if("${{ coalesce(target.cudaCompiler, parameters.cudaCompiler) }}") {
                     $cudaVersion = "${{ coalesce(target.cudaCompilerVersion, parameters.cudaCompilerVersion) }}" -replace "_","."
-                    $cmakeCudaCompilerFlag="-DCMAKE_CUDA_COMPILER=`"$env:ProgramFiles\NVIDIA GPU Computing Toolkit\CUDA\v$cudaVersion\bin`""
+                    $cmakeCudaCompilerFlag="-DCMAKE_CUDA_COMPILER=`"$env:SystemDrive\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v$cudaVersion\bin`""
                 }
             }
             elseif ($IsLinux) {
@@ -119,7 +119,7 @@ jobs:
                     echo "##vso[task.setvariable variable=CXX]g++-${{ cxxCompilerVersion }}"
                 }
             }
-            echo "##vso[task.setvariable variable=finalCMakeConfigArgs]$cmakeCompilerFlag ${{ parameters.cmakeConfigArgs }} ${{ target.cmakeConfigArgs }}"
+            echo "##vso[task.setvariable variable=finalCMakeConfigArgs]$cmakeCompilerFlag $cmakeCudaCompilerFlag ${{ parameters.cmakeConfigArgs }} ${{ target.cmakeConfigArgs }}"
             echo "##vso[task.setvariable variable=finalCMakeBuildArgs]${{ parameters.cmakeBuildArgs }} ${{ target.cmakeBuildArgs }}"
             echo "##vso[task.setvariable variable=finalCMakeTestArgs]${{ parameters.cmakeTestArgs }} ${{ target.cmakeTestArgs }}"
           displayName: Set environment variables
