@@ -77,10 +77,10 @@ jobs:
           displayName: Set environment variables
           condition: eq(variables['Agent.OS'], 'Windows_NT')
         - bash: |
-            if [[ "$vcpkgRef" != "" && "$vcpkgRepo" == "" ]]; then
+            if [[ "$vcpkgRef" && -z "$vcpkgRepo" ]]; then
               echo "##vso[task.setvariable variable=vcpkgRepo]https://github.com/microsoft/vcpkg.git"
             fi
-            if [[ "$cmakeListsTxtPath" == "" ]]; then
+            if [[ -z "$cmakeListsTxtPath" ]]; then
               echo "##vso[task.setvariable variable=cmakeListsTxtPath]$(Build.SourcesDirectory)/CMakeLists.txt"
             fi
             vcpkgTriplet='${{ coalesce(compiler.vcpkgTriplet, parameters.vcpkgTriplet, variables.vcpkgTriplet, '<platform>-<os>') }}'
@@ -100,6 +100,27 @@ jobs:
             fi
           displayName: Set environment variables
           condition: eq(variables['Agent.OS'], 'Linux')
+        - script: |
+            if [[ "$vcpkgRef" && -z "$vcpkgRepo" ]]; then
+              echo "##vso[task.setvariable variable=vcpkgRepo]https://github.com/microsoft/vcpkg.git"
+            fi
+            if [[ -z "$cmakeListsTxtPath" ]]; then
+              echo "##vso[task.setvariable variable=cmakeListsTxtPath]$(Build.SourcesDirectory)/CMakeLists.txt"
+            fi
+            vcpkgTriplet='${{ coalesce(compiler.vcpkgTriplet, parameters.vcpkgTriplet, variables.vcpkgTriplet, '<platform>-<os>') }}'
+            vcpkgTriplet=${vcpkgTriplet/<os>/osx}
+            vcpkgTriplet=${vcpkgTriplet/<platform>/${{ platform }}}
+            echo "##vso[task.setvariable variable=buildCacheKey]$vcpkgRepo $vcpkgRef $vcpkgOverlayRepo $vcpkgOverlayRef $vcpkgArgs $vcpkgTriplet ${{ compiler.compiler }} $revision 1"
+            echo "##vso[task.setvariable variable=VCPKG_ROOT]$(Build.BinariesDirectory)/dependencies/vcpkg"
+            echo "##vso[task.setvariable variable=VCPKG_TRIPLET]$vcpkgTriplet"
+            if [[ "${{ parameters.compiler }}" == "GCC" ]]; then
+              echo "##vso[task.setvariable variable=CXXFLAGS_OLD]$CXXFLAGS"
+              echo "##vso[task.setvariable variable=CXXFLAGS]$CXXFLAGS -fvisibility=hidden -fvisibility-inlines-hidden"
+              echo "##vso[task.setvariable variable=CC]gcc-${{ compilerVersion }}"
+              echo "##vso[task.setvariable variable=CXX]g++-${{ compilerVersion }}"
+            fi
+          displayName: Set environment variables
+          condition: eq(variables['Agent.OS'], 'Darwin')
 
         - task: CacheBeta@1
           displayName: Cache dependencies
@@ -142,28 +163,6 @@ jobs:
           displayName: Install tools
           condition: eq(variables['Agent.OS'], 'Darwin')
 
-        - script: |
-            if [[ "$vcpkgRef" != "" && "$vcpkgRepo" == "" ]]; then
-              echo "##vso[task.setvariable variable=vcpkgRepo]https://github.com/microsoft/vcpkg.git"
-            fi
-            if [[ "$cmakeListsTxtPath" == "" ]]; then
-              echo "##vso[task.setvariable variable=cmakeListsTxtPath]$(Build.SourcesDirectory)/CMakeLists.txt"
-            fi
-            vcpkgTriplet='${{ coalesce(compiler.vcpkgTriplet, parameters.vcpkgTriplet, variables.vcpkgTriplet, '<platform>-<os>') }}'
-            vcpkgTriplet=${vcpkgTriplet/<os>/osx}
-            vcpkgTriplet=${vcpkgTriplet/<platform>/${{ platform }}}
-            echo "##vso[task.setvariable variable=buildCacheKey]$vcpkgRepo $vcpkgRef $vcpkgOverlayRepo $vcpkgOverlayRef $vcpkgArgs $vcpkgTriplet ${{ compiler.compiler }} $revision 1"
-            echo "##vso[task.setvariable variable=VCPKG_ROOT]$(Build.BinariesDirectory)/dependencies/vcpkg"
-            echo "##vso[task.setvariable variable=VCPKG_TRIPLET]$vcpkgTriplet"
-            if [[ "${{ parameters.compiler }}" == "GCC" ]]; then
-              echo "##vso[task.setvariable variable=CXXFLAGS_OLD]$CXXFLAGS"
-              echo "##vso[task.setvariable variable=CXXFLAGS]$CXXFLAGS -fvisibility=hidden -fvisibility-inlines-hidden"
-              echo "##vso[task.setvariable variable=CC]gcc-${{ compilerVersion }}"
-              echo "##vso[task.setvariable variable=CXX]g++-${{ compilerVersion }}"
-            fi
-          displayName: Set environment variables
-          condition: eq(variables['Agent.OS'], 'Darwin')
-
         - powershell: |
             if ("$env:vcpkgOverlayRepo" -and "$env:vcpkgOverlayRef") {
                 & git clone "$env:vcpkgOverlayRepo" "$(Build.BinariesDirectory)/dependencies/overlay-repo"
@@ -179,7 +178,7 @@ jobs:
           displayName: Clone Vcpkg overlay repository
           condition: and(ne(variables.dependencyCacheHit, 'true'), ne(variables.vcpkgRef, ''), eq(variables['Agent.OS'], 'Windows_NT'))
         - bash: |
-            if [[ "$vcpkgOverlayRepo" != "" && "$vcpkgOverlayRef" != "" ]]; then
+            if [[ "$vcpkgOverlayRepo" && "$vcpkgOverlayRef" ]]; then
               git clone "$vcpkgOverlayRepo" "$(Build.BinariesDirectory)/dependencies/overlay-repo"
               cd "$(Build.BinariesDirectory)/dependencies/overlay-repo"
               git checkout --quiet --force "$vcpkgOverlayRef"
