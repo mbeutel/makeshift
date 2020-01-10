@@ -23,37 +23,38 @@ jobs:
 
     targets:
 
-    - os: Windows
-      cxxCompiler: MSVC
-      cxxCompilerVersions: [2019]
-      platforms: [x86, x64]
+    #- os: Windows
+    #  cxxCompiler: MSVC
+    #  cxxCompilerVersions: [2019]
+    #  platforms: [x86, x64]
 
     - os: Windows
       cxxCompiler: MSVC
       cxxCompilerVersions: [2019]
       cudaCompiler: NVCC
-      cudaCompilerVersion: 10_2
+      #cudaCompilerVersion: 10_2
+      cudaCompilerVersion: 10_1
       platforms: [x64]
       cmakeConfigArgs: '-DMAKESHIFT_BUILD_CUDA_TESTS=ON'
 
-    - os: Windows
-      cxxCompiler: Clang
-      cxxCompilerVersions: [9]
-      platforms: [x86, x64]
+    #- os: Windows
+    #  cxxCompiler: Clang
+    #  cxxCompilerVersions: [9]
+    #  platforms: [x86, x64]
 
-    - os: Linux
-      cxxCompiler: GCC
-      cxxCompilerVersions: [6, 7, 8, 9]
-      platforms: [x64]
-      vcpkgTriplet: <platform>-<os>-sanitize
-      cmakeConfigArgs: '-DCMAKESHIFT_PRIVATE_COMPILE_SETTINGS=runtime-checks;debug-stdlib'
+    #- os: Linux
+    #  cxxCompiler: GCC
+    #  cxxCompilerVersions: [6, 7, 8, 9]
+    #  platforms: [x64]
+    #  vcpkgTriplet: <platform>-<os>-sanitize
+    #  cmakeConfigArgs: '-DCMAKESHIFT_PRIVATE_COMPILE_SETTINGS=runtime-checks;debug-stdlib'
 
-    - os: Linux
-      cxxCompiler: Clang
-      cxxCompilerVersions: [5, 6, 7, 8, 9]
-      platforms: [x64]
-      vcpkgTriplet: <platform>-<os>-sanitize
-      cmakeConfigArgs: '-DCMAKESHIFT_PRIVATE_COMPILE_SETTINGS=runtime-checks;debug-stdlib'
+    #- os: Linux
+    #  cxxCompiler: Clang
+    #  cxxCompilerVersions: [5, 6, 7, 8, 9]
+    #  platforms: [x64]
+    #  vcpkgTriplet: <platform>-<os>-sanitize
+    #  cmakeConfigArgs: '-DCMAKESHIFT_PRIVATE_COMPILE_SETTINGS=runtime-checks;debug-stdlib'
 
     - os: Linux
       cxxCompiler: GCC
@@ -63,12 +64,12 @@ jobs:
       platforms: [x64]
       cmakeConfigArgs: '-DMAKESHIFT_BUILD_CUDA_TESTS=ON'
 
-    - os: MacOS
-      cxxCompiler: GCC
-      cxxCompilerVersions: [6, 7, 8, 9]
-      platforms: [x64]
+    #- os: MacOS
+    #  cxxCompiler: GCC
+    #  cxxCompilerVersions: [6, 7, 8, 9]
+    #  platforms: [x64]
 
     - os: MacOS
       cxxCompiler: AppleClang
-      cxxCompilerVersions: [11_2]
+      cxxCompilerVersions: [9_4_1, 10_0, 10_1, 10_2, 10_2_1, 10_3, 11_0, 11_1, 11_2, 11_2_1, 11_3]
       platforms: [x64]
