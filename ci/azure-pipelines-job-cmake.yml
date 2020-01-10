@@ -177,7 +177,7 @@ jobs:
                     $cudaVersion_Dash = $cudaVersion -replace ".","-"
                     $ubuntuVersion = "ubuntu1804"
                     $cudaVersion_URL = @{
-                        '10.1'="http://developer.download.nvidia.com/compute/cuda/repos/$ubuntuVersion/x86_64/cuda-repo-${ubuntuVersion}_10.1.105-1_amd64.deb",
+                        '10.1'="http://developer.download.nvidia.com/compute/cuda/repos/$ubuntuVersion/x86_64/cuda-repo-${ubuntuVersion}_10.1.105-1_amd64.deb"
                         '10.2'="http://developer.download.nvidia.com/compute/cuda/repos/$ubuntuVersion/x86_64/cuda-repo-${ubuntuVersion}_10.2.89-1_amd64.deb"
                     }
                     & sudo dpkg -i $cudaVersion_URL[$cudaVersion]
