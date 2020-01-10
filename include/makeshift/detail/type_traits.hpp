@@ -32,7 +32,7 @@ struct unwrap_enum_tag { };
 
 
 template <template <typename...> class, typename, typename...> struct can_instantiate_ : std::false_type { };
-template <template <typename...> class Z, typename... Ts> struct can_instantiate_<Z, gsl::std17::void_t<Z<Ts...>>, Ts...> : std::true_type { };
+template <template <typename...> class Z, typename... Ts> struct can_instantiate_<Z, gsl::void_t<Z<Ts...>>, Ts...> : std::true_type { };
 
 
     // taken from http://ldionne.com/2015/11/29/efficient-parameter-pack-indexing/
@@ -130,13 +130,13 @@ template <typename T, typename = void> struct default_values { };
 struct constval_tag { };
 
 template <typename T, typename = void> struct has_value_type_ : std::false_type { };
-template <typename T> struct has_value_type_<T, gsl::std17::void_t<typename T::value_type>> : std::true_type { };
+template <typename T> struct has_value_type_<T, gsl::void_t<typename T::value_type>> : std::true_type { };
 
 template <typename T, typename = void> struct has_value_member_ : std::false_type { };
-template <typename T> struct has_value_member_<T, gsl::std17::void_t<decltype(T::value)>> : std::true_type { };
+template <typename T> struct has_value_member_<T, gsl::void_t<decltype(T::value)>> : std::true_type { };
 
 template <typename T, typename = void> struct is_nullary_functor_ : std::false_type { };
-template <typename T> struct is_nullary_functor_<T, gsl::std17::void_t<decltype(std::declval<T>()())>> : std::true_type { };
+template <typename T> struct is_nullary_functor_<T, gsl::void_t<decltype(std::declval<T>()())>> : std::true_type { };
 
 template <typename T> struct is_constval_1_ : gsl::conjunction<
     std::is_convertible<T, typename T::value_type>,

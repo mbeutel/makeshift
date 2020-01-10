@@ -266,7 +266,7 @@ array_constant(Cs...) -> array_constant<typename detail::array_constant_element_
 #endif // gsl_CPP17_OR_GREATER
 
     // Implement tuple-like protocol for `array_constant<>`.
-template <std::size_t I, typename T, gsl::std20::type_identity_t<T>... Vs>
+template <std::size_t I, typename T, gsl::type_identity_t<T>... Vs>
 gsl_NODISCARD constexpr
 constval_t<detail::array_accessor_functor<I, array_constant<T, Vs...>>>
 get(array_constant<T, Vs...>) noexcept
@@ -398,8 +398,8 @@ namespace std
 
 
     // Implement tuple-like protocol for `array_constant<>`.
-template <typename T, gsl::std20::type_identity_t<T>... Vs> class tuple_size<makeshift::array_constant<T, Vs...>> : public std::integral_constant<std::size_t, sizeof...(Vs)> { };
-template <std::size_t I, typename T, gsl::std20::type_identity_t<T>... Vs> class tuple_element<I, makeshift::array_constant<T, Vs...>> { public: using type = makeshift::constval_t<makeshift::detail::array_accessor_functor<I, makeshift::array_constant<T, Vs...>>>; };
+template <typename T, gsl_lite::type_identity_t<T>... Vs> class tuple_size<makeshift::array_constant<T, Vs...>> : public std::integral_constant<std::size_t, sizeof...(Vs)> { };
+template <std::size_t I, typename T, gsl_lite::type_identity_t<T>... Vs> class tuple_element<I, makeshift::array_constant<T, Vs...>> { public: using type = makeshift::constval_t<makeshift::detail::array_accessor_functor<I, makeshift::array_constant<T, Vs...>>>; };
 
     // Implement tuple-like protocol for `tuple_constant<>`.
 template <typename... Cs> class tuple_size<makeshift::tuple_constant<Cs...>> : public std::integral_constant<std::size_t, sizeof...(Cs)> { };

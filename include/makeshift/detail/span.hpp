@@ -265,7 +265,7 @@ template <std::size_t I, typename... Ts> struct tuple_element<I, makeshift::deta
 
     // Implement tuple-like interface for `soa_span<>`.
 template <typename... Ts> struct tuple_size<makeshift::soa_span<Ts...>> : public std::integral_constant<std::size_t, sizeof...(Ts)> { };
-template <std::size_t I, typename... Ts> struct tuple_element<I, makeshift::soa_span<Ts...>> { using type = gsl::span<makeshift::nth_type_t<I, Ts...>>; };
+template <std::size_t I, typename... Ts> struct tuple_element<I, makeshift::soa_span<Ts...>> { using type = gsl_lite::span<makeshift::nth_type_t<I, Ts...>>; };
 
 
 } // namespace std

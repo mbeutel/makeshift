@@ -31,12 +31,12 @@ void expect_constval_normalization(std::integral_constant<T, V>)
 {
 }
 
-template <typename T, gsl::std20::type_identity_t<T>... Vs>
+template <typename T, gsl::type_identity_t<T>... Vs>
 void expect_array_constval_normalization(mk::array_constant<T, Vs...>)
 {
 }
 
-template <typename T, gsl::std20::type_identity_t<T>... Vs>
+template <typename T, gsl::type_identity_t<T>... Vs>
 void expect_nested_array_constval_normalization(mk::array_constant<T, Vs...>)
 {
 #if gsl_CPP17_OR_GREATER
