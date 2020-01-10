@@ -12,6 +12,7 @@ project(makeshift
 
 # Define build options.
 option(MAKESHIFT_BUILD_TESTS "Build tests" OFF)
+option(MAKESHIFT_BUILD_CUDA_TESTS "Build CUDA tests" OFF)
 option(CMAKE_EXPORT_PACKAGE_REGISTRY "Export to user package registry" OFF)
 
 # Include target definitions.
@@ -19,6 +20,10 @@ add_subdirectory(src)
 if(MAKESHIFT_BUILD_TESTS)
     enable_testing()
     add_subdirectory(test)
+    if(MAKESHIFT_BUILD_CUDA_TESTS)
+        enable_language(CUDA)
+        add_subdirectory(test/cuda)
+    endif()
 endif()
 
 # Install.

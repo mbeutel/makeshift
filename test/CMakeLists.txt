@@ -6,6 +6,10 @@
 
 cmake_minimum_required(VERSION 3.14)
 
+if(MAKESHIFT_BUILD_CUDA_TESTS)
+    enable_language(CUDA)
+endif()
+
 # dependencies
 find_package(Catch2 2.9 REQUIRED)
 find_package(CMakeshift 3.7 REQUIRED)
@@ -54,8 +58,6 @@ if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.16)
             <gsl/gsl-lite.hpp>
             <catch2/catch.hpp>)
 endif()
-
-# test runner target
 
 # C++14 tests
 add_executable(test-makeshift-cxx14
