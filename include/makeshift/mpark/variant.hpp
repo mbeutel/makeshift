@@ -183,13 +183,13 @@ expand_or_throw(T const& value)
 template <typename F, typename... Vs>
 gsl_NODISCARD constexpr auto
 visit(F&& func, Vs&&... args)
-#if !(defined(_MSC_VER) && defined(__INTELLISENSE__))
+#if !defined(__INTELLISENSE__)
     -> decltype(::mpark::visit(std::forward<F>(func), std::forward<Vs>(args)...))
-#endif // !(defined(_MSC_VER) && defined(__INTELLISENSE__))
+#endif // !defined(__INTELLISENSE__)
 {
-#if !(defined(_MSC_VER) && defined(__INTELLISENSE__))
+#if !defined(__INTELLISENSE__)
     return ::mpark::visit(std::forward<F>(func), std::forward<Vs>(args)...);
-#endif // !(defined(_MSC_VER) && defined(__INTELLISENSE__))
+#endif // !defined(__INTELLISENSE__)
 }
 
     //
@@ -201,7 +201,7 @@ template <typename R, typename F, typename... Vs>
 gsl_NODISCARD constexpr R
 visit(F&& func, Vs&&... args)
 {
-#if !(defined(_MSC_VER) && defined(__INTELLISENSE__))
+#if !defined(__INTELLISENSE__)
     return ::mpark::visit(
         [func = std::forward<F>(func)]
         (auto&&... args) -> R
@@ -209,7 +209,7 @@ visit(F&& func, Vs&&... args)
             return func(std::forward<decltype(args)>(args)...);
         },
         std::forward<Vs>(args)...);
-#endif // !(defined(_MSC_VER) && defined(__INTELLISENSE__))
+#endif // !defined(__INTELLISENSE__)
 }
 
 
@@ -228,7 +228,7 @@ variant_transform(F&& func, Vs&&... args)
     // cannot be distinguished by the visitor functor anyway, and because the choice of identically typed alternatives depends on the strides of the specialization table built by `visit()` (which is an implementation
     // detail) and hence cannot be reliably predicted by the caller.
 
-#if !(defined(_MSC_VER) && defined(__INTELLISENSE__))
+#if !defined(__INTELLISENSE__)
     using R = detail::variant_transform_result<::mpark::variant, F, Vs...>;
     return ::mpark::visit(
         [func = std::forward<F>(func)]
@@ -250,7 +250,7 @@ template <typename F, typename... Vs>
 gsl_NODISCARD constexpr decltype(auto)
 variant_transform_many(F&& func, Vs&&... args)
 {
-#if !(defined(_MSC_VER) && defined(__INTELLISENSE__))
+#if !defined(__INTELLISENSE__)
     using R = detail::variant_transform_many_result<::mpark::variant, F, Vs...>;
     return ::mpark::visit(
         [func = std::forward<F>(func)]

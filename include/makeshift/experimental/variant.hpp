@@ -41,7 +41,7 @@ template <typename DstV, typename SrcV>
 gsl_NODISCARD constexpr DstV
 variant_cast(SrcV&& variant)
 {
-#if !(defined(_MSC_VER) && defined(__INTELLISENSE__))
+#if !defined(__INTELLISENSE__)
 # if gsl_CPP20_OR_GREATER
     return std::visit<DstV>(
         [](auto&& arg) -> DstV
@@ -57,7 +57,7 @@ variant_cast(SrcV&& variant)
         },
         std::forward<SrcV>(variant));
 # endif // gsl_CPP20_OR_GREATER}
-#endif // !(defined(_MSC_VER) && defined(__INTELLISENSE__))
+#endif // !defined(__INTELLISENSE__)
 }
 
     //
@@ -72,7 +72,7 @@ variant_to_optional(V&& variantWithMonostate)
     {
         return std::optional<R>(std::nullopt);
     }
-#if !(defined(_MSC_VER) && defined(__INTELLISENSE__))
+#if !defined(__INTELLISENSE__)
 # if gsl_CPP20_OR_GREATER
     return std::optional<R>(std::visit<R>(
         detail::monostate_filtering_visitor<std::monostate, R>{ },
@@ -82,7 +82,7 @@ variant_to_optional(V&& variantWithMonostate)
         detail::monostate_filtering_visitor<std::monostate, R>{ },
         std::forward<V>(variantWithMonostate)));
 # endif // gsl_CPP20_OR_GREATER}
-#endif // !(defined(_MSC_VER) && defined(__INTELLISENSE__))
+#endif // !defined(__INTELLISENSE__)
 }
 
     //

@@ -183,15 +183,15 @@ expand_or_throw(T const& value)
 template <typename F, typename... Vs>
 gsl_NODISCARD constexpr auto
 visit(F&& func, Vs&&... args)
-#if !(defined(_MSC_VER) && defined(__INTELLISENSE__))
+#if !defined(__INTELLISENSE__)
     -> decltype(std::visit(std::forward<F>(func), std::forward<Vs>(args)...))
-#endif // !(defined(_MSC_VER) && defined(__INTELLISENSE__))
+#endif // !defined(__INTELLISENSE__)
 {
-#if defined(_MSC_VER) && defined(__INTELLISENSE__)
+#if defined(__INTELLISENSE__)
     return detail::convertible_to_anything{ };
 #else
     return std::visit(std::forward<F>(func), std::forward<Vs>(args)...);
-#endif // defined(_MSC_VER) && defined(__INTELLISENSE__)
+#endif // defined(__INTELLISENSE__)
 }
 
     //
@@ -203,7 +203,7 @@ template <typename R, typename F, typename... Vs>
 gsl_NODISCARD constexpr R
 visit(F&& func, Vs&&... args)
 {
-#if defined(_MSC_VER) && defined(__INTELLISENSE__)
+#if defined(__INTELLISENSE__)
     return detail::convertible_to_anything{ };
 #else
 # if gsl_CPP20_OR_GREATER
@@ -217,7 +217,7 @@ visit(F&& func, Vs&&... args)
         },
         std::forward<Vs>(args)...);
 # endif // gsl_CPP20_OR_GREATER
-#endif // !(defined(_MSC_VER) && defined(__INTELLISENSE__))
+#endif // !defined(__INTELLISENSE__)
 }
 
 
@@ -236,7 +236,7 @@ variant_transform(F&& func, Vs&&... args)
     // cannot be distinguished by the visitor functor anyway, and because the choice of identically typed alternatives depends on the strides of the specialization table built by `visit()` (which is an implementation
     // detail) and hence cannot be reliably predicted by the caller.
 
-#if defined(_MSC_VER) && defined(__INTELLISENSE__)
+#if defined(__INTELLISENSE__)
     return detail::convertible_to_anything{ };
 #else
     using R = detail::variant_transform_result<std::variant, F, Vs...>;
@@ -251,7 +251,7 @@ variant_transform(F&& func, Vs&&... args)
         },
         std::forward<Vs>(args)...);
 # endif // gsl_CPP20_OR_GREATER
-#endif // defined(_MSC_VER) && defined(__INTELLISENSE__)
+#endif // defined(__INTELLISENSE__)
 }
 
     //
@@ -264,7 +264,7 @@ template <typename F, typename... Vs>
 gsl_NODISCARD constexpr decltype(auto)
 variant_transform_many(F&& func, Vs&&... args)
 {
-#if defined(_MSC_VER) && defined(__INTELLISENSE__)
+#if defined(__INTELLISENSE__)
     return detail::convertible_to_anything{ };
 #else
     using R = detail::variant_transform_many_result<std::variant, F, Vs...>;
@@ -295,7 +295,7 @@ variant_transform_many(F&& func, Vs&&... args)
         },
         std::forward<Vs>(args)...);
 # endif // gsl_CPP20_OR_GREATER
-#endif // defined(_MSC_VER) && defined(__INTELLISENSE__)
+#endif // defined(__INTELLISENSE__)
 }
 
 

@@ -1,4 +1,5 @@
 
+#if !defined(__GNUC__) || defined(__clang__) || __GNUC__ >= 7 // GCC 6 supports preliminary C++1y but doesn't come with <variant>
 #include <makeshift/variant.hpp>
 #include <makeshift/experimental/variant.hpp>
 
@@ -50,10 +51,13 @@ TEST_CASE("variant")
     using VTM12 = std::variant<float, char const*, int>;
 
     auto vt12 = mk::variant_transform(VarTransformer{ }, V1{ 42 }, V2{ "there" });
-    static_assert(IsSame<decltype(vt12), VT12>::value);
     auto vtm12 = mk::variant_transform_many(NestedVarTransformer{ }, V1{ 42 }, V2{ "there" });
+#if !defined(__INTELLISENSE__)
+    static_assert(IsSame<decltype(vt12), VT12>::value);
     static_assert(IsSame<decltype(vtm12), VTM12>::value);
+#endif // !defined(__INTELLISENSE__)
 }
 
 
 } // anonymous namespace
+#endif // !defined(__GNUC__) || defined(__clang__) || __GNUC__ >= 7
