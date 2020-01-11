@@ -7,8 +7,14 @@ trigger:
 pr:
 - master
 
+resources:
+  repositories:
+    - repository: templates
+      type: github
+      name: mbeutel/CImakeshift
+
 jobs:
-- template: azure-pipelines-job-cmake.yml
+- template: azure-pipelines-job-cmake.yml@templates
   parameters:
     vcpkgRef: e308474b85ff49f2b688a759351c4ec569636910
     vcpkgOverlayRepo: 'https://mp-force.ziti.uni-heidelberg.de/asc/infrastructure/vcpkg-ports.git'
