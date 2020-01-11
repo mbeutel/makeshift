@@ -6,10 +6,6 @@
 
 cmake_minimum_required(VERSION 3.14)
 
-if(MAKESHIFT_BUILD_CUDA_TESTS)
-    enable_language(CUDA)
-endif()
-
 # dependencies
 find_package(Catch2 2.9 REQUIRED)
 find_package(CMakeshift 3.7 REQUIRED)
@@ -19,8 +15,7 @@ find_package(mpark_variant REQUIRED)
 include(CMakeshift/TargetCompileSettings)
 
 # test runner target
-add_library(test-makeshift-runner OBJECT
-    "main.cpp")
+add_library(test-makeshift-runner OBJECT "main.cpp")
 target_compile_features(test-makeshift-runner PRIVATE cxx_std_14)
 cmakeshift_target_compile_settings(test-makeshift-runner PRIVATE default)
 target_link_libraries(test-makeshift-runner
@@ -34,7 +29,7 @@ target_compile_definitions(test-makeshift-settings
         CATCH_CONFIG_CONSOLE_WIDTH=120
         CATCH_CLARA_CONFIG_CONSOLE_WIDTH=120
         gsl_CONFIG_CONTRACT_CHECKING_AUDIT # run audit-level checks
-        gsl_CONFIG_CONTRACT_VIOLATION_THROWS) # this makes gsl-lite's precondition assertions throw `gsl::fail_fast` on failure
+        gsl_CONFIG_CONTRACT_VIOLATION_THROWS) # make gsl-lite's precondition assertions throw `gsl::fail_fast` on failure
 target_link_libraries(test-makeshift-settings
     INTERFACE
         gsl::gsl-lite-v1

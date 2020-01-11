@@ -16,9 +16,19 @@ include(CMakeshift/TargetCompileSettings)
 
 # CUDA test target
 add_executable(test-makeshift-cuda14)
+
+# compiler settings
 target_compile_features(test-makeshift-cuda14 PRIVATE cxx_std_14)
 set_target_properties(test-makeshift-cuda14 PROPERTIES CUDA_STANDARD 14)
 cmakeshift_target_compile_settings(test-makeshift-cuda14 PRIVATE default)
+
+# test properties
+target_compile_definitions(test-makeshift-cuda14
+    INTERFACE
+        CATCH_CONFIG_CONSOLE_WIDTH=120
+        CATCH_CLARA_CONFIG_CONSOLE_WIDTH=120)
+
+# test dependencies
 target_link_libraries(test-makeshift-cuda14
     PRIVATE
         test-makeshift-runner
@@ -26,10 +36,6 @@ target_link_libraries(test-makeshift-cuda14
         Catch2::Catch2
         makeshift
         mpark_variant)
-target_compile_definitions(test-makeshift-cuda14
-    INTERFACE
-        CATCH_CONFIG_CONSOLE_WIDTH=120
-        CATCH_CLARA_CONFIG_CONSOLE_WIDTH=120)
 
 # All the sources in the C++14 test target should also compile with NVCC.
 get_target_property(SOURCES_CUDA14 test-makeshift-cxx14 SOURCES)
