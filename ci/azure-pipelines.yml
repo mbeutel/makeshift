@@ -12,6 +12,7 @@ resources:
     - repository: templates
       type: github
       name: mbeutel/CImakeshift
+      endpoint: mbeutel
 
 jobs:
 - template: azure-pipelines-job-cmake.yml@templates
