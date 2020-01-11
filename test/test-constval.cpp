@@ -19,6 +19,11 @@
 # define ERRONEOUS_DEPENDENT_TYPE_DEDUCTION
 #endif // defined(__NVCC__) || gsl_BETWEEN(gsl_COMPILER_GNUC_VERSION, 1, 700) || gsl_BETWEEN(gsl_COMPILER_APPLECLANG_VERSION, 1, 900) || defined(__EDG__)
 
+#if defined(__NVCC__)
+// These compilers cannot handle reference-type template arguments correctly in some cases.
+# define ERRONEOUS_REF_TEMPLATE_ARGS
+#endif // defined(__NVCC__)
+
 
 namespace {
 
@@ -146,12 +151,14 @@ TEST_CASE("constval")
     mk::mdarray<int, 2> ncA1 = cA1;
     discard_args(ncA1);
 
+#ifndef ERRONEOUS_REF_TEMPLATE_ARGS
     auto cAA1 = MAKESHIFT_CONSTVAL(std::array<std::array<int, 1>, 2>{ std::array<int, 1>{ 4 }, std::array<int, 1>{ 2 } });
-#ifndef ERRONEOUS_DEPENDENT_TYPE_DEDUCTION
+# ifndef ERRONEOUS_DEPENDENT_TYPE_DEDUCTION
     expect_nested_array_constval_normalization(cAA1);
-#endif // ERRONEOUS_DEPENDENT_TYPE_DEDUCTION
+# endif // ERRONEOUS_DEPENDENT_TYPE_DEDUCTION
     mk::mdarray<int, 2, 1> ncAA1 = cAA1;
     discard_args(ncAA1);
+#endif // ERRONEOUS_REF_TEMPLATE_ARGS
 
     auto cTA1 = MAKESHIFT_CONSTVAL(std::make_tuple(std::array<int, 1>{ 3 }, std::array<int, 2>{ 1, 4 }));
     expect_array_tuple_constval_normalization(cTA1);

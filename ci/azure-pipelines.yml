@@ -52,14 +52,13 @@ jobs:
       vcpkgTriplet: <platform>-<os>-sanitize
       cmakeConfigArgs: '-DCMAKESHIFT_PRIVATE_COMPILE_SETTINGS=runtime-checks;debug-stdlib'
 
-    # TODO: Currently disabled because of known issues with NVCC
-    #- os: Linux
-    #  cxxCompiler: GCC
-    #  cxxCompilerVersions: [9]
-    #  cudaCompiler: NVCC
-    #  cudaCompilerVersion: 10_2
-    #  platforms: [x64]
-    #  cmakeConfigArgs: '-DMAKESHIFT_BUILD_CUDA_TESTS=ON'
+    - os: Linux
+      cxxCompiler: GCC
+      cxxCompilerVersions: [9]
+      cudaCompiler: NVCC
+      cudaCompilerVersion: 10_2
+      platforms: [x64]
+      cmakeConfigArgs: '-DMAKESHIFT_BUILD_CUDA_TESTS=ON'
 
     - os: Windows
       cxxCompiler: MSVC
@@ -71,14 +70,13 @@ jobs:
       cxxCompilerVersions: [9]
       platforms: [x86, x64]
 
-    # TODO: Currently disabled because of known issues with NVCC
-    #- os: Windows
-    #  cxxCompiler: MSVC
-    #  cxxCompilerVersions: [2019]
-    #  cudaCompiler: NVCC
-    #  cudaCompilerVersion: 10_2
-    #  platforms: [x64]
-    #  cmakeConfigArgs: '-DMAKESHIFT_BUILD_CUDA_TESTS=ON'
+    - os: Windows
+      cxxCompiler: MSVC
+      cxxCompilerVersions: [2019]
+      cudaCompiler: NVCC
+      cudaCompilerVersion: 10_2
+      platforms: [x64]
+      cmakeConfigArgs: '-DMAKESHIFT_BUILD_CUDA_TESTS=ON'
 
     - os: MacOS
       cxxCompiler: GCC
