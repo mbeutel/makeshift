@@ -1,4 +1,3 @@
-# Azure Pipelines configuration
 
 trigger:
 - master
@@ -17,9 +16,9 @@ resources:
 jobs:
 - template: azure-pipelines-job-cmake.yml@templates
   parameters:
-    vcpkgRef: e308474b85ff49f2b688a759351c4ec569636910
+    vcpkgRef: bc01338fe2d50f4a24b7f56b53bc385d8de8ccd9
     vcpkgOverlayRepo: 'https://mp-force.ziti.uni-heidelberg.de/asc/infrastructure/vcpkg-ports.git'
-    vcpkgOverlayRef: a08517fb77e9d48d00dd33c16e5acd01f8b31f29
+    vcpkgOverlayRef: b237c7bee7242ea9670251fd575d64df7670e4ad
     vcpkgPackages: ['cmakeshift', 'gsl-lite', 'catch2', 'mpark-variant']
 
     cmakeConfigArgs: '-DMAKESHIFT_BUILD_TESTS=ON'
