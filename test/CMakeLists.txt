@@ -83,6 +83,7 @@ target_link_libraries(test-makeshift-cxx14
         test-makeshift-settings
         mpark_variant)
 add_test(NAME test-makeshift-cxx14 COMMAND test-makeshift-cxx14)
+set_property(TEST test-makeshift-cxx14 PROPERTY FAIL_REGULAR_EXPRESSION "Sanitizer")
 
 # C++17 tests
 if(cxx_std_17 IN_LIST CMAKE_CXX_COMPILE_FEATURES)
@@ -96,6 +97,7 @@ if(cxx_std_17 IN_LIST CMAKE_CXX_COMPILE_FEATURES)
             test-makeshift-runner
             test-makeshift-settings)
     add_test(NAME test-makeshift-cxx17 COMMAND test-makeshift-cxx17)
+    set_property(TEST test-makeshift-cxx17 PROPERTY FAIL_REGULAR_EXPRESSION "Sanitizer")
 endif()
 
 # C++20 tests
@@ -110,4 +112,5 @@ if(cxx_std_20 IN_LIST CMAKE_CXX_COMPILE_FEATURES)
             test-makeshift-runner
             test-makeshift-settings)
     add_test(NAME test-makeshift-cxx20 COMMAND test-makeshift-cxx20)
+    set_property(TEST test-makeshift-cxx20 PROPERTY FAIL_REGULAR_EXPRESSION "Sanitizer")
 endif()
