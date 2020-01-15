@@ -18,7 +18,7 @@ jobs:
   parameters:
     vcpkgRef: bc01338fe2d50f4a24b7f56b53bc385d8de8ccd9
     vcpkgOverlayRepo: 'https://mp-force.ziti.uni-heidelberg.de/asc/infrastructure/vcpkg-ports.git'
-    vcpkgOverlayRef: b237c7bee7242ea9670251fd575d64df7670e4ad
+    vcpkgOverlayRef: a3af41edd36c5a2be17d44f2da0085db11b36331
     vcpkgPackages: ['cmakeshift', 'gsl-lite', 'catch2', 'mpark-variant']
 
     cmakeConfigArgs: '-DMAKESHIFT_BUILD_TESTS=ON'
@@ -35,9 +35,9 @@ jobs:
       cxxCompiler: GCC
       cxxCompilerVersions: [9]
       platforms: [x64]
-      displayTag: 'sanitize'
+      tag: 'sanitize'
       vcpkgTriplet: <platform>-<os>-sanitize
-      cmakeConfigArgs: '-DCMAKESHIFT_PRIVATE_COMPILE_SETTINGS=runtime-checks;debug-stdlib'
+      cmakeConfigArgs: '<cmakeConfigArgs> -DCMAKESHIFT_PRIVATE_COMPILE_SETTINGS=runtime-checks;debug-stdlib'
 
     - os: Linux
       cxxCompiler: Clang
@@ -48,9 +48,9 @@ jobs:
       cxxCompiler: Clang
       cxxCompilerVersions: [9]
       platforms: [x64]
-      displayTag: 'sanitize'
+      tag: 'sanitize'
       vcpkgTriplet: <platform>-<os>-sanitize
-      cmakeConfigArgs: '-DCMAKESHIFT_PRIVATE_COMPILE_SETTINGS=runtime-checks;debug-stdlib'
+      cmakeConfigArgs: '<cmakeConfigArgs> -DCMAKESHIFT_PRIVATE_COMPILE_SETTINGS=runtime-checks;debug-stdlib'
 
     - os: Linux
       cxxCompiler: GCC
@@ -58,11 +58,11 @@ jobs:
       cudaCompiler: NVCC
       cudaCompilerVersion: 10_2
       platforms: [x64]
-      cmakeConfigArgs: '-DMAKESHIFT_BUILD_CUDA_TESTS=ON'
+      cmakeConfigArgs: '<cmakeConfigArgs> -DMAKESHIFT_BUILD_CUDA_TESTS=ON'
 
     - os: Windows
       cxxCompiler: MSVC
-      cxxCompilerVersions: [2019]
+      cxxCompilerVersions: [19_2]
       platforms: [x86, x64]
 
     - os: Windows
@@ -72,11 +72,11 @@ jobs:
 
     - os: Windows
       cxxCompiler: MSVC
-      cxxCompilerVersions: [2019]
+      cxxCompilerVersions: [19_2]
       cudaCompiler: NVCC
       cudaCompilerVersion: 10_2
       platforms: [x64]
-      cmakeConfigArgs: '-DMAKESHIFT_BUILD_CUDA_TESTS=ON'
+      cmakeConfigArgs: '<cmakeConfigArgs> -DMAKESHIFT_BUILD_CUDA_TESTS=ON'
 
     - os: MacOS
       cxxCompiler: GCC
