@@ -28,7 +28,7 @@ namespace gsl = ::gsl_lite;
     //ᅟ        [](auto)  { return "unknown"; });
     //
 template <typename... Fs>
-struct MAKESHIFT_DETAIL_EMPTY_BASES overloaded : Fs...
+struct MAKESHIFT_DETAIL_EMPTY_BASES overloaded : Fs... // <-- TODO: rename?
 {
     using Fs::operator ()...;
 };

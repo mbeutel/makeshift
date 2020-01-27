@@ -30,16 +30,18 @@ namespace detail
 {
 
 
-    //
-    // Pass `tuple_index` to `template_for()` or `tuple_transform()` to have the tuple element index passed as a functor argument.
-    // The argument is of type `integral_constant<std::size_t, I>` and implicitly converts to `std::size_t`.
-    //ᅟ
-    //ᅟ    template_for(
-    //ᅟ        [](auto element, std::size_t idx) { std::cout << idx << ": " << element << '\n'; },
-    //ᅟ        std::make_tuple(42, 1.41421), tuple_index);
-    //ᅟ    // prints "0: 42\n1: 1.41421"
-    //
-struct tuple_index_t { };
+template <std::size_t I, typename R>
+struct MAKESHIFT_DETAIL_EMPTY_BASES tuple_zip_iterator_leaf
+    : zip_iterator_leaf_base<I, R, tuple_iterator_leaf_mode_<std::decay_t<R>>::value>
+{
+    using leaf_base = zip_iterator_leaf_base<I, R, tuple_iterator_leaf_mode_<std::decay_t<R>>::value>;
+    using leaf_base::leaf_base;
+};
+template <std::size_t I, typename R>
+constexpr tuple_zip_iterator_leaf<I, R>& get_leaf(tuple_zip_iterator_leaf<I, R>& self)
+{
+    return self;
+}
 
 
 template <typename T> struct is_tuple_arg_0 : is_tuple_like<T> { };

@@ -25,22 +25,6 @@ namespace gsl = ::gsl_lite;
 
 
     //
-    // Pass `tuple_index` to `array_transform()`, `template_for()`, or `tuple_transform()` to have the tuple element index passed as a functor argument.
-    // The argument is of type `integral_constant<index, I>`.
-    //ᅟ
-    //ᅟ        // print all alternatives of a variant
-    //ᅟ    constexpr auto numAlternatives = std::variant_size_v<MyVariant>;
-    //ᅟ    template_for<numAlternatives>(
-    //ᅟ        [](auto idxC)
-    //ᅟ        {
-    //ᅟ            using T = std::variant_alternative_t<idxC(), MyVariant>;
-    //ᅟ            printTypename<T>();
-    //ᅟ        });
-    //
-static constexpr detail::tuple_index_t const& tuple_index = static_const<detail::tuple_index_t>;
-
-
-    //
     // Takes a scalar procedure (i.e. a function of non-tuple arguments which returns nothing) and calls the procedure for every element in the given tuples.
     //ᅟ
     //ᅟ    template_for(

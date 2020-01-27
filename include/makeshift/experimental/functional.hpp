@@ -3,9 +3,12 @@
 #define INCLUDED_MAKESHIFT_EXPERIMENTAL_FUNCTIONAL_HPP_
 
 
-#include <utility> // for move(), forward<>()
+#include <utility>     // for move(), forward<>()
+#include <type_traits> // for move(), forward<>()
 
 #include <gsl-lite/gsl-lite.hpp> // for gsl_CPP17_OR_GREATER
+
+#include <makeshift/experimental/detail/functional.hpp>
 
 
 namespace makeshift
@@ -13,6 +16,37 @@ namespace makeshift
 
 
 namespace gsl = ::gsl_lite;
+
+
+    //
+    // Forwards 
+    //ᅟ
+    //ᅟ    auto v = std::vector<int>{ ... };
+    //ᅟ    auto f = forward_to(
+    //ᅟ        [context = ...]()
+    //ᅟ        {
+    //ᅟ            return [&](auto forward_capture){
+    //ᅟ            {
+    //ᅟ                g(forward_capture(context));
+    //ᅟ            };
+    //ᅟ        });
+    //
+template <typename F>
+detail::forward_to_impl<F>
+forward_to(F func)
+{
+    return detail::forward_to_impl<F>{ std::move(func) };
+}
+
+// Usage:
+//
+//     auto f = forward_to(
+//         [shared_state]
+//         {
+//             return overload(
+//                 [&](int i) { g(i, shared_state); },
+//                 [&](float f) { h(f, shared_state); });
+//         });
 
 
 template <typename F>
