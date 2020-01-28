@@ -15,7 +15,8 @@ add_library(makeshift INTERFACE)
 target_compile_features(makeshift INTERFACE cxx_std_14)
 target_include_directories(makeshift
     INTERFACE
-        "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>")
+        "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
+        "$<INSTALL_INTERFACE:include>")
 target_link_libraries(makeshift
     INTERFACE
         gsl::gsl-lite-v1)
