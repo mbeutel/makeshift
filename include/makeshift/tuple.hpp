@@ -5,13 +5,13 @@
 
 #include <array>
 #include <tuple>       // for tuple<>, tuple_cat()
-#include <cstddef>     // for size_t
+#include <cstddef>     // for size_t, ptrdiff_t
 #include <utility>     // for forward<>()
 #include <type_traits> // for decay<>
 
 #include <gsl-lite/gsl-lite.hpp> // for gsl_NODISCARD
 
-#include <makeshift/type_traits.hpp> // for can_instantiate<>, static_const<>
+#include <makeshift/type_traits.hpp> // for can_instantiate<>, static_const<>, is_tuple_like<>
 
 #include <makeshift/detail/tuple.hpp>
 #include <makeshift/detail/macros.hpp> // for MAKESHIFT_DETAIL_FORCEINLINE
@@ -248,6 +248,44 @@ template_none_of(PredicateT&& predicate, Ts&&... args)
     return detail::conjunction_fn<size, detail::negation_fn, PredicateT>{
         std::forward<PredicateT>(predicate)
     }(std::integral_constant<std::size_t, 0>{ }, std::forward<Ts>(args)...);
+}
+
+
+    //
+    // Returns the tuple element for which the given constval predicate holds.
+    //ᅟ
+    //ᅟ    auto t = std::tuple{ 1, 2.0 };
+    //ᅟ    int i = single(t, []<T>(T const&) { return std::is_integral<T>{ }; }); // returns 1
+    //
+template <typename TupleT, typename CPredT,
+          std::enable_if_t<is_tuple_like_v<TupleT>, int> = 0>
+gsl_NODISCARD constexpr decltype(auto)
+single(TupleT&& tuple, CPredT /*where*/) noexcept
+{
+    static constexpr std::ptrdiff_t index = detail::search_type_pack_index<std::remove_reference_t<TupleT>, CPredT>::value;
+    static_assert(index != detail::element_not_found, "no element in the tuple matches the given predicate");
+    static_assert(index != detail::element_not_unique, "more than one element in the tuple matches the given predicate");
+
+    using std::get;
+    return get<index>(std::forward<TupleT>(tuple));
+}
+
+
+    //
+    // Returns the tuple element for which the given constval predicate holds, or a given default value if none exists.
+    //ᅟ
+    //ᅟ    auto t = std::tuple{ 1, 2.0 };
+    //ᅟ    int i = single_or_default(t, []<T>(T) { return std::is_integral<T>{ }; }); // returns 1
+    //
+template <typename TupleT, typename CPredT, typename DefaultT,
+          std::enable_if_t<is_tuple_like_v<TupleT>, int> = 0>
+gsl_NODISCARD constexpr decltype(auto)
+single_or_default(TupleT&& tuple, CPredT /*where*/, DefaultT&& _default) noexcept
+{
+    static constexpr std::ptrdiff_t index = detail::search_type_pack_index<std::remove_reference_t<TupleT>, CPredT>::value;
+    static_assert(index != detail::element_not_unique, "more than one element in the tuple matches the given predicate");
+
+    return detail::single_or_default(std::forward<TupleT>(tuple), std::forward<DefaultT>(_default), std::integral_constant<std::ptrdiff_t, index>{ });
 }
 
 

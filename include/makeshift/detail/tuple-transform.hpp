@@ -119,6 +119,21 @@ constexpr std::size_t tuple_transform_size(void)
 }
 
 
+template <typename TupleT, typename DefaultT, std::size_t I>
+constexpr decltype(auto)
+single_or_default(TupleT&& tuple, DefaultT&&, std::integral_constant<std::ptrdiff_t, I>) noexcept
+{
+    using std::get;
+    return get<I>(std::forward<TupleT>(tuple));
+}
+template <typename TupleT, typename DefaultT>
+constexpr DefaultT&&
+single_or_default(TupleT&&, DefaultT&& _default, std::integral_constant<std::ptrdiff_t, element_not_found>) noexcept
+{
+    return std::forward<DefaultT>(_default);
+}
+
+
 } // namespace detail
 
 } // namespace makeshift
