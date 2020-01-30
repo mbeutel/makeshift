@@ -122,25 +122,25 @@ struct default_values<TypeEnumT, std::enable_if_t<std::is_base_of<detail::type_e
 };
 
 template <typename TypeEnumT, typename... Ts, typename T>
-gsl_NODISCARD constexpr std::enable_if_t<try_index_of_type_v<T, Ts...> != -1, bool>
+gsl_NODISCARD constexpr std::enable_if_t<search_type_pack_index_v<T, Ts...> != -1, bool>
 operator ==(define_type_enum_base<TypeEnumT, Ts...> lhs, type<T>) noexcept
 {
-    return std::int32_t(try_index_of_type_v<T, Ts...>) == std::int32_t(lhs);
+    return std::int32_t(search_type_pack_index_v<T, Ts...>) == std::int32_t(lhs);
 }
 template <typename TypeEnumT, typename... Ts, typename T>
-gsl_NODISCARD constexpr std::enable_if_t<try_index_of_type_v<T, Ts...> != -1, bool>
+gsl_NODISCARD constexpr std::enable_if_t<search_type_pack_index_v<T, Ts...> != -1, bool>
 operator ==(type<T> lhs, define_type_enum_base<TypeEnumT, Ts...> rhs) noexcept
 {
     return rhs == lhs;
 }
 template <typename TypeEnumT, typename... Ts, typename T>
-gsl_NODISCARD constexpr std::enable_if_t<try_index_of_type_v<T, Ts...> != -1, bool>
+gsl_NODISCARD constexpr std::enable_if_t<search_type_pack_index_v<T, Ts...> != -1, bool>
 operator !=(define_type_enum_base<TypeEnumT, Ts...> lhs, type<T> rhs) noexcept
 {
     return !(lhs == rhs);
 }
 template <typename TypeEnumT, typename... Ts, typename T>
-gsl_NODISCARD constexpr std::enable_if_t<try_index_of_type_v<T, Ts...> != -1, bool>
+gsl_NODISCARD constexpr std::enable_if_t<search_type_pack_index_v<T, Ts...> != -1, bool>
 operator !=(type<T> lhs, define_type_enum_base<TypeEnumT, Ts...> rhs) noexcept
 {
     return !(rhs == lhs);

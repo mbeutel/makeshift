@@ -14,7 +14,7 @@
 #include <type_traits> // for integral_constant<>, enable_if<>, is_same<>, declval<>()
 
 #include <makeshift/detail/utility.hpp>
-#include <makeshift/detail/type_traits.hpp> // for constval_tag, is_tuple_like_r<>, unwrap_enum_tag, try_index_of_type<>
+#include <makeshift/detail/type_traits.hpp> // for constval_tag, is_tuple_like_r<>, unwrap_enum_tag, search_type_pack_index<>
 
 
 namespace makeshift
@@ -40,10 +40,10 @@ struct type_tag : detail::type_base<T>
         // This conversion exists so expressions of type `type<>` can be used as case labels of switch statements over type enums.
     template <typename EnumT,
               typename TypeEnumTypeT = decltype(type_enum_type_of_(std::declval<EnumT>(), detail::unwrap_enum_tag{ })),
-              std::enable_if_t<detail::try_index_of_type_in<T, typename TypeEnumTypeT::type::types>::value != -1, int> = 0>
+              std::enable_if_t<detail::search_type_pack_index_in<T, typename TypeEnumTypeT::type::types>::value != -1, int> = 0>
     constexpr operator EnumT(void) const noexcept
     {
-        return EnumT(int(detail::try_index_of_type_in<T, typename TypeEnumTypeT::type::types>::value));
+        return EnumT(int(detail::search_type_pack_index_in<T, typename TypeEnumTypeT::type::types>::value));
     }
 
         // This must be a proxy type to work around the problem that a class cannot have a static constexpr member of its own type.
@@ -134,7 +134,7 @@ constexpr type<typename detail::nth_type_<I, Ts...>::type> get(type_sequence<Ts.
 template <typename T, typename... Ts>
 constexpr type<T> get(type_sequence<Ts...> const&) noexcept
 {
-	constexpr std::size_t index = detail::try_index_of_type<T, Ts...>::value;
+	constexpr std::size_t index = detail::search_type_pack_index<T, Ts...>::value;
     static_assert(index != std::size_t(-1), "type T does not appear in type sequence");
     return { };
 }

@@ -26,26 +26,51 @@ template <std::size_t N, typename... Ts> using nth_type_t = typename nth_type<N,
 
     //
     // Determines the index of the type `T` in the variadic type sequence.
-    // Returns `size_t(-1)` if `T` does not appear in the type sequence, or if it appears more than once.
+    // Returns a value < 0 if `T` does not appear in the type sequence, or if it appears more than once.
     //
-template <typename T, typename... Ts> struct try_index_of_type : detail::try_index_of_type<T, Ts...> { };
+template <typename T, typename... Ts> struct search_type_pack_index : detail::search_type_pack_index<T, Ts...> { };
 
     //
     // Determines the index of the type `T` in the variadic type sequence.
-    // Returns `size_t(-1)` if `T` does not appear in the type sequence, or if it appears more than once.
+    // Returns a value < 0 if `T` does not appear in the type sequence, or if it appears more than once.
     //
-template <typename T, typename... Ts> constexpr std::ptrdiff_t try_index_of_type_v = try_index_of_type<T, Ts...>::value;
+template <typename T, typename... Ts> constexpr std::ptrdiff_t search_type_pack_index_v = search_type_pack_index<T, Ts...>::value;
+
+
+    //
+    // Determines the index of the element type `T` in the tuple.
+    // Returns a value < 0 if `T` does not appear in the tuple, or if it appears more than once.
+    //
+template <typename T, typename TupleT> struct search_tuple_element_index : detail::search_tuple_element_index<TupleT, detail::same_as_pred<T>> { };
+
+    //
+    // Determines the index of the element type `T` in the tuple.
+    // Returns a value < 0 if `T` does not appear in the tuple, or if it appears more than once.
+    //
+template <typename T, typename TupleT> constexpr std::ptrdiff_t search_tuple_element_index_v = search_tuple_element_index<T, TupleT>::value;
 
 
     //
     // Determines the index of the type `T` in the variadic type sequence.
     //
-template <typename T, typename... Ts> struct index_of_type : std::integral_constant<std::size_t, detail::type_pack_index_<T, Ts...>::value> { };
+template <typename T, typename... Ts> struct type_pack_index : std::integral_constant<std::size_t, detail::type_pack_index_<T, Ts...>::value> { };
 
     //
     // Determines the index of the type `T` in the variadic type sequence.
     //
-template <typename T, typename... Ts> constexpr std::size_t index_of_type_v = index_of_type<T, Ts...>::value;
+template <typename T, typename... Ts> constexpr std::size_t type_pack_index_v = type_pack_index<T, Ts...>::value;
+
+
+    //
+    // Determines the index of the element type `T` in the tuple.
+    //
+template <typename T, typename TupleT> struct tuple_element_index : std::integral_constant<std::size_t, detail::tuple_element_index<TupleT, detail::same_as_pred<T>>::value> { };
+
+    //
+    // Determines the index of the element type `T` in the tuple.
+    //
+template <typename T, typename TupleT> constexpr std::size_t tuple_element_index_v = tuple_element_index<T, TupleT>::value;
+
 
     //
     // Determines whether the template instantiation `Z<Ts...>` would be valid.
