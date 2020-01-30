@@ -289,6 +289,50 @@ single_or_default(TupleT&& tuple, CPredT /*where*/, DefaultT&& _default) noexcep
 }
 
 
+    //
+    // Returns a new tuple where the `I`-th element was substituted with `newElement`.
+    //ᅟ
+    //ᅟ    auto t = std::tuple{ 1, 2.0 };
+    //ᅟ    auto u = with<1>(t, 3.0f); // returns std::tuple{ 1, 3.0f }
+    //
+template <std::size_t I, typename TupleT, typename NewElementT,
+          std::enable_if_t<is_tuple_like_v<TupleT>, int> = 0>
+gsl_NODISCARD constexpr typename detail::with_element<I, std::decay_t<NewElementT>, std::decay_t<TupleT>>::type
+with(TupleT&& tuple, NewElementT&& newElement)
+{
+    return detail::with<I>(std::forward<TupleT>(tuple), std::forward<NewElementT>(newElement), std::make_index_sequence<std::tuple_size<std::remove_reference_t<TupleT>>::value>{ });
+}
+
+    //
+    // Returns a new tuple where the element of type `T` was substituted with `newElement`.
+    //ᅟ
+    //ᅟ    auto t = std::tuple{ 1, 2.0 };
+    //ᅟ    auto u = with<int>(t, 3.0f); // returns std::tuple{ 1, 3.0f }
+    //
+template <typename T, typename TupleT, typename NewElementT,
+          std::enable_if_t<is_tuple_like_v<TupleT>, int> = 0>
+gsl_NODISCARD constexpr auto
+with(TupleT&& tuple, NewElementT&& newElement)
+{
+    static constexpr std::size_t index = tuple_element_index_v<T, std::remove_reference_t<TupleT>>;
+    return makeshift::with<index>(std::forward<TupleT>(tuple), std::forward<NewElementT>(newElement));
+}
+
+    //
+    // Returns a new tuple where the element for which the given constval predicate holds was substituted with `newElement`.
+    //ᅟ
+    //ᅟ    auto t = std::tuple{ 1, 2.0 };
+    //ᅟ    auto u = with(t, []<T>(T) { return std::is_integral<T>{ }; }, 3.0f); // returns std::tuple{ 3.0f, 2.0 }
+    //
+template <typename TupleT, typename CPredT, typename T>
+gsl_NODISCARD constexpr auto
+with(TupleT&& tuple, CPredT /*where*/, T&& newElement)
+{
+    static constexpr std::size_t index = detail::tuple_element_index<std::remove_reference_t<TupleT>, CPredT>::value;
+    return makeshift::with<index>(std::forward<TupleT>(tuple), std::forward<T>(newElement));
+}
+
+
 } // namespace makeshift
 
 
