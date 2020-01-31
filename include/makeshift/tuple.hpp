@@ -61,14 +61,14 @@ template_for(F&& func, Ts&&... args)
     //
     // Takes a scalar procedure (i.e. a function of non-tuple arguments which returns nothing) and calls the procedure for every element in the given tuples.
     //ᅟ
-    //ᅟ    template_for_n<3>(
+    //ᅟ    template_for<3>(
     //ᅟ        [](index i) { std::cout << i << '\n'; },
     //ᅟ        range_index);
     //ᅟ    // prints "0\n1\n2\n"
     //
 template <std::size_t N, typename F, typename... Ts>
 constexpr MAKESHIFT_DETAIL_FORCEINLINE void
-template_for_n(F&& func, Ts&&... args)
+template_for(F&& func, Ts&&... args)
 {
     static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
     constexpr std::size_t size = detail::tuple_transform_size<N, Ts...>();
