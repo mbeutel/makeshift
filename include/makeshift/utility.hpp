@@ -151,6 +151,19 @@ template <typename... Ts> struct type_sequence_cat : detail::type_sequence_cat_<
 template <typename... Ts> using type_sequence_cat_t = typename type_sequence_cat<Ts...>::type;
 
 
+#if gsl_CPP17_OR_GREATER
+    //
+    // Class that inherits from all its template arguments.
+    //
+template <typename... Ts>
+struct composition
+{
+};
+template <typename... Ts>
+composition(Ts...) -> composition<Ts...>;
+#endif // gsl_CPP17_OR_GREATER
+
+
 } // namespace makeshift
 
 
