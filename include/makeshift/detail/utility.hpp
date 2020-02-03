@@ -6,16 +6,14 @@
 #include <makeshift/detail/type_traits.hpp> // for search_type_pack_index<>
 
 
-namespace makeshift
-{
+namespace makeshift {
 
 
 template <typename T>
 struct type_tag;
 
 
-namespace detail
-{
+namespace detail {
 
 
 template <typename T, typename TypeSeqT> struct search_type_pack_index_in;

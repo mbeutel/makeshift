@@ -29,8 +29,7 @@
         }()))
 
 
-namespace makeshift
-{
+namespace makeshift {
 
 
 namespace gsl = ::gsl_lite;
@@ -43,8 +42,7 @@ template <typename... Cs>
 struct tuple_constant;
 
 
-namespace detail
-{
+namespace detail {
 
 
 template <typename C> constexpr auto constval_value = C{ }(); // workaround for EDG (TODO: remove?)
@@ -357,8 +355,7 @@ constexpr auto cssize_impl(std::false_type /*isConstval*/, ContainerT const& c)
 } // namespace makeshift
 
 
-namespace std
-{
+namespace std {
 
 
     // Implement tuple-like protocol for `tuple_like_constval<>`.

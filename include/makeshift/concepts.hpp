@@ -14,8 +14,7 @@
 #endif // defined(__has_include)
 
 
-namespace makeshift
-{
+namespace makeshift {
 
 
 #if defined(__cpp_concepts) && defined(__cpp_lib_concepts)

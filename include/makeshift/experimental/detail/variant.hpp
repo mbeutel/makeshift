@@ -7,11 +7,9 @@
 #include <exception> // for terminate()
 
 
-namespace makeshift
-{
+namespace makeshift {
 
-namespace detail
-{
+namespace detail {
 
 
 template <template <typename...> class VariantT, typename MonostateT, typename V> struct with_monostate_;

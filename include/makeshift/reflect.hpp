@@ -9,8 +9,7 @@
 #include <makeshift/detail/reflect.hpp>
 
 
-namespace makeshift
-{
+namespace makeshift {
 
 
     //

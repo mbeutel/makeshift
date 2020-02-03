@@ -6,8 +6,7 @@
 #include <iosfwd> // for istream, ostream
 
 
-namespace makeshift
-{
+namespace makeshift {
 
 
     //

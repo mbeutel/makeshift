@@ -14,8 +14,7 @@
 #include <makeshift/detail/span.hpp>
 
 
-namespace makeshift
-{
+namespace makeshift {
 
 
 namespace gsl = ::gsl_lite;

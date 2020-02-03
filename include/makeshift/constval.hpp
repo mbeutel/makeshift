@@ -44,8 +44,7 @@
     // - `xC` is tuple-like if `x` is tuple-like; `std::get<I>(xC)` returns `MAKESHIFT_CONSTVAL(std::get<I>(x))`.
 
 
-namespace makeshift
-{
+namespace makeshift {
 
 
 namespace gsl = ::gsl_lite;
@@ -393,8 +392,7 @@ gsl_NODISCARD constexpr std::integral_constant<std::ptrdiff_t, N> cssize(T const
 } // namespace makeshift
 
 
-namespace std
-{
+namespace std {
 
 
     // Implement tuple-like protocol for `array_constant<>`.

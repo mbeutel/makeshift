@@ -16,15 +16,13 @@
 #include <makeshift/detail/range-index.hpp> // for range_index_t
 
 
-namespace makeshift
-{
+namespace makeshift {
 
 
 namespace gsl = ::gsl_lite;
 
 
-namespace detail
-{
+namespace detail {
 
 
 template <typename R, typename = void> struct has_data : std::false_type { };

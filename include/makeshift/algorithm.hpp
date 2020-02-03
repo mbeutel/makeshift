@@ -14,8 +14,7 @@
 #include <makeshift/detail/range-index.hpp> // for identity_transform_t, all_of_pred, none_of_pred
 
 
-namespace makeshift
-{
+namespace makeshift {
 
 
 namespace gsl = ::gsl_lite;

@@ -8,11 +8,9 @@
 #include <makeshift/type_traits.hpp> // for static_const<>
 
 
-namespace makeshift
-{
+namespace makeshift {
 
-namespace detail
-{
+namespace detail {
 
 
 struct negation_fn

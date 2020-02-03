@@ -15,15 +15,13 @@
 #include <type_traits> // for declval<>(), integral_constant<>, is_convertible<>
 
 
-namespace makeshift
-{
+namespace makeshift {
 
 
 namespace gsl = ::gsl_lite;
 
 
-namespace detail
-{
+namespace detail {
 
 
 struct type_enum_base { };

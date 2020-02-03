@@ -11,8 +11,7 @@
 #include <makeshift/detail/functional.hpp>
 
 
-namespace makeshift
-{
+namespace makeshift {
 
 
 namespace gsl = ::gsl_lite;
@@ -22,13 +21,13 @@ namespace gsl = ::gsl_lite;
     //
     // Constructs a functor wrapper that selects the matching overload among a number of given functors.
     //ᅟ
-    //ᅟ    auto type_name_func = overloaded(
+    //ᅟ    auto type_name_func = overload(
     //ᅟ        [](int)   { return "int"; },
     //ᅟ        [](float) { return "float"; },
     //ᅟ        [](auto)  { return "unknown"; });
     //
 template <typename... Fs>
-struct MAKESHIFT_DETAIL_EMPTY_BASES overloaded : Fs...
+struct MAKESHIFT_DETAIL_EMPTY_BASES overload : Fs...
 {
     using Fs::operator ()...;
 };
@@ -36,30 +35,30 @@ struct MAKESHIFT_DETAIL_EMPTY_BASES overloaded : Fs...
     //
     // Constructs a functor wrapper that selects the matching overload among a number of given functors.
     //ᅟ
-    //ᅟ    auto type_name_func = overloaded(
+    //ᅟ    auto type_name_func = overload(
     //ᅟ        [](int)   { return "int"; },
     //ᅟ        [](float) { return "float"; },
     //ᅟ        [](auto)  { return "unknown"; });
     //
 template <typename... Fs>
-struct overloaded;
+struct overload;
 template <typename F0>
-struct MAKESHIFT_DETAIL_EMPTY_BASES overloaded<F0> : F0
+struct MAKESHIFT_DETAIL_EMPTY_BASES overload<F0> : F0
 {
     using F0::F0;
 };
 template <typename F0, typename... Fs>
-struct MAKESHIFT_DETAIL_EMPTY_BASES overloaded<F0, Fs...> : F0, overloaded<Fs...>
+struct MAKESHIFT_DETAIL_EMPTY_BASES overload<F0, Fs...> : F0, overload<Fs...>
 {
-    constexpr overloaded(F0 f0, Fs... fs) : F0(std::move(f0)), overloaded<Fs...>(std::move(fs)...) { }
+    constexpr overload(F0 f0, Fs... fs) : F0(std::move(f0)), overload<Fs...>(std::move(fs)...) { }
     using F0::operator ();
-    using overloaded<Fs...>::operator ();
+    using overload<Fs...>::operator ();
 };
 #endif // MAKESHIFT_DETAIL_CXXLEVEL >= 17
 
 #if gsl_CPP17_OR_GREATER
 template <typename... Ts>
-overloaded(Ts...) -> overloaded<Ts...>;
+overload(Ts...) -> overload<Ts...>;
 #endif // gsl_CPP17_OR_GREATER
 
     //
@@ -71,7 +70,7 @@ overloaded(Ts...) -> overloaded<Ts...>;
     //ᅟ        [](auto)  { return "unknown"; });
     //
 template <typename... Fs>
-constexpr overloaded<Fs...> make_overloaded(Fs... fs)
+constexpr overload<Fs...> make_overload(Fs... fs)
 {
     return { std::move(fs)... };
 }

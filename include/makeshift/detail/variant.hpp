@@ -15,8 +15,7 @@
 #include <makeshift/constval.hpp> // for array_constant<>
 
 
-namespace makeshift
-{
+namespace makeshift {
 
 
 namespace gsl = ::gsl_lite;
@@ -32,8 +31,7 @@ public:
 };
 
 
-namespace detail
-{
+namespace detail {
 
 
 #if defined(_MSC_VER) && defined(__INTELLISENSE__)

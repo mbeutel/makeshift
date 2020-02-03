@@ -14,15 +14,13 @@
 #include <makeshift/detail/type_traits.hpp> // for is_tuple_like_r<>, type_enum_base, unwrap_enum_tag
 
 
-namespace makeshift
-{
+namespace makeshift {
 
 
 namespace gsl = ::gsl_lite;
 
 
-namespace detail
-{
+namespace detail {
 
 
 template <typename TypeEnumT, typename... Ts>

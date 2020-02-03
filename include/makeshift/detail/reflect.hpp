@@ -10,15 +10,13 @@
 #include <makeshift/utility.hpp> // for type<>
 
 
-namespace makeshift
-{
+namespace makeshift {
 
 
 template <typename T, typename> struct values_provider;
 
 
-namespace detail
-{
+namespace detail {
 
 
 template <typename T> constexpr bool is_std_array_v = false;

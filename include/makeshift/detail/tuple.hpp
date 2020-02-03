@@ -12,11 +12,9 @@
 #include <makeshift/detail/tuple-transform.hpp>
 
 
-namespace makeshift
-{
+namespace makeshift {
 
-namespace detail
-{
+namespace detail {
 
 
 template <template <typename...> class TupleT, typename F, typename... Ts>

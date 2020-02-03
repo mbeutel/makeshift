@@ -3,11 +3,9 @@
 #define INCLUDED_MAKESHIFT_DETAIL_ENUM_HPP_
 
 
-namespace makeshift
-{
+namespace makeshift {
 
-namespace detail
-{
+namespace detail {
 
 
 template <typename T>

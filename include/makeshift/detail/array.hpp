@@ -17,15 +17,13 @@
 #include <makeshift/detail/tuple-transform.hpp> // for transform_element()
 
 
-namespace makeshift
-{
+namespace makeshift {
 
 
 namespace gsl = ::gsl_lite;
 
 
-namespace detail
-{
+namespace detail {
 
 
 template <typename T> using is_array_like_r = decltype(std::declval<T>()[std::declval<std::ptrdiff_t>()]);

@@ -8,8 +8,7 @@
 #include <gsl-lite/gsl-lite.hpp> // for gsl_CPP17_OR_GREATER
 
 
-namespace makeshift
-{
+namespace makeshift {
 
 
 namespace gsl = ::gsl_lite;

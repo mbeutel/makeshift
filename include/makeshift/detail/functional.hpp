@@ -6,11 +6,9 @@
 #include <utility> // for forward<>()
 
 
-namespace makeshift
-{
+namespace makeshift {
 
-namespace detail
-{
+namespace detail {
 
 
 template <typename FRefT>

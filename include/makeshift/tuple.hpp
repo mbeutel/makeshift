@@ -17,8 +17,7 @@
 #include <makeshift/detail/macros.hpp> // for MAKESHIFT_DETAIL_FORCEINLINE
 
 
-namespace makeshift
-{
+namespace makeshift {
 
 
 namespace gsl = ::gsl_lite;

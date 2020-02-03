@@ -17,8 +17,7 @@
 #include <makeshift/detail/type_traits.hpp> // for constval_tag, is_tuple_like_r<>, unwrap_enum_tag, search_type_pack_index<>
 
 
-namespace makeshift
-{
+namespace makeshift {
 
 
 namespace gsl = ::gsl_lite;
@@ -156,7 +155,7 @@ template <typename... Ts> using type_sequence_cat_t = typename type_sequence_cat
     // Class that inherits from all its template arguments.
     //
 template <typename... Ts>
-struct composition
+struct composition // TODO: is this really needed?
 {
 };
 template <typename... Ts>
@@ -167,11 +166,9 @@ composition(Ts...) -> composition<Ts...>;
 } // namespace makeshift
 
 
-namespace makeshift
-{
+namespace makeshift {
 
-namespace detail
-{
+namespace detail {
 
 
 template <typename T>
@@ -192,8 +189,7 @@ constexpr type_tag_proxy<T>::operator type_tag<T> const&(void) const noexcept
 } // namespace makeshift
 
 
-namespace std
-{
+namespace std {
 
 
     // Specialize `tuple_size<>` and `tuple_element<>` for `type_sequence<>`.
