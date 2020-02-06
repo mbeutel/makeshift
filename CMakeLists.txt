@@ -31,5 +31,6 @@ find_package(CMakeshift 3.8 REQUIRED)
 include(CMakeshift/InstallBasicPackageFiles)
 cmakeshift_install_basic_package_files(makeshift
     COMPATIBILITY SameMajorVersion
+    ARCH_INDEPENDENT
     DEPENDENCIES
         "gsl-lite 0.36")
