@@ -8,8 +8,8 @@ cmake_minimum_required(VERSION 3.14)
 
 # dependencies
 find_package(Catch2 2.9 REQUIRED)
-find_package(CMakeshift 3.7 REQUIRED)
-find_package(gsl-lite 0.35.6 REQUIRED)
+find_package(CMakeshift 3.8 REQUIRED)
+find_package(gsl-lite 0.36 REQUIRED)
 find_package(mpark_variant REQUIRED)
 
 include(CMakeshift/TargetCompileSettings)
