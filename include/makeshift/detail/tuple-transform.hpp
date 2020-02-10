@@ -133,13 +133,13 @@ single_or_default(TupleT&&, DefaultT&& _default, std::integral_constant<std::ptr
 
 
 template <std::size_t I, typename TupleT, typename T, std::size_t J>
-constexpr decltype(auto) get_or_replace(TupleT&& tuple, T&& newElement, std::integral_constant<std::size_t, J>) noexcept
+constexpr decltype(auto) get_or_replace(TupleT&& tuple, T&&, std::integral_constant<std::size_t, J>) noexcept
 {
     using std::get;
     return get<J>(std::forward<TupleT>(tuple));
 }
 template <std::size_t I, typename TupleT, typename T>
-constexpr T&& get_or_replace(TupleT&& tuple, T&& newElement, std::integral_constant<std::size_t, I>) noexcept
+constexpr T&& get_or_replace(TupleT&&, T&& newElement, std::integral_constant<std::size_t, I>) noexcept
 {
     return std::forward<T>(newElement);
 }

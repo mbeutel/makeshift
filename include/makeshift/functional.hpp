@@ -64,7 +64,7 @@ overload(Ts...) -> overload<Ts...>;
     //
     // Constructs a functor wrapper that selects the matching overload among a number of given functors.
     //ᅟ
-    //ᅟ    auto type_name_func = make_overloaded(
+    //ᅟ    auto type_name_func = make_overload(
     //ᅟ        [](int)   { return "int"; },
     //ᅟ        [](float) { return "float"; },
     //ᅟ        [](auto)  { return "unknown"; });

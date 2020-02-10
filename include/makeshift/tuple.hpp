@@ -261,7 +261,7 @@ template <typename TupleT, typename CPredT,
 gsl_NODISCARD constexpr decltype(auto)
 single(TupleT&& tuple, CPredT /*where*/) noexcept
 {
-    static constexpr std::ptrdiff_t index = detail::search_type_pack_index<std::remove_reference_t<TupleT>, CPredT>::value;
+    constexpr std::ptrdiff_t index = detail::search_type_pack_index<std::remove_reference_t<TupleT>, CPredT>::value;
     static_assert(index != detail::element_not_found, "no element in the tuple matches the given predicate");
     static_assert(index != detail::element_not_unique, "more than one element in the tuple matches the given predicate");
 
@@ -281,7 +281,7 @@ template <typename TupleT, typename CPredT, typename DefaultT,
 gsl_NODISCARD constexpr decltype(auto)
 single_or_default(TupleT&& tuple, CPredT /*where*/, DefaultT&& _default) noexcept
 {
-    static constexpr std::ptrdiff_t index = detail::search_type_pack_index<std::remove_reference_t<TupleT>, CPredT>::value;
+    constexpr std::ptrdiff_t index = detail::search_type_pack_index<std::remove_reference_t<TupleT>, CPredT>::value;
     static_assert(index != detail::element_not_unique, "more than one element in the tuple matches the given predicate");
 
     return detail::single_or_default(std::forward<TupleT>(tuple), std::forward<DefaultT>(_default), std::integral_constant<std::ptrdiff_t, index>{ });
@@ -313,7 +313,7 @@ template <typename T, typename TupleT, typename NewElementT,
 gsl_NODISCARD constexpr auto
 with(TupleT&& tuple, NewElementT&& newElement)
 {
-    static constexpr std::size_t index = tuple_element_index_v<T, std::remove_reference_t<TupleT>>;
+    constexpr std::size_t index = tuple_element_index_v<T, std::remove_reference_t<TupleT>>;
     return makeshift::with<index>(std::forward<TupleT>(tuple), std::forward<NewElementT>(newElement));
 }
 
@@ -327,7 +327,7 @@ template <typename TupleT, typename CPredT, typename T>
 gsl_NODISCARD constexpr auto
 with(TupleT&& tuple, CPredT /*where*/, T&& newElement)
 {
-    static constexpr std::size_t index = detail::tuple_element_index<std::remove_reference_t<TupleT>, CPredT>::value;
+    constexpr std::size_t index = detail::tuple_element_index<std::remove_reference_t<TupleT>, CPredT>::value;
     return makeshift::with<index>(std::forward<TupleT>(tuple), std::forward<T>(newElement));
 }
 
