@@ -31,7 +31,7 @@ namespace mpark {
     // `gsl_Expects()` is used to ensure that the runtime value is among the values in the array.
     //ᅟ
     //ᅟ    int bits = ...;
-    //ᅟ    auto bitsV = expand(bits, MAKESHIFT_CONSTVAL(std::array{ 16, 32, 64 }));
+    //ᅟ    auto bitsV = expand_failfast(bits, MAKESHIFT_CONSTVAL(std::array{ 16, 32, 64 }));
     //ᅟ
     //ᅟ    visit(
     //ᅟ        [](auto bitsC) {
@@ -42,7 +42,7 @@ namespace mpark {
     //
 template <typename T, typename ValuesC>
 gsl_NODISCARD constexpr typename detail::constval_variant_map<::mpark::variant, ValuesC>::type
-expand(T const& value, ValuesC valuesC)
+expand_failfast(T const& value, ValuesC valuesC)
 {
     std::ptrdiff_t index = detail::search_value_index(value, valuesC);
     gsl_Expects(index >= 0);
@@ -54,7 +54,7 @@ expand(T const& value, ValuesC valuesC)
     // `gsl_Expects()` is used to ensure that the runtime value is among the values in the array.
     //ᅟ
     //ᅟ    bool logging = ...;
-    //ᅟ    auto loggingV = expand(logging);
+    //ᅟ    auto loggingV = expand_failfast(logging);
     //ᅟ
     //ᅟ    visit(
     //ᅟ        [](auto loggingC) {
@@ -68,10 +68,10 @@ expand(T const& value, ValuesC valuesC)
     //
 template <typename T>
 gsl_NODISCARD constexpr auto
-expand(T const& value)
+expand_failfast(T const& value)
 {
     static_assert(have_values_of_v<T>, "expand() cannot find admissible values");
-    return makeshift::mpark::expand(value, makeshift::constval_t<detail::values_of_<T>>{ });
+    return makeshift::mpark::expand_failfast(value, makeshift::constval_t<detail::values_of_<T>>{ });
 }
 
     //
@@ -129,7 +129,7 @@ expand(T const& value)
     // An exception of type `unsupported_runtime_value` is thrown if the runtime value is not among the values in the array.
     //ᅟ
     //ᅟ    int bits = ...;
-    //ᅟ    auto bitsV = expand_or_throw(bits, MAKESHIFT_CONSTVAL(std::array{ 16, 32, 64 }));
+    //ᅟ    auto bitsV = expand(bits, MAKESHIFT_CONSTVAL(std::array{ 16, 32, 64 }));
     //ᅟ
     //ᅟ    visit(
     //ᅟ        [](auto bitsC) {
@@ -140,7 +140,7 @@ expand(T const& value)
     //
 template <typename T, typename ValuesC>
 gsl_NODISCARD constexpr typename detail::constval_variant_map<::mpark::variant, ValuesC>::type
-expand_or_throw(T const& value, ValuesC valuesC)
+expand(T const& value, ValuesC valuesC)
 {
     std::ptrdiff_t index = detail::search_value_index(value, valuesC);
     if (index < 0) throw unsupported_runtime_value{ };
@@ -155,7 +155,7 @@ expand_or_throw(T const& value, ValuesC valuesC)
     //ᅟ    constexpr auto reflect_values(type<Color>) { return std::array{ red, green, blue }; }
     //ᅟ
     //ᅟ    auto color = ...;
-    //ᅟ    auto colorV = expand_or_throw(color);
+    //ᅟ    auto colorV = expand(color);
     //ᅟ
     //ᅟ    visit(
     //ᅟ        [](auto colorC) {
@@ -166,10 +166,10 @@ expand_or_throw(T const& value, ValuesC valuesC)
     //
 template <typename T>
 gsl_NODISCARD constexpr auto
-expand_or_throw(T const& value)
+expand(T const& value)
 {
     static_assert(have_values_of_v<T>, "expand_or_throw() cannot find admissible values");
-    return makeshift::mpark::expand_or_throw(value, makeshift::constval_t<detail::values_of_<T>>{ });
+    return makeshift::mpark::expand(value, makeshift::constval_t<detail::values_of_<T>>{ });
 }
 
 
