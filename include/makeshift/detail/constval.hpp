@@ -14,18 +14,20 @@
 #include <makeshift/type_traits.hpp> // for constval_tag, can_instantiate<>
 
 
-#define MAKESHIFT_CONSTVAL_(...)                                \
-    (makeshift::detail::make_constval(                          \
-        []                                                      \
-        {                                                       \
-            struct R_                                           \
-            {                                                   \
-                constexpr auto operator ()(void) const noexcept \
-                {                                               \
-                    return __VA_ARGS__;                         \
-                }                                               \
-            };                                                  \
-            return R_{ };                                       \
+#define MAKESHIFT_CONSTVAL_(...)                                        \
+    (makeshift::detail::make_constval(                                  \
+        []                                                              \
+        {                                                               \
+            struct R_                                                   \
+            {                                                           \
+                /* explicit return type is workaround for Clang bug */  \
+                constexpr std::decay_t<decltype(__VA_ARGS__)>           \
+                operator ()(void) const noexcept                        \
+                {                                                       \
+                    return __VA_ARGS__;                                 \
+                }                                                       \
+            };                                                          \
+            return R_{ };                                               \
         }()))
 
 
