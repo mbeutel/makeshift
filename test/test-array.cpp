@@ -11,7 +11,6 @@
 
 namespace {
 
-
 namespace mk = ::makeshift;
 namespace gsl = ::gsl_lite;
 
@@ -35,7 +34,7 @@ TEST_CASE("array", "[flags]")
             std::make_tuple(2.0, 3.0f));
         CHECK(intSquares == std::array<double, 2>{ 4.0, 9.0 });
 
-        mk::mdarray<double, 3> gridCoords = mk::array_transform_n<3, double>(
+        mk::mdarray<double, 3> gridCoords = mk::array_transform<3, double>(
             [dx=1.0](gsl::index i) { return i*dx; },
             mk::range_index);
         CHECK(gridCoords == std::array<double, 3>{ 0.0, 1.0, 2.0 });

@@ -17,9 +17,7 @@
 #include <makeshift/experimental/detail/variant.hpp>
 
 
-namespace makeshift
-{
-
+namespace makeshift {
 
 namespace gsl = ::gsl_lite;
 

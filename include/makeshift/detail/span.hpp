@@ -15,9 +15,7 @@
 #include <makeshift/type_traits.hpp> // for nth_type<>
 
 
-namespace makeshift
-{
-
+namespace makeshift {
 
 namespace gsl = ::gsl_lite;
 
@@ -26,8 +24,7 @@ template <typename... Ts>
 class soa_span;
 
 
-namespace detail
-{
+namespace detail {
 
 
 template <typename... Ts>
@@ -254,8 +251,7 @@ constexpr R check_all_equal(T0 v0, Ts... vs)
 } // namespace makeshift
 
 
-namespace std
-{
+namespace std {
 
 
     // Implement tuple-like interface for `soa_reference<>`.

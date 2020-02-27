@@ -3,23 +3,21 @@
 #define INCLUDED_MAKESHIFT_DETAIL_UTILITY_HPP_
 
 
-#include <makeshift/detail/type_traits.hpp> // for try_index_of_type<>
+#include <makeshift/detail/type_traits.hpp> // for search_type_pack_index<>
 
 
-namespace makeshift
-{
+namespace makeshift {
 
 
 template <typename T>
 struct type_tag;
 
 
-namespace detail
-{
+namespace detail {
 
 
-template <typename T, typename TypeSeqT> struct try_index_of_type_in;
-template <typename T, template <typename...> class TypeSeqT, typename... Ts> struct try_index_of_type_in<T, TypeSeqT<Ts...>> : try_index_of_type<T, Ts...> { };
+template <typename T, typename TypeSeqT> struct search_type_pack_index_in;
+template <typename T, template <typename...> class TypeSeqT, typename... Ts> struct search_type_pack_index_in<T, TypeSeqT<Ts...>> : search_type_pack_index<T, Ts...> { };
 
 
 template <typename T>

@@ -14,8 +14,7 @@
 #include <makeshift/experimental/detail/buffer.hpp>
 
 
-namespace makeshift
-{
+namespace makeshift {
 
 
 namespace gsl = ::gsl_lite;
@@ -248,8 +247,7 @@ get(fixed_buffer<T, Extent, MaxBufferExtent> const& buffer) noexcept
 } // namespace makeshift
 
 
-namespace std
-{
+namespace std {
 
 
     // Implement tuple-like protocol for `buffer<>`.

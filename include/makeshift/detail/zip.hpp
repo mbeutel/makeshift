@@ -52,13 +52,13 @@ template <gsl::dim N> using dim_constant = std::integral_constant<gsl::dim, N>;
 
 
     //
-    // Pass `range_index` to `range_*()`, `array_*()`, `template_*()`, or `tuple_*()` algorithms to have the array element index passed as a functor argument.
-    // The argument is of type `index`.
+    // Pass `range_index` to `range_*()`, `array_*()`, `template_*()`, or `tuple_*()` algorithms to have the array element index
+    // passed as a functor argument. The argument is of type `gsl::index`.
     //ᅟ
     //ᅟ    auto indices = array_transform_n<3>(
-    //ᅟ        [](index i) { return i; },
+    //ᅟ        [](gsl::index i) { return i; },
     //ᅟ        range_index);
-    //ᅟ    // returns std::array<index, 3>{ 0, 1, 2 }
+    //ᅟ    // returns std::array<gsl::index, 3>{ 0, 1, 2 }
     //
 struct range_index_t { };
 
@@ -70,12 +70,12 @@ constexpr std::ptrdiff_t get(range_index_t) noexcept
 
 
     //
-    // Pass `tuple_index` to `array_transform()`, `template_for()`, or `tuple_transform()` to have the tuple element index passed as a functor argument.
-    // The argument is of type `integral_constant<index, I>`.
+    // Pass `tuple_index` to `array_transform()`, `template_for()`, or `tuple_transform()` to have the tuple element index passed
+    // as a functor argument. The argument is of type `integral_constant<index, I>`.
     //ᅟ
     //ᅟ        // print all alternatives of a variant
     //ᅟ    constexpr auto numAlternatives = std::variant_size_v<MyVariant>;
-    //ᅟ    template_for_n<numAlternatives>(
+    //ᅟ    template_for<numAlternatives>(
     //ᅟ        [](auto idxC)
     //ᅟ        {
     //ᅟ            using T = std::variant_alternative_t<idxC(), MyVariant>;
@@ -408,31 +408,32 @@ constexpr dim_constant<unknown_size> range_size(range_index_t) noexcept
 
 
     //
-    // Pass `range_index` to `range_*()`, `array_*()`, `template_*()`, or `tuple_*()` algorithms to have the array element index passed as a functor argument.
-    // The argument is of type `index`.
+    // Pass `range_index` to `range_*()`, `array_*()`, `template_*()`, or `tuple_*()` algorithms to have the array element index
+    // passed as a functor argument. The argument is of type `gsl::index`.
     //ᅟ
     //ᅟ    auto indices = array_transform_n<3>(
     //ᅟ        [](index i) { return i; },
     //ᅟ        range_index);
-    //ᅟ    // returns std::array<index, 3>{ 0, 1, 2 }
+    //ᅟ    // returns std::array<gsl::index, 3>{ 0, 1, 2 }
     //
-static constexpr detail::range_index_t const& range_index = static_const<detail::range_index_t>;
+static constexpr detail::range_index_t const&
+range_index = static_const<detail::range_index_t>;
 
 
-    //
-    // Pass `tuple_index` to `array_transform()`, `template_for()`, or `tuple_transform()` to have the tuple element index passed as a functor argument.
-    // The argument is of type `integral_constant<index, I>`.
+    // Pass `tuple_index` to `array_transform()`, `template_for()`, or `tuple_transform()` to have the tuple element index passed
+    // as a functor argument. The argument is of type `integral_constant<index, I>`.
     //ᅟ
     //ᅟ        // print all alternatives of a variant
     //ᅟ    constexpr auto numAlternatives = std::variant_size_v<MyVariant>;
-    //ᅟ    template_for_n<numAlternatives>(
+    //ᅟ    template_for<numAlternatives>(
     //ᅟ        [](auto idxC)
     //ᅟ        {
     //ᅟ            using T = std::variant_alternative_t<idxC(), MyVariant>;
     //ᅟ            printTypename<T>();
     //ᅟ        });
     //
-static constexpr detail::tuple_index_t const& tuple_index = static_const<detail::tuple_index_t>;
+static constexpr detail::tuple_index_t const&
+tuple_index = static_const<detail::tuple_index_t>;
 
 
 } // namespace makeshift

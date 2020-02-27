@@ -11,15 +11,13 @@
 #include <gsl-lite/gsl-lite.hpp> // for gsl_Expects(), gsl_NODISCARD, gsl_constexpr17
 
 
-namespace makeshift
-{
+namespace makeshift {
 
 
 namespace gsl = ::gsl_lite;
 
 
-namespace detail
-{
+namespace detail {
 
 
 template <typename T, typename DerivedT>

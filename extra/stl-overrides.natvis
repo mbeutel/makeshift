@@ -16,11 +16,11 @@
     </Type>
 
     <Type Name="std::array&lt;std::array&lt;*,*&gt;,*&gt;">
-        <DisplayString>{{ size={ $T2 } }}</DisplayString>
+        <DisplayString>{{ size={ $T3 } }}</DisplayString>
         <Expand>
-            <Item Name="[size]">$T2</Item>
+            <Item Name="[size]">$T3</Item>
             <ArrayItems>
-                <Size>$T2</Size>
+                <Size>$T3</Size>
                 <ValuePointer>_Elems</ValuePointer>
             </ArrayItems>
         </Expand>

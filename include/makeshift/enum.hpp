@@ -12,9 +12,7 @@
 #include <makeshift/detail/enum.hpp>
 
 
-namespace makeshift
-{
-
+namespace makeshift {
 
 namespace gsl = ::gsl_lite;
 

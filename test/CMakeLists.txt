@@ -8,8 +8,8 @@ cmake_minimum_required(VERSION 3.14)
 
 # dependencies
 find_package(Catch2 2.9 REQUIRED)
-find_package(CMakeshift 3.7 REQUIRED)
-find_package(gsl-lite 0.35.6 REQUIRED)
+find_package(CMakeshift 3.8 REQUIRED)
+find_package(gsl-lite 0.36 REQUIRED)
 find_package(mpark_variant REQUIRED)
 
 include(CMakeshift/TargetCompileSettings)
@@ -63,7 +63,7 @@ endif()
 add_executable(test-makeshift-cxx14
     "test-algorithm.cpp"
     "test-array.cpp"
-    "test-buffer.cpp"
+    
     "test-constval.cpp"
     "test-enum.cpp"
     "test-functional.cpp"
@@ -71,10 +71,10 @@ add_executable(test-makeshift-cxx14
     "test-ranges.cpp"
     "test-reflect.cpp"
     "test-span.cpp"
-    "test-mpark-variant.cpp"
+    "mpark/test-variant.cpp"
     "test-tuple.cpp"
     "test-type_traits.cpp"
-    "test-utility.cpp")
+    "test-utility.cpp" "experimental/test-algorithm.cpp" "experimental/test-buffer.cpp" "experimental/test-enum.cpp" "experimental/test-functional.cpp" "experimental/test-tuple.cpp" "experimental/test-type_traits.cpp")
 target_compile_features(test-makeshift-cxx14 PRIVATE cxx_std_14)
 cmakeshift_target_compile_settings(test-makeshift-cxx14 PRIVATE default)
 target_link_libraries(test-makeshift-cxx14
@@ -89,7 +89,7 @@ set_property(TEST test-makeshift-cxx14 PROPERTY FAIL_REGULAR_EXPRESSION "Sanitiz
 if(cxx_std_17 IN_LIST CMAKE_CXX_COMPILE_FEATURES)
     add_executable(test-makeshift-cxx17
         "test-constval.cpp"
-        "test-variant.cpp")
+        "test-variant.cpp" "experimental/test-utility.cpp" "experimental/test-variant.cpp")
     target_compile_features(test-makeshift-cxx17 PRIVATE cxx_std_17)
     cmakeshift_target_compile_settings(test-makeshift-cxx17 PRIVATE default)
     target_link_libraries(test-makeshift-cxx17

@@ -8,8 +8,7 @@
 #include <makeshift/detail/type_traits.hpp>
 
 
-namespace makeshift
-{
+namespace makeshift {
 
 
     //

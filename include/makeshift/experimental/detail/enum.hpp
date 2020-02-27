@@ -9,20 +9,19 @@
 
 #include <gsl-lite/gsl-lite.hpp> // for gsl_Expects(), gsl_NODISCARD
 
-#include <makeshift/utility.hpp> // for type<>, type_sequence<>
+#include <makeshift/utility.hpp>     // for type<>, type_sequence<>
+#include <makeshift/type_traits.hpp> // for search_type_pack_index_v<>
 
 #include <makeshift/detail/type_traits.hpp> // for is_tuple_like_r<>, type_enum_base, unwrap_enum_tag
 
 
-namespace makeshift
-{
+namespace makeshift {
 
 
 namespace gsl = ::gsl_lite;
 
 
-namespace detail
-{
+namespace detail {
 
 
 template <typename TypeEnumT, typename... Ts>
@@ -122,25 +121,25 @@ struct default_values<TypeEnumT, std::enable_if_t<std::is_base_of<detail::type_e
 };
 
 template <typename TypeEnumT, typename... Ts, typename T>
-gsl_NODISCARD constexpr std::enable_if_t<try_index_of_type_v<T, Ts...> != -1, bool>
+gsl_NODISCARD constexpr std::enable_if_t<search_type_pack_index_v<T, Ts...> != -1, bool>
 operator ==(define_type_enum_base<TypeEnumT, Ts...> lhs, type<T>) noexcept
 {
-    return std::int32_t(try_index_of_type_v<T, Ts...>) == std::int32_t(lhs);
+    return std::int32_t(search_type_pack_index_v<T, Ts...>) == std::int32_t(lhs);
 }
 template <typename TypeEnumT, typename... Ts, typename T>
-gsl_NODISCARD constexpr std::enable_if_t<try_index_of_type_v<T, Ts...> != -1, bool>
+gsl_NODISCARD constexpr std::enable_if_t<search_type_pack_index_v<T, Ts...> != -1, bool>
 operator ==(type<T> lhs, define_type_enum_base<TypeEnumT, Ts...> rhs) noexcept
 {
     return rhs == lhs;
 }
 template <typename TypeEnumT, typename... Ts, typename T>
-gsl_NODISCARD constexpr std::enable_if_t<try_index_of_type_v<T, Ts...> != -1, bool>
+gsl_NODISCARD constexpr std::enable_if_t<search_type_pack_index_v<T, Ts...> != -1, bool>
 operator !=(define_type_enum_base<TypeEnumT, Ts...> lhs, type<T> rhs) noexcept
 {
     return !(lhs == rhs);
 }
 template <typename TypeEnumT, typename... Ts, typename T>
-gsl_NODISCARD constexpr std::enable_if_t<try_index_of_type_v<T, Ts...> != -1, bool>
+gsl_NODISCARD constexpr std::enable_if_t<search_type_pack_index_v<T, Ts...> != -1, bool>
 operator !=(type<T> lhs, define_type_enum_base<TypeEnumT, Ts...> rhs) noexcept
 {
     return !(rhs == lhs);

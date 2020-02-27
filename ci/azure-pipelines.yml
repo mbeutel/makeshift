@@ -8,23 +8,42 @@ pr:
 
 resources:
   repositories:
-    - repository: templates
+    - repository: CImakeshift
       type: github
       name: mbeutel/CImakeshift
       endpoint: mbeutel
+      #ref: refs/tags/0.2
 
 jobs:
-- template: azure-pipelines-job-cmake.yml@templates
+- template: azure-pipelines/cmake.yml@CImakeshift
   parameters:
-    vcpkgRef: bc01338fe2d50f4a24b7f56b53bc385d8de8ccd9
+    vcpkgRef: 5deea3b975fe62990973d73a102de818d83ba20c
     vcpkgOverlayRepo: 'https://mp-force.ziti.uni-heidelberg.de/asc/infrastructure/vcpkg-ports.git'
-    vcpkgOverlayRef: a3af41edd36c5a2be17d44f2da0085db11b36331
+    vcpkgOverlayRef: 10fe870259f4d716b83cc3792710b47d6b407b16
     vcpkgPackages: ['cmakeshift', 'gsl-lite', 'catch2', 'mpark-variant']
 
     cmakeConfigArgs: '-DMAKESHIFT_BUILD_TESTS=ON'
     cmakeTestArgs: '--exclude-regex "cuda"' # do not run CUDA tests
 
     targets:
+
+    - os: Windows
+      cxxCompiler: MSVC
+      cxxCompilerVersions: [19_2]
+      platforms: [x86, x64]
+
+    - os: Windows
+      cxxCompiler: Clang
+      cxxCompilerVersions: [9]
+      platforms: [x86, x64]
+
+    - os: Windows
+      cxxCompiler: MSVC
+      cxxCompilerVersions: [19_2]
+      cudaCompiler: NVCC
+      cudaCompilerVersion: 10_2
+      platforms: [x64]
+      cmakeConfigArgs: '<cmakeConfigArgs> -DMAKESHIFT_BUILD_CUDA_TESTS=ON'
 
     - os: Linux
       cxxCompiler: GCC
@@ -60,24 +79,6 @@ jobs:
       platforms: [x64]
       cmakeConfigArgs: '<cmakeConfigArgs> -DMAKESHIFT_BUILD_CUDA_TESTS=ON'
 
-    - os: Windows
-      cxxCompiler: MSVC
-      cxxCompilerVersions: [19_2]
-      platforms: [x86, x64]
-
-    - os: Windows
-      cxxCompiler: Clang
-      cxxCompilerVersions: [9]
-      platforms: [x86, x64]
-
-    - os: Windows
-      cxxCompiler: MSVC
-      cxxCompilerVersions: [19_2]
-      cudaCompiler: NVCC
-      cudaCompilerVersion: 10_2
-      platforms: [x64]
-      cmakeConfigArgs: '<cmakeConfigArgs> -DMAKESHIFT_BUILD_CUDA_TESTS=ON'
-
     - os: MacOS
       cxxCompiler: GCC
       cxxCompilerVersions: [6, 7, 8, 9]
@@ -85,5 +86,5 @@ jobs:
 
     - os: MacOS
       cxxCompiler: AppleClang
-      cxxCompilerVersions: [8_1, 9, 9_1, 10, 10_0_1, 11]
+      cxxCompilerVersions: [9_1, 10, 10_0_1, 11]
       platforms: [x64]

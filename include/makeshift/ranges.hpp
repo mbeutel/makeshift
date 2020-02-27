@@ -18,9 +18,7 @@
 #include <makeshift/detail/ranges.hpp>
 
 
-namespace makeshift
-{
-
+namespace makeshift {
 
 namespace gsl = ::gsl_lite;
 
@@ -81,8 +79,7 @@ make_range(It start, ExtentC extentC)
 } // namespace makeshift
 
 
-namespace std
-{
+namespace std {
 
 
     // Implement tuple-like protocol for fixed-size `range<>`.

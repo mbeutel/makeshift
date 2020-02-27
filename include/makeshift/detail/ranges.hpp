@@ -11,15 +11,11 @@
 #include <gsl-lite/gsl-lite.hpp> // for gsl_Expects(), gsl_NODISCARD
 
 
-namespace makeshift
-{
-
+namespace makeshift {
 
 namespace gsl = ::gsl_lite;
 
-
-namespace detail
-{
+namespace detail {
 
 
 template <typename It, typename EndIt, typename IteratorTagT, std::ptrdiff_t Extent>

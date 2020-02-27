@@ -14,15 +14,15 @@
 #endif // defined(__has_include)
 
 
-namespace makeshift
-{
+namespace makeshift {
 
 
 #if defined(__cpp_concepts) && defined(__cpp_lib_concepts)
     //
     // The type must have a tuple-like interface.
     //ᅟ
-    // A type `T` has a tuple-like interface if `std::tuple_size<T>::value`, `std::tuple_element_t<I, T>`, and `get<I>(t)` are well-formed.
+    // A type `T` has a tuple-like interface if `std::tuple_size<T>::value`, `std::tuple_element_t<I, T>`, and `get<I>(t)` are
+    // well-formed.
     // This concept only checks `std::tuple_size<T>::value`.
     //
 template <typename T>

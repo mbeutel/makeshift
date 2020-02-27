@@ -10,7 +10,6 @@
 
 namespace {
 
-
 namespace mk = ::makeshift;
 namespace gsl = ::gsl_lite;
 

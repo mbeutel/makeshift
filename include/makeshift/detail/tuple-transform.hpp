@@ -16,18 +16,14 @@
 #include <makeshift/type_traits.hpp>        // for can_instantiate<>, is_tuple_like<>
 
 #include <makeshift/detail/macros.hpp>      // for MAKESHIFT_DETAIL_FORCEINLINE
-#include <makeshift/detail/range-index.hpp> // for range_index_t
+#include <makeshift/detail/zip.hpp>         // for range_index_t, tuple_index_t
 
 
-namespace makeshift
-{
-
+namespace makeshift {
 
 namespace gsl = ::gsl_lite;
 
-
-namespace detail
-{
+namespace detail {
 
 
 template <std::size_t I, typename R>
@@ -111,7 +107,8 @@ template_for_impl(std::index_sequence<Is...>, F&& func, Ts&&... args)
 }
 
 template <std::ptrdiff_t N, typename... Ts>
-constexpr std::size_t tuple_transform_size(void)
+constexpr std::size_t
+tuple_transform_size(void)
 {
     using Eq = equal_sizes_<std::decay_t<Ts>...>;
     static_assert(Eq::value, "sizes of tuple arguments do not match");

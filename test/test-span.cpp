@@ -1,5 +1,5 @@
 
-#include <makeshift/span.hpp>   // for soa_span<>
+#include <makeshift/span.hpp> // for soa_span<>
 
 #include <gsl-lite/gsl-lite.hpp> // for index, dim
 
@@ -7,7 +7,6 @@
 
 
 namespace {
-
 
 namespace mk = ::makeshift;
 namespace gsl = ::gsl_lite;

@@ -16,15 +16,11 @@
 #include <makeshift/detail/zip.hpp>
 
 
-namespace makeshift
-{
-
+namespace makeshift {
 
 namespace gsl = ::gsl_lite;
 
-
-namespace detail
-{
+namespace detail {
 
 
 constexpr gsl::dim unknown_size = -1;

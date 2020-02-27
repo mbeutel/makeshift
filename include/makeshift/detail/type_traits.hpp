@@ -15,15 +15,11 @@
 #include <type_traits> // for declval<>(), integral_constant<>, is_convertible<>
 
 
-namespace makeshift
-{
-
+namespace makeshift {
 
 namespace gsl = ::gsl_lite;
 
-
-namespace detail
-{
+namespace detail {
 
 
 struct type_enum_base { };
@@ -35,6 +31,9 @@ template <template <typename...> class, typename, typename...> struct can_instan
 template <template <typename...> class Z, typename... Ts> struct can_instantiate_<Z, gsl::void_t<Z<Ts...>>, Ts...> : std::true_type { };
 
 
+constexpr std::ptrdiff_t element_not_found = -1;
+constexpr std::ptrdiff_t element_not_unique = -2;
+
     // taken from http://ldionne.com/2015/11/29/efficient-parameter-pack-indexing/
     // (cf. the same URL for a discussion of the benefits and drawbacks of the MI approach vs. a recursive one)
 template <std::size_t I, typename T>
@@ -45,7 +44,7 @@ struct type_pack_index_base
 };
 struct type_pack_no_match
 {
-    static constexpr std::ptrdiff_t index = -1;
+    static constexpr std::ptrdiff_t index = element_not_found;
 };
 template <typename IsT, typename... Ts> struct type_pack_indexer;
 template <std::size_t... Is, typename... Ts> struct type_pack_indexer<std::index_sequence<Is...>, Ts...> : type_pack_index_base<Is, Ts>... { };
@@ -74,7 +73,7 @@ template <typename T, typename... Ts>
 struct type_pack_index_
 {
     static constexpr std::size_t value = std::size_t(try_type_pack_index_<T, Ts...>::value);
-    static_assert(std::ptrdiff_t(value) != -1, "type T does not appear in type sequence");
+    static_assert(std::ptrdiff_t(value) != element_not_found, "type T does not appear in type sequence");
 };
 
 
@@ -93,7 +92,30 @@ template <std::size_t I, typename... Ts> using nth_type_ = type_pack_element_<I,
 
 #undef MAKESHIFT_BUILTIN_TYPE_PACK_ELEMENT_
 
-template <typename T, typename... Ts> using try_index_of_type = std::integral_constant<std::ptrdiff_t, detail::try_type_pack_index_<T, Ts...>::value>;
+template <typename T, typename... Ts> using search_type_pack_index = std::integral_constant<std::ptrdiff_t, try_type_pack_index_<T, Ts...>::value>;
+
+template <typename T> struct same_as_pred { };
+
+template <typename TupleT, typename PredT, typename Is> struct search_tuple_element_index_0;
+template <bool Matches, typename TupleT, typename PredT, typename Is> struct search_tuple_element_index_1;
+template <typename TupleT, typename PredT, std::size_t I0, std::size_t... Is> struct search_tuple_element_index_1<true, TupleT, PredT, std::index_sequence<I0, Is...>>
+    : std::integral_constant<std::ptrdiff_t, (search_tuple_element_index_0<TupleT, PredT, std::index_sequence<Is...>>::value == element_not_found ? I0 : element_not_unique)> { };
+template <typename TupleT, typename PredT, std::size_t I0, std::size_t... Is> struct search_tuple_element_index_1<false, TupleT, PredT, std::index_sequence<I0, Is...>> : search_tuple_element_index_0<TupleT, PredT, std::index_sequence<Is...>> { };
+template <typename TupleT, typename PredT> struct search_tuple_element_index_0<TupleT, PredT, std::index_sequence<>> : std::integral_constant<std::ptrdiff_t, element_not_found> { };
+template <typename TupleT, typename PredT, std::size_t I0, std::size_t... Is> struct search_tuple_element_index_0<TupleT, PredT, std::index_sequence<I0, Is...>>
+    : search_tuple_element_index_1<decltype(std::declval<PredT>()(std::declval<std::tuple_element_t<I0, TupleT>>()))::value, TupleT, PredT, std::index_sequence<I0, Is...>> { };
+template <typename TupleT, typename T, std::size_t I0, std::size_t... Is> struct search_tuple_element_index_0<TupleT, same_as_pred<T>, std::index_sequence<I0, Is...>>
+    : search_tuple_element_index_1<std::is_same<T, std::tuple_element_t<I0, TupleT>>::value, TupleT, same_as_pred<T>, std::index_sequence<I0, Is...>> { };
+template <typename TupleT, typename PredT> struct search_tuple_element_index : search_tuple_element_index_0<TupleT, PredT, std::make_index_sequence<std::tuple_size<TupleT>::value>> { };
+
+template <typename TupleT, typename PredT>
+struct tuple_element_index
+{
+    static constexpr std::ptrdiff_t value = search_tuple_element_index<TupleT, PredT>::value;
+    static_assert(value != element_not_found, "no tuple element matches given predicate");
+    static_assert(value != element_not_unique, "more than one tuple element matches given predicate");
+};
+
 
 template <template <typename...> class Z, typename SeqT> struct instantiate_;
 template <template <typename...> class Z, template <typename...> class SeqT, typename... Ts> struct instantiate_<Z, SeqT<Ts...>> { using type = Z<Ts...>; };

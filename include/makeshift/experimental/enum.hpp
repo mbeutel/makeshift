@@ -6,8 +6,7 @@
 #include <makeshift/experimental/detail/enum.hpp>
 
 
-namespace makeshift
-{
+namespace makeshift {
 
 
     //

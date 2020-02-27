@@ -14,24 +14,24 @@
 #include <makeshift/type_traits.hpp> // for constval_tag, can_instantiate<>
 
 
-#define MAKESHIFT_CONSTVAL_(...)                                \
-    (makeshift::detail::make_constval(                          \
-        []                                                      \
-        {                                                       \
-            struct R_                                           \
-            {                                                   \
-                constexpr auto operator ()(void) const noexcept \
-                {                                               \
-                    return __VA_ARGS__;                         \
-                }                                               \
-            };                                                  \
-            return R_{ };                                       \
+#define MAKESHIFT_CONSTVAL_(...)                                        \
+    (makeshift::detail::make_constval(                                  \
+        []                                                              \
+        {                                                               \
+            struct R_                                                   \
+            {                                                           \
+                /* explicit return type is workaround for Clang bug */  \
+                constexpr std::decay_t<decltype(__VA_ARGS__)>           \
+                operator ()(void) const noexcept                        \
+                {                                                       \
+                    return __VA_ARGS__;                                 \
+                }                                                       \
+            };                                                          \
+            return R_{ };                                               \
         }()))
 
 
-namespace makeshift
-{
-
+namespace makeshift {
 
 namespace gsl = ::gsl_lite;
 
@@ -43,8 +43,7 @@ template <typename... Cs>
 struct tuple_constant;
 
 
-namespace detail
-{
+namespace detail {
 
 
 template <typename C> constexpr auto constval_value = C{ }(); // workaround for EDG (TODO: remove?)
@@ -357,8 +356,7 @@ constexpr auto cssize_impl(std::false_type /*isConstval*/, ContainerT const& c)
 } // namespace makeshift
 
 
-namespace std
-{
+namespace std {
 
 
     // Implement tuple-like protocol for `tuple_like_constval<>`.
