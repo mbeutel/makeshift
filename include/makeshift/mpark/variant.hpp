@@ -19,9 +19,7 @@
 
 namespace makeshift {
 
-
 namespace gsl = ::gsl_lite;
-
 
 namespace mpark {
 
@@ -50,8 +48,8 @@ expand_failfast(T const& value, ValuesC valuesC)
 }
 
     //
-    // Given a runtime value of a type for which all possible values are known, `expand()` returns a variant of known constexpr values.
-    // `gsl_Expects()` is used to ensure that the runtime value is among the values in the array.
+    // Given a runtime value of a type for which all possible values are known, `expand()` returns a variant of known constexpr
+    // values. `gsl_Expects()` is used to ensure that the runtime value is among the values in the array.
     //ᅟ
     //ᅟ    bool logging = ...;
     //ᅟ    auto loggingV = expand_failfast(logging);
@@ -148,8 +146,9 @@ expand(T const& value, ValuesC valuesC)
 }
 
     //
-    // Given a runtime value of a type for which all possible values are known, `expand_or_throw()` returns a variant of known constexpr values.
-    // An exception of type `unsupported_runtime_value` is thrown if the runtime value is not among the values in the array.
+    // Given a runtime value of a type for which all possible values are known, `expand_or_throw()` returns a variant of known
+    // constexpr values. An exception of type `unsupported_runtime_value` is thrown if the runtime value is not among the values
+    // in the array.
     //ᅟ
     //ᅟ    enum Color { red, green, blue };
     //ᅟ    constexpr auto reflect_values(type<Color>) { return std::array{ red, green, blue }; }
@@ -212,19 +211,23 @@ visit(F&& func, Vs&&... args)
 
 
     //
-    // Similar to `mpark::visit()`, but permits the functor to map different argument types to different result types and returns a variant of the possible results.
+    // Similar to `mpark::visit()`, but permits the functor to map different argument types to different result types and returns
+    // a variant of the possible results.
     //ᅟ
-    // `variant_transform()` merges identical result types, i.e. every distinct result type appears only once in the resulting variant type.
+    // `variant_transform()` merges identical result types, i.e. every distinct result type appears only once in the resulting
+    // variant type.
     // Suppresses any template instantiations for intellisense parsers to improve responsivity.
     //
 template <typename F, typename... Vs>
 gsl_NODISCARD constexpr decltype(auto)
 variant_transform(F&& func, Vs&&... args)
 {
-    // Currently we merge identical results, i.e. if two functor invocations both return the same type, the type appears only once in the result variant.
-    // Although `mpark::variant<>` is explicitly designed to permit multiple alternatives of identical type, it seems reasonable to merge identically typed alternatives here because identically typed alternatives
-    // cannot be distinguished by the visitor functor anyway, and because the choice of identically typed alternatives depends on the strides of the specialization table built by `visit()` (which is an implementation
-    // detail) and hence cannot be reliably predicted by the caller.
+    // Currently we merge identical results, i.e. if two functor invocations both return the same type, the type appears only once
+    // in the result variant. Although `mpark::variant<>` is explicitly designed to permit multiple alternatives of identical
+    // type, it seems reasonable to merge identically typed alternatives here because identically typed alternatives cannot be
+    // distinguished by the visitor functor anyway, and because the choice of identically typed alternatives depends on the
+    // strides of the specialization table built by `visit()` (which is an implementation detail) and hence cannot be reliably
+    // predicted by the caller.
 
 #if !defined(__INTELLISENSE__)
     using R = detail::variant_transform_result<::mpark::variant, F, Vs...>;
@@ -239,9 +242,11 @@ variant_transform(F&& func, Vs&&... args)
 }
 
     //
-    // Similar to `mpark::visit()`, but permits the functor to map different argument types to different variants and returns an unwrapped variant of the possible results.
+    // Similar to `mpark::visit()`, but permits the functor to map different argument types to different variants and returns an
+    // unwrapped variant of the possible results.
     //ᅟ
-    // `variant_transform_many()` merges identical result types, i.e. every distinct result type appears only once in the resulting variant type.
+    // `variant_transform_many()` merges identical result types, i.e. every distinct result type appears only once in the
+    // resulting variant type.
     // Suppresses any template instantiations for intellisense parsers to improve responsivity.
     //
 template <typename F, typename... Vs>

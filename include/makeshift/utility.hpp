@@ -19,7 +19,6 @@
 
 namespace makeshift {
 
-
 namespace gsl = ::gsl_lite;
 
 
@@ -40,7 +39,8 @@ struct type_tag : detail::type_base<T>
     template <typename EnumT,
               typename TypeEnumTypeT = decltype(type_enum_type_of_(std::declval<EnumT>(), detail::unwrap_enum_tag{ })),
               std::enable_if_t<detail::search_type_pack_index_in<T, typename TypeEnumTypeT::type::types>::value != -1, int> = 0>
-    constexpr operator EnumT(void) const noexcept
+    constexpr operator
+    EnumT(void) const noexcept
     {
         return EnumT(int(detail::search_type_pack_index_in<T, typename TypeEnumTypeT::type::types>::value));
     }
@@ -48,7 +48,8 @@ struct type_tag : detail::type_base<T>
         // This must be a proxy type to work around the problem that a class cannot have a static constexpr member of its own type.
     static constexpr detail::type_tag_proxy<T> value{ };
 };
-template <typename T> constexpr detail::type_tag_proxy<T> type_tag<T>::value;
+template <typename T>
+constexpr detail::type_tag_proxy<T> type_tag<T>::value;
 
     //
     // Generic type tag.
@@ -71,7 +72,9 @@ operator !=(type<T1>, type<T2>) noexcept
     //
     // Use `type_c<T>` as a value representation of `T` for tag dispatching.
     //
-template <typename T> constexpr type<T> type_c{ };
+template <typename T>
+constexpr type<T>
+type_c{ };
 
 
     //
@@ -106,13 +109,16 @@ type_sequence(type<Ts>...) -> type_sequence<Ts...>;
     //
     // Type sequence, i.e. type list and tuple of `type<>` arguments.
     //
-template <typename... Ts> constexpr type_sequence<Ts...> type_sequence_c{ };
+template <typename... Ts>
+constexpr type_sequence<Ts...>
+type_sequence_c{ };
 
     //
     // Returns a type sequence that represents the types of the given values.
     //
 template <typename... Ts>
-constexpr type_sequence<Ts...> make_type_sequence(type<Ts>...) noexcept
+constexpr type_sequence<Ts...>
+make_type_sequence(type<Ts>...) noexcept
 {
     return { };
 }
@@ -121,7 +127,8 @@ constexpr type_sequence<Ts...> make_type_sequence(type<Ts>...) noexcept
     // Returns the `I`-th element in the type sequence.
     //
 template <std::size_t I, typename... Ts>
-constexpr type<typename detail::nth_type_<I, Ts...>::type> get(type_sequence<Ts...> const&) noexcept
+constexpr type<typename detail::nth_type_<I, Ts...>::type>
+get(type_sequence<Ts...> const&) noexcept
 {
     static_assert(I < sizeof...(Ts), "tuple index out of range");
     return { };
@@ -131,7 +138,8 @@ constexpr type<typename detail::nth_type_<I, Ts...>::type> get(type_sequence<Ts.
     // Returns the type sequence element of type `T`.
     //
 template <typename T, typename... Ts>
-constexpr type<T> get(type_sequence<Ts...> const&) noexcept
+constexpr type<T>
+get(type_sequence<Ts...> const&) noexcept
 {
 	constexpr std::size_t index = detail::search_type_pack_index<T, Ts...>::value;
     static_assert(index != std::size_t(-1), "type T does not appear in type sequence");
@@ -142,12 +150,14 @@ constexpr type<T> get(type_sequence<Ts...> const&) noexcept
     //
     // Concatenates a sequence of type sequences.
     //
-template <typename... Ts> struct type_sequence_cat : detail::type_sequence_cat_<type_sequence<>, Ts...> { };
+template <typename... Ts>
+struct type_sequence_cat : detail::type_sequence_cat_<type_sequence<>, Ts...> { };
 
     //
     // Concatenates a sequence of type sequences.
     //
-template <typename... Ts> using type_sequence_cat_t = typename type_sequence_cat<Ts...>::type;
+template <typename... Ts>
+using type_sequence_cat_t = typename type_sequence_cat<Ts...>::type;
 
 
 #if gsl_CPP17_OR_GREATER
@@ -163,11 +173,6 @@ composition(Ts...) -> composition<Ts...>;
 #endif // gsl_CPP17_OR_GREATER
 
 
-} // namespace makeshift
-
-
-namespace makeshift {
-
 namespace detail {
 
 
@@ -178,7 +183,8 @@ struct type_tag_inst
 };
 template <typename T> constexpr type_tag<T> type_tag_inst<T>::value;
 template <typename T>
-constexpr type_tag_proxy<T>::operator type_tag<T> const&(void) const noexcept
+constexpr
+type_tag_proxy<T>::operator type_tag<T> const&(void) const noexcept
 {
     return type_tag_inst<T>::value;
 }

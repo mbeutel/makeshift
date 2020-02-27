@@ -9,7 +9,8 @@
 
 #include <gsl-lite/gsl-lite.hpp> // for gsl_Expects(), gsl_NODISCARD
 
-#include <makeshift/utility.hpp> // for type<>, type_sequence<>
+#include <makeshift/utility.hpp>     // for type<>, type_sequence<>
+#include <makeshift/type_traits.hpp> // for search_type_pack_index_v<>
 
 #include <makeshift/detail/type_traits.hpp> // for is_tuple_like_r<>, type_enum_base, unwrap_enum_tag
 

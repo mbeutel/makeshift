@@ -16,7 +16,6 @@
 
 namespace makeshift {
 
-
 namespace gsl = ::gsl_lite;
 
 
@@ -57,52 +56,62 @@ public:
     {
     }
 
-    gsl_NODISCARD constexpr std::size_t size(void) const noexcept
+    gsl_NODISCARD constexpr std::size_t
+    size(void) const noexcept
     {
         return std::size_t(size_);
     }
-    gsl_NODISCARD constexpr bool empty(void) const noexcept
+    gsl_NODISCARD constexpr bool
+    empty(void) const noexcept
     {
         return size_ != 0;
     }
 
-    gsl_NODISCARD constexpr iterator begin(void) const noexcept
+    gsl_NODISCARD constexpr iterator
+    begin(void) const noexcept
     {
         return { &data_, 0 };
     }
-    gsl_NODISCARD constexpr iterator end(void) const noexcept
+    gsl_NODISCARD constexpr iterator
+    end(void) const noexcept
     {
         return { &data_, difference_type(size_) };
     }
-    gsl_NODISCARD constexpr const_iterator cbegin(void) const noexcept
+    gsl_NODISCARD constexpr const_iterator
+    cbegin(void) const noexcept
     {
         return { &data_, 0 };
     }
-    gsl_NODISCARD constexpr const_iterator cend(void) const noexcept
+    gsl_NODISCARD constexpr const_iterator
+    cend(void) const noexcept
     {
         return { &data_, difference_type(size_) };
     }
 
-    gsl_NODISCARD constexpr reference operator [](std::size_t i) const
+    gsl_NODISCARD constexpr reference
+    operator [](std::size_t i) const
     {
         gsl_Expects(i < size_);
 
         return { data_, std::ptrdiff_t(i) };
     }
-    gsl_NODISCARD constexpr reference front(void) const
+    gsl_NODISCARD constexpr reference
+    front(void) const
     {
         gsl_Expects(!empty());
         
         return { data_, 0 };
     }
-    gsl_NODISCARD constexpr reference back(void) const
+    gsl_NODISCARD constexpr reference
+    back(void) const
     {
         gsl_Expects(!empty());
         
         return { data_, difference_type(size_ - 1) };
     }
 
-    gsl_NODISCARD constexpr soa_span<Ts...> subspan(std::size_t offset, std::size_t count = std::size_t(-1)) const
+    gsl_NODISCARD constexpr soa_span<Ts...>
+    subspan(std::size_t offset, std::size_t count = std::size_t(-1)) const
     {
         gsl_Expects(offset <= size() && (count == std::size_t(-1) || count <= size() - offset));
 
@@ -120,11 +129,13 @@ public:
             newSize
         };
     }
-    gsl_NODISCARD constexpr soa_span<Ts...> first(std::size_t count) const
+    gsl_NODISCARD constexpr soa_span<Ts...>
+    first(std::size_t count) const
     {
         return subspan(0, count);
     }
-    gsl_NODISCARD constexpr soa_span<Ts...> last(std::size_t count) const
+    gsl_NODISCARD constexpr soa_span<Ts...>
+    last(std::size_t count) const
     {
         gsl_Expects(count <= size());
 
@@ -133,7 +144,8 @@ public:
 
         // Implement tuple-like interface for `soa_span<>`.
     template <std::size_t I>
-    gsl_NODISCARD friend constexpr gsl::span<nth_type_t<I, Ts...>> get(soa_span const& self) noexcept
+    gsl_NODISCARD friend constexpr gsl::span<nth_type_t<I, Ts...>>
+    get(soa_span const& self) noexcept
     {
         return { std::get<I>(self.data_), self.size_ };
     }
@@ -152,7 +164,8 @@ soa_span(std::tuple<Ts*...> const&, std::size_t) -> soa_span<Ts...>;
     //ᅟ    auto [i, j, v] = A[k];
     //
 template <typename... Ts>
-gsl_NODISCARD constexpr soa_span<Ts...> make_soa_span(gsl::span<Ts>... spans)
+gsl_NODISCARD constexpr soa_span<Ts...>
+make_soa_span(gsl::span<Ts>... spans)
 {
     return soa_span<Ts...>(spans...);
 }

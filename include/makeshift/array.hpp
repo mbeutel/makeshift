@@ -18,7 +18,6 @@
 
 namespace makeshift {
 
-
 namespace gsl = ::gsl_lite;
 
 
@@ -28,11 +27,13 @@ namespace gsl = ::gsl_lite;
     // Note that `mdarray<>` is defined as a dependent type, i.e. the type arguments of `mdarray<>` cannot be deduced.
     // TODO: remove, or move to experimental/?
     //
-template <typename T, std::size_t... Dims> using mdarray = typename detail::mdarray_<T, Dims...>::type;
+template <typename T, std::size_t... Dims>
+using mdarray = typename detail::mdarray_<T, Dims...>::type;
 
 
     //
-    // Takes a scalar function (i.e. a function of non-tuple arguments) and returns an array of the results of the function applied to the tuple elements.
+    // Takes a scalar function (i.e. a function of non-tuple arguments) and returns an array of the results of the function
+    // applied to the tuple elements.
     //ᅟ
     //ᅟ    auto intSquares = array_transform(
     //ᅟ        [](auto x) { return int(x*x); },
@@ -49,7 +50,8 @@ array_transform(F&& func, Ts&&... args)
 }
 
     //
-    // Takes a scalar function (i.e. a function of non-tuple arguments) and returns an array of the results of the function applied to the tuple elements.
+    // Takes a scalar function (i.e. a function of non-tuple arguments) and returns an array of the results of the function
+    // applied to the tuple elements.
     //ᅟ
     //ᅟ    auto intSquares = array_transform<MyArray>(
     //ᅟ        [](auto x) { return int(x*x); },
@@ -66,7 +68,8 @@ array_transform(F&& func, Ts&&... args)
 }
 
     //
-    // Takes a scalar function (i.e. a function of non-tuple arguments) and returns an array of the results of the function applied to the tuple elements.
+    // Takes a scalar function (i.e. a function of non-tuple arguments) and returns an array of the results of the function
+    // applied to the tuple elements.
     //ᅟ
     //ᅟ    auto intSquares = array_transform<double>(
     //ᅟ        [](auto x) { return x*x; },
@@ -83,7 +86,8 @@ array_transform(F&& func, Ts&&... args)
 }
 
     //
-    // Takes a scalar function (i.e. a function of non-tuple arguments) and returns an array of the results of the function applied to the tuple elements.
+    // Takes a scalar function (i.e. a function of non-tuple arguments) and returns an array of the results of the function
+    // applied to the tuple elements.
     //ᅟ
     //ᅟ    auto intSquares = array_transform<MyArray, double>(
     //ᅟ        [](auto x) { return x*x; },
@@ -101,7 +105,8 @@ array_transform(F&& func, Ts&&... args)
 
 
     //
-    // Takes a scalar function (i.e. a function of non-tuple arguments) and returns an array of the results of the function applied to the tuple elements.
+    // Takes a scalar function (i.e. a function of non-tuple arguments) and returns an array of the results of the function
+    // applied to the tuple elements.
     //ᅟ
     //ᅟ    auto indices = array_transform<3>(
     //ᅟ        [](std::size_t i) { return i; },
@@ -118,7 +123,8 @@ array_transform(F&& func, Ts&&... args)
 }
 
     //
-    // Takes a scalar function (i.e. a function of non-tuple arguments) and returns an array of the results of the function applied to the tuple elements.
+    // Takes a scalar function (i.e. a function of non-tuple arguments) and returns an array of the results of the function
+    // applied to the tuple elements.
     //ᅟ
     //ᅟ    auto indices = array_transform<3, MyArray>(
     //ᅟ        [](std::size_t i) { return i; },
@@ -135,7 +141,8 @@ array_transform(F&& func, Ts&&... args)
 }
 
     //
-    // Takes a scalar function (i.e. a function of non-tuple arguments) and returns an array of the results of the function applied to the tuple elements.
+    // Takes a scalar function (i.e. a function of non-tuple arguments) and returns an array of the results of the function
+    // applied to the tuple elements.
     //ᅟ
     //ᅟ    auto gridCoords = array_transform<3, double>(
     //ᅟ        [dx = 1.0](mk::index i) { return i*dx; },
@@ -152,7 +159,8 @@ array_transform(F&& func, Ts&&... args)
 }
 
     //
-    // Takes a scalar function (i.e. a function of non-tuple arguments) and returns an array of the results of the function applied to the tuple elements.
+    // Takes a scalar function (i.e. a function of non-tuple arguments) and returns an array of the results of the function
+    // applied to the tuple elements.
     //ᅟ
     //ᅟ    auto gridCoords = array_transform<3, MyArray, double>(
     //ᅟ        [dx = 1.0](mk::index i) { return i*dx; },

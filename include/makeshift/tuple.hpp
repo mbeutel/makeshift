@@ -19,13 +19,12 @@
 
 namespace makeshift {
 
-
 namespace gsl = ::gsl_lite;
 
 
     //
-    // Pass `tuple_index` to `array_transform()`, `template_for()`, or `tuple_transform()` to have the tuple element index passed as a functor argument.
-    // The argument is of type `integral_constant<index, I>`.
+    // Pass `tuple_index` to `array_transform()`, `template_for()`, or `tuple_transform()` to have the tuple element index passed
+    // as a functor argument. The argument is of type `integral_constant<index, I>`.
     //ᅟ
     //ᅟ        // print all alternatives of a variant
     //ᅟ    constexpr auto numAlternatives = std::variant_size_v<MyVariant>;
@@ -36,11 +35,13 @@ namespace gsl = ::gsl_lite;
     //ᅟ            printTypename<T>();
     //ᅟ        });
     //
-static constexpr detail::tuple_index_t const& tuple_index = static_const<detail::tuple_index_t>;
+static constexpr detail::tuple_index_t const&
+tuple_index = static_const<detail::tuple_index_t>;
 
 
     //
-    // Takes a scalar procedure (i.e. a function of non-tuple arguments which returns nothing) and calls the procedure for every element in the given tuples.
+    // Takes a scalar procedure (i.e. a function of non-tuple arguments which returns nothing) and calls the procedure for every
+    // element in the given tuples.
     //ᅟ
     //ᅟ    template_for(
     //ᅟ        [](auto name, auto elem) { std::cout << name << ": " << elem << '\n'; },
@@ -58,7 +59,8 @@ template_for(F&& func, Ts&&... args)
 
 
     //
-    // Takes a scalar procedure (i.e. a function of non-tuple arguments which returns nothing) and calls the procedure for every element in the given tuples.
+    // Takes a scalar procedure (i.e. a function of non-tuple arguments which returns nothing) and calls the procedure for every
+    // element in the given tuples.
     //ᅟ
     //ᅟ    template_for<3>(
     //ᅟ        [](index i) { std::cout << i << '\n'; },
@@ -76,7 +78,8 @@ template_for(F&& func, Ts&&... args)
 
 
     //
-    // Takes a scalar function (i.e. a function of non-tuple arguments) and returns a tuple of the results of the function applied to the tuple elements.
+    // Takes a scalar function (i.e. a function of non-tuple arguments) and returns a tuple of the results of the function applied
+    // to the tuple elements.
     //ᅟ
     //ᅟ    auto squares = tuple_transform(
     //ᅟ        [](auto x) { return x*x; },
@@ -93,8 +96,8 @@ tuple_transform(F&& func, Ts&&... args)
 }
 
     //
-    // Takes a scalar function (i.e. a function of non-tuple arguments) and returns a tuple of the results of the function applied to the tuple elements.
-    // The tuple is constructed using the given tuple template.
+    // Takes a scalar function (i.e. a function of non-tuple arguments) and returns a tuple of the results of the function applied
+    // to the tuple elements. The tuple is constructed using the given tuple template.
     //ᅟ
     //ᅟ    auto squares = tuple_transform<MyTuple>(
     //ᅟ        [](auto x) { return x*x; },
@@ -112,16 +115,17 @@ tuple_transform(F&& func, Ts&&... args)
 
 
     //
-    // Takes a scalar function (i.e. a function of non-tuple arguments) and returns a tuple of the results of the function applied to the tuple elements.
+    // Takes a scalar function (i.e. a function of non-tuple arguments) and returns a tuple of the results of the function applied
+    // to the tuple elements.
     //ᅟ
-    //ᅟ    auto indices = tuple_transform_n<3>(
+    //ᅟ    auto indices = tuple_transform<3>(
     //ᅟ        [](index i) { return i; },
     //ᅟ        range_index);
     //ᅟ    // returns std::tuple{ 0, 1, 2 }
     //
 template <std::size_t N, typename F, typename... Ts>
 gsl_NODISCARD constexpr MAKESHIFT_DETAIL_FORCEINLINE auto
-tuple_transform_n(F&& func, Ts&&... args)
+tuple_transform(F&& func, Ts&&... args)
 {
     static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
     constexpr std::size_t size = detail::tuple_transform_size<N, Ts...>();
@@ -129,17 +133,17 @@ tuple_transform_n(F&& func, Ts&&... args)
 }
 
     //
-    // Takes a scalar function (i.e. a function of non-tuple arguments) and returns a tuple of the results of the function applied to the tuple elements.
-    // The tuple is constructed using the given tuple template.
+    // Takes a scalar function (i.e. a function of non-tuple arguments) and returns a tuple of the results of the function applied
+    // to the tuple elements. The tuple is constructed using the given tuple template.
     //ᅟ
-    //ᅟ    auto indices = tuple_transform_n<MyTuple, 3>(
+    //ᅟ    auto indices = tuple_transform<MyTuple, 3>(
     //ᅟ        [](index i) { return i; },
     //ᅟ        range_index);
     //ᅟ    // returns MyTuple<index, index, index>{ 0, 1, 2 }
     //
 template <template <typename...> class TupleT, std::size_t N, typename F, typename... Ts>
 gsl_NODISCARD constexpr MAKESHIFT_DETAIL_FORCEINLINE auto
-tuple_transform_n(F&& func, Ts&&... args)
+tuple_transform(F&& func, Ts&&... args)
 {
     static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
     constexpr std::size_t size = detail::tuple_transform_size<N, Ts...>();

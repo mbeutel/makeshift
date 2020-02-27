@@ -21,21 +21,23 @@
 
 namespace makeshift {
 
-
 namespace gsl = ::gsl_lite;
-
 
 namespace detail {
 
 
     //
-    // Pass `tuple_index` to `template_for()` or `tuple_transform()` to have the tuple element index passed as a functor argument.
-    // The argument is of type `integral_constant<std::size_t, I>` and implicitly converts to `std::size_t`.
+    // Pass `tuple_index` to `array_transform()`, `template_for()`, or `tuple_transform()` to have the tuple element index passed
+    // as a functor argument. The argument is of type `integral_constant<index, I>`.
     //ᅟ
-    //ᅟ    template_for(
-    //ᅟ        [](auto element, std::size_t idx) { std::cout << idx << ": " << element << '\n'; },
-    //ᅟ        std::make_tuple(42, 1.41421), tuple_index);
-    //ᅟ    // prints "0: 42\n1: 1.41421"
+    //ᅟ        // print all alternatives of a variant
+    //ᅟ    constexpr auto numAlternatives = std::variant_size_v<MyVariant>;
+    //ᅟ    template_for<numAlternatives>(
+    //ᅟ        [](auto idxC)
+    //ᅟ        {
+    //ᅟ            using T = std::variant_alternative_t<idxC(), MyVariant>;
+    //ᅟ            printTypename<T>();
+    //ᅟ        });
     //
 struct tuple_index_t { };
 
@@ -107,56 +109,14 @@ template_for_impl(std::index_sequence<Is...>, F&& func, Ts&&... args)
 }
 
 template <std::ptrdiff_t N, typename... Ts>
-constexpr std::size_t tuple_transform_size(void)
+constexpr std::size_t
+tuple_transform_size(void)
 {
     using Eq = equal_sizes_<std::decay_t<Ts>...>;
     static_assert(Eq::value, "sizes of tuple arguments do not match");
     static_assert(N != -1 || Eq::size != -1 || N == Eq::size, "given size argument does not match sizes of tuple arguments");
     static_assert(N != -1 || Eq::size != -1, "no tuple argument and no size given");
     return std::size_t(N != -1 ? N : Eq::size);
-}
-
-
-template <typename TupleT, typename DefaultT, std::size_t I>
-constexpr decltype(auto)
-single_or_default(TupleT&& tuple, DefaultT&&, std::integral_constant<std::ptrdiff_t, I>) noexcept
-{
-    using std::get;
-    return get<I>(std::forward<TupleT>(tuple));
-}
-template <typename TupleT, typename DefaultT>
-constexpr DefaultT&&
-single_or_default(TupleT&&, DefaultT&& _default, std::integral_constant<std::ptrdiff_t, element_not_found>) noexcept
-{
-    return std::forward<DefaultT>(_default);
-}
-
-
-template <std::size_t I, typename TupleT, typename T, std::size_t J>
-constexpr decltype(auto) get_or_replace(TupleT&& tuple, T&&, std::integral_constant<std::size_t, J>) noexcept
-{
-    using std::get;
-    return get<J>(std::forward<TupleT>(tuple));
-}
-template <std::size_t I, typename TupleT, typename T>
-constexpr T&& get_or_replace(TupleT&&, T&& newElement, std::integral_constant<std::size_t, I>) noexcept
-{
-    return std::forward<T>(newElement);
-}
-
-template <std::size_t I, typename NewT, std::size_t J, typename TupleT> struct replace_element : std::tuple_element<I, TupleT> { };
-template <std::size_t I, typename NewT, typename TupleT> struct replace_element<I, NewT, I, TupleT> { using type = NewT; };
-
-template <std::size_t I, typename NewT, typename TupleT, typename Is> struct with_element_0;
-template <std::size_t I, typename NewT, template <typename...> class TupleT, typename... Ts, std::size_t... Is> struct with_element_0<I, NewT, TupleT<Ts...>, std::index_sequence<Is...>> { using type = TupleT<typename replace_element<I, NewT, Is, TupleT<Ts...>>::type...>; };
-template <std::size_t I, typename NewT, typename TupleT> struct with_element : with_element_0<I, NewT, TupleT, std::make_index_sequence<std::tuple_size<TupleT>::value>> { };
-
-template <std::size_t I, typename TupleT, typename T, std::size_t... Is>
-constexpr typename with_element<I, std::decay_t<T>, std::decay_t<TupleT>>::type
-with(TupleT&& tuple, T&& newElement, std::index_sequence<Is...>)
-{
-    using RTuple = typename with_element<I, std::decay_t<T>, std::decay_t<TupleT>>::type;
-    return RTuple{ detail::get_or_replace<I>(std::forward<TupleT>(tuple), std::forward<T>(newElement), std::integral_constant<std::size_t, Is>{ })... };
 }
 
 

@@ -13,7 +13,6 @@
 
 namespace makeshift {
 
-
 namespace gsl = ::gsl_lite;
 
 
@@ -84,9 +83,7 @@ constexpr overload<Fs...> make_overload(Fs... fs)
     //ᅟ    auto fac = y_combinator( 
     //ᅟ        [](auto fac, int i) -> int
     //ᅟ        {
-    //ᅟ            return i <= 1
-    //ᅟ                ? 1
-    //ᅟ                : i * fac(i - 1);
+    //ᅟ            return i <= 1 ? 1 : i * fac(i - 1);
     //ᅟ        });
     //ᅟ    int i = fac(4); // returns 24
     //
@@ -126,9 +123,7 @@ y_combinator(F) -> y_combinator<F>;
     //ᅟ    auto fac = make_y_combinator( 
     //ᅟ        [](auto fac, int i) -> int
     //ᅟ        {
-    //ᅟ            return i <= 1
-    //ᅟ                ? 1
-    //ᅟ                : i * fac(i - 1);
+    //ᅟ            return i <= 1 ? 1 : i * fac(i - 1);
     //ᅟ        });
     //ᅟ    int i = fac(4); // returns 24
     //

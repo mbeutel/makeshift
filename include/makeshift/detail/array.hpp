@@ -19,9 +19,7 @@
 
 namespace makeshift {
 
-
 namespace gsl = ::gsl_lite;
-
 
 namespace detail {
 
