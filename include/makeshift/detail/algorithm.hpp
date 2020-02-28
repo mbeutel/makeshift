@@ -11,7 +11,7 @@
 #include <utility>     // for forward<>(), integer_sequence<>
 #include <type_traits> // for integral_constant<>, declval<>(), decay<>
 
-#include <makeshift/detail/macros.hpp>      // for MAKESHIFT_DETAIL_EMPTY_BASES
+#include <makeshift/detail/macros.hpp>      // for MAKESHIFT_DETAIL_EMPTY_BASES, MAKESHIFT_DETAIL_FORCEINLINE
 #include <makeshift/detail/range-index.hpp> // for range_index_t
 #include <makeshift/detail/zip.hpp>
 
@@ -23,8 +23,6 @@ namespace gsl = ::gsl_lite;
 namespace detail {
 
 
-constexpr gsl::dim unknown_size = -1;
-
 template <typename T>
 struct zip_iterator_sentinel;
 template <>
@@ -34,35 +32,44 @@ private:
     gsl::dim n_;
     
 public:
-    constexpr zip_iterator_sentinel(gsl::dim _n) noexcept
+    explicit constexpr zip_iterator_sentinel(gsl::dim _n) noexcept
         : n_(_n)
     {
     }
-    constexpr operator gsl::dim(void) const noexcept
+    template <typename It>
+    MAKESHIFT_DETAIL_FORCEINLINE constexpr bool _is_end(It const& it) const
     {
-        return n_;
+        bool isEnd = it.i_ == n_;
+        it._check_end(isEnd);
+        return isEnd;
     }
 };
 template <gsl::dim N>
-struct zip_iterator_sentinel<dim_constant<N>> : dim_constant<N>
+struct zip_iterator_sentinel<dim_constant<N>>
 {
-    constexpr zip_iterator_sentinel(dim_constant<N>)
+    explicit constexpr zip_iterator_sentinel(dim_constant<N>)
     {
+    }
+    template <typename It>
+    MAKESHIFT_DETAIL_FORCEINLINE constexpr bool _is_end(It const& it) const
+    {
+        bool isEnd = it.i_ == N;
+        it._check_end(isEnd);
+        return isEnd;
     }
 };
 template <>
 struct zip_iterator_sentinel<dim_constant<unknown_size>>
 {
-    constexpr zip_iterator_sentinel(dim_constant<unknown_size>)
+    explicit constexpr zip_iterator_sentinel(dim_constant<unknown_size>)
     {
     }
+    template <typename It>
+    MAKESHIFT_DETAIL_FORCEINLINE constexpr bool _is_end(It const& it) const
+    {
+        return it._is_end();
+    }
 };
-
-template <typename... Ts>
-constexpr std::tuple<Ts...> make_forwarding_tuple(Ts&&... args)
-{
-    return std::tuple<Ts...>{ std::forward<Ts>(args)... };
-}
 
 
 template <std::size_t I, typename R>
@@ -73,7 +80,12 @@ struct MAKESHIFT_DETAIL_EMPTY_BASES zip_iterator_leaf
     using leaf_base::leaf_base;
 };
 template <std::size_t I, typename R>
-constexpr zip_iterator_leaf<I, R>& get_leaf(zip_iterator_leaf<I, R>& self)
+MAKESHIFT_DETAIL_FORCEINLINE constexpr zip_iterator_leaf<I, R>& get_leaf(zip_iterator_leaf<I, R>& self) noexcept
+{
+    return self;
+}
+template <std::size_t I, typename R>
+MAKESHIFT_DETAIL_FORCEINLINE constexpr zip_iterator_leaf<I, R> const& get_leaf(zip_iterator_leaf<I, R> const& self) noexcept
 {
     return self;
 }
@@ -84,65 +96,140 @@ template <typename DerivedT, typename N, std::size_t... Is, typename... Rs>
 class MAKESHIFT_DETAIL_EMPTY_BASES zip_iterator_base<DerivedT, N, std::index_sequence<Is...>, Rs...>
     : private zip_iterator_leaf<Is, Rs>...
 {
+    friend struct zip_iterator_sentinel<N>;
+
 private:
     gsl::index i_;
 
+        // for zip_iterator_sentinel<>
+    auto _is_end(void) const
+    {
+        return detail::is_end(detail::get_leaf<Is>(*this)._is_end()...);
+    }
+
 public:
+    using difference_type = std::ptrdiff_t; // we just assume that here
+    using value_type = std::tuple<typename zip_iterator_leaf<Is, Rs>::value_type...>;
+    using pointer = void;
+    using reference = std::tuple<typename zip_iterator_leaf<Is, Rs>::reference...>;
+    using iterator_category = common_iterator_tag<range_iterator_category_t<std::decay_t<Rs>>...>;
+#ifdef __cpp_concepts
+        // this deliberately cannot include ContiguousIterator (zipping contiguous iterators does not yield a contiguous iterator)
+    using iterator_concept = common_iterator_tag<range_iterator_concept_t<std::decay_t<Rs>>...>;
+#endif // __cpp_concepts
+
     explicit constexpr zip_iterator_base(Rs&... ranges)
         : zip_iterator_leaf<Is, Rs>(ranges)..., i_(0)
     {
     }
-    constexpr DerivedT& operator ++(void)
+
+        // sanity check
+    void _check_end(bool isEnd) const
     {
         using Swallow = int[];
-        (void) Swallow{ 1, (detail::get_leaf<Is>(*this).advance(), void(), int{ })... };
+        (void) Swallow{ 1, (detail::get_leaf<Is>(*this)._check_end(isEnd), 0)... };
+    }
+
+        // LegacyIterator: dereference, increment
+    MAKESHIFT_DETAIL_FORCEINLINE constexpr reference operator *(void)
+    {
+        return reference{ detail::get_leaf<Is>(*this)._deref(i_)... };
+    }
+    MAKESHIFT_DETAIL_FORCEINLINE constexpr DerivedT& operator ++(void)
+    {
+        using Swallow = int[];
+        (void) Swallow{ 1, (detail::get_leaf<Is>(*this)._inc(), void(), int{ })... };
         ++i_;
         return static_cast<DerivedT&>(*this);
     }
-    constexpr decltype(auto) operator *(void)
+    MAKESHIFT_DETAIL_FORCEINLINE constexpr DerivedT operator ++(int)
     {
-        return detail::make_forwarding_tuple(detail::get_leaf<Is>(*this)[i_]...);
+        DerivedT result = static_cast<DerivedT&>(*this);
+        ++*this;
+        return result;
     }
-    template <typename F>
-    constexpr decltype(auto) invoke(F&& func)
+
+        // LegacyInputIterator: equality compare
+    MAKESHIFT_DETAIL_FORCEINLINE friend constexpr bool operator ==(DerivedT const& lhs, DerivedT const& rhs) noexcept
     {
-        return func(detail::get_leaf<Is>(*this)[i_]...);
+        return lhs.i_ == rhs.i_;
     }
-    constexpr bool operator !=(zip_iterator_sentinel<N> sentinel)
+    MAKESHIFT_DETAIL_FORCEINLINE friend constexpr bool operator !=(DerivedT const& lhs, DerivedT const& rhs) noexcept
     {
-        bool isEnd = i_ == sentinel;
+        return !(lhs == rhs);
+    }
+    MAKESHIFT_DETAIL_FORCEINLINE friend constexpr bool operator ==(DerivedT const& it, zip_iterator_sentinel<N> sentinel)
+    {
+        return sentinel._is_end(it);
+    }
+    MAKESHIFT_DETAIL_FORCEINLINE friend constexpr bool operator ==(zip_iterator_sentinel<N> sentinel, DerivedT const& it)
+    {
+        return it == sentinel;
+    }
+    MAKESHIFT_DETAIL_FORCEINLINE friend constexpr bool operator !=(DerivedT const& it, zip_iterator_sentinel<N> sentinel)
+    {
+        return !(it == sentinel);
+    }
+    MAKESHIFT_DETAIL_FORCEINLINE friend constexpr bool operator !=(zip_iterator_sentinel<N> sentinel, DerivedT const& it)
+    {
+        return !(it == sentinel);
+    }
+
+        // BidirectionalIterator: decrement
+    MAKESHIFT_DETAIL_FORCEINLINE constexpr DerivedT& operator --(void)
+    {
         using Swallow = int[];
-        (void) Swallow{ 1, (detail::get_leaf<Is>(*this).check_end(isEnd), 0)... };
-        return !isEnd;
+        (void) Swallow{ 1, (detail::get_leaf<Is>(*this)._dec(), void(), int{ })... };
+        --i_;
+        return static_cast<DerivedT&>(*this);
     }
-};
-template <typename DerivedT, std::size_t... Is, typename... Rs>
-class MAKESHIFT_DETAIL_EMPTY_BASES zip_iterator_base<DerivedT, dim_constant<unknown_size>, std::index_sequence<Is...>, Rs...>
-    : private zip_iterator_leaf<Is, Rs>...
-{
-public:
-    explicit constexpr zip_iterator_base(Rs&... ranges)
-        : zip_iterator_leaf<Is, Rs>(ranges)...
+    MAKESHIFT_DETAIL_FORCEINLINE constexpr DerivedT operator --(int)
     {
+        DerivedT result = static_cast<DerivedT&>(*this);
+        --*this;
+        return result;
     }
-    constexpr DerivedT& operator ++(void)
+
+        // RandomAccessIterator: subscript, arithmetic, ordering compare
+    MAKESHIFT_DETAIL_FORCEINLINE constexpr reference operator [](std::ptrdiff_t d)
+    {
+        return reference{ detail::get_leaf<Is>(*this)._deref(i_, d)... };
+    }
+    MAKESHIFT_DETAIL_FORCEINLINE constexpr DerivedT& operator +=(std::ptrdiff_t d)
     {
         using Swallow = int[];
-        (void) Swallow{ 1, (detail::get_leaf<Is>(*this).advance(), void(), int{ })... };
-        return static_cast<DerivedT>(*this);
+        (void) Swallow{ 1, (detail::get_leaf<Is>(*this)._advance(d), void(), int{ })... };
+        i_ += d;
+        return static_cast<DerivedT&>(*this);
     }
-    constexpr decltype(auto) operator *(void)
+    MAKESHIFT_DETAIL_FORCEINLINE constexpr DerivedT& operator -=(std::ptrdiff_t d)
     {
-        return detail::make_forwarding_tuple(detail::get_leaf<Is>(*this)[{ }]...);
+        return *this += -d;
     }
+    MAKESHIFT_DETAIL_FORCEINLINE friend constexpr DerivedT operator +(DerivedT it, std::ptrdiff_t d)
+    {
+        it += d;
+        return it;
+    }
+    MAKESHIFT_DETAIL_FORCEINLINE friend constexpr DerivedT operator +(std::ptrdiff_t d, DerivedT it)
+    {
+        it += d;
+        return it;
+    }
+    MAKESHIFT_DETAIL_FORCEINLINE friend constexpr DerivedT operator -(DerivedT it, std::ptrdiff_t d)
+    {
+        it -= d;
+        return it;
+    }
+    MAKESHIFT_DETAIL_FORCEINLINE friend constexpr std::ptrdiff_t operator -(DerivedT const& lhs, DerivedT const& rhs)
+    {
+        return lhs.i_ - rhs.i_;
+    }
+
     template <typename F>
-    constexpr decltype(auto) invoke(F&& func)
+    MAKESHIFT_DETAIL_FORCEINLINE constexpr decltype(auto) apply(F&& func)
     {
-        return func(detail::get_leaf<Is>(*this)[{ }]...);
-    }
-    constexpr bool operator !=(zip_iterator_sentinel<dim_constant<unknown_size>>)
-    {
-        return detail::is_end(detail::get_leaf<Is>(*this).is_end()...);
+        return func(detail::get_leaf<Is>(*this)._deref(i_)...);
     }
 };
 template <typename N, typename... Rs>
@@ -154,42 +241,127 @@ struct zip_iterator
 };
 
 template <typename N, typename... Rs>
-constexpr zip_iterator<N, Rs&...> make_zip_iterator(N, Rs&... ranges)
+MAKESHIFT_DETAIL_FORCEINLINE constexpr zip_iterator<N, Rs&...> make_zip_iterator(N, Rs&... ranges)
 {
     return zip_iterator<N, Rs&...>(ranges...);
 }
 template <typename N>
-constexpr zip_iterator_sentinel<N> make_zip_iterator_sentinel(N n) noexcept
+MAKESHIFT_DETAIL_FORCEINLINE constexpr zip_iterator_sentinel<N> make_zip_iterator_sentinel(N n) noexcept
 {
-    return { n };
+    return zip_iterator_sentinel<N>(n);
 }
 
+template <typename... Rs> struct ranges_are_random_access_ : std::is_base_of<std::random_access_iterator_tag, common_iterator_tag<range_iterator_category_t<std::decay_t<Rs>>...>> { };
+
+template <typename N>
+class zip_range_size_base;
+template <>
+class zip_range_size_base<gsl::dim>
+{
+private:
+    std::size_t n_;
+
+protected:
+    explicit zip_range_size_base(gsl::dim _n)
+        : n_(std::size_t(_n))
+    {
+    }
+
+public:
+    MAKESHIFT_DETAIL_FORCEINLINE constexpr std::size_t size(void) const noexcept
+    {
+        return n_;
+    }
+    MAKESHIFT_DETAIL_FORCEINLINE constexpr zip_iterator_sentinel<gsl::dim> end(void) const noexcept
+    {
+        return zip_iterator_sentinel<gsl::dim>(n_);
+    }
+};
+template <gsl::dim N>
+class zip_range_size_base<dim_constant<N>>
+{
+protected:
+    explicit zip_range_size_base(dim_constant<N>)
+    {
+    }
+
+public:
+    MAKESHIFT_DETAIL_FORCEINLINE constexpr std::size_t size(void) const noexcept
+    {
+        return N;
+    }
+    MAKESHIFT_DETAIL_FORCEINLINE constexpr zip_iterator_sentinel<dim_constant<N>> end(void) const noexcept
+    {
+        return zip_iterator_sentinel<dim_constant<N>>({ });
+    }
+};
+template <>
+class zip_range_size_base<dim_constant<unknown_size>>
+{
+protected:
+    explicit zip_range_size_base(dim_constant<unknown_size>)
+    {
+    }
+
+public:
+    MAKESHIFT_DETAIL_FORCEINLINE constexpr zip_iterator_sentinel<dim_constant<unknown_size>> end(void) const noexcept
+    {
+        return zip_iterator_sentinel<dim_constant<unknown_size>>({ });
+    }
+};
 template <typename N, typename Is, typename... Rs>
 class zip_range_base;
 template <typename N, std::size_t... Is, typename... Rs>
 class zip_range_base<N, std::index_sequence<Is...>, Rs...>
+    : public zip_range_size_base<N>
 {
 private:
     using iterator = zip_iterator<N, Rs&...>;
-    using sentinel = zip_iterator_sentinel<N>;
 
     std::tuple<Rs...> ranges_;
-    N size_;
 
 public:
     explicit constexpr zip_range_base(N _size, Rs... _ranges)
-        : ranges_(std::forward<Rs>(_ranges)...), size_(_size)
+        : zip_range_size_base<N>(_size),
+          ranges_(std::forward<Rs>(_ranges)...)
     {
     }
 
-    constexpr iterator begin(void) { return iterator(std::get<Is>(ranges_)...); }
-    constexpr sentinel end(void) { return sentinel(size_); }
+    constexpr iterator begin(void) const
+    {
+        return iterator(std::get<Is>(ranges_)...);
+    }
+};
+template <bool IsRandomIt, typename N, typename... Rs>
+class zip_range_subscript_base;
+template <typename N, typename... Rs>
+class zip_range_subscript_base<false, N, Rs...>
+    : public zip_range_base<N, std::make_index_sequence<sizeof...(Rs)>, Rs...>
+{
+    using base = zip_range_base<N, std::make_index_sequence<sizeof...(Rs)>, Rs...>;
+    using base::base;
+};
+template <typename N, typename... Rs>
+class zip_range_subscript_base<true, N, Rs...>
+    : public zip_range_base<N, std::make_index_sequence<sizeof...(Rs)>, Rs...>
+{
+    using base = zip_range_base<N, std::make_index_sequence<sizeof...(Rs)>, Rs...>;
+    using base::base;
+
+private:
+    using iterator = zip_iterator<N, Rs&...>;
+
+public:
+    MAKESHIFT_DETAIL_FORCEINLINE typename iterator::reference operator [](std::size_t i) const
+    {
+        return this->begin()[i];
+    }
 };
 template <typename N, typename... Rs>
 class zip_range
-    : zip_range_base<N, std::make_index_sequence<sizeof...(Rs)>, Rs...>
+    : public zip_range_subscript_base<ranges_are_random_access_<Rs...>::value, N, Rs...>
 {
-    using base = zip_range_base<N, std::make_index_sequence<sizeof...(Rs)>, Rs...>;
+    using base = zip_range_subscript_base<ranges_are_random_access_<Rs...>::value, N, Rs...>;
     using base::base;
 };
 

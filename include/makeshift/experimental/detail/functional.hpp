@@ -69,7 +69,7 @@ struct forward_to_impl
     }
 };
 template <typename F>
-struct forward_to_impl<F, gsl::void_t<std::declval<F>()()>> : F
+struct forward_to_impl<F, gsl::void_t<decltype(std::declval<F>()())>> : F
 {
     explicit constexpr forward_to_impl(F func)
         : F(std::move(func))

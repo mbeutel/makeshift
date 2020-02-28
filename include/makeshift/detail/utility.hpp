@@ -16,6 +16,15 @@ struct type_tag;
 namespace detail {
 
 
+struct any_sink
+{
+    template <typename T>
+    constexpr any_sink(T&&) noexcept
+    {
+    }
+};
+
+
 template <typename T, typename TypeSeqT> struct search_type_pack_index_in;
 template <typename T, template <typename...> class TypeSeqT, typename... Ts> struct search_type_pack_index_in<T, TypeSeqT<Ts...>> : search_type_pack_index<T, Ts...> { };
 

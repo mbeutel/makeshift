@@ -1,6 +1,6 @@
 
-#ifndef INCLUDED_MAKESHIFT_DETAIL_UTILITY_HPP_
-#define INCLUDED_MAKESHIFT_DETAIL_UTILITY_HPP_
+#ifndef INCLUDED_MAKESHIFT_EXPERIMENTAL_UTILITY_HPP_
+#define INCLUDED_MAKESHIFT_EXPERIMENTAL_UTILITY_HPP_
 
 
 namespace makeshift {
@@ -17,7 +17,7 @@ namespace makeshift {
 struct any_sink
 {
     template <typename T>
-    any_sink(T&&) noexcept
+    constexpr any_sink(T&&) noexcept
     {
     }
 };
@@ -29,7 +29,7 @@ struct any_sink
 struct any_source
 {
     template <typename T>
-    operator T(void) const noexcept
+    constexpr operator T(void) const noexcept
     {
     }
 };
@@ -38,4 +38,4 @@ struct any_source
 } // namespace makeshift
 
 
-#endif // INCLUDED_MAKESHIFT_DETAIL_UTILITY_HPP_
+#endif // INCLUDED_MAKESHIFT_EXPERIMENTAL_UTILITY_HPP_

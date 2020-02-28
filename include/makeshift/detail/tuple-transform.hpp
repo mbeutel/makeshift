@@ -67,13 +67,6 @@ struct equal_sizes_0_<false, N, T0, Ts...>
 template <typename... Ts> struct equal_sizes_ : equal_sizes_0_<false, -1, Ts...> { };
 
 
-template <std::size_t I>
-constexpr MAKESHIFT_DETAIL_FORCEINLINE std::integral_constant<std::ptrdiff_t, I> get(tuple_index_t) noexcept
-{
-    return { };
-}
-
-
 template <std::size_t I, typename T>
 constexpr MAKESHIFT_DETAIL_FORCEINLINE decltype(auto) get_element(T&& arg) noexcept
 {
