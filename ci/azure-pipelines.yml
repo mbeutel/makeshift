@@ -47,7 +47,7 @@ jobs:
 
     - os: Linux
       cxxCompiler: GCC
-      cxxCompilerVersions: [6, 7, 8]
+      cxxCompilerVersions: [7, 8]
       platforms: [x64]
 
     - os: Linux
@@ -81,7 +81,7 @@ jobs:
 
     - os: MacOS
       cxxCompiler: GCC
-      cxxCompilerVersions: [6, 7, 8, 9]
+      cxxCompilerVersions: [7, 8, 9]
       platforms: [x64]
 
     - os: MacOS
