@@ -101,7 +101,9 @@ TEST_CASE("range_zip()")
         auto it = a_v_i.begin();
         auto end = a_v_i.end();
         CHECK(it != end);
+        CHECK(it <= a_v_i.begin());
         it += 1;
+        CHECK(it > a_v_i.begin());
         CHECK(it[1] == std::make_tuple(23, 3, 2));
         CHECK(it[-1] == std::make_tuple(21, 1, 0));
         it -= 0;
@@ -118,6 +120,28 @@ TEST_CASE("range_zip()")
     {
         // This doesn't compile because the inability to infer a size is detected at compile time.
         //CHECK_THROWS(mk::range_zip(mk::range_index));
+    }
+}
+
+TEST_CASE("range_for()")
+{
+    auto vec3 = std::vector<int>{ 1, 2, 3 };
+    auto list3 = std::list<int>{ 11, 12, 13 };
+
+    SECTION("basic use with index")
+    {
+        auto i_v_l = mk::range_zip(mk::range_index, vec3, list3);
+        int i = 0;
+        mk::range_for(
+            [&](gsl::index iv, int& vv, int& lv)
+            {
+                CHECK(iv == i);
+                CHECK(vv == i + 1);
+                CHECK(lv == i + 11);
+                ++i;
+            },
+            mk::range_index, vec3, list3);
+        CHECK(i == 3);
     }
 }
 

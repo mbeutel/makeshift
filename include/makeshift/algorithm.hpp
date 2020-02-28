@@ -88,7 +88,7 @@ range_for(F&& func, Rs&&... ranges)
     auto end = detail::make_zip_iterator_sentinel(mergedSize);
     for (; it != end; ++it)
     {
-        it.invoke(func);
+        it.apply(func);
     }
 }
 
@@ -115,7 +115,7 @@ range_transform_reduce(T&& initialValue, ReduceFuncT&& reduce, TransformFuncT&& 
     auto end = detail::make_zip_iterator_sentinel(mergedSize);
     for (; it != end; ++it)
     {
-        result = reduce(std::move(result), it.invoke(transform));
+        result = reduce(std::move(result), it.apply(transform));
     }
     return result;
 }
@@ -165,7 +165,7 @@ range_count_if(PredicateT&& predicate, Rs&&... ranges)
     auto result = std::ptrdiff_t(0);
     for (; it != end; ++it)
     {
-        if (it.invoke(predicate)) ++result;
+        if (it.apply(predicate)) ++result;
     }
     return result;
 }
@@ -190,7 +190,7 @@ range_all_of(PredicateT&& predicate, Rs&&... ranges)
     auto end = detail::make_zip_iterator_sentinel(mergedSize);
     for (; it != end; ++it)
     {
-        if (!it.invoke(predicate)) return false;
+        if (!it.apply(predicate)) return false;
     }
     return true;
 }
@@ -215,7 +215,7 @@ range_any_of(PredicateT&& predicate, Rs&&... ranges)
     auto end = detail::make_zip_iterator_sentinel(mergedSize);
     for (; it != end; ++it)
     {
-        if (it.invoke(predicate)) return true;
+        if (it.apply(predicate)) return true;
     }
     return false;
 }
@@ -240,7 +240,7 @@ range_none_of(PredicateT&& predicate, Rs&&... ranges)
     auto end = detail::make_zip_iterator_sentinel(mergedSize);
     for (; it != end; ++it)
     {
-        if (it.invoke(predicate)) return false;
+        if (it.apply(predicate)) return false;
     }
     return true;
 }
