@@ -122,6 +122,10 @@ public:
         : zip_iterator_leaf<Is, Rs>(ranges)..., i_(0)
     {
     }
+    explicit constexpr zip_iterator_base(end_tag, N _size, Rs&... ranges)
+        : zip_iterator_leaf<Is, Rs>(ranges, end_tag{ })..., i_(_size)
+    {
+    }
 
         // sanity check
     void _check_end(bool isEnd) const
@@ -257,9 +261,14 @@ struct zip_iterator
 };
 
 template <typename N, typename... Rs>
-MAKESHIFT_DETAIL_FORCEINLINE constexpr zip_iterator<N, Rs&...> make_zip_iterator(N, Rs&... ranges)
+MAKESHIFT_DETAIL_FORCEINLINE constexpr zip_iterator<N, Rs&...> make_zip_begin_iterator(N, Rs&... ranges)
 {
     return zip_iterator<N, Rs&...>(ranges...);
+}
+template <typename N, typename... Rs>
+MAKESHIFT_DETAIL_FORCEINLINE constexpr zip_iterator<N, Rs&...> make_zip_end_iterator(N size, Rs&... ranges)
+{
+    return zip_iterator<N, Rs&...>(end_tag{ }, size, ranges...);
 }
 template <typename N>
 MAKESHIFT_DETAIL_FORCEINLINE constexpr zip_iterator_sentinel<N> make_zip_iterator_sentinel(N n) noexcept
@@ -281,6 +290,10 @@ protected:
     explicit zip_range_size_base(gsl::dim _n)
         : n_(std::size_t(_n))
     {
+    }
+    gsl::dim _size(void) const noexcept
+    {
+        return gsl::dim(n_);
     }
 
 public:
@@ -307,6 +320,10 @@ protected:
     explicit zip_range_size_base(dim_constant<N>)
     {
     }
+    static dim_constant<N> _size(void) noexcept
+    {
+        return { };
+    }
 
 public:
     MAKESHIFT_DETAIL_FORCEINLINE gsl_NODISCARD static constexpr std::size_t
@@ -331,6 +348,10 @@ class zip_range_size_base<dim_constant<unknown_size>>
 protected:
     explicit zip_range_size_base(dim_constant<unknown_size>)
     {
+    }
+    static dim_constant<unknown_size> _size(void) noexcept
+    {
+        return { };
     }
 
 public:
@@ -363,6 +384,11 @@ public:
     {
         return iterator(std::get<Is>(ranges_)...);
     }
+    gsl_NODISCARD constexpr iterator
+    common_end(void) const
+    {
+        return iterator(end_tag{ }, this->_size(), std::get<Is>(ranges_)...);
+    }
 };
 template <bool IsRandomIt, typename N, typename... Rs>
 class zip_range_subscript_base;
@@ -390,6 +416,7 @@ public:
         return this->begin()[i];
     }
 };
+
 template <typename N, typename... Rs>
 class zip_range
     : public zip_range_subscript_base<ranges_are_random_access_<Rs...>::value, N, Rs...>
@@ -397,11 +424,33 @@ class zip_range
     using base = zip_range_subscript_base<ranges_are_random_access_<Rs...>::value, N, Rs...>;
     using base::base;
 };
-
 template <typename N, typename... Rs>
 constexpr zip_range<N, Rs...> make_zip_range(N n, Rs&&... ranges)
 {
     return zip_range<N, Rs...>(n, std::forward<Rs>(ranges)...);
+}
+
+template <typename N, typename... Rs>
+class zip_common_range
+    : public zip_range_subscript_base<ranges_are_random_access_<Rs...>::value, N, Rs...>
+{
+private:
+    using iterator = zip_iterator<N, Rs&...>;
+
+    using base = zip_range_subscript_base<ranges_are_random_access_<Rs...>::value, N, Rs...>;
+    using base::base;
+
+public:
+    gsl_NODISCARD constexpr iterator
+    end(void) const // overwriting `zip_range_size_base<>::end()`
+    {
+        return this->common_end();
+    }
+};
+template <typename N, typename... Rs>
+constexpr zip_common_range<N, Rs...> make_zip_common_range(N n, Rs&&... ranges)
+{
+    return zip_common_range<N, Rs...>(n, std::forward<Rs>(ranges)...);
 }
 
 

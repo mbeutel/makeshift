@@ -50,7 +50,7 @@ shuffle(RandomIt first, RandomIt last, URBG&& rng, UniformIntDistributionT dist)
 
 
     //
-    // Given a list of ranges, returns a range of tuples.
+    // Given a list of ranges, returns a range of tuples. 
     //ᅟ
     //ᅟ    for (auto&& [i, val] : range_zip(range_index, std::array{ 1, 2, 3 })) {
     //ᅟ        std::cout << "array[" << i << "]: " << val << '\n';
@@ -64,7 +64,7 @@ range_zip(Rs&&... ranges)
     auto mergedSize = detail::merge_sizes(detail::range_size(ranges)...);
     static_assert(!std::is_same<decltype(mergedSize), detail::dim_constant<detail::unknown_size>>::value, "no range argument and no size given");
 
-    return detail::make_zip_range(mergedSize, std::forward<Rs>(ranges)...);
+    return detail::make_zip_common_range(mergedSize, std::forward<Rs>(ranges)...);
 }
 
 
@@ -87,7 +87,7 @@ range_for(F&& func, Rs&&... ranges)
     static_assert(!gsl::conjunction_v<std::is_same<std::decay_t<Rs>, detail::range_index_t>...>, "no range argument and no size given");
 
     auto mergedSize = detail::merge_sizes(detail::range_size(ranges)...);
-    auto it = detail::make_zip_iterator(mergedSize, ranges...);
+    auto it = detail::make_zip_begin_iterator(mergedSize, ranges...);
     auto end = detail::make_zip_iterator_sentinel(mergedSize);
     for (; it != end; ++it)
     {
@@ -114,7 +114,7 @@ range_transform_reduce(T&& initialValue, ReduceFuncT&& reduce, TransformFuncT&& 
 
     auto mergedSize = detail::merge_sizes(detail::range_size(ranges)...);
     auto result = std::forward<T>(initialValue);
-    auto it = detail::make_zip_iterator(mergedSize, ranges...);
+    auto it = detail::make_zip_begin_iterator(mergedSize, ranges...);
     auto end = detail::make_zip_iterator_sentinel(mergedSize);
     for (; it != end; ++it)
     {
@@ -163,7 +163,7 @@ range_count_if(PredicateT&& predicate, Rs&&... ranges)
     static_assert(!gsl::conjunction_v<std::is_same<std::decay_t<Rs>, detail::range_index_t>...>, "no range argument and no size given");
 
     auto mergedSize = detail::merge_sizes(detail::range_size(ranges)...);
-    auto it = detail::make_zip_iterator(mergedSize, ranges...);
+    auto it = detail::make_zip_begin_iterator(mergedSize, ranges...);
     auto end = detail::make_zip_iterator_sentinel(mergedSize);
     auto result = std::ptrdiff_t(0);
     for (; it != end; ++it)
@@ -189,7 +189,7 @@ range_all_of(PredicateT&& predicate, Rs&&... ranges)
     static_assert(!gsl::conjunction_v<std::is_same<std::decay_t<Rs>, detail::range_index_t>...>, "no range argument and no size given");
 
     auto mergedSize = detail::merge_sizes(detail::range_size(ranges)...);
-    auto it = detail::make_zip_iterator(mergedSize, ranges...);
+    auto it = detail::make_zip_begin_iterator(mergedSize, ranges...);
     auto end = detail::make_zip_iterator_sentinel(mergedSize);
     for (; it != end; ++it)
     {
@@ -214,7 +214,7 @@ range_any_of(PredicateT&& predicate, Rs&&... ranges)
     static_assert(!gsl::conjunction_v<std::is_same<std::decay_t<Rs>, detail::range_index_t>...>, "no range argument and no size given");
 
     auto mergedSize = detail::merge_sizes(detail::range_size(ranges)...);
-    auto it = detail::make_zip_iterator(mergedSize, ranges...);
+    auto it = detail::make_zip_begin_iterator(mergedSize, ranges...);
     auto end = detail::make_zip_iterator_sentinel(mergedSize);
     for (; it != end; ++it)
     {
@@ -239,7 +239,7 @@ range_none_of(PredicateT&& predicate, Rs&&... ranges)
     static_assert(!gsl::conjunction_v<std::is_same<std::decay_t<Rs>, detail::range_index_t>...>, "no range argument and no size given");
 
     auto mergedSize = detail::merge_sizes(detail::range_size(ranges)...);
-    auto it = detail::make_zip_iterator(mergedSize, ranges...);
+    auto it = detail::make_zip_begin_iterator(mergedSize, ranges...);
     auto end = detail::make_zip_iterator_sentinel(mergedSize);
     for (; it != end; ++it)
     {

@@ -8,6 +8,8 @@
 
 #include <gsl-lite/gsl-lite.hpp> // for gsl_Expects()
 
+#include <makeshift/detail/algorithm.hpp>
+
 
 namespace makeshift {
 
@@ -79,6 +81,25 @@ apply_reverse_permutation(RandomIt first, RandomIt last, IndexRandomIt indices)
             swap(indices[i], indices[next]);
         }
     }
+}
+
+
+    //
+    // Given a list of ranges, returns a range of tuples. The range returns a sentinel as end iterator.
+    //ᅟ
+    //ᅟ    for (auto&& [i, val] : range_zip(range_index, std::array{ 1, 2, 3 })) {
+    //ᅟ        std::cout << "array[" << i << "]: " << val << '\n';
+    //ᅟ    }
+    //ᅟ    // prints "array[0]: 1\narray[1]: 2\narray[2]: 3\n"
+    //
+template <typename... Rs>
+constexpr auto
+range_zip_sentinel(Rs&&... ranges)
+{
+    auto mergedSize = detail::merge_sizes(detail::range_size(ranges)...);
+    static_assert(!std::is_same<decltype(mergedSize), detail::dim_constant<detail::unknown_size>>::value, "no range argument and no size given");
+
+    return detail::make_zip_range(mergedSize, std::forward<Rs>(ranges)...);
 }
 
 

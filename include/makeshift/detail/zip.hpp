@@ -242,6 +242,8 @@ template <typename R> struct tuple_iterator_leaf_mode_<R, gsl::void_t<decltype(s
 
 struct nullopt_bool { };
 
+struct end_tag { };
+
 MAKESHIFT_DETAIL_FORCEINLINE constexpr nullopt_bool is_end(void) noexcept
 {
     return { };
@@ -313,6 +315,10 @@ struct MAKESHIFT_DETAIL_EMPTY_BASES zip_iterator_leaf_base<I, R, iterator_mode::
         : pos(detail::range_begin(range)), end(detail::range_end(range))
     {
     }
+    constexpr zip_iterator_leaf_base(R& range, end_tag)
+        : pos(detail::range_end(range)), end(pos)
+    {
+    }
     MAKESHIFT_DETAIL_FORCEINLINE constexpr void _inc(void)
     {
         ++pos;
@@ -351,7 +357,7 @@ struct MAKESHIFT_DETAIL_EMPTY_BASES zip_iterator_leaf_base<I, R, iterator_mode::
 
     iterator pos;
 
-    constexpr zip_iterator_leaf_base(R& range)
+    constexpr zip_iterator_leaf_base(R& range, end_tag = { })
         : pos(detail::range_begin(range))
     {
     }
@@ -385,7 +391,7 @@ struct MAKESHIFT_DETAIL_EMPTY_BASES zip_iterator_leaf_base<I, R, iterator_mode::
 
     pointer data;
 
-    constexpr zip_iterator_leaf_base(R& range)
+    constexpr zip_iterator_leaf_base(R& range, end_tag = { })
         : data(range.data())
     {
     }
@@ -404,7 +410,7 @@ struct MAKESHIFT_DETAIL_EMPTY_BASES zip_iterator_leaf_base<I, R, iterator_mode::
     using value_type = gsl::index;
     using reference = gsl::index;
 
-    constexpr zip_iterator_leaf_base(range_index_t)
+    constexpr zip_iterator_leaf_base(range_index_t, end_tag = { })
     {
     }
     MAKESHIFT_DETAIL_FORCEINLINE constexpr reference _deref(gsl::index i) const noexcept
@@ -421,7 +427,7 @@ struct MAKESHIFT_DETAIL_EMPTY_BASES zip_iterator_leaf_base<I, T, iterator_mode::
 {
     T&& tuple;
 
-    constexpr zip_iterator_leaf_base(T&& _tuple)
+    constexpr zip_iterator_leaf_base(T&& _tuple, end_tag = { })
         : tuple(_tuple)
     {
     }
@@ -435,7 +441,7 @@ struct MAKESHIFT_DETAIL_EMPTY_BASES zip_iterator_leaf_base<I, T, iterator_mode::
 template <std::size_t I, typename T>
 struct MAKESHIFT_DETAIL_EMPTY_BASES zip_iterator_leaf_base<I, T, iterator_mode::tuple_index> : zip_iterator_defaults
 {
-    constexpr zip_iterator_leaf_base(tuple_index_t)
+    constexpr zip_iterator_leaf_base(tuple_index_t, end_tag = { })
     {
     }
     template <gsl::index Index>
