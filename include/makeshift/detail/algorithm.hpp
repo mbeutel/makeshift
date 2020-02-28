@@ -284,11 +284,18 @@ protected:
     }
 
 public:
-    MAKESHIFT_DETAIL_FORCEINLINE gsl_NODISCARD constexpr std::size_t size(void) const noexcept
+    MAKESHIFT_DETAIL_FORCEINLINE gsl_NODISCARD constexpr std::size_t
+    size(void) const noexcept
     {
         return n_;
     }
-    MAKESHIFT_DETAIL_FORCEINLINE gsl_NODISCARD constexpr zip_iterator_sentinel<gsl::dim> end(void) const noexcept
+    MAKESHIFT_DETAIL_FORCEINLINE gsl_NODISCARD constexpr bool
+    empty(void) const noexcept
+    {
+        return n_ == 0;
+    }
+    MAKESHIFT_DETAIL_FORCEINLINE gsl_NODISCARD constexpr zip_iterator_sentinel<gsl::dim>
+    end(void) const noexcept
     {
         return zip_iterator_sentinel<gsl::dim>(n_);
     }
@@ -302,11 +309,18 @@ protected:
     }
 
 public:
-    MAKESHIFT_DETAIL_FORCEINLINE gsl_NODISCARD constexpr std::size_t size(void) const noexcept
+    MAKESHIFT_DETAIL_FORCEINLINE gsl_NODISCARD static constexpr std::size_t
+    size(void) noexcept
     {
         return N;
     }
-    MAKESHIFT_DETAIL_FORCEINLINE gsl_NODISCARD constexpr zip_iterator_sentinel<dim_constant<N>> end(void) const noexcept
+    MAKESHIFT_DETAIL_FORCEINLINE gsl_NODISCARD static constexpr bool
+    empty(void) noexcept
+    {
+        return N == 0;
+    }
+    MAKESHIFT_DETAIL_FORCEINLINE gsl_NODISCARD constexpr zip_iterator_sentinel<dim_constant<N>>
+    end(void) const noexcept
     {
         return zip_iterator_sentinel<dim_constant<N>>({ });
     }
@@ -320,7 +334,8 @@ protected:
     }
 
 public:
-    MAKESHIFT_DETAIL_FORCEINLINE gsl_NODISCARD constexpr zip_iterator_sentinel<dim_constant<unknown_size>> end(void) const noexcept
+    MAKESHIFT_DETAIL_FORCEINLINE gsl_NODISCARD constexpr zip_iterator_sentinel<dim_constant<unknown_size>>
+    end(void) const noexcept
     {
         return zip_iterator_sentinel<dim_constant<unknown_size>>({ });
     }
@@ -343,7 +358,8 @@ public:
     {
     }
 
-    gsl_NODISCARD constexpr iterator begin(void) const
+    gsl_NODISCARD constexpr iterator
+    begin(void) const
     {
         return iterator(std::get<Is>(ranges_)...);
     }
@@ -368,7 +384,8 @@ private:
     using iterator = zip_iterator<N, Rs&...>;
 
 public:
-    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE typename iterator::reference operator [](std::size_t i) const
+    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE typename iterator::reference
+    operator [](std::size_t i) const
     {
         return this->begin()[i];
     }

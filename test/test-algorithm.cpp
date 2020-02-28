@@ -109,6 +109,11 @@ TEST_CASE("range_zip()")
         it -= 0;
         CHECK(it - a_v_i.begin() == 1);
     }
+    SECTION("tuple access")
+    {
+        // TODO: make zipped ranges tuple-like
+        //auto i_v_l = mk::range_zip(mk::range_index, vec3, list3);
+    }
     SECTION("error when trying to combine ranges with different sizes")
     {
         CHECK_THROWS(mk::range_zip(vec3, vec0));

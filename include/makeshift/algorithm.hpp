@@ -68,6 +68,9 @@ range_zip(Rs&&... ranges)
 }
 
 
+// TODO: define iota_view(), sub_view()
+
+
     //
     // Takes a scalar procedure (i.e. a function of non-range arguments which returns nothing) and calls the procedure for every
     // set of elements in the given ranges.
