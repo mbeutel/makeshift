@@ -13,7 +13,7 @@
 #include <utility>     // for move(), tuple_size<> (C++17), forward<>()
 #include <type_traits> // for enable_if<>, is_convertible<>
 
-#include <gsl-lite/gsl-lite.hpp> // for gsl_Expects()
+#include <gsl-lite/gsl-lite.hpp> // for index, dim, gsl_Expects()
 
 #include <makeshift/detail/ranges.hpp>
 
@@ -73,6 +73,44 @@ gsl_NODISCARD std::enable_if_t<!std::is_convertible<ExtentC, std::size_t>::value
 make_range(It start, ExtentC extentC)
 {
     return { std::move(start), extentC };
+}
+
+
+    //
+    // Represents a range of index values [0, num).
+    //ᅟ
+    //ᅟ    auto indices = make_index_range(3);
+    //ᅟ    for (auto index : indices)
+    //ᅟ    {
+    //ᅟ        std::cout << index << '\n';
+    //ᅟ    }
+    //ᅟ    // prints "0\n1\n2\n"
+    //
+gsl_NODISCARD constexpr detail::contiguous_index_range
+make_index_range(gsl::dim num)
+{
+    gsl_Expects(num >= 0);
+
+    return { 0, num };
+}
+
+
+    //
+    // Represents a range of index values [first, last).
+    //ᅟ
+    //ᅟ    auto indices = make_index_range(3, 7);
+    //ᅟ    for (auto index : indices)
+    //ᅟ    {
+    //ᅟ        std::cout << index << '\n';
+    //ᅟ    }
+    //ᅟ    // prints "3\n4\n5\n6\n"
+    //
+gsl_NODISCARD constexpr detail::contiguous_index_range
+make_index_range(gsl::index first, gsl::index last)
+{
+    gsl_Expects(first <= last);
+
+    return { first, last };
 }
 
 
