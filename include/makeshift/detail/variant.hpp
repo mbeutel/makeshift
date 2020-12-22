@@ -9,7 +9,7 @@
 #include <exception>
 #include <type_traits> // for integral_constant<>, underlying_type<>, declval<>(), remove_const<>, remove_reference<>
 
-#include <gsl-lite/gsl-lite.hpp> // for gsl_CPP17_OR_GREATER
+#include <gsl-lite/gsl-lite.hpp> // for gsl_CPP17_OR_GREATER, type_identity<>
 
 #include <makeshift/utility.hpp>  // for type_seq_<>
 #include <makeshift/constval.hpp> // for array_constant<>
@@ -33,16 +33,20 @@ public:
 namespace detail {
 
 
-#if defined(_MSC_VER) && defined(__INTELLISENSE__)
+#if defined(__INTELLISENSE__)
 struct convertible_to_anything
 {
     template <typename T> constexpr operator T(void) const;
+    template <typename T> friend constexpr bool operator ==(convertible_to_anything, T const&);
+    template <typename T> friend constexpr bool operator ==(T const&, convertible_to_anything);
+    template <typename T> friend constexpr bool operator !=(convertible_to_anything, T const&);
+    template <typename T> friend constexpr bool operator !=(T const&, convertible_to_anything);
 };
-#endif // defined(_MSC_VER) && defined(__INTELLISENSE__)
+#endif // defined(__INTELLISENSE__)
 
 template <template <typename...> class VariantT, typename ValuesC>
 struct constval_variant_map;
-template <template <typename...> class VariantT, typename T, T... Vs>
+template <template <typename...> class VariantT, typename T, gsl::type_identity_t<T>... Vs>
 struct constval_variant_map<VariantT, array_constant<T, Vs...>>
 {
     using type = VariantT<typename constant_<T, Vs>::type...>; // workaround for VC++ bug, cf. https://developercommunity.visualstudio.com/content/problem/719235/erroneous-c2971-caused-by-using-variadic-by-ref-no.html
@@ -50,14 +54,14 @@ struct constval_variant_map<VariantT, array_constant<T, Vs...>>
         type(typename constant_<T, Vs>::type{ })...
     };
 };
-template <template <typename...> class VariantT, typename T, T... Vs>
+template <template <typename...> class VariantT, typename T, gsl::type_identity_t<T>... Vs>
 constexpr typename constval_variant_map<VariantT, array_constant<T, Vs...>>::type constval_variant_map<VariantT, array_constant<T, Vs...>>::values[];
 
 template <typename T> using can_order_r = decltype(std::declval<T>() < std::declval<T>());
 template <typename T> struct can_order : can_instantiate<can_order_r, T> { };
 
-template <typename T, std::size_t N>
-constexpr bool are_values_sorted_0(std::true_type /* canOrder */, std::array<T, N> const& values)
+template <typename CT, std::size_t N>
+constexpr bool are_values_sorted_0(std::true_type /* canOrder */, std::array<CT, N> const& values)
 {
         // `std::is_sorted()` is not `constexpr`, so we have to reimplement it here
     for (std::size_t i = 1; i < N; ++i)
@@ -66,19 +70,19 @@ constexpr bool are_values_sorted_0(std::true_type /* canOrder */, std::array<T, 
     }
     return true;
 }
-template <typename T, std::size_t N>
-constexpr bool are_values_sorted_0(std::false_type /* canOrder */, std::array<T, N> const&)
+template <typename CT, std::size_t N>
+constexpr bool are_values_sorted_0(std::false_type /* canOrder */, std::array<CT, N> const&)
 {
     return false;
 }
-template <typename T, std::size_t N>
-constexpr bool are_values_sorted(std::array<T, N> const& values)
+template <typename CT, std::size_t N>
+constexpr bool are_values_sorted(std::array<CT, N> const& values)
 {
-    return are_values_sorted_0(can_order<T>{ }, values);
+    return are_values_sorted_0(can_order<CT>{ }, values);
 }
 
-template <typename T, std::size_t N>
-std::ptrdiff_t search_value_index_2(std::true_type /*sorted*/, T const& value, std::array<T, N> const& values)
+template <typename T, typename CT, std::size_t N>
+std::ptrdiff_t search_value_index_2(std::true_type /*sorted*/, T const& value, std::array<CT, N> const& values)
 {
         // binary search
     std::ptrdiff_t first = 0,
@@ -106,8 +110,8 @@ std::ptrdiff_t search_value_index_2(std::true_type /*sorted*/, T const& value, s
     }
     return -1;
 }
-template <typename T, std::size_t N>
-std::ptrdiff_t search_value_index_2(std::false_type /*sorted*/, T const& value, std::array<T, N> const& values)
+template <typename T, typename CT, std::size_t N>
+std::ptrdiff_t search_value_index_2(std::false_type /*sorted*/, T const& value, std::array<CT, N> const& values)
 {
         // linear search
     for (std::ptrdiff_t i = 0; i < std::ptrdiff_t(N); ++i)
@@ -133,8 +137,8 @@ std::ptrdiff_t search_value_index_1(std::false_type /*bool||enum||integral && co
     return search_value_index_2(std::integral_constant<bool, sorted>{ }, value, valuesC.value);
 }
 
-template <typename RepT, typename T, std::size_t N>
-constexpr bool are_values_contiguous(std::array<T, N> const& values)
+template <typename RepT, typename CT, std::size_t N>
+constexpr bool are_values_contiguous(std::array<CT, N> const& values)
 {
     static_assert(N > 0, "overload resolution failed");
 
@@ -147,8 +151,8 @@ constexpr bool are_values_contiguous(std::array<T, N> const& values)
     }
     return true;
 }
-template <typename RepT, typename T>
-constexpr bool are_values_contiguous(std::array<T, 0> const& /*values*/)
+template <typename RepT, typename CT>
+constexpr bool are_values_contiguous(std::array<CT, 0> const& /*values*/)
 {
     return false;
 }

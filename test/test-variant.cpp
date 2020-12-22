@@ -44,7 +44,7 @@ struct NestedVarTransformer
     V1 operator ()(int i, char const*) const { return i; }
 };
 
-TEST_CASE("variant")
+TEST_CASE("variant_transform()")
 {
     using VT12 = std::variant<int, char const*>;
     using VTM12 = std::variant<float, char const*, int>;
@@ -55,6 +55,31 @@ TEST_CASE("variant")
     static_assert(IsSame<decltype(vt12), VT12>::value);
     static_assert(IsSame<decltype(vtm12), VTM12>::value);
 #endif // !defined(__INTELLISENSE__)
+}
+
+template <typename...> class TD;
+
+TEST_CASE("expand()")
+{
+    using namespace std::literals;
+
+    auto cStrings = MAKESHIFT_CONSTVAL(std::array{ "foo"sv, "bar"sv });
+    auto str = GENERATE("foo"s, "bar"s);
+    auto svar = mk::expand(str, cStrings);
+    auto res = mk::visit(
+        [](auto stringC)
+        {
+            if constexpr (stringC == "foo"sv)
+            {
+                return "foo";
+            }
+            else if constexpr (stringC == "bar"sv)
+            {
+                return "bar";
+            }
+        },
+        svar);
+    CHECK(res == str);
 }
 
 
