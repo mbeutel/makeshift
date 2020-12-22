@@ -153,6 +153,8 @@ public:
 #if gsl_CPP17_OR_GREATER
 template <typename... Ts>
 soa_span(std::tuple<Ts*...> const&, std::size_t) -> soa_span<Ts...>;
+template <typename... Ts>
+soa_span(gsl::span<Ts>...) -> soa_span<Ts...>;
 #endif // gsl_CPP17_OR_GREATER
 
     //

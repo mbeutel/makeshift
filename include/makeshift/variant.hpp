@@ -125,7 +125,7 @@ try_expand(T const& value)
 }
 
     //
-    // Given a runtime value and a constexpr value list, `expand_or_throw()` returns a variant of known constexpr values.
+    // Given a runtime value and a constexpr value list, `expand()` returns a variant of known constexpr values.
     // An exception of type `unsupported_runtime_value` is thrown if the runtime value is not among the values in the array.
     //ᅟ
     //ᅟ    int bits = ...;
@@ -148,7 +148,7 @@ expand(T const& value, ValuesC valuesC)
 }
 
     //
-    // Given a runtime value of a type for which all possible values are known, `expand_or_throw()` returns a variant of known
+    // Given a runtime value of a type for which all possible values are known, `expand()` returns a variant of known
     // constexpr values. An exception of type `unsupported_runtime_value` is thrown if the runtime value is not among the values
     // in the array.
     //ᅟ
@@ -169,7 +169,7 @@ template <typename T>
 gsl_NODISCARD constexpr auto
 expand(T const& value)
 {
-    static_assert(have_values_of_v<T>, "expand_or_throw() cannot find admissible values");
+    static_assert(have_values_of_v<T>, "expand() cannot find admissible values");
     return makeshift::expand(value, makeshift::constval_t<detail::values_of_<T>>{ });
 }
 

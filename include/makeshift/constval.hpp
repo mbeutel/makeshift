@@ -39,8 +39,8 @@
     //
     // - `xC` is a subtype of `std::integral_constant<X, x>` if `X` is a valid non-type template parameter type (e.g. an integer
     //   or enumeration type).
-    // - `xC` is a subtype of `array_constant<V, Vs...>` if `X` is `std::array<U, Us...>`, where `V` is `U` if `U` is a valid
-    //   non-type template parameter type, and `U const&` otherwise.
+    // - `xC` is a subtype of `array_constant<V, Vs...>` if `x` is `std::array<U, sizeof...(us)>{ us... }`, where `V` is `U` if
+    //   `U` is a valid non-type template parameter type, and `U const&` otherwise.
     // - `xC` is a subtype of `tuple_constant<Cs...>` if `x` is `std::tuple{ us... }`, where `Cs...` is
     //   `decltype(MAKESHIFT_CONSTVAL(us))...`.
     // - `xC` is tuple-like if `x` is tuple-like; `std::get<I>(xC)` returns `MAKESHIFT_CONSTVAL(std::get<I>(x))`.

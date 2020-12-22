@@ -6,27 +6,31 @@
 
 cmake_minimum_required(VERSION 3.14)
 
-# dependencies
 find_package(CMakeshift 3.8 REQUIRED)
-find_package(gsl-lite 0.36 REQUIRED)
+find_package(gsl-lite 0.37 REQUIRED)
 
-# library target
 add_library(makeshift INTERFACE)
+
 target_compile_features(makeshift INTERFACE cxx_std_14)
+
 target_include_directories(makeshift
     INTERFACE
         "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
-        "$<INSTALL_INTERFACE:include>")
+        "$<INSTALL_INTERFACE:include>"
+)
+
 target_link_libraries(makeshift
     INTERFACE
-        gsl::gsl-lite-v1)
+        gsl::gsl-lite-v1
+)
 
-# installation: public header files, target
 install(
     DIRECTORY
         "${PROJECT_SOURCE_DIR}/include/" # the trailing '/' is significant
-    TYPE INCLUDE)
+    TYPE INCLUDE
+)
 install(
     TARGETS makeshift
     EXPORT makeshift
-    INCLUDES)
+    INCLUDES
+)

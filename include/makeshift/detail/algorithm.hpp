@@ -3,8 +3,7 @@
 #define INCLUDED_MAKESHIFT_DETAIL_ALGORITHM_HPP_
 
 
-#include <gsl-lite/gsl-lite.hpp> // for disjunction<>, gsl_Expects(), ssize(), void_t<>, gsl_CPP17_OR_GREATER
-
+#include <gsl-lite/gsl-lite.hpp> // for dim, index, disjunction<>, gsl_Expects(), ssize(), void_t<>, gsl_CPP17_OR_GREATER
 
 #include <cstddef>     // for size_t, ptrdiff_t
 #include <tuple>
