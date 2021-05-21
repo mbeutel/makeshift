@@ -47,6 +47,37 @@ parse_enum(std::string_view str)
 }
 
 
+template <typename T, typename MetadataC>
+constexpr std::string
+flags_to_string(T value, MetadataC)
+{
+    return detail::flags_to_string(value, detail::static_flags_metadata<T, MetadataC>::value);
+}
+template <typename T>
+constexpr std::string
+flags_to_string(T value)
+{
+    return detail::flags_to_string(value, detail::static_flags_metadata<T, decltype(metadata_c<T>)>::value);
+}
+
+template <typename T, typename MetadataC>
+constexpr T
+parse_flags(std::string_view str, MetadataC)
+{
+    T result;
+    detail::flags_from_string(result, str, detail::static_flags_metadata<T, MetadataC>::value);
+    return result;
+}
+template <typename T>
+constexpr T
+parse_flags(std::string_view str)
+{
+    T result;
+    detail::flags_from_string(result, str, detail::static_flags_metadata<T, decltype(metadata_c<T>)>::value);
+    return result;
+}
+
+
 } // namespace makeshift
 
 

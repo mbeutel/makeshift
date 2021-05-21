@@ -38,7 +38,7 @@ struct enum_manipulator<T&, MetadataC>
         std::string str;
         int ci;
         stream >> std::ws;
-        while ((ci = stream.peek()) != std::char_traits<char>::eof() && !enum_forbidden_char_set.contains(static_cast<char>(ci)))
+        while (stream.good() && (ci = stream.peek()) != std::char_traits<char>::eof() && !enum_forbidden_char_set.contains(static_cast<char>(ci)))
         {
             str += static_cast<char>(stream.get());
         }
@@ -63,6 +63,47 @@ template <typename T, typename MetadataC>
 std::ostream& operator <<(std::ostream& stream, enum_manipulator<T, MetadataC>&& self)
 {
     return stream << detail::enum_to_string(self.value_, static_enum_metadata<std::remove_cv_t<std::remove_reference_t<T>>, MetadataC>::value);
+}
+
+
+template <typename T, typename MetadataC>
+struct flags_manipulator;
+template <typename T, typename MetadataC>
+struct flags_manipulator<T&, MetadataC>
+{
+    T& value_;
+
+    friend std::istream&
+    operator >>(std::istream& stream, flags_manipulator&& self)
+    {
+        std::string str;
+        int ci;
+        stream >> std::ws;
+        while (stream.good() && (ci = stream.peek()) != std::char_traits<char>::eof() && !flags_forbidden_char_set.contains(static_cast<char>(ci)))
+        {
+            str += static_cast<char>(stream.get());
+        }
+        if (detail::flags_from_string(self.value_, str, static_flags_metadata<T, MetadataC>::value, false) != 0)
+        {
+            stream.setstate(std::ios_base::failbit);
+        }
+        return stream;
+    }
+};
+template <typename T, typename MetadataC>
+struct flags_manipulator<T const&, MetadataC>
+{
+    T value_;
+};
+template <typename T, typename MetadataC>
+struct flags_manipulator
+{
+    T value_;
+};
+template <typename T, typename MetadataC>
+std::ostream& operator <<(std::ostream& stream, flags_manipulator<T, MetadataC>&& self)
+{
+    return stream << detail::flags_to_string(self.value_, static_flags_metadata<std::remove_cv_t<std::remove_reference_t<T>>, MetadataC>::value);
 }
 
 

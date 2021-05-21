@@ -33,6 +33,20 @@ as_enum(T&& value)
 }
 
 
+template <typename T, typename MetadataC>
+constexpr detail::flags_manipulator<T, MetadataC>
+as_flags(T&& value, MetadataC)
+{
+    return { value };
+}
+template <typename T>
+constexpr detail::flags_manipulator<T, decltype(metadata_c<std::remove_reference_t<T>>)>
+as_flags(T&& value)
+{
+    return { value };
+}
+
+
 } // namespace makeshift
 
 
