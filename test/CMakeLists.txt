@@ -24,6 +24,17 @@ target_link_libraries(test-makeshift-runner
         Catch2::Catch2
 )
 
+add_library(test-makeshift-runner-cxx17 OBJECT "main-cxx17.cpp")
+target_compile_features(test-makeshift-runner-cxx17 PRIVATE cxx_std_17)
+cmakeshift_target_compile_settings(test-makeshift-runner-cxx17
+    PRIVATE
+        default
+)
+target_link_libraries(test-makeshift-runner-cxx17
+    PRIVATE
+        Catch2::Catch2
+)
+
 # common settings target
 add_library(test-makeshift-settings INTERFACE)
 target_compile_definitions(test-makeshift-settings
@@ -105,13 +116,15 @@ if(cxx_std_17 IN_LIST CMAKE_CXX_COMPILE_FEATURES
     add_executable(test-makeshift-cxx17
         "test-constval.cpp"
         "test-variant.cpp"
+        "test-metadata.cpp"
+        "test-serialize.cpp"
         "experimental/test-variant.cpp"
     )
     target_compile_features(test-makeshift-cxx17 PRIVATE cxx_std_17)
     cmakeshift_target_compile_settings(test-makeshift-cxx17 PRIVATE default)
     target_link_libraries(test-makeshift-cxx17
         PRIVATE
-            test-makeshift-runner
+            test-makeshift-runner-cxx17
             test-makeshift-settings
     )
     add_test(NAME test-makeshift-cxx17 COMMAND test-makeshift-cxx17)
@@ -123,12 +136,13 @@ if(cxx_std_20 IN_LIST CMAKE_CXX_COMPILE_FEATURES)
     add_executable(test-makeshift-cxx20
         "test-concepts.cpp"
         "test-constval.cpp"
+        "test-metadata.cpp"
     )
     target_compile_features(test-makeshift-cxx20 PRIVATE cxx_std_20)
     cmakeshift_target_compile_settings(test-makeshift-cxx20 PRIVATE default)
     target_link_libraries(test-makeshift-cxx20
         PRIVATE
-            test-makeshift-runner
+            test-makeshift-runner-cxx17
             test-makeshift-settings
     )
     add_test(NAME test-makeshift-cxx20 COMMAND test-makeshift-cxx20)

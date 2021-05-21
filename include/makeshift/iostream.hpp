@@ -19,7 +19,7 @@ struct to_stream
         // Writes the argument to the given stream by calling `stream << arg`.
         //
     auto
-    operator ()(std::ostream& stream, T const& arg)
+    operator ()(std::ostream& stream, T const& arg) const
     -> decltype(stream << arg)
     {
         return stream << arg;
@@ -37,7 +37,7 @@ struct to_stream<>
         //
     template <typename T>
     auto
-    operator ()(std::ostream& stream, T const& arg)
+    operator ()(std::ostream& stream, T const& arg) const
     -> decltype(stream << arg)
     {
         return stream << arg;
@@ -55,7 +55,7 @@ struct from_stream
         // Reads the argument from the given stream by calling `stream >> arg`.
         //
     auto
-    operator ()(std::istream& stream, T& arg)
+    operator ()(std::istream& stream, T& arg) const
     -> decltype(stream >> arg)
     {
         return stream >> arg;
@@ -73,7 +73,7 @@ struct from_stream<>
         //
     template <typename T>
     auto
-    operator ()(std::istream& stream, T& arg)
+    operator ()(std::istream& stream, T& arg) const
     -> decltype(stream >> arg)
     {
         return stream >> arg;

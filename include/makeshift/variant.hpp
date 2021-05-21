@@ -15,8 +15,9 @@
 #include <optional>
 #include <type_traits> // for remove_cv<>, remove_reference<>
 
-#include <makeshift/constval.hpp> // for ref_constval<>
-#include <makeshift/reflect.hpp>  // for have_values_of<>, values_of<>
+#include <makeshift/constval.hpp>  // for ref_constval<>
+#include <makeshift/reflect.hpp>   // for have_values_of<>, values_of<>
+#include <makeshift/metadata.hpp>
 
 #include <makeshift/detail/variant.hpp>
 
@@ -70,8 +71,18 @@ template <typename T>
 gsl_NODISCARD constexpr auto
 expand_failfast(T const& value)
 {
-    static_assert(have_values_of_v<T>, "expand() cannot find admissible values");
-    return makeshift::expand_failfast(value, makeshift::constval_t<detail::values_of_<T>>{ });
+    if constexpr (metadata::is_available(metadata::values<T>))
+    {
+        return makeshift::expand_failfast(value, MAKESHIFT_CONSTVAL(metadata::values<T>));
+    }
+    else if (have_values_of_v<T>)
+    {
+        return makeshift::expand_failfast(value, makeshift::constval_t<detail::values_of_<T>>{ });
+    }
+    else
+    {
+        static_assert(!sizeof(gsl::type_identity<T>), "expand_failfast() cannot find admissible values");
+    }
 }
 
     //
@@ -120,8 +131,18 @@ template <typename T>
 gsl_NODISCARD constexpr auto
 try_expand(T const& value)
 {
-    static_assert(have_values_of_v<T>, "try_expand() cannot find admissible values");
-    return makeshift::try_expand(value, makeshift::constval_t<detail::values_of_<T>>{ });
+    if constexpr (metadata::is_available(metadata::values<T>))
+    {
+        return makeshift::try_expand(value, MAKESHIFT_CONSTVAL(metadata::values<T>));
+    }
+    else if (have_values_of_v<T>)
+    {
+        return makeshift::try_expand(value, makeshift::constval_t<detail::values_of_<T>>{ });
+    }
+    else
+    {
+        static_assert(!sizeof(gsl::type_identity<T>), "try_expand() cannot find admissible values");
+    }
 }
 
     //
@@ -169,8 +190,18 @@ template <typename T>
 gsl_NODISCARD constexpr auto
 expand(T const& value)
 {
-    static_assert(have_values_of_v<T>, "expand() cannot find admissible values");
-    return makeshift::expand(value, makeshift::constval_t<detail::values_of_<T>>{ });
+    if constexpr (metadata::is_available(metadata::values<T>))
+    {
+        return makeshift::expand(value, MAKESHIFT_CONSTVAL(metadata::values<T>));
+    }
+    else if (have_values_of_v<T>)
+    {
+        return makeshift::expand(value, makeshift::constval_t<detail::values_of_<T>>{ });
+    }
+    else
+    {
+        static_assert(!sizeof(gsl::type_identity<T>), "expand() cannot find admissible values");
+    }
 }
 
 
@@ -205,9 +236,9 @@ visit(F&& func, Vs&&... args)
 #if defined(__INTELLISENSE__)
     return detail::convertible_to_anything{ };
 #else
-# if gsl_CPP20_OR_GREATER
-    return std::visit<R>(std::forward<F>(func), std::forward<Vs>(args)...);
-# else // gsl_CPP20_OR_GREATER
+//# if gsl_CPP20_OR_GREATER  // TODO: need more precise feature check
+//    return std::visit<R>(std::forward<F>(func), std::forward<Vs>(args)...);
+//# else // gsl_CPP20_OR_GREATER
     return std::visit(
         [func = std::forward<F>(func)]
         (auto&&... args) -> R
@@ -215,7 +246,7 @@ visit(F&& func, Vs&&... args)
             return func(std::forward<decltype(args)>(args)...);
         },
         std::forward<Vs>(args)...);
-# endif // gsl_CPP20_OR_GREATER
+//# endif // gsl_CPP20_OR_GREATER
 #endif // !defined(__INTELLISENSE__)
 }
 
