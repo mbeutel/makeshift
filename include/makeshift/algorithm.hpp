@@ -20,7 +20,7 @@ namespace gsl = ::gsl_lite;
 
 
     //
-    // Similar to `std::shuffle()`, but support iterators with proxy reference types such as `std::vector<bool>` or `soa_span<>`
+    // Similar to `std::shuffle()`, but supports iterators with proxy reference types such as `std::vector<bool>` or `soa_span<>`
     // (which cannot implement LegacyRandomAccessIterator even though they may be random-access), and permits passing a
     // user-defined integer distribution.
     //ᅟ

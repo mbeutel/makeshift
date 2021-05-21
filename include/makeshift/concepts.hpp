@@ -40,9 +40,9 @@ concept bitmask = requires(T m) {
     { m | m } -> std::same_as<T>;
     { m & m } -> std::same_as<T>;
     { m ^ m } -> std::same_as<T>;
-    { m |= m } -> std::same_as<T>;
-    { m &= m } -> std::same_as<T>;
-    { m ^= m } -> std::same_as<T>;
+    { m |= m } -> std::same_as<T&>;
+    { m &= m } -> std::same_as<T&>;
+    { m ^= m } -> std::same_as<T&>;
 };
 
 
@@ -54,7 +54,7 @@ concept bitmask = requires(T m) {
 template <typename C>
 concept constval = requires {
     typename C::value_type;
-} && std::convertible_to<typename C::value_type> &&
+} && std::convertible_to<C, typename C::value_type> &&
     requires(C c) {
     { C::value } -> std::same_as<typename C::value_type>;
     { c() } -> std::same_as<typename C::value_type>;
