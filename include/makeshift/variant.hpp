@@ -71,9 +71,9 @@ template <typename T>
 gsl_NODISCARD constexpr auto
 expand_failfast(T const& value)
 {
-    if constexpr (metadata::is_available(metadata::values<T>))
+    if constexpr (metadata::is_available_v<decltype(metadata::values<T>(metadata_v<T>))>)
     {
-        return makeshift::expand_failfast(value, MAKESHIFT_CONSTVAL(metadata::values<T>));
+        return makeshift::expand_failfast(value, MAKESHIFT_CONSTVAL(metadata::values<T>(metadata_v<T>)));
     }
     else if (have_values_of_v<T>)
     {
@@ -131,9 +131,9 @@ template <typename T>
 gsl_NODISCARD constexpr auto
 try_expand(T const& value)
 {
-    if constexpr (metadata::is_available(metadata::values<T>))
+    if constexpr (metadata::is_available_v<decltype(metadata::values<T>(metadata_v<T>))>)
     {
-        return makeshift::try_expand(value, MAKESHIFT_CONSTVAL(metadata::values<T>));
+        return makeshift::try_expand(value, MAKESHIFT_CONSTVAL(metadata::values<T>(metadata_v<T>)));
     }
     else if (have_values_of_v<T>)
     {
@@ -190,9 +190,9 @@ template <typename T>
 gsl_NODISCARD constexpr auto
 expand(T const& value)
 {
-    if constexpr (metadata::is_available(metadata::values<T>))
+    if constexpr (metadata::is_available_v<decltype(metadata::values<T>(metadata_v<T>))>)
     {
-        return makeshift::expand(value, MAKESHIFT_CONSTVAL(metadata::values<T>));
+        return makeshift::expand(value, MAKESHIFT_CONSTVAL(metadata::values<T>(metadata_v<T>)));
     }
     else if (have_values_of_v<T>)
     {
