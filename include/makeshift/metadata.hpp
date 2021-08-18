@@ -68,14 +68,35 @@ template <typename T, typename MetadataT>
 constexpr auto
 value_names(MetadataT const& metadata)
 {
-    return detail::extract_value_metadata<T, detail::is_string_like, 0>(metadata);
+    return detail::extract_value_metadata<T, std::string_view, detail::is_string_like, 0>(metadata);
 }
 
 template <typename T, typename MetadataT>
 constexpr auto
 value_descriptions(MetadataT const& metadata)
 {
-    return detail::extract_value_metadata<T, detail::is_string_like, 1>(metadata);
+    return detail::extract_value_metadata<T, std::string_view, detail::is_string_like, 1>(metadata);
+}
+
+template <typename T, typename MetadataT>
+constexpr auto
+members(MetadataT const& metadata)
+{
+    return detail::extract_members<T>(metadata);
+}
+
+template <typename T, typename MetadataT>
+constexpr auto
+member_names(MetadataT const& metadata)
+{
+    return detail::extract_member_metadata<T, std::string_view, detail::is_string_like, 0>(metadata);
+}
+
+template <typename T, typename MetadataT>
+constexpr auto
+member_descriptions(MetadataT const& metadata)
+{
+    return detail::extract_member_metadata<T, std::string_view, detail::is_string_like, 1>(metadata);
 }
 
 
