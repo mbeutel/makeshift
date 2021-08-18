@@ -8,13 +8,102 @@
 #include <utility>     // for forward<>(), integer_sequence<>, tuple_size<>, get<>()
 #include <type_traits> // for decay<>
 
-#include <makeshift/detail/macros.hpp>          // for MAKESHIFT_DETAIL_FORCEINLINE
+#include <makeshift/detail/macros.hpp>          // for MAKESHIFT_DETAIL_FORCEINLINE, MAKESHIFT_DETAIL_EMPTY_BASES
 #include <makeshift/detail/tuple-transform.hpp>
 
 
 namespace makeshift {
 
 namespace detail {
+
+
+template <std::size_t I> struct tuple_index_tag { };
+template <std::size_t I, typename T>
+struct MAKESHIFT_DETAIL_EMPTY_BASES value_tuple_leaf
+{
+    T value_;
+
+    friend constexpr T&
+    _tuple_get(value_tuple_leaf<I, T>& self, tuple_index_tag<I>) noexcept
+    {
+        return self.value_;
+    }
+    friend constexpr T const&
+    _tuple_get(value_tuple_leaf<I, T> const& self, tuple_index_tag<I>) noexcept
+    {
+        return self.value_;
+    }
+};
+template <typename Is, typename... Ts>
+struct MAKESHIFT_DETAIL_EMPTY_BASES value_tuple_base;
+template <std::size_t... Is, typename... Ts>
+struct MAKESHIFT_DETAIL_EMPTY_BASES value_tuple_base<std::index_sequence<Is...>, Ts...> : value_tuple_leaf<Is, Ts>...
+{
+    constexpr value_tuple_base(Ts... values)
+        : value_tuple_leaf<Is, Ts>{ values }...
+    {
+    }
+};
+#if gsl_CPP17_OR_GREATER
+template <std::size_t... Is, typename... Ts>
+constexpr auto
+operator ==(value_tuple_base<std::index_sequence<Is...>, Ts...> const& lhs, value_tuple_base<std::index_sequence<Is...>, Ts...> const& rhs)
+-> decltype(((_tuple_get(lhs, tuple_index_tag<Is>{ }) == _tuple_get(rhs, tuple_index_tag<Is>{ })) && ...))
+{
+    return ((_tuple_get(lhs, tuple_index_tag<Is>{ }) == _tuple_get(rhs, tuple_index_tag<Is>{ })) && ...);
+}
+template <std::size_t... Is, typename... Ts>
+constexpr auto
+operator !=(value_tuple_base<std::index_sequence<Is...>, Ts...> const& lhs, value_tuple_base<std::index_sequence<Is...>, Ts...> const& rhs)
+-> decltype(((_tuple_get(lhs, tuple_index_tag<Is>{ }) != _tuple_get(rhs, tuple_index_tag<Is>{ })) && ...))
+{
+    return ((_tuple_get(lhs, tuple_index_tag<Is>{ }) != _tuple_get(rhs, tuple_index_tag<Is>{ })) && ...);
+}
+template <std::size_t... Is, typename... Ts>
+constexpr auto
+operator <(value_tuple_base<std::index_sequence<Is...>, Ts...> const& lhs, value_tuple_base<std::index_sequence<Is...>, Ts...> const& rhs)
+-> decltype(((_tuple_get(lhs, tuple_index_tag<Is>{ }) < _tuple_get(rhs, tuple_index_tag<Is>{ })) && ...))
+{
+    bool result = false;
+    auto apply = [&result](auto const& a, auto const& b)
+    {
+        if (a < b)
+        {
+            result = true;
+            return true;
+        }
+        else if (b < a)
+        {
+            result = false;
+            return true;
+        }
+        return false;
+    };
+    (apply(_tuple_get(lhs, tuple_index_tag<Is>{ }), _tuple_get(rhs, tuple_index_tag<Is>{ })) || ...);
+    return result;
+}
+template <std::size_t... Is, typename... Ts>
+constexpr auto
+operator >(value_tuple_base<std::index_sequence<Is...>, Ts...> const& lhs, value_tuple_base<std::index_sequence<Is...>, Ts...> const& rhs)
+-> decltype(((_tuple_get(lhs, tuple_index_tag<Is>{ }) < _tuple_get(rhs, tuple_index_tag<Is>{ })) && ...))
+{
+    return rhs < lhs;
+}
+template <std::size_t... Is, typename... Ts>
+constexpr auto
+operator <=(value_tuple_base<std::index_sequence<Is...>, Ts...> const& lhs, value_tuple_base<std::index_sequence<Is...>, Ts...> const& rhs)
+-> decltype(((_tuple_get(lhs, tuple_index_tag<Is>{ }) < _tuple_get(rhs, tuple_index_tag<Is>{ })) && ...))
+{
+    return !(rhs < lhs);
+}
+template <std::size_t... Is, typename... Ts>
+constexpr auto
+operator >=(value_tuple_base<std::index_sequence<Is...>, Ts...> const& lhs, value_tuple_base<std::index_sequence<Is...>, Ts...> const& rhs)
+-> decltype(((_tuple_get(lhs, tuple_index_tag<Is>{ }) < _tuple_get(rhs, tuple_index_tag<Is>{ })) && ...))
+{
+    return !(lhs < rhs);
+}
+#endif // gsl_CPP17_OR_GREATER
 
 
 template <template <typename...> class TupleT, typename F, typename... Ts>

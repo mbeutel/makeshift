@@ -6,20 +6,49 @@
 #include <array>
 #include <tuple>       // for tuple<>, tuple_cat()
 #include <cstddef>     // for size_t, ptrdiff_t
-#include <utility>     // for forward<>()
+#include <utility>     // for forward<>(), index_sequence_for<>
 #include <type_traits> // for decay<>
 
-#include <gsl-lite/gsl-lite.hpp> // for gsl_NODISCARD
+#include <gsl-lite/gsl-lite.hpp> // for gsl_NODISCARD, gsl_CPP17_OR_GREATER
 
-#include <makeshift/type_traits.hpp> // for can_instantiate<>, static_const<>, is_tuple_like<>
+#include <makeshift/type_traits.hpp> // for can_instantiate<>, static_const<>, is_tuple_like<>, nth_type<>
 
 #include <makeshift/detail/tuple.hpp>
-#include <makeshift/detail/macros.hpp> // for MAKESHIFT_DETAIL_FORCEINLINE
+#include <makeshift/detail/macros.hpp> // for MAKESHIFT_DETAIL_FORCEINLINE, MAKESHIFT_DETAIL_EMPTY_BASES
 
 
 namespace makeshift {
 
 namespace gsl = ::gsl_lite;
+
+
+    //
+    // Minimalistic tuple type for increased compile-time throughput.
+    //
+template <typename... Ts>
+struct MAKESHIFT_DETAIL_EMPTY_BASES value_tuple : detail::value_tuple_base<std::index_sequence_for<Ts...>, Ts...>
+{
+    using _base = detail::value_tuple_base<std::index_sequence_for<Ts...>, Ts...>;
+    using _base::_base;
+};
+#if gsl_CPP17_OR_GREATER
+template <typename... Ts>
+value_tuple(Ts...) -> value_tuple<Ts...>;
+#endif // gsl_CPP17_OR_GREATER
+template <std::size_t I, typename... Ts>
+constexpr auto&
+get(value_tuple<Ts...>& tuple) noexcept
+{
+    static_assert(I < sizeof...(Ts), "tuple index out of range");
+    return _tuple_get(tuple, detail::tuple_index_tag<I>{ });
+}
+template <std::size_t I, typename... Ts>
+constexpr auto const&
+get(value_tuple<Ts...> const& tuple) noexcept
+{
+    static_assert(I < sizeof...(Ts), "tuple index out of range");
+    return _tuple_get(tuple, detail::tuple_index_tag<I>{ });
+}
 
 
     //
@@ -238,6 +267,17 @@ template_none_of(PredicateT&& predicate, Ts&&... args)
 
 
 } // namespace makeshift
+
+
+namespace std {
+
+
+    // Implement tuple-like protocol for `value_tuple<>`.
+template <typename... Ts> class tuple_size<makeshift::value_tuple<Ts...>> : public std::integral_constant<std::size_t, sizeof...(Ts)> { };
+template <std::size_t I, typename... Ts> class tuple_element<I, makeshift::value_tuple<Ts...>> : public makeshift::nth_type<I, Ts...> { };
+
+
+} // namespace std
 
 
 #endif // INCLUDED_MAKESHIFT_TUPLE_HPP_

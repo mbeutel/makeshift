@@ -6,6 +6,7 @@
 
 #include <gsl-lite/gsl-lite.hpp>
 
+#include <makeshift/tuple.hpp>
 #include <makeshift/metadata.hpp>
 
 
@@ -28,7 +29,7 @@ enum class Color2 { red, green };
 constexpr auto
 reflect(gsl::type_identity<Color2>)
 {
-    return std::tuple{
+    return mk::value_tuple{
         "Color2",
         std::array{ Color2::red, Color2::green },
         "color 2"
@@ -56,12 +57,12 @@ enum class Color5 { red, green };
 constexpr auto
 reflect(gsl::type_identity<Color5>)
 {
-    return std::tuple{
+    return mk::value_tuple{
         "Color5",
         "color 5",
         std::array{
-            std::tuple{ Color5::red, "red", "red color" },
-            std::tuple{ Color5::green, "green", "green color" }
+            mk::value_tuple{ Color5::red, "red", "red color" },
+            mk::value_tuple{ Color5::green, "green", "green color" }
         },
     };
 }
@@ -70,12 +71,12 @@ enum class Color6 { red, green };
 constexpr auto
 reflect(gsl::type_identity<Color6>)
 {
-    return std::tuple{
+    return mk::value_tuple{
         "Color6",
         "color 6",
-        std::tuple{
-            std::tuple{ Color6::red, "red", "red color" },
-            std::tuple{ Color6::green, "green", "green color" }
+        mk::value_tuple{
+            mk::value_tuple{ Color6::red, "red", "red color" },
+            mk::value_tuple{ Color6::green, "green", "green color" }
         },
     };
 }
@@ -84,9 +85,9 @@ enum class Color7 { red, green };
 constexpr auto
 reflect(gsl::type_identity<Color7>)
 {
-    return std::tuple{
-        std::tuple{ Color7::red, "red", "red color" },
-        std::tuple{ Color7::green, "green", "green color" }
+    return mk::value_tuple{
+        mk::value_tuple{ Color7::red, "red", "red color" },
+        mk::value_tuple{ Color7::green, "green", "green color" }
     };
 }
 
@@ -96,16 +97,16 @@ struct COO1 { int i; int j; double v; };
 constexpr auto
 reflect(gsl::type_identity<COO1>)
 {
-    return std::tuple{ &COO1::i, &COO1::j, &COO1::v };
+    return mk::value_tuple{ &COO1::i, &COO1::j, &COO1::v };
 }
 
 struct COO2 { int i; int j; double v; };
 constexpr auto
 reflect(gsl::type_identity<COO2>)
 {
-    return std::tuple{
+    return mk::value_tuple{
         "COO2",
-        std::tuple{ &COO2::i, &COO2::j, &COO2::v },
+        mk::value_tuple{ &COO2::i, &COO2::j, &COO2::v },
         "COO 2"
     };
 }
@@ -114,10 +115,10 @@ struct COO3 { int i; int j; double v; };
 constexpr auto
 reflect(gsl::type_identity<COO3>)
 {
-    return std::tuple{
-        std::tuple{ &COO3::i, "i", "row index" },
-        std::tuple{ &COO3::j, "j", "column index" },
-        std::tuple{ &COO3::v, "v", "element" }
+    return mk::value_tuple{
+        mk::value_tuple{ &COO3::i, "i", "row index" },
+        mk::value_tuple{ &COO3::j, "j", "column index" },
+        mk::value_tuple{ &COO3::v, "v", "element" }
     };
 }
 
@@ -125,13 +126,13 @@ struct COO4 { int i; int j; double v; };
 constexpr auto
 reflect(gsl::type_identity<COO4>)
 {
-    return std::tuple{
+    return mk::value_tuple{
         "COO4",
         "COO 4",
-        std::tuple{
-            std::tuple{ &COO4::i, "i", "row index" },
-            std::tuple{ &COO4::j, "j", "column index" },
-            std::tuple{ &COO4::v, "v", "element" }
+        mk::value_tuple{
+            mk::value_tuple{ &COO4::i, "i", "row index" },
+            mk::value_tuple{ &COO4::j, "j", "column index" },
+            mk::value_tuple{ &COO4::v, "v", "element" }
         },
     };
 }
@@ -217,26 +218,26 @@ TEST_CASE("struct metadata")
     constexpr auto md1 = mk::metadata_v<COO1>;
     CHECK_FALSE(mk::metadata::is_available(mk::metadata::name(md1)));
     CHECK_FALSE(mk::metadata::is_available(mk::metadata::description(md1)));
-    CHECK(mk::metadata::members<COO1>(md1) == std::tuple{ &COO1::i, &COO1::j, &COO1::v });
+    CHECK(mk::metadata::members<COO1>(md1) == mk::value_tuple{ &COO1::i, &COO1::j, &COO1::v });
 
     constexpr auto md2 = mk::metadata_v<COO2>;
     CHECK(mk::metadata::name(md2) == "COO2");
     CHECK(mk::metadata::description(md2) == "COO 2");
-    CHECK(mk::metadata::members<COO2>(md2) == std::tuple{ &COO2::i, &COO2::j, &COO2::v });
+    CHECK(mk::metadata::members<COO2>(md2) == mk::value_tuple{ &COO2::i, &COO2::j, &COO2::v });
     CHECK_FALSE(mk::metadata::is_available(mk::metadata::member_names<COO2>(md2)));
     CHECK_FALSE(mk::metadata::is_available(mk::metadata::member_descriptions<COO2>(md2)));
 
     constexpr auto md3 = mk::metadata_v<COO3>;
     CHECK_FALSE(mk::metadata::is_available(mk::metadata::name(md3)));
     CHECK_FALSE(mk::metadata::is_available(mk::metadata::description(md3)));
-    CHECK(mk::metadata::members<COO3>(md3) == std::tuple{ &COO3::i, &COO3::j, &COO3::v });
+    CHECK(mk::metadata::members<COO3>(md3) == mk::value_tuple{ &COO3::i, &COO3::j, &COO3::v });
     CHECK(mk::metadata::member_names<COO3>(md3) == std::array{ "i"sv, "j"sv, "v"sv });
     CHECK(mk::metadata::member_descriptions<COO3>(md3) == std::array{ "row index"sv, "column index"sv, "element"sv });
 
     constexpr auto md4 = mk::metadata_v<COO4>;
     CHECK(mk::metadata::name(md4) == "COO4");
     CHECK(mk::metadata::description(md4) == "COO 4");
-    CHECK(mk::metadata::members<COO4>(md4) == std::tuple{ &COO4::i, &COO4::j, &COO4::v });
+    CHECK(mk::metadata::members<COO4>(md4) == mk::value_tuple{ &COO4::i, &COO4::j, &COO4::v });
     CHECK(mk::metadata::member_names<COO4>(md4) == std::array{ "i"sv, "j"sv, "v"sv });
     CHECK(mk::metadata::member_descriptions<COO4>(md4) == std::array{ "row index"sv, "column index"sv, "element"sv });
 }
