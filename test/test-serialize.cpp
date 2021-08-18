@@ -135,10 +135,6 @@ TEST_CASE("as_flags()")
             auto sstr = std::istringstream(std::string(str));
             auto flags_read = Vegetables::other;
             sstr >> mk::as_flags(flags_read);
-            bool badbit = sstr.bad();
-            bool failbit = sstr.fail();
-            bool eofbit = sstr.eof();
-            bool boolVal = static_cast<bool>(sstr);
             REQUIRE(sstr);
             CHECK(flags_read == flags);
             if (!suffix.empty())

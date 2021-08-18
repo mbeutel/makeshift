@@ -21,13 +21,13 @@ namespace makeshift {
 
 
 template <typename T, typename MetadataC>
-constexpr std::string
+std::string
 enum_to_string(T value, MetadataC)
 {
     return std::string(detail::enum_to_string(value, detail::static_enum_metadata<T, MetadataC>::value));
 }
 template <typename T>
-constexpr std::string
+std::string
 enum_to_string(T value)
 {
     return std::string(detail::enum_to_string(value, detail::static_enum_metadata<T, decltype(metadata_c<T>)>::value));
@@ -48,13 +48,13 @@ parse_enum(std::string_view str)
 
 
 template <typename T, typename MetadataC>
-constexpr std::string
+std::string
 flags_to_string(T value, MetadataC)
 {
     return detail::flags_to_string(value, detail::static_flags_metadata<T, MetadataC>::value);
 }
 template <typename T>
-constexpr std::string
+std::string
 flags_to_string(T value)
 {
     return detail::flags_to_string(value, detail::static_flags_metadata<T, decltype(metadata_c<T>)>::value);

@@ -273,7 +273,7 @@ struct static_flags_metadata
 };
 
 template <typename T, std::size_t N>
-constexpr std::string
+std::string
 flags_to_string(T flags, flags_metadata<T, N> const& md)
 {
     gsl_Expects((flags & ~md.all_defined_flags_) == T{ });
