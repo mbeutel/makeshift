@@ -277,6 +277,7 @@ std::string
 flags_to_string(T flags, flags_metadata<T, N> const& md)
 {
     gsl_Expects((flags & ~md.all_defined_flags_) == T{ });
+
     if (flags == T{ })
     {
         return std::string(md.none_name_);

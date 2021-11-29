@@ -61,6 +61,9 @@ template <typename... Rs>
 constexpr auto
 range_zip(Rs&&... ranges)
 {
+    // TODO: `swap()` cannot be used on a zipped range because of issues with swapping tuples of references; perhaps we should
+    // use a reference-tuple type of our own?
+
     auto mergedSize = detail::merge_sizes(detail::range_size(ranges)...);
     static_assert(!std::is_same<decltype(mergedSize), detail::dim_constant<detail::unknown_size>>::value, "no range argument given");
 
