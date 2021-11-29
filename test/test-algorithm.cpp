@@ -35,7 +35,6 @@ static_assert(!std::is_base_of<std::output_iterator_tag, makeshift::detail::comm
 
 TEST_CASE("range_zip()")
 {
-    auto arr0 = std::array<int, 0>{ };
     auto vec0 = std::vector<int>{ };
     auto list0 = std::list<int>{ };
 
@@ -48,7 +47,6 @@ TEST_CASE("range_zip()")
     SECTION("empty")
     {
         auto i_v_l = mk::range_zip(mk::range_index, list0, vec0);
-        using R = decltype(i_v_l);
         using It = std::decay_t<decltype(i_v_l.begin())>;
         static_assert(std::is_base_of<std::bidirectional_iterator_tag, std::iterator_traits<It>::iterator_category>::value, "static assertion failed");
         CHECK(i_v_l.size() == 0);
@@ -135,7 +133,6 @@ TEST_CASE("range_for()")
 
     SECTION("basic use with index")
     {
-        auto i_v_l = mk::range_zip(mk::range_index, vec3, list3);
         int i = 0;
         mk::range_for(
             [&](gsl::index iv, int& vv, int& lv)
