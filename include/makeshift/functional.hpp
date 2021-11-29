@@ -16,7 +16,7 @@ namespace makeshift {
 namespace gsl = ::gsl_lite;
 
 
-#if MAKESHIFT_DETAIL_CXXLEVEL >= 17
+#if gsl_CPP17_OR_GREATER
     //
     // Constructs a functor wrapper that selects the matching overload among a number of given functors.
     //ᅟ
@@ -30,49 +30,9 @@ struct MAKESHIFT_DETAIL_EMPTY_BASES overload : Fs...
 {
     using Fs::operator ()...;
 };
-#else // ^^^ MAKESHIFT_DETAIL_CXXLEVEL >= 17 ^^^ / vvv MAKESHIFT_DETAIL_CXXLEVEL < 17 vvv
-    //
-    // Constructs a functor wrapper that selects the matching overload among a number of given functors.
-    //ᅟ
-    //ᅟ    auto type_name_func = overload(
-    //ᅟ        [](int)   { return "int"; },
-    //ᅟ        [](float) { return "float"; },
-    //ᅟ        [](auto)  { return "unknown"; });
-    //
-template <typename... Fs>
-struct overload;
-template <typename F0>
-struct MAKESHIFT_DETAIL_EMPTY_BASES overload<F0> : F0
-{
-    using F0::F0;
-};
-template <typename F0, typename... Fs>
-struct MAKESHIFT_DETAIL_EMPTY_BASES overload<F0, Fs...> : F0, overload<Fs...>
-{
-    constexpr overload(F0 f0, Fs... fs) : F0(std::move(f0)), overload<Fs...>(std::move(fs)...) { }
-    using F0::operator ();
-    using overload<Fs...>::operator ();
-};
-#endif // MAKESHIFT_DETAIL_CXXLEVEL >= 17
-
-#if gsl_CPP17_OR_GREATER
 template <typename... Ts>
 overload(Ts...) -> overload<Ts...>;
 #endif // gsl_CPP17_OR_GREATER
-
-    //
-    // Constructs a functor wrapper that selects the matching overload among a number of given functors.
-    //ᅟ
-    //ᅟ    auto type_name_func = make_overload(
-    //ᅟ        [](int)   { return "int"; },
-    //ᅟ        [](float) { return "float"; },
-    //ᅟ        [](auto)  { return "unknown"; });
-    //
-template <typename... Fs>
-constexpr overload<Fs...> make_overload(Fs... fs)
-{
-    return { std::move(fs)... };
-}
 
 
     //
