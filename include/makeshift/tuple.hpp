@@ -3,23 +3,43 @@
 #define INCLUDED_MAKESHIFT_TUPLE_HPP_
 
 
+#include <gsl-lite/gsl-lite.hpp>  // for gsl_NODISCARD, gsl_CPP17_OR_GREATER
+
+#if !gsl_CPP17_OR_GREATER
+# error Header <makeshift/tuple.hpp> requires C++17 mode or higher.
+#endif // !gsl_CPP17_OR_GREATER
+
 #include <array>
 #include <tuple>       // for tuple<>, tuple_cat()
 #include <cstddef>     // for size_t, ptrdiff_t
 #include <utility>     // for forward<>(), index_sequence_for<>
 #include <type_traits> // for decay<>
 
-#include <gsl-lite/gsl-lite.hpp> // for gsl_NODISCARD, gsl_CPP17_OR_GREATER
-
 #include <makeshift/type_traits.hpp> // for can_instantiate<>, static_const<>, is_tuple_like<>, nth_type<>
 
+#include <makeshift/metadata.hpp>  // for metadata_v<>, members()
+
+#include <makeshift/detail/constval.hpp>  // for MAKESHIFT_CONSTVAL_()
 #include <makeshift/detail/tuple.hpp>
-#include <makeshift/detail/macros.hpp> // for MAKESHIFT_DETAIL_FORCEINLINE, MAKESHIFT_DETAIL_EMPTY_BASES
+#include <makeshift/detail/macros.hpp>    // for MAKESHIFT_DETAIL_FORCEINLINE, MAKESHIFT_DETAIL_EMPTY_BASES
 
 
 namespace makeshift {
 
 namespace gsl = ::gsl_lite;
+
+
+    //
+    // Given a tuple-like type, returns a `type_sequence<>` of the element types.
+    //
+template <typename T>
+struct tuple_elements : detail::tuple_elements_<T, std::tuple_size_v<T>> { };
+
+    //
+    // Given a tuple-like type, returns a `type_sequence<>` of the element types.
+    //
+template <typename T>
+using tuple_elements_t = typename detail::tuple_elements_<T, std::tuple_size_v<T>>::type;
 
 
     //
@@ -31,10 +51,8 @@ struct MAKESHIFT_DETAIL_EMPTY_BASES value_tuple : detail::value_tuple_base<std::
     using _base = detail::value_tuple_base<std::index_sequence_for<Ts...>, Ts...>;
     using _base::_base;
 };
-#if gsl_CPP17_OR_GREATER
 template <typename... Ts>
 value_tuple(Ts...) -> value_tuple<Ts...>;
-#endif // gsl_CPP17_OR_GREATER
 template <std::size_t I, typename... Ts>
 constexpr auto&
 get(value_tuple<Ts...>& tuple) noexcept
@@ -266,18 +284,70 @@ template_none_of(PredicateT&& predicate, Ts&&... args)
 }
 
 
+template <typename FuncT, typename TupleT, std::size_t... Is>
+gsl_constexpr20 decltype(auto)
+apply(FuncT&& f, TupleT&& t)
+{
+    return detail::apply_impl(std::forward<FuncT>(f), std::forward<TupleT>(t));
+}
+
+
+    //
+    // Takes a list of tuples and returns a tuple of concatenated elements.
+    //ᅟ
+    //ᅟ    auto numbers = std::tuple{ 2, 3 };
+    //ᅟ    auto moreNumbers = std::array{ 6., 8. };
+    //ᅟ    auto allNumbers = tuple_cat(numbers, moreNumbers);
+    //ᅟ    // returns std::tuple{ 2, 3, 6., 8. }
+    //
+template <typename... Ts>
+gsl_NODISCARD constexpr auto
+tuple_cat(Ts&&... tuples)
+{
+    static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
+
+    return detail::tuple_cat_impl<std::tuple>(std::forward<Ts>(tuples)...);
+}
+
+    //
+    // Takes a list of tuples and returns a tuple of concatenated elements.
+    // The tuple is constructed using the given tuple template.
+    //ᅟ
+    //ᅟ    auto numbers = std::tuple{ 2, 3 };
+    //ᅟ    auto moreNumbers = std::array{ 6., 8. };
+    //ᅟ    auto allNumbers = tuple_cat<MyTuple>(numbers, moreNumbers);
+    //ᅟ    // returns MyTuple{ 2, 3, 6., 8. }
+    //
+template <template <typename...> class TupleT, typename... Ts>
+gsl_NODISCARD constexpr auto
+tuple_cat(Ts&&... tuples)
+{
+    static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
+
+    return detail::tuple_cat_impl<TupleT>(std::forward<Ts>(tuples)...);
+}
+
+
+#if gsl_CPP20_OR_GREATER  // need constexpr `std::invoke()`
+template <typename T, typename ReflectorT = reflector>
+gsl_NODISCARD constexpr auto
+tie_members(T& x, ReflectorT = { })
+{
+    static_assert(metadata::is_available(detail::all_members<std::remove_const_t<T>, value_tuple, ReflectorT>()), "no member metadata was defined for type T");
+
+    return makeshift::apply(
+        detail::tie_members_functor<T>{ x },
+        MAKESHIFT_CONSTVAL_(detail::all_members<std::remove_const_t<T>, value_tuple, ReflectorT>()));
+}
+#endif // gsl_CPP20_OR_GREATER
+
+
 } // namespace makeshift
 
 
-namespace std {
-
-
     // Implement tuple-like protocol for `value_tuple<>`.
-template <typename... Ts> class tuple_size<makeshift::value_tuple<Ts...>> : public std::integral_constant<std::size_t, sizeof...(Ts)> { };
-template <std::size_t I, typename... Ts> class tuple_element<I, makeshift::value_tuple<Ts...>> : public makeshift::nth_type<I, Ts...> { };
-
-
-} // namespace std
+template <typename... Ts> class std::tuple_size<makeshift::value_tuple<Ts...>> : public std::integral_constant<std::size_t, sizeof...(Ts)> { };
+template <std::size_t I, typename... Ts> class std::tuple_element<I, makeshift::value_tuple<Ts...>> : public makeshift::nth_type<I, Ts...> { };
 
 
 #endif // INCLUDED_MAKESHIFT_TUPLE_HPP_

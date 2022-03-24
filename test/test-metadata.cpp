@@ -305,30 +305,30 @@ TEST_CASE("struct metadata")
     CHECK(mk::metadata::members<SubCOO2>(md8) == std::tuple{ &SubCOO2::v2 });
 
 #if gsl_CPP20_OR_GREATER
-    SECTION("tie()")
+    SECTION("tie_members()")
     {
         COO1 coo1{ 4, 5, 6. };
-        CHECK(mk::tie(coo1) == std::tuple{ 4, 5, 6. });
-        mk::tie(coo1) = std::tuple{ 1, 2, 3. };
+        CHECK(mk::tie_members(coo1) == std::tuple{ 4, 5, 6. });
+        mk::tie_members(coo1) = std::tuple{ 1, 2, 3. };
         CHECK(coo1.i == 1);
         CHECK(coo1.j == 2);
         CHECK(coo1.v == 3.);
         COO2 coo2;
-        mk::tie(coo2) = mk::tie(coo1);
+        mk::tie_members(coo2) = mk::tie_members(coo1);
         const COO2 ccoo2 = coo2;
-        CHECK(mk::tie(ccoo2) == mk::tie(coo1));
+        CHECK(mk::tie_members(ccoo2) == mk::tie_members(coo1));
 
         SubCOO1 sc1{ COO4{ 1, 2, 3. }, 4. };
         SubCOO1 sc2{ COO4{ 5, 6, 7. }, 8. };
-        CHECK(mk::tie(sc1) != mk::tie(sc2));
-        mk::tie(sc2) = mk::tie(sc1);
-        CHECK(mk::tie(sc1) == mk::tie(sc2));
+        CHECK(mk::tie_members(sc1) != mk::tie_members(sc2));
+        mk::tie_members(sc2) = mk::tie_members(sc1);
+        CHECK(mk::tie_members(sc1) == mk::tie_members(sc2));
         sc2.v = 7.;
-        CHECK(mk::tie(sc1) != mk::tie(sc2));
+        CHECK(mk::tie_members(sc1) != mk::tie_members(sc2));
         sc2.v = 3.;
-        CHECK(mk::tie(sc1) == mk::tie(sc2));
+        CHECK(mk::tie_members(sc1) == mk::tie_members(sc2));
         sc2.v2 = 8.;
-        CHECK(mk::tie(sc1) != mk::tie(sc2));
+        CHECK(mk::tie_members(sc1) != mk::tie_members(sc2));
     }
 #endif // gsl_CPP20_OR_GREATER
 }

@@ -12,6 +12,7 @@
 
 #include <makeshift/utility.hpp> // for type_sequence<>
 
+#include <makeshift/detail/indices-2d.hpp>      // for indices_2d_
 #include <makeshift/detail/range-index.hpp>     // for range_index_t
 #include <makeshift/detail/type_traits.hpp>     // for can_instantiate_<>
 #include <makeshift/detail/tuple-transform.hpp> // for transform_element()
@@ -110,60 +111,13 @@ array_transform_to_impl(std::index_sequence<Is...>, F&& func, Ts&&... args)
     return ArrayT<R, sizeof...(Is)>{ detail::transform_element<Is>(func, std::forward<Ts>(args)...)... };
 }
 
-#if gsl_CPP17_OR_GREATER
-template <typename R, typename... Ts>
-constexpr R cadd(Ts... vs) noexcept
-{
-    auto term = R{ 0 };
-    return (vs + ... + term);
-}
-#else // gsl_CPP17_OR_GREATER
-template <typename R>
-constexpr R cadd(void) noexcept
-{
-    return R{ 0 };
-}
-template <typename R, typename T0, typename... Ts>
-constexpr R cadd(T0 v0, Ts... vs) noexcept
-{
-    return v0 + cadd<R>(vs...);
-}
-#endif // gsl_CPP17_OR_GREATER
-
-    // Borrowing the 2-d indexing technique that first appeared in the `tuple_cat()` implementation of Microsoft's STL.
-template <std::size_t... Ns>
-struct indices_2d_
-{
-    static constexpr std::size_t size = detail::cadd<std::size_t>(Ns...);
-    static constexpr std::size_t row(std::size_t i) noexcept
-    {
-        std::size_t sizes[] = { Ns... };
-        std::size_t r = 0;
-        while (i >= sizes[r]) // compiler error if sizeof...(Ns) == 0 or i >= (Ns + ... + 0)
-        {
-            i -= sizes[r];
-            ++r;
-        }
-        return r;
-    }
-    static constexpr std::size_t col(std::size_t i) noexcept
-    {
-        std::size_t sizes[] = { Ns... };
-        std::size_t r = 0;
-        while (i >= sizes[r]) // compiler error if sizeof...(Ns) == 0 or i >= (Ns + ... + 0)
-        {
-            i -= sizes[r];
-            ++r;
-        }
-        return i;
-    }
-};
 
 template <template <typename, std::size_t> class ArrayT, typename T, typename IndicesT, std::size_t... Is, typename... Ts>
-constexpr ArrayT<T, IndicesT::size> array_cat_impl(std::index_sequence<Is...>, std::tuple<Ts...> tupleOfTuples)
+constexpr ArrayT<T, IndicesT::size>
+array_cat_impl(std::index_sequence<Is...>, std::tuple<Ts...> tupleOfTuples)
 {
     using std::get;
-    return { std::move(get<IndicesT::col(Is)>(get<IndicesT::row(Is)>(tupleOfTuples)))... };
+    return { get<IndicesT::col(Is)>(get<IndicesT::row(Is)>(std::move(tupleOfTuples)))... };
 }
 
 

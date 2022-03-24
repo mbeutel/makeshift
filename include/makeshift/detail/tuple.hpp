@@ -3,18 +3,41 @@
 #define INCLUDED_MAKESHIFT_DETAIL_TUPLE_HPP_
 
 
-#include <tuple>       // for make_tuple()
-#include <cstddef>     // for size_t
-#include <utility>     // for forward<>(), integer_sequence<>, tuple_size<>, get<>()
-#include <type_traits> // for decay<>
+#include <tuple>        // for make_tuple()
+#include <cstddef>      // for size_t
+#include <utility>      // for forward<>(), integer_sequence<>, tuple_size<>, get<>()
+#include <type_traits>  // for decay<>
 
-#include <makeshift/detail/macros.hpp>          // for MAKESHIFT_DETAIL_FORCEINLINE, MAKESHIFT_DETAIL_EMPTY_BASES
+#include <makeshift/metadata.hpp>  // for metadata_v<>, bases(), members()
+
+#include <makeshift/detail/indices-2d.hpp>       // for indices_2d_
+#include <makeshift/detail/macros.hpp>           // for MAKESHIFT_DETAIL_FORCEINLINE, MAKESHIFT_DETAIL_EMPTY_BASES
 #include <makeshift/detail/tuple-transform.hpp>
+#include <makeshift/detail/constval.hpp>
 
 
 namespace makeshift {
 
+
+    // Defined in utility.hpp.
+template <typename... Ts>
+struct type_sequence;
+
+
 namespace detail {
+
+
+template <typename TupleT, typename Is>
+struct tuple_elements_0_;
+template <typename TupleT, std::size_t... Is>
+struct tuple_elements_0_<TupleT, std::index_sequence<Is...>>
+{
+    using type = type_sequence<std::tuple_element_t<Is, TupleT>...>;
+};
+template <typename TupleT, std::size_t N>
+struct tuple_elements_ : tuple_elements_0_<TupleT, std::make_index_sequence<N>>
+{
+};
 
 
 template <std::size_t I> struct tuple_index_tag { };
@@ -157,6 +180,78 @@ struct conjunction_fn
     constexpr MAKESHIFT_DETAIL_FORCEINLINE bool operator ()(std::integral_constant<std::size_t, N>, Ts&&...) const
     {
         return true;
+    }
+};
+
+
+template <typename FuncT, typename TupleT, std::size_t... Is>
+gsl_constexpr20 decltype(auto)
+apply_impl_1(FuncT&& f, TupleT&& t, std::index_sequence<Is...>)
+{
+    using std::get;
+    return std::invoke(std::forward<FuncT>(f), get<Is>(std::forward<TupleT>(t))...);
+}
+template <typename FuncT, typename TupleT, std::size_t... Is>
+gsl_constexpr20 decltype(auto)
+apply_impl(FuncT&& f, TupleT&& t)
+{
+    return detail::apply_impl_1(std::forward<FuncT>(f), std::forward<TupleT>(t),
+        std::make_index_sequence<std::tuple_size_v<std::remove_reference_t<TupleT>>>{ });
+}
+
+
+template <template <typename...> class TupleT, typename IndicesT, std::size_t... Is, typename... Ts>
+constexpr TupleT<std::tuple_element_t<IndicesT::col(Is), std::remove_cv_t<std::remove_reference_t<std::tuple_element_t<IndicesT::row(Is), std::tuple<Ts...>>>>>...>
+tuple_cat_impl_1(std::index_sequence<Is...>, std::tuple<Ts...> tupleOfTuples)
+{
+    using std::get;
+    return { get<IndicesT::col(Is)>(get<IndicesT::row(Is)>(std::move(tupleOfTuples)))... };
+}
+template <template <typename...> class TupleT, typename... Ts>
+constexpr auto
+tuple_cat_impl(Ts&&... tuples)
+{
+    using Indices = detail::indices_2d_<std::tuple_size<std::decay_t<Ts>>::value...>;
+    return detail::tuple_cat_impl_1<TupleT, Indices>(std::make_index_sequence<Indices::size>{ }, std::tuple<Ts&&...>{ std::forward<Ts>(tuples)... });
+}
+
+
+template <typename T, template <typename...> class TupleT, typename ReflectorT>
+constexpr auto
+all_members(void)
+{
+    if constexpr (metadata::is_available(metadata::members<T, ReflectorT>()))
+    {
+        auto baseMemberTupleTuple = detail::apply_impl(
+            [](auto&&... bases)
+            {
+                return TupleT<decltype(detail::all_members<typename std::remove_cv_t<std::remove_reference_t<decltype(bases)>>::type, TupleT, ReflectorT>())...>{
+                    detail::all_members<typename std::remove_cv_t<std::remove_reference_t<decltype(bases)>>::type, TupleT, ReflectorT>()...
+                };
+            },
+            metadata::bases<T, ReflectorT>());
+        return detail::apply_impl(
+            [](auto&&... baseMemberTuples)
+            {
+                return detail::tuple_cat_impl<TupleT>(
+                    std::forward<decltype(baseMemberTuples)>(baseMemberTuples)...,  // base class members
+                    metadata::members<T, ReflectorT>());  // direct members
+            },
+            baseMemberTupleTuple);
+    }
+    else return std::nullopt;
+}
+
+template <typename T>
+struct tie_members_functor
+{
+    T& x;
+
+    template <typename... MembersC>
+    constexpr auto
+    operator ()(MembersC...)
+    {
+        return std::tuple<decltype(x.*MembersC{ }())...>{ x.*MembersC{ }()... };
     }
 };
 
