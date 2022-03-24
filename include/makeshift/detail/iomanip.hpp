@@ -25,10 +25,10 @@ namespace gsl = gsl_lite;
 namespace detail {
 
 
-template <typename T, typename MetadataC>
+template <typename T, typename ReflectorT>
 struct enum_manipulator;
-template <typename T, typename MetadataC>
-struct enum_manipulator<T&, MetadataC>
+template <typename T, typename ReflectorT>
+struct enum_manipulator<T&, ReflectorT>
 {
     T& value_;
 
@@ -42,34 +42,34 @@ struct enum_manipulator<T&, MetadataC>
         {
             str += static_cast<char>(stream.get());
         }
-        if (str.empty() || detail::try_enum_from_string(self.value_, str, static_enum_metadata<T, MetadataC>::value) != 0)
+        if (str.empty() || detail::try_enum_from_string(self.value_, str, static_enum_metadata<T, ReflectorT>::value) != 0)
         {
             stream.setstate(std::ios_base::failbit);
         }
         return stream;
     }
 };
-template <typename T, typename MetadataC>
-struct enum_manipulator<T const&, MetadataC>
+template <typename T, typename ReflectorT>
+struct enum_manipulator<T const&, ReflectorT>
 {
     T value_;
 };
-template <typename T, typename MetadataC>
+template <typename T, typename ReflectorT>
 struct enum_manipulator
 {
     T value_;
 };
-template <typename T, typename MetadataC>
-std::ostream& operator <<(std::ostream& stream, enum_manipulator<T, MetadataC>&& self)
+template <typename T, typename ReflectorT>
+std::ostream& operator <<(std::ostream& stream, enum_manipulator<T, ReflectorT>&& self)
 {
-    return stream << detail::enum_to_string(self.value_, static_enum_metadata<std::remove_cv_t<std::remove_reference_t<T>>, MetadataC>::value);
+    return stream << detail::enum_to_string(self.value_, static_enum_metadata<std::remove_cv_t<std::remove_reference_t<T>>, ReflectorT>::value);
 }
 
 
-template <typename T, typename MetadataC>
+template <typename T, typename ReflectorT>
 struct flags_manipulator;
-template <typename T, typename MetadataC>
-struct flags_manipulator<T&, MetadataC>
+template <typename T, typename ReflectorT>
+struct flags_manipulator<T&, ReflectorT>
 {
     T& value_;
 
@@ -83,27 +83,27 @@ struct flags_manipulator<T&, MetadataC>
         {
             str += static_cast<char>(stream.get());
         }
-        if (detail::flags_from_string(self.value_, str, static_flags_metadata<T, MetadataC>::value, false) != 0)
+        if (detail::flags_from_string(self.value_, str, static_flags_metadata<T, ReflectorT>::value, false) != 0)
         {
             stream.setstate(std::ios_base::failbit);
         }
         return stream;
     }
 };
-template <typename T, typename MetadataC>
-struct flags_manipulator<T const&, MetadataC>
+template <typename T, typename ReflectorT>
+struct flags_manipulator<T const&, ReflectorT>
 {
     T value_;
 };
-template <typename T, typename MetadataC>
+template <typename T, typename ReflectorT>
 struct flags_manipulator
 {
     T value_;
 };
-template <typename T, typename MetadataC>
-std::ostream& operator <<(std::ostream& stream, flags_manipulator<T, MetadataC>&& self)
+template <typename T, typename ReflectorT>
+std::ostream& operator <<(std::ostream& stream, flags_manipulator<T, ReflectorT>&& self)
 {
-    return stream << detail::flags_to_string(self.value_, static_flags_metadata<std::remove_cv_t<std::remove_reference_t<T>>, MetadataC>::value);
+    return stream << detail::flags_to_string(self.value_, static_flags_metadata<std::remove_cv_t<std::remove_reference_t<T>>, ReflectorT>::value);
 }
 
 

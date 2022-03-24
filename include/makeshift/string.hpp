@@ -20,60 +20,34 @@
 namespace makeshift {
 
 
-template <typename T, typename MetadataC>
+template <typename T, typename ReflectorT = reflector>
 std::string
-enum_to_string(T value, MetadataC)
+enum_to_string(T value, ReflectorT = { })
 {
-    return std::string(detail::enum_to_string(value, detail::static_enum_metadata<T, MetadataC>::value));
-}
-template <typename T>
-std::string
-enum_to_string(T value)
-{
-    return std::string(detail::enum_to_string(value, detail::static_enum_metadata<T, decltype(metadata_c<T>)>::value));
+    return std::string(detail::enum_to_string(value, detail::static_enum_metadata<T, ReflectorT>::value));
 }
 
-template <typename T, typename MetadataC>
+template <typename T, typename ReflectorT = reflector>
 constexpr T
-parse_enum(std::string_view str, MetadataC)
+parse_enum(std::string_view str, ReflectorT = { })
 {
-    return detail::enum_from_string(str, detail::static_enum_metadata<T, MetadataC>::value);
-}
-template <typename T>
-constexpr T
-parse_enum(std::string_view str)
-{
-    return detail::enum_from_string(str, detail::static_enum_metadata<T, decltype(metadata_c<T>)>::value);
+    return detail::enum_from_string(str, detail::static_enum_metadata<T, ReflectorT>::value);
 }
 
 
-template <typename T, typename MetadataC>
+template <typename T, typename ReflectorT = reflector>
 std::string
-flags_to_string(T value, MetadataC)
+flags_to_string(T value, ReflectorT = { })
 {
-    return detail::flags_to_string(value, detail::static_flags_metadata<T, MetadataC>::value);
-}
-template <typename T>
-std::string
-flags_to_string(T value)
-{
-    return detail::flags_to_string(value, detail::static_flags_metadata<T, decltype(metadata_c<T>)>::value);
+    return detail::flags_to_string(value, detail::static_flags_metadata<T, ReflectorT>::value);
 }
 
-template <typename T, typename MetadataC>
+template <typename T, typename ReflectorT = reflector>
 constexpr T
-parse_flags(std::string_view str, MetadataC)
+parse_flags(std::string_view str, ReflectorT = { })
 {
     T result;
-    detail::flags_from_string(result, str, detail::static_flags_metadata<T, MetadataC>::value);
-    return result;
-}
-template <typename T>
-constexpr T
-parse_flags(std::string_view str)
-{
-    T result;
-    detail::flags_from_string(result, str, detail::static_flags_metadata<T, decltype(metadata_c<T>)>::value);
+    detail::flags_from_string(result, str, detail::static_flags_metadata<T, ReflectorT>::value);
     return result;
 }
 
@@ -81,4 +55,4 @@ parse_flags(std::string_view str)
 } // namespace makeshift
 
 
-#endif // INCLUDED_MAKESHIFT_IOMANIP_HPP_
+#endif // INCLUDED_MAKESHIFT_STRING_HPP_

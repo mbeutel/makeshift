@@ -19,29 +19,17 @@
 namespace makeshift {
 
 
-template <typename T, typename MetadataC>
-constexpr detail::enum_manipulator<T, MetadataC>
-as_enum(T&& value, MetadataC)
-{
-    return { value };
-}
-template <typename T>
-constexpr detail::enum_manipulator<T, decltype(metadata_c<std::remove_reference_t<T>>)>
-as_enum(T&& value)
+template <typename T, typename ReflectorT = reflector>
+constexpr detail::enum_manipulator<T, ReflectorT>
+as_enum(T&& value, ReflectorT = { })
 {
     return { value };
 }
 
 
-template <typename T, typename MetadataC>
-constexpr detail::flags_manipulator<T, MetadataC>
-as_flags(T&& value, MetadataC)
-{
-    return { value };
-}
-template <typename T>
-constexpr detail::flags_manipulator<T, decltype(metadata_c<std::remove_reference_t<T>>)>
-as_flags(T&& value)
+template <typename T, typename ReflectorT = reflector>
+constexpr detail::flags_manipulator<T, ReflectorT>
+as_flags(T&& value, ReflectorT = { })
 {
     return { value };
 }

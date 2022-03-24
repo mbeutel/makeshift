@@ -20,13 +20,10 @@
 namespace makeshift {
 
 
-template <typename T> constexpr auto metadata_v = detail::reflector<T>{ }();
-template <typename T> constexpr auto metadata_v<T const> = detail::reflector<T>{ }();
-template <typename T> using metadata_t = decltype(metadata_v<T>);
-//template <typename T> constexpr auto metadata_c = constval_t<detail::reflector<T>>{ };
-//template <typename T> constexpr auto metadata_c<T const> = constval_t<detail::reflector<T>>{ };
-template <typename T> constexpr auto metadata_c = detail::reflector<T>{ };
-template <typename T> constexpr auto metadata_c<T const> = detail::reflector<T>{ };
+using reflector = detail::reflector;
+constexpr auto reflector_c = reflector{ };
+template <typename T> constexpr auto metadata_v = reflector_c(gsl::type_identity<std::remove_cv_t<T>>{ });
+template <typename T> using metadata_t = std::remove_const_t<decltype(metadata_v<T>)>;
 
 
 namespace metadata {
@@ -43,60 +40,67 @@ template <typename T>
 constexpr bool is_available_v = !std::is_same_v<T, std::nullopt_t>;
 
 
-template <typename MetadataT>
+template <typename T, typename MetadataOrReflectorT = reflector>
 constexpr auto
-name(MetadataT const& metadata)
+name(MetadataOrReflectorT&& md = { })
 {
-    return detail::extract_metadata<void, detail::is_string_like, 0>(metadata);
+    return detail::extract_metadata<void, detail::is_string_like, 0>(detail::unwrap_metadata<T>(md));
 }
 
-template <typename MetadataT>
+template <typename T, typename MetadataOrReflectorT = reflector>
 constexpr auto
-description(MetadataT const& metadata)
+description(MetadataOrReflectorT&& md = { })
 {
-    return detail::extract_metadata<void, detail::is_string_like, 1>(metadata);
+    return detail::extract_metadata<void, detail::is_string_like, 1>(detail::unwrap_metadata<T>(md));
 }
 
-template <typename T, typename MetadataT>
+template <typename T, typename MetadataOrReflectorT = reflector>
 constexpr auto
-values(MetadataT const& metadata)
+bases(MetadataOrReflectorT&& md = { })
 {
-    return detail::extract_values<T>(metadata);
+    return detail::extract_bases<std::remove_const_t<T>>(detail::unwrap_metadata<T>(md));
 }
 
-template <typename T, typename MetadataT>
+template <typename T, typename MetadataOrReflectorT = reflector>
 constexpr auto
-value_names(MetadataT const& metadata)
+values(MetadataOrReflectorT&& md = { })
 {
-    return detail::extract_value_metadata<T, std::string_view, detail::is_string_like, 0>(metadata);
+    return detail::extract_values<std::remove_const_t<T>>(detail::unwrap_metadata<T>(md));
 }
 
-template <typename T, typename MetadataT>
+template <typename T, typename MetadataOrReflectorT = reflector>
 constexpr auto
-value_descriptions(MetadataT const& metadata)
+value_names(MetadataOrReflectorT&& md = { })
 {
-    return detail::extract_value_metadata<T, std::string_view, detail::is_string_like, 1>(metadata);
+    return detail::extract_value_metadata<std::remove_const_t<T>, std::string_view, detail::is_string_like, 0>(detail::unwrap_metadata<T>(md));
 }
 
-template <typename T, typename MetadataT>
+template <typename T, typename MetadataOrReflectorT = reflector>
 constexpr auto
-members(MetadataT const& metadata)
+value_descriptions(MetadataOrReflectorT&& md = { })
 {
-    return detail::extract_members<T>(metadata);
+    return detail::extract_value_metadata<std::remove_const_t<T>, std::string_view, detail::is_string_like, 1>(detail::unwrap_metadata<T>(md));
 }
 
-template <typename T, typename MetadataT>
+template <typename T, typename MetadataOrReflectorT = reflector>
 constexpr auto
-member_names(MetadataT const& metadata)
+members(MetadataOrReflectorT&& md = { })
 {
-    return detail::extract_member_metadata<T, std::string_view, detail::is_string_like, 0>(metadata);
+    return detail::extract_members<std::remove_const_t<T>>(detail::unwrap_metadata<T>(md));
 }
 
-template <typename T, typename MetadataT>
+template <typename T, typename MetadataOrReflectorT = reflector>
 constexpr auto
-member_descriptions(MetadataT const& metadata)
+member_names(MetadataOrReflectorT&& md = { })
 {
-    return detail::extract_member_metadata<T, std::string_view, detail::is_string_like, 1>(metadata);
+    return detail::extract_member_metadata<std::remove_const_t<T>, std::string_view, detail::is_string_like, 0>(detail::unwrap_metadata<T>(md));
+}
+
+template <typename T, typename MetadataOrReflectorT = reflector>
+constexpr auto
+member_descriptions(MetadataOrReflectorT&& md = { })
+{
+    return detail::extract_member_metadata<std::remove_const_t<T>, std::string_view, detail::is_string_like, 1>(detail::unwrap_metadata<T>(md));
 }
 
 

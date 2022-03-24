@@ -65,6 +65,31 @@ public:
         return first_[i];
     }
 };
+template <typename It>
+class range_base<It, It, std::random_access_iterator_tag, -1>
+{
+private:
+    It first_;
+    It last_;
+
+public:
+    constexpr range_base(It first, It last)
+        : first_(std::move(first)), last_(std::move(last))
+    {
+    }
+
+    gsl_NODISCARD constexpr It const& begin(void) const noexcept { return first_; }
+    gsl_NODISCARD constexpr It const& end(void) const noexcept { return last_; }
+    gsl_NODISCARD constexpr std::size_t size(void) const noexcept
+    {
+        return last_ - first_;
+    }
+    gsl_NODISCARD constexpr decltype(auto) operator [](std::size_t i) const noexcept
+    {
+        gsl_Expects(i < last_ - first_);
+        return first_[i];
+    }
+};
 template <typename It, std::ptrdiff_t Extent>
 class range_base<It, It, std::random_access_iterator_tag, Extent>
 {

@@ -67,12 +67,12 @@ trim(std::string_view str) noexcept
 }
 
 
-template <typename MetadataT>
+template <typename T, typename ReflectorT>
 constexpr std::string_view
-description_or_name_or_empty(MetadataT const& md)
+description_or_name_or_empty()
 {
-    auto name = metadata::name(md);
-    auto desc = metadata::description(md);
+    auto name = metadata::name<T, ReflectorT>();
+    auto desc = metadata::description<T, ReflectorT>();
     if constexpr (metadata::is_available_v<decltype(desc)>) return desc;
     else if constexpr (metadata::is_available(name)) return name;
     else return { };
@@ -90,12 +90,12 @@ struct enum_metadata
     std::array<std::string_view, N> names_;
 };
 
-template <typename T, typename MetadataT>
+template <typename T, typename ReflectorT>
 constexpr auto
-make_enum_metadata(MetadataT const& md)
+make_enum_metadata()
 {
-    auto const& values = metadata::values<T>(md);
-    auto const& value_names = metadata::value_names<T>(md);
+    auto const& values = metadata::values<T, ReflectorT>();
+    auto const& value_names = metadata::value_names<T, ReflectorT>();
     gsl_Expects(metadata::is_available(values) && metadata::is_available(value_names));
 
     for (std::string_view name : value_names)
@@ -104,16 +104,16 @@ make_enum_metadata(MetadataT const& md)
         gsl_Expects(name.find_first_of(enum_forbidden_chars) == std::string_view::npos);
     }
 
-    auto desc = detail::description_or_name_or_empty(md);
+    auto desc = detail::description_or_name_or_empty<T, ReflectorT>();
 
     constexpr std::size_t N = std::tuple_size_v<std::decay_t<decltype(values)>>;
     return enum_metadata<T, N>{ desc, values, value_names };
 }
 
-template <typename T, typename MetadataC>
+template <typename T, typename ReflectorT>
 struct static_enum_metadata
 {
-    static constexpr inline auto value = detail::make_enum_metadata<T>(MetadataC{ }());
+    static constexpr inline auto value = detail::make_enum_metadata<T, ReflectorT>();
 };
 
 template <typename T, std::size_t N>
@@ -207,14 +207,14 @@ struct flags_metadata : enum_metadata<T, N>
     std::size_t num_individual_names_;
 };
 
-template <typename T, typename MetadataT>
+template <typename T, typename ReflectorT>
 constexpr auto
-make_flags_metadata(MetadataT const& md)
+make_flags_metadata()
 {
     using UU = std::make_unsigned_t<std::underlying_type_t<T>>;
 
-    auto const& values = metadata::values<T>(md);
-    auto const& value_names = metadata::value_names<T>(md);
+    auto const& values = metadata::values<T, ReflectorT>();
+    auto const& value_names = metadata::value_names<T, ReflectorT>();
     gsl_Expects(metadata::is_available(values) && metadata::is_available(value_names));
 
     for (std::string_view name : value_names)
@@ -261,15 +261,15 @@ make_flags_metadata(MetadataT const& md)
         }
     }
 
-    auto desc = detail::description_or_name_or_empty(md);
+    auto desc = detail::description_or_name_or_empty<T, ReflectorT>();
 
     return flags_metadata<T, N>{ { desc, flags, names }, allDefinedFlags, noneName, numIndividualNames };
 }
 
-template <typename T, typename MetadataC>
+template <typename T, typename ReflectorT>
 struct static_flags_metadata
 {
-    static constexpr inline auto value = detail::make_flags_metadata<T>(MetadataC{ }());
+    static constexpr inline auto value = detail::make_flags_metadata<T, ReflectorT>();
 };
 
 template <typename T, std::size_t N>
