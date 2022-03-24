@@ -50,7 +50,7 @@ public:
 template <typename It, typename EndIt>
 range(It, EndIt) -> range<It, std::enable_if_t<!std::is_convertible<EndIt, std::size_t>::value, EndIt>, -1>;
 template <typename It, typename ExtentC>
-range(It, ExtentC) -> range<It, std::enable_if_t<!std::is_convertible<ExtentC, std::size_t>::value, It>, detail::range_extent_from_constval(ExtentC{ })>;
+range(It, ExtentC) -> range<It, std::enable_if_t<std::is_convertible<ExtentC, std::size_t>::value, It>, detail::range_extent_from_constval(ExtentC{ })>;
 #endif // gsl_CPP17_OR_GREATER
 
     //

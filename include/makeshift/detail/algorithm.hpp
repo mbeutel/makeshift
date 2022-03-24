@@ -134,7 +134,7 @@ public:
     }
 
         // LegacyIterator: dereference, increment
-    MAKESHIFT_DETAIL_FORCEINLINE gsl_NODISCARD constexpr reference operator *(void)
+    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE constexpr reference operator *(void)
     {
         return reference{ detail::get_leaf<Is>(*this)._deref(i_)... };
     }
@@ -153,27 +153,27 @@ public:
     }
 
         // LegacyInputIterator: equality compare
-    MAKESHIFT_DETAIL_FORCEINLINE gsl_NODISCARD friend constexpr bool operator ==(DerivedT const& lhs, DerivedT const& rhs) noexcept
+    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE friend constexpr bool operator ==(DerivedT const& lhs, DerivedT const& rhs) noexcept
     {
         return lhs.i_ == rhs.i_;
     }
-    MAKESHIFT_DETAIL_FORCEINLINE gsl_NODISCARD friend constexpr bool operator !=(DerivedT const& lhs, DerivedT const& rhs) noexcept
+    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE friend constexpr bool operator !=(DerivedT const& lhs, DerivedT const& rhs) noexcept
     {
         return !(lhs == rhs);
     }
-    MAKESHIFT_DETAIL_FORCEINLINE gsl_NODISCARD friend constexpr bool operator ==(DerivedT const& it, zip_iterator_sentinel<N> sentinel)
+    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE friend constexpr bool operator ==(DerivedT const& it, zip_iterator_sentinel<N> sentinel)
     {
         return sentinel._is_end(it);
     }
-    MAKESHIFT_DETAIL_FORCEINLINE gsl_NODISCARD friend constexpr bool operator ==(zip_iterator_sentinel<N> sentinel, DerivedT const& it)
+    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE friend constexpr bool operator ==(zip_iterator_sentinel<N> sentinel, DerivedT const& it)
     {
         return it == sentinel;
     }
-    MAKESHIFT_DETAIL_FORCEINLINE gsl_NODISCARD friend constexpr bool operator !=(DerivedT const& it, zip_iterator_sentinel<N> sentinel)
+    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE friend constexpr bool operator !=(DerivedT const& it, zip_iterator_sentinel<N> sentinel)
     {
         return !(it == sentinel);
     }
-    MAKESHIFT_DETAIL_FORCEINLINE gsl_NODISCARD friend constexpr bool operator !=(zip_iterator_sentinel<N> sentinel, DerivedT const& it)
+    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE friend constexpr bool operator !=(zip_iterator_sentinel<N> sentinel, DerivedT const& it)
     {
         return !(it == sentinel);
     }
@@ -194,7 +194,7 @@ public:
     }
 
         // RandomAccessIterator: subscript, arithmetic, ordering compare
-    MAKESHIFT_DETAIL_FORCEINLINE gsl_NODISCARD constexpr reference operator [](std::ptrdiff_t d)
+    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE constexpr reference operator [](std::ptrdiff_t d)
     {
         return reference{ detail::get_leaf<Is>(*this)._deref(i_, d)... };
     }
@@ -209,38 +209,38 @@ public:
     {
         return *this += -d;
     }
-    MAKESHIFT_DETAIL_FORCEINLINE gsl_NODISCARD friend constexpr DerivedT operator +(DerivedT it, std::ptrdiff_t d)
+    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE friend constexpr DerivedT operator +(DerivedT it, std::ptrdiff_t d)
     {
         it += d;
         return it;
     }
-    MAKESHIFT_DETAIL_FORCEINLINE gsl_NODISCARD friend constexpr DerivedT operator +(std::ptrdiff_t d, DerivedT it)
+    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE friend constexpr DerivedT operator +(std::ptrdiff_t d, DerivedT it)
     {
         it += d;
         return it;
     }
-    MAKESHIFT_DETAIL_FORCEINLINE gsl_NODISCARD friend constexpr DerivedT operator -(DerivedT it, std::ptrdiff_t d)
+    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE friend constexpr DerivedT operator -(DerivedT it, std::ptrdiff_t d)
     {
         it -= d;
         return it;
     }
-    MAKESHIFT_DETAIL_FORCEINLINE gsl_NODISCARD friend constexpr std::ptrdiff_t operator -(DerivedT const& lhs, DerivedT const& rhs)
+    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE friend constexpr std::ptrdiff_t operator -(DerivedT const& lhs, DerivedT const& rhs)
     {
         return lhs.i_ - rhs.i_;
     }
-    MAKESHIFT_DETAIL_FORCEINLINE gsl_NODISCARD friend constexpr bool operator <(DerivedT const& lhs, DerivedT const& rhs) noexcept
+    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE friend constexpr bool operator <(DerivedT const& lhs, DerivedT const& rhs) noexcept
     {
         return lhs.i_ < rhs.i_;
     }
-    MAKESHIFT_DETAIL_FORCEINLINE gsl_NODISCARD friend constexpr bool operator <=(DerivedT const& lhs, DerivedT const& rhs) noexcept
+    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE friend constexpr bool operator <=(DerivedT const& lhs, DerivedT const& rhs) noexcept
     {
         return !(rhs < lhs);
     }
-    MAKESHIFT_DETAIL_FORCEINLINE gsl_NODISCARD friend constexpr bool operator >(DerivedT const& lhs, DerivedT const& rhs) noexcept
+    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE friend constexpr bool operator >(DerivedT const& lhs, DerivedT const& rhs) noexcept
     {
         return rhs < lhs;
     }
-    MAKESHIFT_DETAIL_FORCEINLINE gsl_NODISCARD friend constexpr bool operator >=(DerivedT const& lhs, DerivedT const& rhs) noexcept
+    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE friend constexpr bool operator >=(DerivedT const& lhs, DerivedT const& rhs) noexcept
     {
         return !(lhs < rhs);
     }
@@ -296,17 +296,17 @@ protected:
     }
 
 public:
-    MAKESHIFT_DETAIL_FORCEINLINE gsl_NODISCARD constexpr std::size_t
+    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE constexpr std::size_t
     size(void) const noexcept
     {
         return n_;
     }
-    MAKESHIFT_DETAIL_FORCEINLINE gsl_NODISCARD constexpr bool
+    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE constexpr bool
     empty(void) const noexcept
     {
         return n_ == 0;
     }
-    MAKESHIFT_DETAIL_FORCEINLINE gsl_NODISCARD constexpr zip_iterator_sentinel<gsl::dim>
+    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE constexpr zip_iterator_sentinel<gsl::dim>
     end(void) const noexcept
     {
         return zip_iterator_sentinel<gsl::dim>(n_);
@@ -325,17 +325,17 @@ protected:
     }
 
 public:
-    MAKESHIFT_DETAIL_FORCEINLINE gsl_NODISCARD static constexpr std::size_t
+    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE static constexpr std::size_t
     size(void) noexcept
     {
         return N;
     }
-    MAKESHIFT_DETAIL_FORCEINLINE gsl_NODISCARD static constexpr bool
+    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE static constexpr bool
     empty(void) noexcept
     {
         return N == 0;
     }
-    MAKESHIFT_DETAIL_FORCEINLINE gsl_NODISCARD constexpr zip_iterator_sentinel<dim_constant<N>>
+    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE constexpr zip_iterator_sentinel<dim_constant<N>>
     end(void) const noexcept
     {
         return zip_iterator_sentinel<dim_constant<N>>({ });
@@ -354,7 +354,7 @@ protected:
     }
 
 public:
-    MAKESHIFT_DETAIL_FORCEINLINE gsl_NODISCARD constexpr zip_iterator_sentinel<dim_constant<unknown_size>>
+    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE constexpr zip_iterator_sentinel<dim_constant<unknown_size>>
     end(void) const noexcept
     {
         return zip_iterator_sentinel<dim_constant<unknown_size>>({ });
