@@ -6,12 +6,11 @@
 
 cmake_minimum_required(VERSION 3.14)
 
-find_package(CMakeshift 3.8 REQUIRED)
-find_package(gsl-lite 0.37 REQUIRED)
+find_package(gsl-lite 0.40 REQUIRED)
 
 add_library(makeshift INTERFACE)
 
-target_compile_features(makeshift INTERFACE cxx_std_14)
+target_compile_features(makeshift INTERFACE cxx_std_17)
 
 target_include_directories(makeshift
     INTERFACE

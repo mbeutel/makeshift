@@ -7,16 +7,15 @@
 cmake_minimum_required(VERSION 3.14)
 
 # dependencies
-find_package(CMakeshift 3.8 REQUIRED)
 find_package(mpark_variant REQUIRED)
 
-include(CMakeshift/TargetCompileSettings)
+include(TargetCompileSettings)
 
 # CUDA tests
 add_executable(test-makeshift-cuda14)
 target_compile_features(test-makeshift-cuda14 PRIVATE cxx_std_14)
 set_target_properties(test-makeshift-cuda14 PROPERTIES CUDA_STANDARD 14)
-cmakeshift_target_compile_settings(test-makeshift-cuda14 PRIVATE default)
+cmakeshift_target_compile_settings(test-makeshift-cuda14 SOURCE_FILE_ENCODING "UTF-8")
 target_link_libraries(test-makeshift-cuda14
     PRIVATE
         test-makeshift-runner
