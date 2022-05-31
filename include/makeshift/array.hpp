@@ -205,6 +205,45 @@ array_fill(T const& value)
 
 
     //
+    // Returns an array of size `N` filled with the given value.
+    //ᅟ
+    //ᅟ    auto indices = array_iota<3>(1);
+    //ᅟ    // returns std::array{ 1, 2, 3 }
+    //
+template <std::size_t N, typename T>
+gsl_NODISCARD gsl_constexpr17 std::array<T, N>
+array_iota(T value = { })
+{
+    auto result = std::array<T, N>{ };
+    for (std::size_t i = 0; i != N; ++i)
+    {
+        result[i] = value;
+        ++value;
+    }
+    return result;
+}
+
+    //
+    // Returns an array of size `N` filled with the given value.
+    //ᅟ
+    //ᅟ    auto indices = array_fill<3, MyArray>(1);
+    //ᅟ    // returns MyArray<int, 3>{ 1, 1, 1 }
+    //
+template <template <typename, std::size_t> class ArrayT, std::size_t N, typename T>
+gsl_NODISCARD constexpr auto
+array_iota(T const& value)
+{
+    auto result = ArrayT<T, N>{ };
+    for (std::size_t i = 0; i != N; ++i)
+    {
+        result[i] = value;
+        ++value;
+    }
+    return result;
+}
+
+
+    //
     // Takes a list of tuples and returns an array of concatenated elements.
     //ᅟ
     //ᅟ    auto numbers = std::tuple{ 2, 3 };

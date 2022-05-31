@@ -6,7 +6,7 @@
 #include <array>
 #include <tuple>
 #include <cstddef>     // for size_t, ptrdiff_t
-#include <utility>     // for forward<>(), get<>(), integer_sequence<>
+#include <utility>     // for forward<>(), get<>()
 #include <type_traits> // for integral_constant<>, declval<>(), is_base_of<>, is_integral<>, is_enum<>, is_member_pointer<>, is_null_pointer<>, is_empty<>, is_default_constructible<>, common_type<>, make_signed<>
 
 #include <gsl-lite/gsl-lite.hpp> // for conjunction<>, gsl_CPP17_OR_GREATER, gsl_NODISCARD
