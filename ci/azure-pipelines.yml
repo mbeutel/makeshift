@@ -16,7 +16,9 @@ resources:
 jobs:
 - template: azure-pipelines/cmake.yml@CImakeshift
   parameters:
-    vcpkgRef: f78f4440df86358575dea65e748a39fdad41eb85
+    # Use Vcpkg fork for the stopgap fix to make Catch2 v3 work in C++17 mode
+    vcpkgRepo: https://github.com/mbeutel/vcpkg.git
+    vcpkgRef: c4e7faa6fe58f6cd921d96fb7699f560866e6709
 
     cmakeConfigArgs: '-DBUILD_TESTING=ON'
     cmakeTestArgs: '--exclude-regex "cuda"' # do not run CUDA tests
