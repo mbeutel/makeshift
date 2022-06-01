@@ -9,6 +9,8 @@
 #include <makeshift/tuple.hpp>
 #include <makeshift/metadata.hpp>
 
+#include <catch2/catch_test_macros.hpp>
+
 
 namespace {
 

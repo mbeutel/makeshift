@@ -1,11 +1,10 @@
 {
     "name": "makeshift",
-    "version-string": "3.0.0",
+    "version-string": "4.0.0",
     "description": "still need to come up with something",
     "homepage": "https://github.com/mbeutel/makeshift",
     "license": " BSL-1.0",
     "dependencies": [
-        "mpark-variant",
         "catch2",
         "gsl-lite"
     ]

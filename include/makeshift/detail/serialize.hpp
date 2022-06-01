@@ -3,11 +3,7 @@
 #define INCLUDED_MAKESHIFT_DETAIL_SERIALIZE_HPP_
 
 
-#include <gsl-lite/gsl-lite.hpp>  // for gsl_CPP17_OR_GREATER, gsl_Assert(), gsl_FailFast()
-
-#if !gsl_CPP17_OR_GREATER
-# error Header <makeshift/iomanip.hpp> requires C++17 mode or higher.
-#endif // !gsl_CPP17_OR_GREATER
+#include <gsl-lite/gsl-lite.hpp>  // for gsl_Expects(), gsl_Assert(), gsl_FailFast()
 
 #include <array>
 #include <string>

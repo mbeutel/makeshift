@@ -3,12 +3,16 @@
 #define INCLUDED_MAKESHIFT_CONSTVAL_HPP_
 
 
-#include <utility>     // for tuple_size<>, tuple_element<>, integer_sequence<>
-#include <type_traits> // for is_empty<>
+#include <utility>      // for tuple_size<>, tuple_element<>, integer_sequence<>
+#include <type_traits>  // for is_empty<>, conjunction<>
 
-#include <gsl-lite/gsl-lite.hpp> // for type_identity<>, gsl_Expects(), gsl_CPP17_OR_GREATER, gsl_NODISCARD
+#include <gsl-lite/gsl-lite.hpp>  // for type_identity<>, index, dim, stride, diff, gsl_CPP17_OR_GREATER
 
-#include <makeshift/type_traits.hpp> // for can_instantiate<>
+#if !gsl_CPP17_OR_GREATER
+# error makeshift requires C++17 mode or higher
+#endif // !gsl_CPP17_OR_GREATER
+
+#include <makeshift/type_traits.hpp>  // for can_instantiate<>
 
 #include <makeshift/detail/constval.hpp>
 
@@ -152,7 +156,6 @@ constexpr constant<T, V>
 c{ };
 
 
-#if gsl_CPP17_OR_GREATER
     //
     // Constval type that represents the given object.
     //ᅟ
@@ -190,7 +193,14 @@ using ref_constant = constant<decltype(Ref), Ref>;
 template <auto const& Ref>
 constexpr ref_constant<Ref>
 ref_c{ };
-#endif // gsl_CPP17_OR_GREATER
+
+
+    //
+    // Use `type_identity_c<T>` as a value representation of `T` for tag dispatching.
+    //
+template <typename T>
+constexpr gsl::type_identity<T>
+type_identity_c{ };
 
 
     //
@@ -213,11 +223,11 @@ constval_extract(const C& value)
     //ᅟ    auto indexR = constval_transform(std::plus<>, baseIndexR, offsetR); // returns `std::integral_constant<int, 45>{ }`
     //
 template <typename F, typename... Cs>
-gsl_NODISCARD constexpr auto
+[[nodiscard]] constexpr auto
 constval_transform(const F&, const Cs&... args)
 {
     static_assert(std::is_empty<F>::value, "transformer must be stateless");
-    return detail::constval_transform_impl<F>(gsl::conjunction<is_constval<Cs>...>{ }, args...);
+    return detail::constval_transform_impl<F>(std::conjunction<is_constval<Cs>...>{ }, args...);
 }
 
 
@@ -236,11 +246,11 @@ constval_transform(const F&, const Cs&... args)
     //ᅟ    // equivalent to `MAKESHIFT_CONSTVAL(42)`
     //
 template <typename CF, typename... Cs>
-gsl_NODISCARD constexpr auto
+[[nodiscard]] constexpr auto
 constval_extend(const CF&, const Cs&... args)
 {
     static_assert(std::is_empty<CF>::value, "extender must be stateless");
-    return detail::constval_extend_impl<CF>(gsl::conjunction<is_constval<Cs>...>{ }, args...);
+    return detail::constval_extend_impl<CF>(std::conjunction<is_constval<Cs>...>{ }, args...);
 }
 
 
@@ -260,12 +270,12 @@ struct array_constant : detail::constval_tag
     {
     }
 
-    gsl_NODISCARD constexpr value_type
+    [[nodiscard]] constexpr value_type
     operator ()(void) const noexcept
     {
         return value;
     }
-    gsl_NODISCARD constexpr
+    [[nodiscard]] constexpr
     operator value_type(void) const noexcept
     {
         return value;
@@ -283,12 +293,12 @@ struct array_constant<T> : detail::constval_tag
 
     constexpr array_constant(void) noexcept = default;
 
-    gsl_NODISCARD constexpr
+    [[nodiscard]] constexpr
     value_type operator ()(void) const noexcept
     {
         return value;
     }
-    gsl_NODISCARD constexpr
+    [[nodiscard]] constexpr
     operator value_type(void) const noexcept
     {
         return value;
@@ -296,14 +306,12 @@ struct array_constant<T> : detail::constval_tag
 };
 template <typename T>
 constexpr typename array_constant<T>::value_type array_constant<T>::value;
-#if gsl_CPP17_OR_GREATER
 template <typename... Cs>
 array_constant(Cs...) -> array_constant<typename detail::array_constant_element_type_<typename detail::equal_types_<typename Cs::value_type...>::common_type>::type, Cs::value...>;
-#endif // gsl_CPP17_OR_GREATER
 
     // Implement tuple-like protocol for `array_constant<>`.
 template <std::size_t I, typename T, gsl::type_identity_t<T>... Vs>
-gsl_NODISCARD constexpr
+[[nodiscard]] constexpr
 constval_t<detail::array_accessor_functor<I, array_constant<T, Vs...>>>
 get(array_constant<T, Vs...>) noexcept
 {
@@ -320,7 +328,7 @@ template <typename T, T... Vs> constexpr array_constant<T, Vs...> array_c{ };
     // Constructs a constval of type `std::array<>` from a sequence of homogeneously typed constvals.
     //
 template <typename... Cs>
-gsl_NODISCARD constexpr array_constant<typename detail::array_constant_element_type_<typename detail::equal_types_<typename Cs::value_type...>::common_type>::type, Cs::value...>
+[[nodiscard]] constexpr array_constant<typename detail::array_constant_element_type_<typename detail::equal_types_<typename Cs::value_type...>::common_type>::type, Cs::value...>
 make_array_constant(Cs...) noexcept
 {
     return { };
@@ -333,7 +341,7 @@ make_array_constant(Cs...) noexcept
 template <typename... Cs>
 struct tuple_constant : detail::constval_tag
 {
-    static_assert(gsl::conjunction_v<is_constval<Cs>...>, "arguments must be constval types");
+    static_assert(std::conjunction_v<is_constval<Cs>...>, "arguments must be constval types");
 
     using value_type = std::tuple<typename Cs::value_type...>;
 
@@ -345,12 +353,12 @@ struct tuple_constant : detail::constval_tag
     {
     }
 
-    gsl_NODISCARD constexpr value_type
+    [[nodiscard]] constexpr value_type
     operator ()(void) const noexcept
     {
         return value;
     }
-    gsl_NODISCARD constexpr
+    [[nodiscard]] constexpr
     operator value_type(void) const noexcept
     {
         return value;
@@ -358,14 +366,12 @@ struct tuple_constant : detail::constval_tag
 };
 template <typename... Cs>
 constexpr typename tuple_constant<Cs...>::value_type tuple_constant<Cs...>::value;
-#if gsl_CPP17_OR_GREATER
 template <typename... Cs>
 tuple_constant(Cs...) -> tuple_constant<Cs...>;
-#endif // gsl_CPP17_OR_GREATER
 
     // Implement tuple-like protocol for `tuple_constant<>`.
 template <std::size_t I, typename... Cs>
-gsl_NODISCARD constexpr
+[[nodiscard]] constexpr
 constval_t<detail::tuple_accessor_functor<I, tuple_constant<Cs...>>>
 get(tuple_constant<Cs...>) noexcept
 {
@@ -384,10 +390,10 @@ tuple_c{ };
     // Constructs a constval of type `std::tuple<>` from a sequence of constvals.
     //
 template <typename... Cs>
-gsl_NODISCARD constexpr tuple_constant<Cs...>
+[[nodiscard]] constexpr tuple_constant<Cs...>
 make_tuple_constant(Cs...) noexcept
 {
-    static_assert(gsl::conjunction_v<is_constval<Cs>...>, "arguments must be constval types");
+    static_assert(std::conjunction_v<is_constval<Cs>...>, "arguments must be constval types");
     return { };
 }
 
@@ -396,7 +402,7 @@ make_tuple_constant(Cs...) noexcept
     // Returns the size of an array, range, tuple-like, or container as constval if known at compile time, or as value otherwise.
     //
 template <typename ContainerT>
-gsl_NODISCARD constexpr auto
+[[nodiscard]] constexpr auto
 csize(ContainerT const& c)
 {
     return detail::csize_impl(detail::can_instantiate_<detail::is_tuple_like_r, void, ContainerT>{ }, c);
@@ -406,7 +412,7 @@ csize(ContainerT const& c)
     // Returns the size of an array, range, tuple-like, or container as constval if known at compile time, or as value otherwise.
     //
 template <typename T, std::size_t N>
-gsl_NODISCARD constexpr std::integral_constant<std::size_t, N>
+[[nodiscard]] constexpr std::integral_constant<std::size_t, N>
 csize(T const (&)[N]) noexcept
 {
     return { };
@@ -417,7 +423,7 @@ csize(T const (&)[N]) noexcept
     // Returns the signed size of an array, range, tuple-like, or container as constval if known at compile time, or as value otherwise.
     //
 template <typename ContainerT>
-gsl_NODISCARD constexpr auto
+[[nodiscard]] constexpr auto
 cssize(ContainerT const& c)
 {
     return detail::cssize_impl(detail::can_instantiate_<detail::is_tuple_like_r, void, ContainerT>{ }, c);
@@ -427,7 +433,7 @@ cssize(ContainerT const& c)
     // Returns the signed size of an array, range, tuple-like, or container as a constval if known at compile time, or as value otherwise.
     //
 template <typename T, std::size_t N>
-gsl_NODISCARD constexpr std::integral_constant<std::ptrdiff_t, N>
+[[nodiscard]] constexpr std::integral_constant<std::ptrdiff_t, N>
 cssize(T const (&)[N]) noexcept
 {
     return { };
@@ -437,19 +443,13 @@ cssize(T const (&)[N]) noexcept
 } // namespace makeshift
 
 
-namespace std {
-
-
     // Implement tuple-like protocol for `array_constant<>`.
-template <typename T, gsl_lite::type_identity_t<T>... Vs> class tuple_size<makeshift::array_constant<T, Vs...>> : public std::integral_constant<std::size_t, sizeof...(Vs)> { };
-template <std::size_t I, typename T, gsl_lite::type_identity_t<T>... Vs> class tuple_element<I, makeshift::array_constant<T, Vs...>> { public: using type = makeshift::constval_t<makeshift::detail::array_accessor_functor<I, makeshift::array_constant<T, Vs...>>>; };
+template <typename T, gsl_lite::type_identity_t<T>... Vs> class std::tuple_size<makeshift::array_constant<T, Vs...>> : public std::integral_constant<std::size_t, sizeof...(Vs)> { };
+template <std::size_t I, typename T, gsl_lite::type_identity_t<T>... Vs> class std::tuple_element<I, makeshift::array_constant<T, Vs...>> { public: using type = makeshift::constval_t<makeshift::detail::array_accessor_functor<I, makeshift::array_constant<T, Vs...>>>; };
 
     // Implement tuple-like protocol for `tuple_constant<>`.
-template <typename... Cs> class tuple_size<makeshift::tuple_constant<Cs...>> : public std::integral_constant<std::size_t, sizeof...(Cs)> { };
-template <std::size_t I, typename... Cs> class tuple_element<I, makeshift::tuple_constant<Cs...>> { public: using type = makeshift::constval_t<makeshift::detail::tuple_accessor_functor<I, makeshift::tuple_constant<Cs...>>>; };
-
-
-} // namespace std
+template <typename... Cs> class std::tuple_size<makeshift::tuple_constant<Cs...>> : public std::integral_constant<std::size_t, sizeof...(Cs)> { };
+template <std::size_t I, typename... Cs> class std::tuple_element<I, makeshift::tuple_constant<Cs...>> { public: using type = makeshift::constval_t<makeshift::detail::tuple_accessor_functor<I, makeshift::tuple_constant<Cs...>>>; };
 
 
 #endif // INCLUDED_MAKESHIFT_CONSTVAL_HPP_

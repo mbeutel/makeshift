@@ -3,14 +3,14 @@
 #define INCLUDED_MAKESHIFT_STRING_HPP_
 
 
+#include <string>
+#include <string_view>
+
 #include <gsl-lite/gsl-lite.hpp>  // for gsl_CPP17_OR_GREATER
 
 #if !gsl_CPP17_OR_GREATER
-# error Header <makeshift/string.hpp> requires C++17 mode or higher.
+# error makeshift requires C++17 mode or higher
 #endif // !gsl_CPP17_OR_GREATER
-
-#include <string>
-#include <string_view>
 
 #include <makeshift/metadata.hpp>
 
@@ -18,6 +18,8 @@
 
 
 namespace makeshift {
+
+namespace gsl = ::gsl_lite;
 
 
 template <typename T, typename ReflectorT = reflector>

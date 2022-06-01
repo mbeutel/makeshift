@@ -5,6 +5,8 @@
 
 #include <gsl-lite/gsl-lite.hpp>
 
+#include <catch2/catch_test_macros.hpp>
+
 
 namespace {
 

@@ -1,17 +1,21 @@
 
-#ifndef INCLUDED_MAKESHIFT_SPAN_HPP_
-#define INCLUDED_MAKESHIFT_SPAN_HPP_
+#ifndef INCLUDED_MAKESHIFT_EXPERIMENTAL_SPAN_HPP_
+#define INCLUDED_MAKESHIFT_EXPERIMENTAL_SPAN_HPP_
 
 
 #include <tuple>
-#include <cstddef>     // for size_t, ptrdiff_t
-#include <type_traits> // for remove_cv<>
+#include <cstddef>      // for size_t, ptrdiff_t
+#include <type_traits>  // for remove_cv<>
 
-#include <gsl-lite/gsl-lite.hpp> // for span<>, gsl_Expects()
+#include <gsl-lite/gsl-lite.hpp>  // for span<>, gsl_Expects(), gsl_CPP17_OR_GREATER
 
-#include <makeshift/type_traits.hpp> // for nth_type<>
+#if !gsl_CPP17_OR_GREATER
+# error makeshift requires C++17 mode or higher
+#endif // !gsl_CPP17_OR_GREATER
 
-#include <makeshift/detail/span.hpp>
+#include <makeshift/type_traits.hpp>  // for nth_type<>
+
+#include <makeshift/experimental/detail/span.hpp>
 
 
 namespace makeshift {
@@ -56,53 +60,53 @@ public:
     {
     }
 
-    gsl_NODISCARD constexpr std::size_t
+    [[nodiscard]] constexpr std::size_t
     size(void) const noexcept
     {
         return std::size_t(size_);
     }
-    gsl_NODISCARD constexpr bool
+    [[nodiscard]] constexpr bool
     empty(void) const noexcept
     {
         return size_ != 0;
     }
 
-    gsl_NODISCARD constexpr iterator
+    [[nodiscard]] constexpr iterator
     begin(void) const noexcept
     {
         return { &data_, 0 };
     }
-    gsl_NODISCARD constexpr iterator
+    [[nodiscard]] constexpr iterator
     end(void) const noexcept
     {
         return { &data_, difference_type(size_) };
     }
-    gsl_NODISCARD constexpr const_iterator
+    [[nodiscard]] constexpr const_iterator
     cbegin(void) const noexcept
     {
         return { &data_, 0 };
     }
-    gsl_NODISCARD constexpr const_iterator
+    [[nodiscard]] constexpr const_iterator
     cend(void) const noexcept
     {
         return { &data_, difference_type(size_) };
     }
 
-    gsl_NODISCARD constexpr reference
+    [[nodiscard]] constexpr reference
     operator [](std::size_t i) const
     {
         gsl_Expects(i < size_);
 
         return { data_, std::ptrdiff_t(i) };
     }
-    gsl_NODISCARD constexpr reference
+    [[nodiscard]] constexpr reference
     front(void) const
     {
         gsl_Expects(!empty());
         
         return { data_, 0 };
     }
-    gsl_NODISCARD constexpr reference
+    [[nodiscard]] constexpr reference
     back(void) const
     {
         gsl_Expects(!empty());
@@ -110,7 +114,7 @@ public:
         return { data_, difference_type(size_ - 1) };
     }
 
-    gsl_NODISCARD constexpr soa_span<Ts...>
+    [[nodiscard]] constexpr soa_span<Ts...>
     subspan(std::size_t offset, std::size_t count = std::size_t(-1)) const
     {
         gsl_Expects(offset <= size() && (count == std::size_t(-1) || count <= size() - offset));
@@ -129,12 +133,12 @@ public:
             newSize
         };
     }
-    gsl_NODISCARD constexpr soa_span<Ts...>
+    [[nodiscard]] constexpr soa_span<Ts...>
     first(std::size_t count) const
     {
         return subspan(0, count);
     }
-    gsl_NODISCARD constexpr soa_span<Ts...>
+    [[nodiscard]] constexpr soa_span<Ts...>
     last(std::size_t count) const
     {
         gsl_Expects(count <= size());
@@ -144,7 +148,7 @@ public:
 
         // Implement tuple-like interface for `soa_span<>`.
     template <std::size_t I>
-    gsl_NODISCARD friend constexpr gsl::span<nth_type_t<I, Ts...>>
+    [[nodiscard]] friend constexpr gsl::span<nth_type_t<I, Ts...>>
     get(soa_span const& self) noexcept
     {
         return { std::get<I>(self.data_), self.size_ };
@@ -166,7 +170,7 @@ soa_span(gsl::span<Ts>...) -> soa_span<Ts...>;
     //ᅟ    auto [i, j, v] = A[k];
     //
 template <typename... Ts>
-gsl_NODISCARD constexpr soa_span<Ts...>
+[[nodiscard]] constexpr soa_span<Ts...>
 make_soa_span(gsl::span<Ts>... spans)
 {
     return soa_span<Ts...>(spans...);
@@ -176,4 +180,4 @@ make_soa_span(gsl::span<Ts>... spans)
 } // namespace makeshift
 
 
-#endif // INCLUDED_MAKESHIFT_SPAN_HPP_
+#endif // INCLUDED_MAKESHIFT_EXPERIMENTAL_SPAN_HPP_

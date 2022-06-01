@@ -3,25 +3,17 @@
 #define INCLUDED_MAKESHIFT_DETAIL_TUPLE_TRANSFORM_HPP_
 
 
-#include <gsl-lite/gsl-lite.hpp> // for conjunction<>, disjunction<>, gsl_CPP17_OR_GREATER
+#include <cstddef>      // for size_t, ptrdiff_t
+#include <utility>      // for forward<>(), integer_sequence<>, tuple_size<>, get<>()
+#include <type_traits>  // for decay<>, integral_constant<>, conjunction<>, disjunction<>
 
-#if !gsl_CPP17_OR_GREATER
-# include <tuple>      // for tuple_size<>
-#endif // !gsl_CPP17_OR_GREATER
+#include <makeshift/type_traits.hpp>  // for can_instantiate<>, is_tuple_like<>
 
-#include <cstddef>     // for size_t, ptrdiff_t
-#include <utility>     // for forward<>(), integer_sequence<>, tuple_size<>, get<>()
-#include <type_traits> // for decay<>, integral_constant<>
-
-#include <makeshift/type_traits.hpp>        // for can_instantiate<>, is_tuple_like<>
-
-#include <makeshift/detail/macros.hpp>      // for MAKESHIFT_DETAIL_FORCEINLINE
-#include <makeshift/detail/zip.hpp>         // for range_index_t, tuple_index_t
+#include <makeshift/detail/macros.hpp>  // for MAKESHIFT_DETAIL_FORCEINLINE
+#include <makeshift/detail/zip.hpp>     // for range_index_t, tuple_index_t
 
 
 namespace makeshift {
-
-namespace gsl = ::gsl_lite;
 
 namespace detail {
 
@@ -46,7 +38,7 @@ template <> struct is_tuple_arg_0<tuple_index_t> : std::true_type { };
 template <typename T> using is_tuple_arg = is_tuple_arg_0<std::decay_t<T>>;
 template <typename T> constexpr bool is_tuple_arg_v = is_tuple_arg<T>::value;
 
-template <typename... Ts> struct are_tuple_args : gsl::conjunction<is_tuple_arg<Ts>...> { };
+template <typename... Ts> struct are_tuple_args : std::conjunction<is_tuple_arg<Ts>...> { };
 template <typename... Ts> constexpr bool are_tuple_args_v = are_tuple_args<Ts...>::value;
 
 template <typename T> struct maybe_tuple_size_ : std::integral_constant<std::ptrdiff_t, std::tuple_size<T>::value> { };

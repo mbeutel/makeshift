@@ -3,11 +3,15 @@
 #define INCLUDED_MAKESHIFT_FUNCTIONAL_HPP_
 
 
-#include <utility> // for move(), forward<>()
+#include <utility>  // for move(), forward<>()
 
-#include <gsl-lite/gsl-lite.hpp> // for gsl_CPP17_OR_GREATER
+#include <gsl-lite/gsl-lite.hpp>  // for gsl_CPP17_OR_GREATER
 
-#include <makeshift/detail/macros.hpp>     // for MAKESHIFT_DETAIL_CXXLEVEL, MAKESHIFT_DETAIL_EMPTY_BASES
+#if !gsl_CPP17_OR_GREATER
+# error makeshift requires C++17 mode or higher
+#endif // !gsl_CPP17_OR_GREATER
+
+#include <makeshift/detail/macros.hpp>      // for MAKESHIFT_DETAIL_EMPTY_BASES
 #include <makeshift/detail/functional.hpp>
 
 
@@ -16,7 +20,6 @@ namespace makeshift {
 namespace gsl = ::gsl_lite;
 
 
-#if gsl_CPP17_OR_GREATER
     //
     // Constructs a functor wrapper that selects the matching overload among a number of given functors.
     //ᅟ
@@ -32,7 +35,6 @@ struct MAKESHIFT_DETAIL_EMPTY_BASES overload : Fs...
 };
 template <typename... Ts>
 overload(Ts...) -> overload<Ts...>;
-#endif // gsl_CPP17_OR_GREATER
 
 
     //
@@ -70,10 +72,8 @@ public:
         return func_(detail::y_combinator_func_ref<F const&>{ func_ }, std::forward<ArgsT>(args)...);
     }
 };
-#if gsl_CPP17_OR_GREATER
 template <typename F>
 y_combinator(F) -> y_combinator<F>;
-#endif // gsl_CPP17_OR_GREATER
 
     //
     // Higher-order function for defining recursive lambda functions.

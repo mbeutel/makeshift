@@ -3,19 +3,19 @@
 #define INCLUDED_MAKESHIFT_TUPLE_HPP_
 
 
-#include <gsl-lite/gsl-lite.hpp>  // for gsl_NODISCARD, gsl_CPP17_OR_GREATER
+#include <array>
+#include <tuple>        // for tuple<>, tuple_cat()
+#include <cstddef>      // for size_t, ptrdiff_t
+#include <utility>      // for forward<>(), index_sequence_for<>
+#include <type_traits>  // for decay<>
+
+#include <gsl-lite/gsl-lite.hpp>  // for identity, gsl_constexpr20, gsl_CPP17_OR_GREATER
 
 #if !gsl_CPP17_OR_GREATER
-# error Header <makeshift/tuple.hpp> requires C++17 mode or higher.
+# error makeshift requires C++17 mode or higher
 #endif // !gsl_CPP17_OR_GREATER
 
-#include <array>
-#include <tuple>       // for tuple<>, tuple_cat()
-#include <cstddef>     // for size_t, ptrdiff_t
-#include <utility>     // for forward<>(), index_sequence_for<>
-#include <type_traits> // for decay<>
-
-#include <makeshift/type_traits.hpp> // for can_instantiate<>, static_const<>, is_tuple_like<>, nth_type<>
+#include <makeshift/type_traits.hpp>  // for can_instantiate<>, static_const<>, is_tuple_like<>, nth_type<>
 
 #include <makeshift/metadata.hpp>  // for metadata_v<>, members()
 
@@ -117,7 +117,7 @@ template_for(F&& func, Ts&&... args)
     //ᅟ    // returns std::tuple{ 4, 9.0f }
     //
 template <typename F, typename... Ts>
-gsl_NODISCARD constexpr MAKESHIFT_DETAIL_FORCEINLINE auto
+[[nodiscard]] constexpr MAKESHIFT_DETAIL_FORCEINLINE auto
 tuple_transform(F&& func, Ts&&... args)
 {
     static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
@@ -135,7 +135,7 @@ tuple_transform(F&& func, Ts&&... args)
     //ᅟ    // returns MyTuple<int, float>{ 4, 9.0f }
     //
 template <template<typename...> class TupleT, typename F, typename... Ts>
-gsl_NODISCARD constexpr MAKESHIFT_DETAIL_FORCEINLINE auto
+[[nodiscard]] constexpr MAKESHIFT_DETAIL_FORCEINLINE auto
 tuple_transform(F&& func, Ts&&... args)
 {
     static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
@@ -154,7 +154,7 @@ tuple_transform(F&& func, Ts&&... args)
     //ᅟ    // returns std::tuple{ 0, 1, 2 }
     //
 template <std::size_t N, typename F, typename... Ts>
-gsl_NODISCARD constexpr MAKESHIFT_DETAIL_FORCEINLINE auto
+[[nodiscard]] constexpr MAKESHIFT_DETAIL_FORCEINLINE auto
 tuple_transform(F&& func, Ts&&... args)
 {
     static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
@@ -172,7 +172,7 @@ tuple_transform(F&& func, Ts&&... args)
     //ᅟ    // returns MyTuple<index, index, index>{ 0, 1, 2 }
     //
 template <template <typename...> class TupleT, std::size_t N, typename F, typename... Ts>
-gsl_NODISCARD constexpr MAKESHIFT_DETAIL_FORCEINLINE auto
+[[nodiscard]] constexpr MAKESHIFT_DETAIL_FORCEINLINE auto
 tuple_transform(F&& func, Ts&&... args)
 {
     static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
@@ -192,7 +192,7 @@ tuple_transform(F&& func, Ts&&... args)
     //ᅟ    // returns 13
     //
 template <typename InitialValueT, typename ReduceFuncT, typename TransformFuncT, typename... Ts>
-gsl_NODISCARD constexpr MAKESHIFT_DETAIL_FORCEINLINE auto
+[[nodiscard]] constexpr MAKESHIFT_DETAIL_FORCEINLINE auto
 template_transform_reduce(InitialValueT&& initialValue, ReduceFuncT&& reduce, TransformFuncT&& transform, Ts&&... args)
 {
     static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
@@ -213,7 +213,7 @@ template_transform_reduce(InitialValueT&& initialValue, ReduceFuncT&& reduce, Tr
     //ᅟ    // returns "Hello, World!"s;
     //
 template <typename InitialValueT, typename ReduceFuncT, typename T>
-gsl_NODISCARD constexpr MAKESHIFT_DETAIL_FORCEINLINE auto
+[[nodiscard]] constexpr MAKESHIFT_DETAIL_FORCEINLINE auto
 template_reduce(InitialValueT&& initialValue, ReduceFuncT&& reduce, T&& arg)
 {
     static_assert(detail::are_tuple_args_v<T>, "arguments must be tuples or tuple-like types");
@@ -233,7 +233,7 @@ template_reduce(InitialValueT&& initialValue, ReduceFuncT&& reduce, T&& arg)
     //ᅟ    // returns false
     //
 template <typename PredicateT, typename... Ts>
-gsl_NODISCARD constexpr MAKESHIFT_DETAIL_FORCEINLINE bool
+[[nodiscard]] constexpr MAKESHIFT_DETAIL_FORCEINLINE bool
 template_all_of(PredicateT&& predicate, Ts&&... args)
 {
     static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
@@ -253,7 +253,7 @@ template_all_of(PredicateT&& predicate, Ts&&... args)
     //ᅟ    // returns false
     //
 template <typename PredicateT, typename... Ts>
-gsl_NODISCARD constexpr MAKESHIFT_DETAIL_FORCEINLINE bool
+[[nodiscard]] constexpr MAKESHIFT_DETAIL_FORCEINLINE bool
 template_any_of(PredicateT&& predicate, Ts&&... args)
 {
     static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
@@ -273,7 +273,7 @@ template_any_of(PredicateT&& predicate, Ts&&... args)
     //ᅟ    // returns true
     //
 template <typename PredicateT, typename... Ts>
-gsl_NODISCARD constexpr MAKESHIFT_DETAIL_FORCEINLINE bool
+[[nodiscard]] constexpr MAKESHIFT_DETAIL_FORCEINLINE bool
 template_none_of(PredicateT&& predicate, Ts&&... args)
 {
     static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
@@ -301,7 +301,7 @@ apply(FuncT&& f, TupleT&& t)
     //ᅟ    // returns std::tuple{ 2, 3, 6., 8. }
     //
 template <typename... Ts>
-gsl_NODISCARD constexpr auto
+[[nodiscard]] constexpr auto
 tuple_cat(Ts&&... tuples)
 {
     static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
@@ -319,7 +319,7 @@ tuple_cat(Ts&&... tuples)
     //ᅟ    // returns MyTuple{ 2, 3, 6., 8. }
     //
 template <template <typename...> class TupleT, typename... Ts>
-gsl_NODISCARD constexpr auto
+[[nodiscard]] constexpr auto
 tuple_cat(Ts&&... tuples)
 {
     static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
@@ -330,7 +330,7 @@ tuple_cat(Ts&&... tuples)
 
 #if gsl_CPP20_OR_GREATER  // need constexpr `std::invoke()`
 template <typename T, typename ReflectorT = reflector>
-gsl_NODISCARD constexpr auto
+[[nodiscard]] constexpr auto
 tie_members(T& x, ReflectorT = { })
 {
     static_assert(metadata::is_available(detail::all_members<std::remove_const_t<T>, value_tuple, ReflectorT>()), "no member metadata was defined for type T");

@@ -3,23 +3,24 @@
 #define INCLUDED_MAKESHIFT_DETAIL_TYPE_TRAITS_HPP_
 
 
-#include <gsl-lite/gsl-lite.hpp> // for conjunction<>, disjunction<>, void_t<>, gsl_CPP17_OR_GREATER
-
-#if !gsl_CPP17_OR_GREATER
-# include <tuple>      // for tuple_size<>
-#endif // !gsl_CPP17_OR_GREATER
-
-#include <cstddef>     // for size_t
-#include <iterator>    // for begin(), end()
-#include <utility>     // for integer_sequence<>, tuple_size<> (C++17)
-#include <type_traits> // for declval<>(), integral_constant<>, is_convertible<>
+#include <cstddef>      // for size_t
+#include <iterator>     // for begin(), end()
+#include <utility>      // for integer_sequence<>, tuple_size<>
+#include <type_traits>  // for declval<>(), integral_constant<>, is_convertible<>, conjunction<>, disjunction<>, void_t<>
 
 
 namespace makeshift {
 
-namespace gsl = ::gsl_lite;
-
 namespace detail {
+
+
+struct any_sink
+{
+    template <typename T>
+    constexpr any_sink(T&&) noexcept
+    {
+    }
+};
 
 
 struct type_enum_base { };
@@ -28,7 +29,7 @@ struct unwrap_enum_tag { };
 
 
 template <template <typename...> class, typename, typename...> struct can_instantiate_ : std::false_type { };
-template <template <typename...> class Z, typename... Ts> struct can_instantiate_<Z, gsl::void_t<Z<Ts...>>, Ts...> : std::true_type { };
+template <template <typename...> class Z, typename... Ts> struct can_instantiate_<Z, std::void_t<Z<Ts...>>, Ts...> : std::true_type { };
 
 
 constexpr std::ptrdiff_t element_not_found = -1;
@@ -152,28 +153,28 @@ template <typename T, typename = void> struct default_values { };
 struct constval_tag { };
 
 template <typename T, typename = void> struct has_value_type_ : std::false_type { };
-template <typename T> struct has_value_type_<T, gsl::void_t<typename T::value_type>> : std::true_type { };
+template <typename T> struct has_value_type_<T, std::void_t<typename T::value_type>> : std::true_type { };
 
 template <typename T, typename = void> struct has_value_member_ : std::false_type { };
-template <typename T> struct has_value_member_<T, gsl::void_t<decltype(T::value)>> : std::true_type { };
+template <typename T> struct has_value_member_<T, std::void_t<decltype(T::value)>> : std::true_type { };
 
 template <typename T, typename = void> struct is_nullary_functor_ : std::false_type { };
-template <typename T> struct is_nullary_functor_<T, gsl::void_t<decltype(std::declval<T>()())>> : std::true_type { };
+template <typename T> struct is_nullary_functor_<T, std::void_t<decltype(std::declval<T>()())>> : std::true_type { };
 
-template <typename T> struct is_constval_1_ : gsl::conjunction<
+template <typename T> struct is_constval_1_ : std::conjunction<
     std::is_convertible<T, typename T::value_type>,
     std::is_same<decltype(T::value), typename T::value_type>,
     std::is_same<decltype(std::declval<T>()()), typename T::value_type>> { };
-template <typename T> struct is_constval_0_ : gsl::conjunction<
+template <typename T> struct is_constval_0_ : std::conjunction<
     has_value_type_<T>,
     has_value_member_<T>,
     is_nullary_functor_<T>,
     is_constval_1_<T>> { };
-template <typename T> struct is_constval_ : gsl::disjunction<std::is_base_of<constval_tag, T>, is_constval_0_<T>> { };
+template <typename T> struct is_constval_ : std::disjunction<std::is_base_of<constval_tag, T>, is_constval_0_<T>> { };
 template <typename T, T V> struct is_constval_<std::integral_constant<T, V>> : std::true_type { }; // shortcut
 
 template <typename C, typename R> struct is_constval_convertible_ : std::is_convertible<typename C::value_type, R> { };
-template <typename T, typename R> struct is_constval_of_ : gsl::conjunction<is_constval_<T>, is_constval_convertible_<T, R>> { };
+template <typename T, typename R> struct is_constval_of_ : std::conjunction<is_constval_<T>, is_constval_convertible_<T, R>> { };
 
 
 template <typename T> using is_tuple_like_r = decltype(std::tuple_size<T>::value);
@@ -193,7 +194,16 @@ template <typename T> using is_bitmask_r = is_bitmask_result<T,
     decltype(std::declval<T&>() ^= std::declval<T const&>())>;
 
 template <typename T> struct is_bitmask_0_ : is_bitmask_r<T> { };
-template <typename T> using is_bitmask = gsl::conjunction<can_instantiate_<is_bitmask_r, void, T>, is_bitmask_0_<T>>;
+template <typename T> using is_bitmask = std::conjunction<can_instantiate_<is_bitmask_r, void, T>, is_bitmask_0_<T>>;
+
+
+template <typename RSeqT, typename... Ts> struct type_sequence_cat_;
+template <typename RSeqT> struct type_sequence_cat_<RSeqT> { using type = RSeqT; };
+template <template <typename...> class TypeSeq1T, template <typename...> class TypeSeq2T, typename... RSeqT, typename... NSeqT, typename... Ts>
+struct type_sequence_cat_<TypeSeq1T<RSeqT...>, TypeSeq2T<NSeqT...>, Ts...>
+    : type_sequence_cat_<TypeSeq1T<RSeqT..., NSeqT...>, Ts...> 
+{
+};
 
 
 } // namespace detail

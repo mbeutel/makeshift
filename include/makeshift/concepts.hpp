@@ -3,9 +3,14 @@
 #define INCLUDED_MAKESHIFT_CONCEPTS_HPP_
 
 
-#include <cstddef> // for size_t
-#include <utility> // for tuple_size<> (C++20)
+#include <cstddef>  // for size_t
+#include <utility>  // for tuple_size<>
 
+#include <gsl-lite/gsl-lite.hpp> // for gsl_CPP17_OR_GREATER
+
+#if !gsl_CPP17_OR_GREATER
+# error makeshift requires C++17 mode or higher
+#endif // !gsl_CPP17_OR_GREATER
 
 #if defined(__has_include)
 # if __has_include(<concepts>)

@@ -3,17 +3,15 @@
 #define INCLUDED_MAKESHIFT_DETAIL_ZIP_HPP_
 
 
-#include <cstddef>     // for size_t, ptrdiff_t
+#include <cstddef>      // for size_t, ptrdiff_t
 #include <tuple>
-#include <utility>     // for tuple_size<> (C++17), forward<>()
-#include <type_traits> // for integral_constant<>, declval<>()
+#include <utility>      // for tuple_size<>, forward<>()
+#include <type_traits>  // for integral_constant<>, declval<>(), disjunction<>, void_t<>
 
-#include <gsl-lite/gsl-lite.hpp> // for disjunction<>, gsl_Expects(), ssize(), void_t<>, gsl_CPP17_OR_GREATER
+#include <gsl-lite/gsl-lite.hpp>  // for index, dim, ssize(), data(), size(), gsl_Expects()
 
-#include <makeshift/detail/macros.hpp>      // for MAKESHIFT_DETAIL_EMPTY_BASES, MAKESHIFT_DETAIL_FORCEINLINE
-#include <makeshift/detail/type_traits.hpp> // for is_tuple_like<>
-#include <makeshift/detail/utility.hpp>     // for any_sink
-#include <makeshift/detail/range-index.hpp> // for range_index_t
+#include <makeshift/detail/macros.hpp>       // for MAKESHIFT_DETAIL_EMPTY_BASES, MAKESHIFT_DETAIL_FORCEINLINE
+#include <makeshift/detail/type_traits.hpp>  // for is_tuple_like<>, any_sink
 
 
 namespace makeshift {
@@ -93,10 +91,10 @@ get(tuple_index_t) noexcept
 
 
 template <typename R, typename = void> struct has_data : std::false_type { };
-template <typename R> struct has_data<R, gsl::void_t<decltype(gsl::data(std::declval<R>()))>> : std::true_type { };
+template <typename R> struct has_data<R, std::void_t<decltype(gsl::data(std::declval<R>()))>> : std::true_type { };
 
 template <typename R, typename = void> struct has_size : std::false_type { };
-template <typename R> struct has_size<R, gsl::void_t<decltype(gsl::size(std::declval<R>()))>> : std::true_type { };
+template <typename R> struct has_size<R, std::void_t<decltype(gsl::size(std::declval<R>()))>> : std::true_type { };
 
 enum class iterator_mode
 {
@@ -238,7 +236,7 @@ template <> struct range_iterator_leaf_mode_<range_index_t> : std::integral_cons
 template <> struct range_iterator_leaf_mode_<tuple_index_t> : std::integral_constant<iterator_mode, iterator_mode::tuple_index> { };
 
 template <typename R, typename = void> struct tuple_iterator_leaf_mode_ : range_iterator_leaf_mode_<R> { };
-template <typename R> struct tuple_iterator_leaf_mode_<R, gsl::void_t<decltype(std::tuple_size<R>::value)>> : std::integral_constant<iterator_mode, iterator_mode::tuple_element> { };
+template <typename R> struct tuple_iterator_leaf_mode_<R, std::void_t<decltype(std::tuple_size<R>::value)>> : std::integral_constant<iterator_mode, iterator_mode::tuple_element> { };
 
 struct nullopt_bool { };
 
@@ -460,7 +458,7 @@ template <gsl::dim N> struct static_range_size_type_<dim_constant<N>> : std::tru
 template <typename T> struct dynamic_range_size_type_ : std::false_type { };
 template <> struct dynamic_range_size_type_<gsl::dim> : std::true_type { using range_size_type = gsl::dim; };
 struct default_range_size_type_ : std::true_type { using range_size_type = dim_constant<unknown_size>; };
-template <typename... Ts> using range_size_type = typename gsl::disjunction<static_range_size_type_<Ts>..., dynamic_range_size_type_<Ts>..., default_range_size_type_>::range_size_type;
+template <typename... Ts> using range_size_type = typename std::disjunction<static_range_size_type_<Ts>..., dynamic_range_size_type_<Ts>..., default_range_size_type_>::range_size_type;
 
 constexpr gsl::dim merge_sizes_0(dim_constant<unknown_size>, gsl::dim n)
 {
@@ -578,8 +576,8 @@ constexpr dim_constant<unknown_size> range_size(range_index_t) noexcept
     //ᅟ        range_index);
     //ᅟ    // returns std::array<gsl::index, 3>{ 0, 1, 2 }
     //
-static constexpr detail::range_index_t const&
-range_index = static_const<detail::range_index_t>;
+static constexpr inline detail::range_index_t
+range_index{ };
 
 
     // Pass `tuple_index` to `array_transform()`, `template_for()`, or `tuple_transform()` to have the tuple element index passed
@@ -594,8 +592,8 @@ range_index = static_const<detail::range_index_t>;
     //ᅟ            printTypename<T>();
     //ᅟ        });
     //
-static constexpr detail::tuple_index_t const&
-tuple_index = static_const<detail::tuple_index_t>;
+static constexpr inline detail::tuple_index_t
+tuple_index{ };
 
 
 } // namespace makeshift

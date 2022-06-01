@@ -3,12 +3,20 @@
 #define INCLUDED_MAKESHIFT_EXPERIMENTAL_TYPE_TRAITS_HPP_
 
 
-#include <type_traits> // for is_base_of<>
+#include <type_traits>  // for is_base_of<>
+
+#include <gsl-lite/gsl-lite.hpp>  // for gsl_CPP17_OR_GREATER
+
+#if !gsl_CPP17_OR_GREATER
+# error makeshift requires C++17 mode or higher
+#endif // !gsl_CPP17_OR_GREATER
 
 #include <makeshift/detail/type_traits.hpp>
 
 
 namespace makeshift {
+
+namespace gsl = ::gsl_lite;
 
 
     //

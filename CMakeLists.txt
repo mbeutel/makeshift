@@ -3,10 +3,10 @@
 # Author: Moritz Beutel
 
 
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.20)
 
 project(makeshift
-    VERSION 3.0.0
+    VERSION 4.0.0
     LANGUAGES CXX
 )
 

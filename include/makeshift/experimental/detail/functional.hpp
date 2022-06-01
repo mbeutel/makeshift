@@ -3,20 +3,13 @@
 #define INCLUDED_MAKESHIFT_EXPERIMENTAL_DETAIL_FUNCTIONAL_HPP_
 
 
-#include <utility> // for forward<>()
-
-#include <gsl-lite/gsl-lite.hpp> // for void_t<>
-
-
-namespace makeshift
-{
+#include <utility>      // for forward<>()
+#include <type_traits>  // for void_t<>
 
 
-namespace gsl = ::gsl_lite;
+namespace makeshift {
 
-
-namespace detail
-{
+namespace detail {
 
 
 struct lvalue_capture_forwarder
@@ -69,7 +62,7 @@ struct forward_to_impl
     }
 };
 template <typename F>
-struct forward_to_impl<F, gsl::void_t<decltype(std::declval<F>()())>> : F
+struct forward_to_impl<F, std::void_t<decltype(std::declval<F>()())>> : F
 {
     explicit constexpr forward_to_impl(F func)
         : F(std::move(func))

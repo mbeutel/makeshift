@@ -3,37 +3,20 @@
 #define INCLUDED_MAKESHIFT_DETAIL_INDICES_2D_HPP_
 
 
-#include <cstddef> // for size_t
-
-#include <gsl-lite/gsl-lite.hpp> // for gsl_CPP17_OR_GREATER
+#include <cstddef>  // for size_t
 
 
 namespace makeshift {
 
-namespace gsl = ::gsl_lite;
-
 namespace detail {
 
 
-#if gsl_CPP17_OR_GREATER
 template <typename R, typename... Ts>
 constexpr R cadd(Ts... vs) noexcept
 {
     auto term = R{ 0 };
     return (vs + ... + term);
 }
-#else // gsl_CPP17_OR_GREATER
-template <typename R>
-constexpr R cadd(void) noexcept
-{
-    return R{ 0 };
-}
-template <typename R, typename T0, typename... Ts>
-constexpr R cadd(T0 v0, Ts... vs) noexcept
-{
-    return v0 + cadd<R>(vs...);
-}
-#endif // gsl_CPP17_OR_GREATER
 
     // Borrowing the 2-d indexing technique that first appeared in the `tuple_cat()` implementation of Microsoft's STL.
 template <std::size_t... Ns>

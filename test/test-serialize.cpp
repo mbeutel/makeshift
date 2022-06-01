@@ -11,7 +11,11 @@
 #include <makeshift/iomanip.hpp>
 #include <makeshift/string.hpp>
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/catch_tostring.hpp>
+#include <catch2/generators/catch_generators.hpp>
+#include <catch2/matchers/catch_matchers_exception.hpp>
+
 
 namespace {
 
@@ -74,7 +78,7 @@ TEST_CASE("parse_enum()")
     }
     SECTION("fail-message")
     {
-        CHECK_THROWS_MATCHES(mk::parse_enum<Color>("bogus"), std::runtime_error, Catch::Matchers::Exception::ExceptionMessageMatcher(
+        CHECK_THROWS_MATCHES(mk::parse_enum<Color>("bogus"), std::runtime_error, Catch::Matchers::ExceptionMessageMatcher(
             "color: unknown value 'bogus'; supported values: { 'red', 'green' }"));
     }
 }
@@ -193,7 +197,7 @@ TEST_CASE("parse_flags()")
     }
     SECTION("fail-message")
     {
-        CHECK_THROWS_MATCHES(mk::parse_flags<Vegetables>("bogus"), std::runtime_error, Catch::Matchers::Exception::ExceptionMessageMatcher(
+        CHECK_THROWS_MATCHES(mk::parse_flags<Vegetables>("bogus"), std::runtime_error, Catch::Matchers::ExceptionMessageMatcher(
             "Vegetables: unknown value 'bogus'; supported values: a '+'-delimited subset of { 'tomato', 'onion', 'eggplant', 'none', 'tomato_onion' }"));
     }
 }

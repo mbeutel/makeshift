@@ -3,10 +3,14 @@
 #define INCLUDED_MAKESHIFT_EXPERIMENTAL_ALGORITHM_HPP_
 
 
-#include <utility>     // for swap()
-#include <iterator>    // for iterator_traits<>
+#include <utility>   // for swap()
+#include <iterator>  // for iterator_traits<>
 
-#include <gsl-lite/gsl-lite.hpp> // for gsl_Expects()
+#include <gsl-lite/gsl-lite.hpp>  // for gsl_Expects(), gsl_CPP17_OR_GREATER
+
+#if !gsl_CPP17_OR_GREATER
+# error makeshift requires C++17 mode or higher
+#endif // !gsl_CPP17_OR_GREATER
 
 #include <makeshift/detail/algorithm.hpp>
 
@@ -87,7 +91,7 @@ apply_reverse_permutation(RandomIt first, RandomIt last, IndexRandomIt indices)
     //
     // Given a list of ranges, returns a range of tuples. The range returns a sentinel as end iterator.
     //ᅟ
-    //ᅟ    for (auto&& [i, val] : range_zip(range_index, std::array{ 1, 2, 3 })) {
+    //ᅟ    for (auto&& [i, val] : range_zip_sentinel(range_index, std::array{ 1, 2, 3 })) {
     //ᅟ        std::cout << "array[" << i << "]: " << val << '\n';
     //ᅟ    }
     //ᅟ    // prints "array[0]: 1\narray[1]: 2\narray[2]: 3\n"

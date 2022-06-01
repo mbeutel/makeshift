@@ -6,9 +6,9 @@
 #include <type_traits> // for integral_constant<>, is_same<>
 #include <functional>  // for plus<>
 
-#include <gsl-lite/gsl-lite.hpp> // for type_identity<>, gsl_CPP17_OR_GREATER
+#include <gsl-lite/gsl-lite.hpp> // for type_identity<>
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 #include <makeshift/array.hpp>   // for array<>
 #include <makeshift/utility.hpp>
@@ -49,11 +49,7 @@ void expect_array_constval_normalization(mk::array_constant<T, Vs...>)
 template <typename T, gsl::type_identity_t<T>... Vs>
 void expect_nested_array_constval_normalization(mk::array_constant<T, Vs...>)
 {
-#if gsl_CPP17_OR_GREATER
     (expect_array_constval_normalization(mk::c<T, Vs>), ...);
-#else // gsl_CPP17_OR_GREATER
-    discard_args((expect_array_constval_normalization(mk::c<T, Vs>), 1)...);
-#endif // gsl_CPP17_OR_GREATER
 }
 
 template <typename... Cs>
@@ -64,15 +60,11 @@ void expect_tuple_constval_normalization(mk::tuple_constant<Cs...>)
 template <typename... Cs>
 void expect_array_tuple_constval_normalization(mk::tuple_constant<Cs...>)
 {
-#if gsl_CPP17_OR_GREATER
     (expect_array_constval_normalization(Cs{ }), ...);
-#else // gsl_CPP17_OR_GREATER
-    discard_args((expect_array_constval_normalization(Cs{ }), 1)...);
-#endif // gsl_CPP17_OR_GREATER
 }
 
 template <typename T>
-void expect_type_tag(mk::type<T>)
+void expect_type_tag(gsl::type_identity<T>)
 {
 }
 
@@ -86,14 +78,12 @@ void expect_tuple_like(C c)
 {
     discard_args(c);
 
-#if gsl_CPP17_OR_GREATER
     if constexpr (std::tuple_size_v<C> > 0)
     {
         using std::get;
         std::tuple_element_t<0, C> c0 = get<0>(c);
         discard_args(c0);
     }
-#endif // gsl_CPP17_OR_GREATER
 }
 
 
@@ -164,10 +154,10 @@ TEST_CASE("constval")
     std::tuple<std::array<int, 1>, std::array<int, 2>> ncTA1 = cTA1;
     discard_args(ncTA1);
 
-    auto cT1 = MAKESHIFT_CONSTVAL(mk::type_c<int>);
+    auto cT1 = MAKESHIFT_CONSTVAL(mk::type_identity_c<int>);
     expect_type_tag<int>(cT1);
 
-    auto cT3 = mk::type_c<float>;
+    auto cT3 = mk::type_identity_c<float>;
     expect_type_tag<float>(cT3);
 
     auto cTS1 = MAKESHIFT_CONSTVAL(mk::type_sequence<int, float>{ });
@@ -197,20 +187,16 @@ TEST_CASE("constval")
     discard_args(c2);
     auto cA3 = mk::c<std::array<int, 2> const&, SomeClass::ca>;
     expect_array_constval_normalization(cA3);
-#if gsl_CPP17_OR_GREATER
     auto cCT2 = mk::ref_c<SomeClass::ct>;
     static constexpr CustomType c3 = cCT2();
     discard_args(c3);
     auto cA4 = mk::ref_c<SomeClass::ca>;
     expect_array_constval_normalization(cA4);
-#endif // gsl_CPP17_OR_GREATER
 
-#if gsl_CPP17_OR_GREATER
     //auto iCT = mk::ref_c<SomeClass::ct.i>; // this doesn't work because arg doesn't have linkage
     //auto cCT3 = mk::ref_c<c2>; // this doesn't work either, for the same reason
     auto iCT = MAKESHIFT_CONSTVAL(SomeClass::ct.i);
     expect_constval_normalization<int>(iCT);
-#endif // gsl_CPP17_OR_GREATER
 }
 
 

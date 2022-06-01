@@ -8,6 +8,8 @@
 #include <utility>      // for forward<>(), integer_sequence<>, tuple_size<>, get<>()
 #include <type_traits>  // for decay<>
 
+#include <gsl-lite/gsl-lite.hpp>  // for gsl_constexpr20
+
 #include <makeshift/metadata.hpp>  // for metadata_v<>, bases(), members()
 
 #include <makeshift/detail/indices-2d.hpp>       // for indices_2d_
@@ -67,7 +69,6 @@ struct MAKESHIFT_DETAIL_EMPTY_BASES value_tuple_base<std::index_sequence<Is...>,
     {
     }
 };
-#if gsl_CPP17_OR_GREATER
 template <std::size_t... Is, typename... Ts>
 constexpr auto
 operator ==(value_tuple_base<std::index_sequence<Is...>, Ts...> const& lhs, value_tuple_base<std::index_sequence<Is...>, Ts...> const& rhs)
@@ -126,7 +127,6 @@ operator >=(value_tuple_base<std::index_sequence<Is...>, Ts...> const& lhs, valu
 {
     return !(lhs < rhs);
 }
-#endif // gsl_CPP17_OR_GREATER
 
 
 template <template <typename...> class TupleT, typename F, typename... Ts>

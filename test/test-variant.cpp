@@ -1,14 +1,14 @@
 
-#if (!defined(__apple_build_version__) || __apple_build_version__ >= 10010046) && (!defined(__GNUC__) || defined(__clang__) || __GNUC__ >= 7) // GCC <=6 and AppleClang <=10.0.0 don't have <variant>
 #include <makeshift/variant.hpp>
 #include <makeshift/experimental/variant.hpp>
 
 #include <variant>
-#include <type_traits> // for is_same<>
+#include <type_traits>  // for is_same<>
 
 #include <gsl-lite/gsl-lite.hpp>
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/generators/catch_generators.hpp>
 
 
 namespace {
@@ -84,4 +84,3 @@ TEST_CASE("expand()")
 
 
 } // anonymous namespace
-#endif // (!defined(__apple_build_version__) || __apple_build_version__ >= 10010046) && (!defined(__GNUC__) || defined(__clang__) || __GNUC__ >= 7)

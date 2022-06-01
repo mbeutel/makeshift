@@ -3,8 +3,8 @@
 #define INCLUDED_MAKESHIFT_EXPERIMENTAL_DETAIL_VARIANT_HPP_
 
 
-#include <utility>   // for forward<>()
-#include <exception> // for terminate()
+#include <utility>    // for forward<>()
+#include <exception>  // for terminate()
 
 
 namespace makeshift {

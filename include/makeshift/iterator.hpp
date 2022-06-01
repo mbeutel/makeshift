@@ -3,11 +3,15 @@
 #define INCLUDED_MAKESHIFT_ITERATOR_HPP_
 
 
-#include <iterator>    // for input_iterator_tag, random_access_iterator_tag
+#include <iterator>  // for input_iterator_tag, random_access_iterator_tag
 
-#include <gsl-lite/gsl-lite.hpp> // for index, diff, gsl_NODISCARD
+#include <gsl-lite/gsl-lite.hpp>  // for index, diff, gsl_CPP17_OR_GREATER
 
-#include <makeshift/detail/macros.hpp> // for MAKESHIFT_DETAIL_FORCEINLINE
+#if !gsl_CPP17_OR_GREATER
+# error makeshift requires C++17 mode or higher
+#endif // !gsl_CPP17_OR_GREATER
+
+#include <makeshift/detail/macros.hpp>  // for MAKESHIFT_DETAIL_FORCEINLINE
 
 
 namespace makeshift {
@@ -39,12 +43,12 @@ public:
         return *this;
     }
 
-    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE constexpr bool
+    [[nodiscard]] MAKESHIFT_DETAIL_FORCEINLINE constexpr bool
     friend operator ==(index_iterator lhs, index_iterator rhs) noexcept
     {
         return lhs.i_ == rhs.i_;
     }
-    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE constexpr bool
+    [[nodiscard]] MAKESHIFT_DETAIL_FORCEINLINE constexpr bool
     friend operator !=(index_iterator lhs, index_iterator rhs) noexcept
     {
         return !(lhs == rhs);
@@ -90,7 +94,7 @@ private:
     };
 
 public:
-    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE constexpr ArrowProxy
+    [[nodiscard]] MAKESHIFT_DETAIL_FORCEINLINE constexpr ArrowProxy
     operator ->(void)
     {
         return { i_ };
@@ -139,52 +143,52 @@ public:
         return *this;
     }
 
-    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE friend constexpr index_iterator
+    [[nodiscard]] MAKESHIFT_DETAIL_FORCEINLINE friend constexpr index_iterator
     operator +(index_iterator it, difference_type offset)
     {
         it += offset;
         return it;
     }
-    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE friend constexpr index_iterator
+    [[nodiscard]] MAKESHIFT_DETAIL_FORCEINLINE friend constexpr index_iterator
     operator +(difference_type offset, index_iterator it)
     {
         it += offset;
         return it;
     }
-    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE friend constexpr index_iterator
+    [[nodiscard]] MAKESHIFT_DETAIL_FORCEINLINE friend constexpr index_iterator
     operator -(index_iterator it, difference_type offset)
     {
         it -= offset;
         return it;
     }
-    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE friend constexpr difference_type
+    [[nodiscard]] MAKESHIFT_DETAIL_FORCEINLINE friend constexpr difference_type
     operator -(index_iterator lhs, index_iterator rhs) noexcept
     {
         return lhs.i_ - rhs.i_;
     }
 
-    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE friend constexpr bool
+    [[nodiscard]] MAKESHIFT_DETAIL_FORCEINLINE friend constexpr bool
     operator <(index_iterator lhs, index_iterator rhs) noexcept
     {
         return lhs.i_ < rhs.i_;
     }
-    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE friend constexpr bool
+    [[nodiscard]] MAKESHIFT_DETAIL_FORCEINLINE friend constexpr bool
     operator <=(index_iterator lhs, index_iterator rhs) noexcept
     {
         return !(rhs < lhs);
     }
-    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE friend constexpr bool
+    [[nodiscard]] MAKESHIFT_DETAIL_FORCEINLINE friend constexpr bool
     operator >(index_iterator lhs, index_iterator rhs) noexcept
     {
         return rhs < lhs;
     }
-    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE friend constexpr bool
+    [[nodiscard]] MAKESHIFT_DETAIL_FORCEINLINE friend constexpr bool
     operator >=(index_iterator lhs, index_iterator rhs) noexcept
     {
         return !(lhs < rhs);
     }
 
-    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE constexpr gsl::index
+    [[nodiscard]] MAKESHIFT_DETAIL_FORCEINLINE constexpr gsl::index
     operator [](difference_type offset)
     {
         return *(*this + offset);

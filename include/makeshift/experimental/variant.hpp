@@ -3,16 +3,16 @@
 #define INCLUDED_MAKESHIFT_EXPERIMENTAL_VARIANT_HPP_
 
 
-#include <gsl-lite/gsl-lite.hpp> // for gsl_CPP17_OR_GREATER, gsl_NODISCARD
-
-#if !gsl_CPP17_OR_GREATER
-# error Header <makeshift/experimental/variant.hpp> requires C++17 mode or higher.
-#endif // !gsl_CPP17_OR_GREATER
-
-#include <utility>     // for forward<>()
+#include <utility>      // for forward<>()
 #include <variant>
 #include <optional>
-#include <type_traits> // for remove_cv<>, remove_reference<>
+#include <type_traits>  // for remove_cv<>, remove_reference<>
+
+#include <gsl-lite/gsl-lite.hpp>  // for gsl_CPP17_OR_GREATER
+
+#if !gsl_CPP17_OR_GREATER
+# error makeshift requires C++17 mode or higher
+#endif // !gsl_CPP17_OR_GREATER
 
 #include <makeshift/experimental/detail/variant.hpp>
 
@@ -36,7 +36,7 @@ template <typename V> using without_monostate = typename detail::without_monosta
     // Casts an argument of type `std::variant<Ts...>` to the given variant type.
     //
 template <typename DstV, typename SrcV>
-gsl_NODISCARD constexpr DstV
+[[nodiscard]] constexpr DstV
 variant_cast(SrcV&& variant)
 {
 #if !defined(__INTELLISENSE__)
@@ -62,7 +62,7 @@ variant_cast(SrcV&& variant)
     // Converts an argument of type `std::variant<std::monostate, Ts...>` to `std::optional<std::variant<Ts...>>`.
     //
 template <typename V>
-gsl_NODISCARD constexpr decltype(auto)
+[[nodiscard]] constexpr decltype(auto)
 variant_to_optional(V&& variantWithMonostate)
 {
     using R = without_monostate<std::remove_cv_t<std::remove_reference_t<V>>>;
@@ -87,7 +87,7 @@ variant_to_optional(V&& variantWithMonostate)
     // Converts an argument of type `std::optional<std::variant<Ts...>>` to `std::variant<std::monostate, Ts...>`.
     //
 template <typename VO>
-gsl_NODISCARD constexpr decltype(auto)
+[[nodiscard]] constexpr decltype(auto)
 optional_to_variant(VO&& optionalVariant)
 {
     using R = with_monostate<typename std::remove_cv_t<std::remove_reference_t<VO>>::value_type>;

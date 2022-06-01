@@ -3,15 +3,15 @@
 #define INCLUDED_MAKESHIFT_ARRAY_HPP_
 
 
-#include <gsl-lite/gsl-lite.hpp> // for gsl_NODISCARD, gsl_CPP17_OR_GREATER
-
-#if !gsl_CPP17_OR_GREATER
-# include <tuple>      // for tuple_size<>
-#endif // !gsl_CPP17_OR_GREATER
-
 #include <array>
 #include <cstddef> // for size_t
-#include <utility> // for integer_sequence<>, get<>(), tuple_size<> (C++17)
+#include <utility> // for integer_sequence<>, get<>(), tuple_size<>
+
+#include <gsl-lite/gsl-lite.hpp> // for gsl_constexpr17, gsl_CPP17_OR_GREATER
+
+#if !gsl_CPP17_OR_GREATER
+# error makeshift requires C++17 mode or higher
+#endif // !gsl_CPP17_OR_GREATER
 
 #include <makeshift/detail/array.hpp>
 
@@ -41,7 +41,7 @@ using mdarray = typename detail::mdarray_<T, Dims...>::type;
     //ᅟ    // returns std::array{ 4, 9 }
     //
 template <typename F, typename... Ts>
-gsl_NODISCARD constexpr auto
+[[nodiscard]] constexpr auto
 array_transform(F&& func, Ts&&... args)
 {
     static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
@@ -59,7 +59,7 @@ array_transform(F&& func, Ts&&... args)
     //ᅟ    // returns MyArray<int, 2>{ 4, 9 }
     //
 template <template <typename, std::size_t> class ArrayT, typename F, typename... Ts>
-gsl_NODISCARD constexpr auto
+[[nodiscard]] constexpr auto
 array_transform(F&& func, Ts&&... args)
 {
     static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
@@ -77,7 +77,7 @@ array_transform(F&& func, Ts&&... args)
     //ᅟ    // returns std::array{ 4.0, 9.0 }
     //
 template <typename T, typename F, typename... Ts>
-gsl_NODISCARD constexpr auto
+[[nodiscard]] constexpr auto
 array_transform(F&& func, Ts&&... args)
 {
     static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
@@ -95,7 +95,7 @@ array_transform(F&& func, Ts&&... args)
     //ᅟ    // returns MyArray<double, 2>{ 4.0, 9.0 }
     //
 template <template <typename, std::size_t> class ArrayT, typename T, typename F, typename... Ts>
-gsl_NODISCARD constexpr auto
+[[nodiscard]] constexpr auto
 array_transform(F&& func, Ts&&... args)
 {
     static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
@@ -114,7 +114,7 @@ array_transform(F&& func, Ts&&... args)
     //ᅟ    // returns std::array{ 0, 1, 2 }
     //
 template <std::size_t N, typename F, typename... Ts>
-gsl_NODISCARD constexpr auto
+[[nodiscard]] constexpr auto
 array_transform(F&& func, Ts&&... args)
 {
     static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
@@ -132,7 +132,7 @@ array_transform(F&& func, Ts&&... args)
     //ᅟ    // returns MyArray<int, 3>{ 0, 1, 2 }
     //
 template <std::size_t N, template <typename, std::size_t> class ArrayT, typename F, typename... Ts>
-gsl_NODISCARD constexpr auto
+[[nodiscard]] constexpr auto
 array_transform(F&& func, Ts&&... args)
 {
     static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
@@ -150,7 +150,7 @@ array_transform(F&& func, Ts&&... args)
     //ᅟ    // returns std::array{ 0.0, 1.0, 2.0 }
     //
 template <std::size_t N, typename T, typename F, typename... Ts>
-gsl_NODISCARD constexpr auto
+[[nodiscard]] constexpr auto
 array_transform(F&& func, Ts&&... args)
 {
     static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
@@ -168,7 +168,7 @@ array_transform(F&& func, Ts&&... args)
     //ᅟ    // returns MyArray<double, 3>{ 0.0, 1.0, 2.0 }
     //
 template <std::size_t N, template <typename, std::size_t> class ArrayT, typename T, typename F, typename... Ts>
-gsl_NODISCARD constexpr auto
+[[nodiscard]] constexpr auto
 array_transform(F&& func, Ts&&... args)
 {
     static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
@@ -184,7 +184,7 @@ array_transform(F&& func, Ts&&... args)
     //ᅟ    // returns std::array{ 1, 1, 1 }
     //
 template <std::size_t N, typename T>
-gsl_NODISCARD constexpr std::array<T, N>
+[[nodiscard]] constexpr std::array<T, N>
 array_fill(T const& value)
 {
     return detail::array_transform_to_impl<std::array, T>(std::make_index_sequence<N>{ }, detail::fill_fn<T>{ value });
@@ -197,7 +197,7 @@ array_fill(T const& value)
     //ᅟ    // returns MyArray<int, 3>{ 1, 1, 1 }
     //
 template <std::size_t N, template <typename, std::size_t> class ArrayT, typename T>
-gsl_NODISCARD constexpr auto
+[[nodiscard]] constexpr auto
 array_fill(T const& value)
 {
     return detail::array_transform_to_impl<ArrayT, T>(std::make_index_sequence<N>{ }, detail::fill_fn<T>{ value });
@@ -211,7 +211,7 @@ array_fill(T const& value)
     //ᅟ    // returns std::array{ 1, 2, 3 }
     //
 template <std::size_t N, typename T>
-gsl_NODISCARD gsl_constexpr17 std::array<T, N>
+[[nodiscard]] gsl_constexpr17 std::array<T, N>
 array_iota(T value = { })
 {
     auto result = std::array<T, N>{ };
@@ -230,7 +230,7 @@ array_iota(T value = { })
     //ᅟ    // returns MyArray<int, 3>{ 1, 1, 1 }
     //
 template <template <typename, std::size_t> class ArrayT, std::size_t N, typename T>
-gsl_NODISCARD constexpr auto
+[[nodiscard]] constexpr auto
 array_iota(T const& value)
 {
     auto result = ArrayT<T, N>{ };
@@ -252,7 +252,7 @@ array_iota(T const& value)
     //ᅟ    // returns std::array{ 2, 3, 6, 8 }
     //
 template <typename T, typename... Ts>
-gsl_NODISCARD constexpr auto
+[[nodiscard]] constexpr auto
 array_cat(Ts&&... tuples)
 {
     static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
@@ -271,7 +271,7 @@ array_cat(Ts&&... tuples)
     //ᅟ    // returns MyArray<int, 4>{ 2, 3, 6, 8 }
     //
 template <template <typename, std::size_t> class ArrayT, typename T, typename... Ts>
-gsl_NODISCARD constexpr auto
+[[nodiscard]] constexpr auto
 array_cat(Ts&&... tuples)
 {
     static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");

@@ -3,7 +3,7 @@
 #define INCLUDED_MAKESHIFT_DETAIL_FUNCTIONAL_HPP_
 
 
-#include <utility> // for forward<>()
+#include <utility>  // for forward<>()
 
 
 namespace makeshift {

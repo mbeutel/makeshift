@@ -5,13 +5,13 @@
 
 #include <array>
 #include <tuple>
-#include <cstddef>     // for size_t, ptrdiff_t
-#include <utility>     // for forward<>(), get<>()
-#include <type_traits> // for integral_constant<>, declval<>(), is_base_of<>, is_integral<>, is_enum<>, is_member_pointer<>, is_null_pointer<>, is_empty<>, is_default_constructible<>, common_type<>, make_signed<>
+#include <cstddef>      // for size_t, ptrdiff_t
+#include <utility>      // for forward<>(), get<>()
+#include <type_traits>  // for integral_constant<>, declval<>(), is_base_of<>, is_integral<>, is_enum<>, is_member_pointer<>, is_null_pointer<>, is_empty<>, is_default_constructible<>, common_type<>, make_signed<>, conjunction<>, disjunction<>
 
-#include <gsl-lite/gsl-lite.hpp> // for conjunction<>, gsl_CPP17_OR_GREATER, gsl_NODISCARD
+#include <gsl-lite/gsl-lite.hpp>  // for type_identity<>, gsl_Assert()
 
-#include <makeshift/type_traits.hpp> // for constval_tag, can_instantiate<>
+#include <makeshift/type_traits.hpp>  // for constval_tag, can_instantiate<>
 
 
 #define MAKESHIFT_CONSTVAL_(...)                                        \
@@ -59,14 +59,14 @@ struct constval : constval_tag
 {
     using value_type = T;
 
-    gsl_NODISCARD constexpr value_type operator ()(void) const
+    [[nodiscard]] constexpr value_type operator ()(void) const
     {
         return F{ }();
     }
 #if defined(_MSC_VER) && _MSC_VER < 1927 && !defined(__clang__) && !defined(__NVCC__) && !defined(__INTELLISENSE__)
-    gsl_NODISCARD constexpr operator auto(void) const -> value_type // workaround for VC++ bug, cf. https://developercommunity.visualstudio.com/content/problem/149701/c2833-with-operator-decltype.html#reply-152822
+    [[nodiscard]] constexpr operator auto(void) const -> value_type // workaround for VC++ bug, cf. https://developercommunity.visualstudio.com/content/problem/149701/c2833-with-operator-decltype.html#reply-152822
 #else // defined(_MSC_VER) && !defined(__clang__) && !defined(__NVCC__) && !defined(__INTELLISENSE__)
-    gsl_NODISCARD constexpr operator value_type(void) const
+    [[nodiscard]] constexpr operator value_type(void) const
 #endif // defined(_MSC_VER) && !defined(__clang__) && !defined(__NVCC__) && !defined(__INTELLISENSE__)
     {
         return (*this)();
@@ -77,19 +77,11 @@ struct constval : constval_tag
 private:
 #if defined(_MSC_VER) && !defined(NDEBUG)
         // for Natvis support
-# if gsl_CPP17_OR_GREATER
     static inline const T value_ = value;
-# else // gsl_CPP17_OR_GREATER
-    static const T value_;
-# endif // gsl_CPP17_OR_GREATER
 #endif // defined(_MSC_VER) && !defined(NDEBUG)
 };
 template <typename T, typename F>
 constexpr T constval<T, F>::value;
-#if defined(_MSC_VER) && !defined(NDEBUG) && !gsl_CPP17_OR_GREATER
-template <typename T, typename F>
-const T constval<T, F>::value_ = constval<T, F>::value;
-#endif // defined(_MSC_VER) && !defined(NDEBUG) && !gsl_CPP17_OR_GREATER
 
 template <std::size_t I, typename C>
 struct tuple_accessor_functor
@@ -107,7 +99,7 @@ struct tuple_like_constval : constval<T, F>
 {
 };
 template <std::size_t I, typename T, typename F>
-gsl_NODISCARD constexpr
+[[nodiscard]] constexpr
 constval_t<tuple_accessor_functor<I, tuple_like_constval<T, F>>>
 get(tuple_like_constval<T, F>) noexcept
 {
@@ -126,11 +118,7 @@ public:
 private:
 #if defined(_MSC_VER) && !defined(NDEBUG)
         // for Natvis support
-# if gsl_CPP17_OR_GREATER
     static inline const T value_ = value;
-# else // gsl_CPP17_OR_GREATER
-    static const T value_;
-# endif // gsl_CPP17_OR_GREATER
 #endif // defined(_MSC_VER) && !defined(NDEBUG)
 
 public:
@@ -139,13 +127,9 @@ public:
 };
 template <typename T, T const& Ref>
 constexpr T ref_constval<T, Ref>::value;
-#if defined(_MSC_VER) && !defined(NDEBUG) && !gsl_CPP17_OR_GREATER
-template <typename T, T const& Ref>
-const T ref_constval<T, Ref>::value_ = ref_constval<T, Ref>::value;
-#endif // defined(_MSC_VER) && !defined(NDEBUG) && !gsl_CPP17_OR_GREATER
 
     // Determines if a given type makes a valid C++14 non-type template parameter.
-template <typename T> struct is_valid_nttp_ : gsl::disjunction<std::is_integral<T>, std::is_enum<T>, std::is_member_pointer<T>, std::is_null_pointer<T>> { };
+template <typename T> struct is_valid_nttp_ : std::disjunction<std::is_integral<T>, std::is_enum<T>, std::is_member_pointer<T>, std::is_null_pointer<T>> { };
 
     // Represent constvals of type `std::array<>` as `array_constant<>` of the array values if the array element type is a valid NTTP type,
     // or as an `array_constant<>` of const references to constexpr objects otherwise. This way, syntax for `array_constant<>` users can be
@@ -208,6 +192,7 @@ template <typename... Ts, typename C> struct make_constval_1_<std::tuple<Ts...>,
     // Return known constval types unaltered.
 template <typename C> struct make_constval_ : make_constval_1_<decltype(std::declval<C>()()), C> { };
 template <typename T, T V> struct make_constval_<std::integral_constant<T, V>> { using type = std::integral_constant<T, V>; };
+template <typename T> struct make_constval_<gsl::type_identity<T>> { using type = gsl::type_identity<T>; };
 template <typename T, T... Vs> struct make_constval_<array_constant<T, Vs...>> { using type = array_constant<T, Vs...>; };
 template <typename... Cs> struct make_constval_<tuple_constant<Cs...>> { using type = tuple_constant<Cs...>; };
 template <typename T, typename C> struct make_constval_<constval<T, C>> { using type = constval<T, C>; };
@@ -313,7 +298,7 @@ constexpr void constval_assert_impl(std::true_type /*isConstval*/, BoolC arg) no
 }
 static constexpr void constval_assert_impl(std::false_type /*isConstval*/, bool arg)
 {
-    gsl_Expects(arg);
+    gsl_Assert(arg);
 }
 
 
@@ -356,20 +341,14 @@ constexpr auto cssize_impl(std::false_type /*isConstval*/, ContainerT const& c)
 } // namespace makeshift
 
 
-namespace std {
-
-
     // Implement tuple-like protocol for `tuple_like_constval<>`.
-template <typename T, typename F> class tuple_size<makeshift::detail::tuple_like_constval<T, F>> : public tuple_size<T> { };
+template <typename T, typename F> class std::tuple_size<makeshift::detail::tuple_like_constval<T, F>> : public std::tuple_size<T> { };
 template <std::size_t I, typename T, typename F>
-class tuple_element<I, makeshift::detail::tuple_like_constval<T, F>>
+class std::tuple_element<I, makeshift::detail::tuple_like_constval<T, F>>
 {
 public:
     using type = makeshift::detail::constval_t<makeshift::detail::tuple_accessor_functor<I, makeshift::detail::tuple_like_constval<T, F>>>;
 };
-
-
-} // namespace std
 
 
 #endif // INCLUDED_MAKESHIFT_DETAIL_CONSTVAL_HPP_

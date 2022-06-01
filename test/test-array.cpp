@@ -4,9 +4,9 @@
 #include <array>
 #include <tuple>
 
-#include <gsl-lite/gsl-lite.hpp> // for index
+#include <gsl-lite/gsl-lite.hpp>  // for index
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 
 namespace {

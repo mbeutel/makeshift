@@ -11,14 +11,12 @@ A collection of the things I miss in the C++ standard library.
 
 ## Dependencies
 
-* [CMakeshift](https://github.com/mbeutel/CMakeshift)
-* [gsl-lite](https://github.com/martinmoene/gsl-lite), an implementation of the [C++ Core Guidelines Support Library](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#S-gsl)
+* [gsl-lite](https://github.com/gsl-lite/gsl-lite), an implementation of the [C++ Core Guidelines Support Library](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#S-gsl)
 
 
 ### Optional Dependencies
 
 * [Catch2](https://github.com/catchorg/Catch2) - for test
-* [MPark.Variant](https://github.com/mpark/variant) - for test
 
 
 ## Basics

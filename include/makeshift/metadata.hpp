@@ -3,21 +3,23 @@
 #define INCLUDED_MAKESHIFT_METADATA_HPP_
 
 
-#include <gsl-lite/gsl-lite.hpp>  // for gsl_CPP17_OR_GREATER
-
-#if !gsl_CPP17_OR_GREATER
-# error Header <makeshift/metadata.hpp> requires C++17 mode or higher.
-#endif // !gsl_CPP17_OR_GREATER
-
 #include <array>
 #include <optional>
 #include <string_view>
 #include <type_traits>
 
+#include <gsl-lite/gsl-lite.hpp>  // for gsl_CPP17_OR_GREATER
+
+#if !gsl_CPP17_OR_GREATER
+# error makeshift requires C++17 mode or higher
+#endif // !gsl_CPP17_OR_GREATER
+
 #include <makeshift/detail/metadata.hpp>
 
 
 namespace makeshift {
+
+namespace gsl = ::gsl_lite;
 
 
 using reflector = detail::reflector;

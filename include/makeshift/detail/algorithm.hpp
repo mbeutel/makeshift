@@ -3,15 +3,15 @@
 #define INCLUDED_MAKESHIFT_DETAIL_ALGORITHM_HPP_
 
 
-#include <gsl-lite/gsl-lite.hpp> // for dim, index, disjunction<>, gsl_Expects(), ssize(), void_t<>, gsl_CPP17_OR_GREATER
-
-#include <cstddef>     // for size_t, ptrdiff_t
+#include <cstddef>      // for size_t, ptrdiff_t
 #include <tuple>
-#include <utility>     // for forward<>(), integer_sequence<>
-#include <type_traits> // for integral_constant<>, declval<>(), decay<>
+#include <utility>      // for forward<>(), integer_sequence<>
+#include <type_traits>  // for integral_constant<>, declval<>(), decay<>
 
-#include <makeshift/detail/macros.hpp>      // for MAKESHIFT_DETAIL_EMPTY_BASES, MAKESHIFT_DETAIL_FORCEINLINE
-#include <makeshift/detail/range-index.hpp> // for range_index_t
+#include <gsl-lite/gsl-lite.hpp>  // for dim, index
+
+#include <makeshift/detail/macros.hpp>  // for MAKESHIFT_DETAIL_EMPTY_BASES, MAKESHIFT_DETAIL_FORCEINLINE
+#include <makeshift/detail/ranges.hpp>  // for range_index_t
 #include <makeshift/detail/zip.hpp>
 
 
@@ -134,7 +134,7 @@ public:
     }
 
         // LegacyIterator: dereference, increment
-    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE constexpr reference operator *(void)
+    [[nodiscard]] MAKESHIFT_DETAIL_FORCEINLINE constexpr reference operator *(void)
     {
         return reference{ detail::get_leaf<Is>(*this)._deref(i_)... };
     }
@@ -153,27 +153,27 @@ public:
     }
 
         // LegacyInputIterator: equality compare
-    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE friend constexpr bool operator ==(DerivedT const& lhs, DerivedT const& rhs) noexcept
+    [[nodiscard]] MAKESHIFT_DETAIL_FORCEINLINE friend constexpr bool operator ==(DerivedT const& lhs, DerivedT const& rhs) noexcept
     {
         return lhs.i_ == rhs.i_;
     }
-    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE friend constexpr bool operator !=(DerivedT const& lhs, DerivedT const& rhs) noexcept
+    [[nodiscard]] MAKESHIFT_DETAIL_FORCEINLINE friend constexpr bool operator !=(DerivedT const& lhs, DerivedT const& rhs) noexcept
     {
         return !(lhs == rhs);
     }
-    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE friend constexpr bool operator ==(DerivedT const& it, zip_iterator_sentinel<N> sentinel)
+    [[nodiscard]] MAKESHIFT_DETAIL_FORCEINLINE friend constexpr bool operator ==(DerivedT const& it, zip_iterator_sentinel<N> sentinel)
     {
         return sentinel._is_end(it);
     }
-    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE friend constexpr bool operator ==(zip_iterator_sentinel<N> sentinel, DerivedT const& it)
+    [[nodiscard]] MAKESHIFT_DETAIL_FORCEINLINE friend constexpr bool operator ==(zip_iterator_sentinel<N> sentinel, DerivedT const& it)
     {
         return it == sentinel;
     }
-    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE friend constexpr bool operator !=(DerivedT const& it, zip_iterator_sentinel<N> sentinel)
+    [[nodiscard]] MAKESHIFT_DETAIL_FORCEINLINE friend constexpr bool operator !=(DerivedT const& it, zip_iterator_sentinel<N> sentinel)
     {
         return !(it == sentinel);
     }
-    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE friend constexpr bool operator !=(zip_iterator_sentinel<N> sentinel, DerivedT const& it)
+    [[nodiscard]] MAKESHIFT_DETAIL_FORCEINLINE friend constexpr bool operator !=(zip_iterator_sentinel<N> sentinel, DerivedT const& it)
     {
         return !(it == sentinel);
     }
@@ -194,7 +194,7 @@ public:
     }
 
         // RandomAccessIterator: subscript, arithmetic, ordering compare
-    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE constexpr reference operator [](std::ptrdiff_t d)
+    [[nodiscard]] MAKESHIFT_DETAIL_FORCEINLINE constexpr reference operator [](std::ptrdiff_t d)
     {
         return reference{ detail::get_leaf<Is>(*this)._deref(i_, d)... };
     }
@@ -209,38 +209,38 @@ public:
     {
         return *this += -d;
     }
-    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE friend constexpr DerivedT operator +(DerivedT it, std::ptrdiff_t d)
+    [[nodiscard]] MAKESHIFT_DETAIL_FORCEINLINE friend constexpr DerivedT operator +(DerivedT it, std::ptrdiff_t d)
     {
         it += d;
         return it;
     }
-    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE friend constexpr DerivedT operator +(std::ptrdiff_t d, DerivedT it)
+    [[nodiscard]] MAKESHIFT_DETAIL_FORCEINLINE friend constexpr DerivedT operator +(std::ptrdiff_t d, DerivedT it)
     {
         it += d;
         return it;
     }
-    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE friend constexpr DerivedT operator -(DerivedT it, std::ptrdiff_t d)
+    [[nodiscard]] MAKESHIFT_DETAIL_FORCEINLINE friend constexpr DerivedT operator -(DerivedT it, std::ptrdiff_t d)
     {
         it -= d;
         return it;
     }
-    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE friend constexpr std::ptrdiff_t operator -(DerivedT const& lhs, DerivedT const& rhs)
+    [[nodiscard]] MAKESHIFT_DETAIL_FORCEINLINE friend constexpr std::ptrdiff_t operator -(DerivedT const& lhs, DerivedT const& rhs)
     {
         return lhs.i_ - rhs.i_;
     }
-    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE friend constexpr bool operator <(DerivedT const& lhs, DerivedT const& rhs) noexcept
+    [[nodiscard]] MAKESHIFT_DETAIL_FORCEINLINE friend constexpr bool operator <(DerivedT const& lhs, DerivedT const& rhs) noexcept
     {
         return lhs.i_ < rhs.i_;
     }
-    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE friend constexpr bool operator <=(DerivedT const& lhs, DerivedT const& rhs) noexcept
+    [[nodiscard]] MAKESHIFT_DETAIL_FORCEINLINE friend constexpr bool operator <=(DerivedT const& lhs, DerivedT const& rhs) noexcept
     {
         return !(rhs < lhs);
     }
-    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE friend constexpr bool operator >(DerivedT const& lhs, DerivedT const& rhs) noexcept
+    [[nodiscard]] MAKESHIFT_DETAIL_FORCEINLINE friend constexpr bool operator >(DerivedT const& lhs, DerivedT const& rhs) noexcept
     {
         return rhs < lhs;
     }
-    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE friend constexpr bool operator >=(DerivedT const& lhs, DerivedT const& rhs) noexcept
+    [[nodiscard]] MAKESHIFT_DETAIL_FORCEINLINE friend constexpr bool operator >=(DerivedT const& lhs, DerivedT const& rhs) noexcept
     {
         return !(lhs < rhs);
     }
@@ -296,17 +296,17 @@ protected:
     }
 
 public:
-    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE constexpr std::size_t
+    [[nodiscard]] MAKESHIFT_DETAIL_FORCEINLINE constexpr std::size_t
     size(void) const noexcept
     {
         return n_;
     }
-    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE constexpr bool
+    [[nodiscard]] MAKESHIFT_DETAIL_FORCEINLINE constexpr bool
     empty(void) const noexcept
     {
         return n_ == 0;
     }
-    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE constexpr zip_iterator_sentinel<gsl::dim>
+    [[nodiscard]] MAKESHIFT_DETAIL_FORCEINLINE constexpr zip_iterator_sentinel<gsl::dim>
     end(void) const noexcept
     {
         return zip_iterator_sentinel<gsl::dim>(n_);
@@ -325,17 +325,17 @@ protected:
     }
 
 public:
-    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE static constexpr std::size_t
+    [[nodiscard]] MAKESHIFT_DETAIL_FORCEINLINE static constexpr std::size_t
     size(void) noexcept
     {
         return N;
     }
-    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE static constexpr bool
+    [[nodiscard]] MAKESHIFT_DETAIL_FORCEINLINE static constexpr bool
     empty(void) noexcept
     {
         return N == 0;
     }
-    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE constexpr zip_iterator_sentinel<dim_constant<N>>
+    [[nodiscard]] MAKESHIFT_DETAIL_FORCEINLINE constexpr zip_iterator_sentinel<dim_constant<N>>
     end(void) const noexcept
     {
         return zip_iterator_sentinel<dim_constant<N>>({ });
@@ -354,7 +354,7 @@ protected:
     }
 
 public:
-    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE constexpr zip_iterator_sentinel<dim_constant<unknown_size>>
+    [[nodiscard]] MAKESHIFT_DETAIL_FORCEINLINE constexpr zip_iterator_sentinel<dim_constant<unknown_size>>
     end(void) const noexcept
     {
         return zip_iterator_sentinel<dim_constant<unknown_size>>({ });
@@ -378,12 +378,12 @@ public:
     {
     }
 
-    gsl_NODISCARD constexpr iterator
+    [[nodiscard]] constexpr iterator
     begin(void) const
     {
         return iterator(std::get<Is>(ranges_)...);
     }
-    gsl_NODISCARD constexpr iterator
+    [[nodiscard]] constexpr iterator
     common_end(void) const
     {
         return iterator(end_tag{ }, this->_size(), std::get<Is>(ranges_)...);
@@ -409,7 +409,7 @@ private:
     using iterator = zip_iterator<N, Rs&...>;
 
 public:
-    gsl_NODISCARD MAKESHIFT_DETAIL_FORCEINLINE typename iterator::reference
+    [[nodiscard]] MAKESHIFT_DETAIL_FORCEINLINE typename iterator::reference
     operator [](std::size_t i) const
     {
         return this->begin()[i];
@@ -440,7 +440,7 @@ private:
     using base::base;
 
 public:
-    gsl_NODISCARD constexpr iterator
+    [[nodiscard]] constexpr iterator
     end(void) const // overwriting `zip_range_size_base<>::end()`
     {
         return this->common_end();

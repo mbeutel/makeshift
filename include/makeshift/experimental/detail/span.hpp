@@ -1,18 +1,18 @@
 
-#ifndef INCLUDED_MAKESHIFT_DETAIL_SPAN_HPP_
-#define INCLUDED_MAKESHIFT_DETAIL_SPAN_HPP_
+#ifndef INCLUDED_MAKESHIFT_EXPERIMENTAL_DETAIL_SPAN_HPP_
+#define INCLUDED_MAKESHIFT_EXPERIMENTAL_DETAIL_SPAN_HPP_
 
 
 #include <tuple>
-#include <cstddef>     // for size_t, ptrdiff_t
-#include <utility>     // for swap()
-#include <iterator>    // for input_iterator_tag, random_access_iterator_tag
-#include <type_traits> // for integral_constant<>, enable_if<>, remove_cv<>, is_const<>, is_same<>
+#include <cstddef>      // for size_t, ptrdiff_t
+#include <utility>      // for swap()
+#include <iterator>     // for input_iterator_tag, random_access_iterator_tag
+#include <type_traits>  // for integral_constant<>, enable_if<>, remove_cv<>, is_const<>, is_same<>, conjunction<>, negation<>
 
-#include <gsl-lite/gsl-lite.hpp> // for conjunction<>, negation<>, span<>, gsl_Expects(), gsl_NODISCARD
+#include <gsl-lite/gsl-lite.hpp>  // for span<>, gsl_Expects()
 
-#include <makeshift/tuple.hpp>       // for template_for(), tuple_transform()
-#include <makeshift/type_traits.hpp> // for nth_type<>
+#include <makeshift/tuple.hpp>        // for template_for(), tuple_transform()
+#include <makeshift/type_traits.hpp>  // for nth_type<>
 
 
 namespace makeshift {
@@ -72,7 +72,7 @@ public:
             data_, rhs);
         return *this;
     }
-    gsl_NODISCARD constexpr operator std::tuple<std::remove_cv_t<Ts>...>(void) const noexcept
+    [[nodiscard]] constexpr operator std::tuple<std::remove_cv_t<Ts>...>(void) const noexcept
     {
         return makeshift::tuple_transform(
             [index = index_]
@@ -85,14 +85,14 @@ public:
 
         // Implement tuple-like interface for `soa_reference<>`.
     template <std::size_t I>
-    gsl_NODISCARD friend constexpr nth_type_t<I, Ts...>& get(soa_reference const& self) noexcept
+    [[nodiscard]] friend constexpr nth_type_t<I, Ts...>& get(soa_reference const& self) noexcept
     {
         return std::get<I>(self.data_)[self.index_];
     }
 };
 
 template <typename... Ts>
-constexpr std::enable_if_t<gsl::conjunction_v<gsl::negation<std::is_const<Ts>>...>>
+constexpr std::enable_if_t<std::conjunction_v<std::negation<std::is_const<Ts>>...>>
 swap(soa_reference<Ts...> const& lhs, soa_reference<Ts...> const& rhs) noexcept
 {
     makeshift::template_for<sizeof...(Ts)>(
@@ -127,11 +127,11 @@ public:
     using value_type = std::tuple<Ts...>;
     using pointer = void;
     using reference = soa_reference<Ts...>;
-    using iterator_category = std::input_iterator_tag; // Unfortunately we cannot be a legacy random-access iterator because of the proxy class.
-    using iterator_concept = std::random_access_iterator_tag; // We can be a non-legacy random access iterator though in C++20.
+    using iterator_category = std::input_iterator_tag;  // Unfortunately we cannot be a legacy random-access iterator because of the proxy class.
+    using iterator_concept = std::random_access_iterator_tag;  // We can be a non-legacy random access iterator though in C++20.
 
     template <typename... RTs,
-              std::enable_if_t<gsl::conjunction_v<std::is_const<Ts>..., gsl::negation<std::is_const<RTs>>..., std::is_same<Ts, const RTs>...>, int> = 0>
+              std::enable_if_t<std::conjunction_v<std::is_const<Ts>..., std::negation<std::is_const<RTs>>..., std::is_same<Ts, const RTs>...>, int> = 0>
         constexpr soa_span_iterator(soa_span_iterator<RTs...> const& rhs) noexcept
             : data_(rhs.data_), index_(rhs.index_)
     {
@@ -139,11 +139,11 @@ public:
     soa_span_iterator(soa_span_iterator const&) = default;
     soa_span_iterator& operator =(soa_span_iterator const&) = default;
 
-    gsl_NODISCARD constexpr reference operator *(void) const
+    [[nodiscard]] constexpr reference operator *(void) const
     {
         return { *data_, index_ };
     }
-    gsl_NODISCARD reference operator [](difference_type n) const
+    [[nodiscard]] reference operator [](difference_type n) const
     {
         return { *data_, index_ + n };
     }
@@ -174,22 +174,22 @@ public:
         --index_;
         return result;
     }
-    gsl_NODISCARD friend constexpr soa_span_iterator operator +(soa_span_iterator it, difference_type n)
+    [[nodiscard]] friend constexpr soa_span_iterator operator +(soa_span_iterator it, difference_type n)
     {
         it.index_ += n;
         return it;
     }
-    gsl_NODISCARD friend constexpr soa_span_iterator operator +(difference_type n, soa_span_iterator it)
+    [[nodiscard]] friend constexpr soa_span_iterator operator +(difference_type n, soa_span_iterator it)
     {
         it.index_ += n;
         return it;
     }
-    gsl_NODISCARD friend constexpr soa_span_iterator operator -(soa_span_iterator it, difference_type n)
+    [[nodiscard]] friend constexpr soa_span_iterator operator -(soa_span_iterator it, difference_type n)
     {
         it.index_ -= n;
         return it;
     }
-    gsl_NODISCARD friend constexpr difference_type operator -(soa_span_iterator const& lhs, soa_span_iterator const& rhs)
+    [[nodiscard]] friend constexpr difference_type operator -(soa_span_iterator const& lhs, soa_span_iterator const& rhs)
     {
         return lhs.index_ - rhs.index_;
     }
@@ -200,27 +200,27 @@ public:
         std::swap(lhs.index_, rhs.index_);
     }
 
-    gsl_NODISCARD friend constexpr bool operator ==(soa_span_iterator const& lhs, soa_span_iterator const& rhs)
+    [[nodiscard]] friend constexpr bool operator ==(soa_span_iterator const& lhs, soa_span_iterator const& rhs)
     {
         return lhs.index_ == rhs.index_;
     }
-    gsl_NODISCARD friend constexpr bool operator !=(soa_span_iterator const& lhs, soa_span_iterator const& rhs)
+    [[nodiscard]] friend constexpr bool operator !=(soa_span_iterator const& lhs, soa_span_iterator const& rhs)
     {
         return !(lhs == rhs);
     }
-    gsl_NODISCARD friend constexpr bool operator <(soa_span_iterator const& lhs, soa_span_iterator const& rhs)
+    [[nodiscard]] friend constexpr bool operator <(soa_span_iterator const& lhs, soa_span_iterator const& rhs)
     {
         return lhs.index_ < rhs.index_;
     }
-    gsl_NODISCARD friend constexpr bool operator >(soa_span_iterator const& lhs, soa_span_iterator const& rhs)
+    [[nodiscard]] friend constexpr bool operator >(soa_span_iterator const& lhs, soa_span_iterator const& rhs)
     {
         return rhs < lhs;
     }
-    gsl_NODISCARD friend constexpr bool operator <=(soa_span_iterator const& lhs, soa_span_iterator const& rhs)
+    [[nodiscard]] friend constexpr bool operator <=(soa_span_iterator const& lhs, soa_span_iterator const& rhs)
     {
         return !(rhs < lhs);
     }
-    gsl_NODISCARD friend constexpr bool operator >=(soa_span_iterator const& lhs, soa_span_iterator const& rhs)
+    [[nodiscard]] friend constexpr bool operator >=(soa_span_iterator const& lhs, soa_span_iterator const& rhs)
     {
         return !(lhs < rhs);
     }
@@ -251,20 +251,14 @@ constexpr R check_all_equal(T0 v0, Ts... vs)
 } // namespace makeshift
 
 
-namespace std {
-
-
     // Implement tuple-like interface for `soa_reference<>`.
-template <typename... Ts> struct tuple_size<makeshift::detail::soa_reference<Ts...>> : public std::integral_constant<std::size_t, sizeof...(Ts)> { };
-template <std::size_t I, typename... Ts> struct tuple_element<I, makeshift::detail::soa_reference<Ts...>> { using type = makeshift::nth_type_t<I, Ts...>; };
+template <typename... Ts> struct std::tuple_size<makeshift::detail::soa_reference<Ts...>> : public std::integral_constant<std::size_t, sizeof...(Ts)> { };
+template <std::size_t I, typename... Ts> struct std::tuple_element<I, makeshift::detail::soa_reference<Ts...>> { using type = makeshift::nth_type_t<I, Ts...>; };
 
 
     // Implement tuple-like interface for `soa_span<>`.
-template <typename... Ts> struct tuple_size<makeshift::soa_span<Ts...>> : public std::integral_constant<std::size_t, sizeof...(Ts)> { };
-template <std::size_t I, typename... Ts> struct tuple_element<I, makeshift::soa_span<Ts...>> { using type = gsl_lite::span<makeshift::nth_type_t<I, Ts...>>; };
+template <typename... Ts> struct std::tuple_size<makeshift::soa_span<Ts...>> : public std::integral_constant<std::size_t, sizeof...(Ts)> { };
+template <std::size_t I, typename... Ts> struct std::tuple_element<I, makeshift::soa_span<Ts...>> { using type = gsl_lite::span<makeshift::nth_type_t<I, Ts...>>; };
 
 
-} // namespace std
-
-
-#endif // INCLUDED_MAKESHIFT_DETAIL_SPAN_HPP_
+#endif // INCLUDED_MAKESHIFT_EXPERIMENTAL_DETAIL_SPAN_HPP_

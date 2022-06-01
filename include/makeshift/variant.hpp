@@ -3,20 +3,19 @@
 #define INCLUDED_MAKESHIFT_VARIANT_HPP_
 
 
-#include <gsl-lite/gsl-lite.hpp> // for gsl_CPP17_OR_GREATER, gsl_NODISCARD
-
-#if !gsl_CPP17_OR_GREATER
-# error Header <makeshift/variant.hpp> requires C++17 mode or higher.
-#endif // !gsl_CPP17_OR_GREATER
-
-#include <cstddef>     // for ptrdiff_t
-#include <utility>     // for forward<>()
+#include <cstddef>      // for ptrdiff_t
+#include <utility>      // for forward<>()
 #include <variant>
 #include <optional>
-#include <type_traits> // for remove_cv<>, remove_reference<>
+#include <type_traits>  // for remove_cv<>, remove_reference<>
+
+#include <gsl-lite/gsl-lite.hpp>  // for type_identity<>, gsl_Expects(), gsl_CPP17_OR_GREATER
+
+#if !gsl_CPP17_OR_GREATER
+# error makeshift requires C++17 mode or higher
+#endif // !gsl_CPP17_OR_GREATER
 
 #include <makeshift/constval.hpp>  // for ref_constval<>
-#include <makeshift/reflect.hpp>   // for have_values_of<>, values_of<>
 #include <makeshift/metadata.hpp>
 
 #include <makeshift/detail/variant.hpp>
@@ -42,7 +41,7 @@ namespace gsl = ::gsl_lite;
     //ᅟ        bitsV);
     //
 template <typename T, typename ValuesC>
-gsl_NODISCARD constexpr typename detail::constval_variant_map<std::variant, ValuesC>::type
+[[nodiscard]] constexpr typename detail::constval_variant_map<std::variant, ValuesC>::type
 expand_failfast(T const& value, ValuesC valuesC)
 {
     std::ptrdiff_t index = detail::search_value_index(value, valuesC);
@@ -68,16 +67,12 @@ expand_failfast(T const& value, ValuesC valuesC)
     //ᅟ        loggingV);
     //
 template <typename T>
-gsl_NODISCARD constexpr auto
+[[nodiscard]] constexpr auto
 expand_failfast(T const& value)
 {
     if constexpr (metadata::is_available_v<decltype(metadata::values<T>())>)
     {
         return makeshift::expand_failfast(value, MAKESHIFT_CONSTVAL(metadata::values<T>()));
-    }
-    else if (have_values_of_v<T>)
-    {
-        return makeshift::expand_failfast(value, makeshift::constval_t<detail::values_of_<T>>{ });
     }
     else
     {
@@ -101,7 +96,7 @@ expand_failfast(T const& value)
     //ᅟ        bitsVO.value());
     //
 template <typename T, typename ValuesC>
-gsl_NODISCARD constexpr std::optional<typename detail::constval_variant_map<std::variant, ValuesC>::type>
+[[nodiscard]] constexpr std::optional<typename detail::constval_variant_map<std::variant, ValuesC>::type>
 try_expand(T const& value, ValuesC valuesC)
 {
     std::ptrdiff_t index = detail::search_value_index(value, valuesC);
@@ -128,16 +123,12 @@ try_expand(T const& value, ValuesC valuesC)
     //ᅟ        colorVO.value());
     //
 template <typename T>
-gsl_NODISCARD constexpr auto
+[[nodiscard]] constexpr auto
 try_expand(T const& value)
 {
     if constexpr (metadata::is_available_v<decltype(metadata::values<T>())>)
     {
         return makeshift::try_expand(value, MAKESHIFT_CONSTVAL(metadata::values<T>()));
-    }
-    else if (have_values_of_v<T>)
-    {
-        return makeshift::try_expand(value, makeshift::constval_t<detail::values_of_<T>>{ });
     }
     else
     {
@@ -160,7 +151,7 @@ try_expand(T const& value)
     //ᅟ        bitsV);
     //
 template <typename T, typename ValuesC>
-gsl_NODISCARD constexpr typename detail::constval_variant_map<std::variant, ValuesC>::type
+[[nodiscard]] constexpr typename detail::constval_variant_map<std::variant, ValuesC>::type
 expand(T const& value, ValuesC valuesC)
 {
     std::ptrdiff_t index = detail::search_value_index(value, valuesC);
@@ -187,16 +178,12 @@ expand(T const& value, ValuesC valuesC)
     //ᅟ        colorV);
     //
 template <typename T>
-gsl_NODISCARD constexpr auto
+[[nodiscard]] constexpr auto
 expand(T const& value)
 {
     if constexpr (metadata::is_available_v<decltype(metadata::values<T>())>)
     {
         return makeshift::expand(value, MAKESHIFT_CONSTVAL(metadata::values<T>()));
-    }
-    else if (have_values_of_v<T>)
-    {
-        return makeshift::expand(value, makeshift::constval_t<detail::values_of_<T>>{ });
     }
     else
     {
@@ -211,7 +198,7 @@ expand(T const& value)
     // Suppresses any template instantiations for intellisense parsers to improve responsivity.
     //
 template <typename F, typename... Vs>
-gsl_NODISCARD constexpr auto
+[[nodiscard]] constexpr auto
 visit(F&& func, Vs&&... args)
 #if !defined(__INTELLISENSE__)
     -> decltype(std::visit(std::forward<F>(func), std::forward<Vs>(args)...))
@@ -230,7 +217,7 @@ visit(F&& func, Vs&&... args)
     // Suppresses any template instantiations for intellisense parsers to improve responsivity.
     //
 template <typename R, typename F, typename... Vs>
-gsl_NODISCARD constexpr R
+[[nodiscard]] constexpr R
 visit(F&& func, Vs&&... args)
 {
 #if defined(__INTELLISENSE__)
@@ -260,7 +247,7 @@ visit(F&& func, Vs&&... args)
     // Suppresses any template instantiations for intellisense parsers to improve responsivity.
     //
 template <typename F, typename... Vs>
-gsl_NODISCARD constexpr decltype(auto)
+[[nodiscard]] constexpr decltype(auto)
 variant_transform(F&& func, Vs&&... args)
 {
     // Currently we merge identical results, i.e. if two functor invocations both return the same type, the type appears only once
@@ -297,7 +284,7 @@ variant_transform(F&& func, Vs&&... args)
     // Suppresses any template instantiations for intellisense parsers to improve responsivity.
     //
 template <typename F, typename... Vs>
-gsl_NODISCARD constexpr decltype(auto)
+[[nodiscard]] constexpr decltype(auto)
 variant_transform_many(F&& func, Vs&&... args)
 {
 #if defined(__INTELLISENSE__)

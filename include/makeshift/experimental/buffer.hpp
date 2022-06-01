@@ -4,12 +4,16 @@
 
 
 #include <array>
-#include <utility>     // for tuple_size<>, tuple_element<>
-#include <iterator>    // for move_iterator<>
-#include <algorithm>   // for copy()
-#include <type_traits> // for is_convertible<>
+#include <utility>      // for tuple_size<>, tuple_element<>
+#include <iterator>     // for move_iterator<>
+#include <algorithm>    // for copy()
+#include <type_traits>  // for is_convertible<>
 
-#include <gsl-lite/gsl-lite.hpp> // for gsl_Expects(), gsl_CPP17_OR_GREATER, gsl_NODISCARD
+#include <gsl-lite/gsl-lite.hpp>  // for gsl_Expects(), gsl_CPP17_OR_GREATER
+
+#if !gsl_CPP17_OR_GREATER
+# error makeshift requires C++17 mode or higher
+#endif // !gsl_CPP17_OR_GREATER
 
 #include <makeshift/experimental/detail/buffer.hpp>
 
@@ -93,7 +97,7 @@ public:
     //
 template <typename T,
           typename C>
-gsl_NODISCARD constexpr
+[[nodiscard]] constexpr
 buffer<T, detail::buffer_extent_from_constval(C{ })>
 make_buffer(C size)
 {
@@ -113,7 +117,7 @@ make_buffer(C size)
     //
 template <typename T, std::ptrdiff_t MaxStaticBufferExtent,
           typename C>
-gsl_NODISCARD constexpr
+[[nodiscard]] constexpr
 buffer<T, detail::buffer_extent_from_constval(C{ }), MaxStaticBufferExtent>
 make_buffer(C size)
 {
@@ -184,7 +188,7 @@ public:
     //ᅟ    auto buf = make_fixed_buffer<float>(numElementsC); // returns `fixed_buffer<float, N, N>`
     //
 template <typename T, typename SizeT, SizeT Size>
-gsl_NODISCARD constexpr
+[[nodiscard]] constexpr
 fixed_buffer<T, Size, Size>
 make_fixed_buffer(std::integral_constant<SizeT, Size>)
 {
@@ -203,7 +207,7 @@ make_fixed_buffer(std::integral_constant<SizeT, Size>)
     //
 template <typename T, std::ptrdiff_t MaxBufferExtent,
           typename C>
-gsl_NODISCARD constexpr
+[[nodiscard]] constexpr
 fixed_buffer<T, detail::buffer_extent_from_constval(C{ }), MaxBufferExtent>
 make_fixed_buffer(C size)
 {
@@ -213,14 +217,14 @@ make_fixed_buffer(C size)
 
     // Implement tuple-like protocol for `buffer<>`.
 template <std::size_t I, typename T, std::ptrdiff_t Extent, std::ptrdiff_t MaxStaticBufferExtent>
-gsl_NODISCARD constexpr std::enable_if_t<Extent != dynamic_extent, T&>
+[[nodiscard]] constexpr std::enable_if_t<Extent != dynamic_extent, T&>
 get(buffer<T, Extent, MaxStaticBufferExtent>& buffer) noexcept
 {
     static_assert(I < Extent, "index out of range");
     return buffer[I];
 }
 template <std::size_t I, typename T, std::ptrdiff_t Extent, std::ptrdiff_t MaxStaticBufferExtent>
-gsl_NODISCARD constexpr std::enable_if_t<Extent != dynamic_extent, T const&>
+[[nodiscard]] constexpr std::enable_if_t<Extent != dynamic_extent, T const&>
 get(buffer<T, Extent, MaxStaticBufferExtent> const& buffer) noexcept
 {
     static_assert(I < Extent, "index out of range");
@@ -229,14 +233,14 @@ get(buffer<T, Extent, MaxStaticBufferExtent> const& buffer) noexcept
 
     // Implement tuple-like protocol for `fixed_buffer<>`.
 template <std::size_t I, typename T, std::ptrdiff_t Extent, std::ptrdiff_t MaxBufferExtent>
-gsl_NODISCARD constexpr std::enable_if_t<Extent != dynamic_extent, T&>
+[[nodiscard]] constexpr std::enable_if_t<Extent != dynamic_extent, T&>
 get(fixed_buffer<T, Extent, MaxBufferExtent>& buffer) noexcept
 {
     static_assert(I < Extent, "index out of range");
     return buffer[I];
 }
 template <std::size_t I, typename T, std::ptrdiff_t Extent, std::ptrdiff_t MaxBufferExtent>
-gsl_NODISCARD constexpr std::enable_if_t<Extent != dynamic_extent, T const&>
+[[nodiscard]] constexpr std::enable_if_t<Extent != dynamic_extent, T const&>
 get(fixed_buffer<T, Extent, MaxBufferExtent> const& buffer) noexcept
 {
     static_assert(I < Extent, "index out of range");
@@ -247,21 +251,15 @@ get(fixed_buffer<T, Extent, MaxBufferExtent> const& buffer) noexcept
 } // namespace makeshift
 
 
-namespace std {
-
-
     // Implement tuple-like protocol for `buffer<>`.
-template <typename T, std::ptrdiff_t Extent, std::ptrdiff_t MaxStaticBufferExtent> class tuple_size<makeshift::buffer<T, Extent, MaxStaticBufferExtent>> : public std::integral_constant<std::size_t, Extent> { };
-template <typename T, std::ptrdiff_t MaxStaticBufferExtent> class tuple_size<makeshift::buffer<T, -1, MaxStaticBufferExtent>>; // undefined
-template <std::size_t I, typename T, std::ptrdiff_t Extent, std::ptrdiff_t MaxStaticBufferExtent> class tuple_element<I, makeshift::buffer<T, Extent, MaxStaticBufferExtent>> { public: using type = T; };
+template <typename T, std::ptrdiff_t Extent, std::ptrdiff_t MaxStaticBufferExtent> class std::tuple_size<makeshift::buffer<T, Extent, MaxStaticBufferExtent>> : public std::integral_constant<std::size_t, Extent> { };
+template <typename T, std::ptrdiff_t MaxStaticBufferExtent> class std::tuple_size<makeshift::buffer<T, -1, MaxStaticBufferExtent>>; // undefined
+template <std::size_t I, typename T, std::ptrdiff_t Extent, std::ptrdiff_t MaxStaticBufferExtent> class std::tuple_element<I, makeshift::buffer<T, Extent, MaxStaticBufferExtent>> { public: using type = T; };
 
     // Implement tuple-like protocol for `fixed_buffer<>`.
-template <typename T, std::ptrdiff_t Extent, std::ptrdiff_t MaxBufferExtent> class tuple_size<makeshift::fixed_buffer<T, Extent, MaxBufferExtent>> : public std::integral_constant<std::size_t, Extent> { };
-template <typename T, std::ptrdiff_t MaxBufferExtent> class tuple_size<makeshift::fixed_buffer<T, -1, MaxBufferExtent>>; // undefined
-template <std::size_t I, typename T, std::ptrdiff_t Extent, std::ptrdiff_t MaxBufferExtent> class tuple_element<I, makeshift::fixed_buffer<T, Extent, MaxBufferExtent>> { public: using type = T; };
-
-
-} // namespace std
+template <typename T, std::ptrdiff_t Extent, std::ptrdiff_t MaxBufferExtent> class std::tuple_size<makeshift::fixed_buffer<T, Extent, MaxBufferExtent>> : public std::integral_constant<std::size_t, Extent> { };
+template <typename T, std::ptrdiff_t MaxBufferExtent> class std::tuple_size<makeshift::fixed_buffer<T, -1, MaxBufferExtent>>; // undefined
+template <std::size_t I, typename T, std::ptrdiff_t Extent, std::ptrdiff_t MaxBufferExtent> class std::tuple_element<I, makeshift::fixed_buffer<T, Extent, MaxBufferExtent>> { public: using type = T; };
 
 
 #endif // INCLUDED_MAKESHIFT_EXPERIMENTAL_BUFFER_HPP_

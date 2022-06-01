@@ -3,16 +3,16 @@
 #define INCLUDED_MAKESHIFT_EXPERIMENTAL_DETAIL_ENUM_HPP_
 
 
-#include <cstddef>     // for size_t
-#include <cstdint>     // for int32_t
-#include <type_traits> // for enable_if<>
+#include <cstddef>      // for size_t
+#include <cstdint>      // for int32_t
+#include <type_traits>  // for enable_if<>
 
-#include <gsl-lite/gsl-lite.hpp> // for gsl_Expects(), gsl_NODISCARD
+#include <gsl-lite/gsl-lite.hpp>  // for gsl_Expects()
 
-#include <makeshift/utility.hpp>     // for type<>, type_sequence<>
-#include <makeshift/type_traits.hpp> // for search_type_pack_index_v<>
+#include <makeshift/utility.hpp>      // for type<>, type_sequence<>
+#include <makeshift/type_traits.hpp>  // for search_type_pack_index_v<>
 
-#include <makeshift/detail/type_traits.hpp> // for is_tuple_like_r<>, type_enum_base, unwrap_enum_tag
+#include <makeshift/detail/type_traits.hpp>  // for is_tuple_like_r<>, type_enum_base, unwrap_enum_tag
 
 
 namespace makeshift {
@@ -22,6 +22,14 @@ namespace gsl = ::gsl_lite;
 
 
 namespace detail {
+
+
+template <typename T>
+constexpr bool is_flag_power_of_2(T value) noexcept
+{
+    return value > 0
+        && (value & (value - 1)) == 0;
+}
 
 
 template <typename TypeEnumT, typename... Ts>
@@ -71,11 +79,11 @@ public:
 
     constexpr explicit operator std::int32_t(void) const noexcept { return std::int32_t(value_); }
 
-    gsl_NODISCARD friend constexpr bool operator ==(define_type_enum_base lhs, define_type_enum_base rhs) noexcept
+    [[nodiscard]] friend constexpr bool operator ==(define_type_enum_base lhs, define_type_enum_base rhs) noexcept
     {
         return lhs.value_ == rhs.value_;
     }
-    gsl_NODISCARD friend constexpr bool operator !=(define_type_enum_base lhs, define_type_enum_base rhs) noexcept
+    [[nodiscard]] friend constexpr bool operator !=(define_type_enum_base lhs, define_type_enum_base rhs) noexcept
     {
         return !(lhs == rhs);
     }
@@ -93,11 +101,11 @@ public:
 
     explicit operator bool(void) const = delete;
 
-    gsl_NODISCARD friend constexpr bool operator ==(define_type_enum_base, define_type_enum_base) noexcept
+    [[nodiscard]] friend constexpr bool operator ==(define_type_enum_base, define_type_enum_base) noexcept
     {
         return true;
     }
-    gsl_NODISCARD friend constexpr bool operator !=(define_type_enum_base lhs, define_type_enum_base rhs) noexcept
+    [[nodiscard]] friend constexpr bool operator !=(define_type_enum_base lhs, define_type_enum_base rhs) noexcept
     {
         return !(lhs == rhs);
     }
@@ -121,25 +129,25 @@ struct default_values<TypeEnumT, std::enable_if_t<std::is_base_of<detail::type_e
 };
 
 template <typename TypeEnumT, typename... Ts, typename T>
-gsl_NODISCARD constexpr std::enable_if_t<search_type_pack_index_v<T, Ts...> != -1, bool>
+[[nodiscard]] constexpr std::enable_if_t<search_type_pack_index_v<T, Ts...> != -1, bool>
 operator ==(define_type_enum_base<TypeEnumT, Ts...> lhs, type<T>) noexcept
 {
     return std::int32_t(search_type_pack_index_v<T, Ts...>) == std::int32_t(lhs);
 }
 template <typename TypeEnumT, typename... Ts, typename T>
-gsl_NODISCARD constexpr std::enable_if_t<search_type_pack_index_v<T, Ts...> != -1, bool>
+[[nodiscard]] constexpr std::enable_if_t<search_type_pack_index_v<T, Ts...> != -1, bool>
 operator ==(type<T> lhs, define_type_enum_base<TypeEnumT, Ts...> rhs) noexcept
 {
     return rhs == lhs;
 }
 template <typename TypeEnumT, typename... Ts, typename T>
-gsl_NODISCARD constexpr std::enable_if_t<search_type_pack_index_v<T, Ts...> != -1, bool>
+[[nodiscard]] constexpr std::enable_if_t<search_type_pack_index_v<T, Ts...> != -1, bool>
 operator !=(define_type_enum_base<TypeEnumT, Ts...> lhs, type<T> rhs) noexcept
 {
     return !(lhs == rhs);
 }
 template <typename TypeEnumT, typename... Ts, typename T>
-gsl_NODISCARD constexpr std::enable_if_t<search_type_pack_index_v<T, Ts...> != -1, bool>
+[[nodiscard]] constexpr std::enable_if_t<search_type_pack_index_v<T, Ts...> != -1, bool>
 operator !=(type<T> lhs, define_type_enum_base<TypeEnumT, Ts...> rhs) noexcept
 {
     return !(rhs == lhs);

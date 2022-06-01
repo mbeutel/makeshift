@@ -3,16 +3,16 @@
 #define INCLUDED_MAKESHIFT_DETAIL_RANGES_HPP_
 
 
-#include <cstddef>     // for size_t, ptrdiff_t
-#include <utility>     // for move(), integer_sequence<>
-#include <iterator>    // for iterator_traits<>, random_access_iterator_tag
-#include <type_traits> // for is_base_of<>, declval<>(), integral_constant<>
+#include <cstddef>      // for size_t, ptrdiff_t
+#include <utility>      // for move(), integer_sequence<>
+#include <iterator>     // for iterator_traits<>, random_access_iterator_tag
+#include <type_traits>  // for is_base_of<>, declval<>(), integral_constant<>
 
-#include <gsl-lite/gsl-lite.hpp> // for index, gsl_Expects(), gsl_NODISCARD
+#include <gsl-lite/gsl-lite.hpp>  // for index, gsl_Expects()
 
-#include <makeshift/iterator.hpp>      // for index_iterator
+#include <makeshift/iterator.hpp>  // for index_iterator
 
-#include <makeshift/detail/macros.hpp> // for MAKESHIFT_DETAIL_FORCEINLINE
+#include <makeshift/detail/macros.hpp>  // for MAKESHIFT_DETAIL_FORCEINLINE
 
 
 namespace makeshift {
@@ -37,8 +37,8 @@ public:
     {
     }
 
-    gsl_NODISCARD constexpr It const& begin(void) const noexcept { return first_; }
-    gsl_NODISCARD constexpr EndIt const& end(void) const noexcept { return last_; }
+    [[nodiscard]] constexpr It const& begin(void) const noexcept { return first_; }
+    [[nodiscard]] constexpr EndIt const& end(void) const noexcept { return last_; }
 };
 template <typename It, typename EndIt>
 class range_base<It, EndIt, std::random_access_iterator_tag, -1>
@@ -53,13 +53,13 @@ public:
     {
     }
 
-    gsl_NODISCARD constexpr It const& begin(void) const noexcept { return first_; }
-    gsl_NODISCARD constexpr EndIt const& end(void) const noexcept { return last_; }
-    gsl_NODISCARD constexpr std::size_t size(void) const noexcept
+    [[nodiscard]] constexpr It const& begin(void) const noexcept { return first_; }
+    [[nodiscard]] constexpr EndIt const& end(void) const noexcept { return last_; }
+    [[nodiscard]] constexpr std::size_t size(void) const noexcept
     {
         return last_ - first_;
     }
-    gsl_NODISCARD constexpr decltype(auto) operator [](std::size_t i) const noexcept
+    [[nodiscard]] constexpr decltype(auto) operator [](std::size_t i) const noexcept
     {
         gsl_Expects(i < last_ - first_);
         return first_[i];
@@ -78,13 +78,13 @@ public:
     {
     }
 
-    gsl_NODISCARD constexpr It const& begin(void) const noexcept { return first_; }
-    gsl_NODISCARD constexpr It const& end(void) const noexcept { return last_; }
-    gsl_NODISCARD constexpr std::size_t size(void) const noexcept
+    [[nodiscard]] constexpr It const& begin(void) const noexcept { return first_; }
+    [[nodiscard]] constexpr It const& end(void) const noexcept { return last_; }
+    [[nodiscard]] constexpr std::size_t size(void) const noexcept
     {
         return last_ - first_;
     }
-    gsl_NODISCARD constexpr decltype(auto) operator [](std::size_t i) const noexcept
+    [[nodiscard]] constexpr decltype(auto) operator [](std::size_t i) const noexcept
     {
         gsl_Expects(i < last_ - first_);
         return first_[i];
@@ -104,13 +104,13 @@ public:
     {
     }
 
-    gsl_NODISCARD constexpr It const& begin(void) const noexcept { return first_; }
-    gsl_NODISCARD constexpr It const& end(void) const noexcept { return first_ + Extent; }
-    gsl_NODISCARD constexpr std::size_t size(void) const noexcept
+    [[nodiscard]] constexpr It const& begin(void) const noexcept { return first_; }
+    [[nodiscard]] constexpr It const& end(void) const noexcept { return first_ + Extent; }
+    [[nodiscard]] constexpr std::size_t size(void) const noexcept
     {
         return Extent;
     }
-    gsl_NODISCARD constexpr decltype(auto) operator [](std::size_t i) const noexcept
+    [[nodiscard]] constexpr decltype(auto) operator [](std::size_t i) const noexcept
     {
         gsl_Expects(i < std::size_t(Extent));
         return first_[i];
@@ -150,14 +150,14 @@ constexpr T const& as_const(T& t) noexcept
     return t;
 }
 template <std::size_t I, typename It, std::ptrdiff_t Extent>
-gsl_NODISCARD constexpr std::enable_if_t<(Extent >= 0), decltype(*std::declval<It>())>
+[[nodiscard]] constexpr std::enable_if_t<(Extent >= 0), decltype(*std::declval<It>())>
 get(range_base<It, It, std::random_access_iterator_tag, Extent>& range) noexcept
 {
     static_assert(I < std::size_t(Extent), "index out of range");
     return range[I];
 }
 template <std::size_t I, typename It, std::ptrdiff_t Extent>
-gsl_NODISCARD constexpr std::enable_if_t<(Extent >= 0), decltype(detail::as_const(*std::declval<It>()))>
+[[nodiscard]] constexpr std::enable_if_t<(Extent >= 0), decltype(detail::as_const(*std::declval<It>()))>
 get(range_base<It, It, std::random_access_iterator_tag, Extent> const& range) noexcept
 {
     static_assert(I < std::size_t(Extent), "index out of range");

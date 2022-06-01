@@ -11,7 +11,7 @@
 #include <string_view>
 #include <type_traits>  // for void_t<>
 
-#include <gsl-lite/gsl-lite.hpp>
+#include <gsl-lite/gsl-lite.hpp>  // for type_identity<>
 
 
 namespace makeshift {

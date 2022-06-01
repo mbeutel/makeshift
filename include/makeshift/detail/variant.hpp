@@ -4,15 +4,15 @@
 
 
 #include <array>
-#include <cstddef>     // for size_t, ptrdiff_t
-#include <utility>     // for integer_sequence<>
+#include <cstddef>      // for size_t, ptrdiff_t
+#include <utility>      // for integer_sequence<>
 #include <exception>
-#include <type_traits> // for integral_constant<>, underlying_type<>, declval<>(), remove_const<>, remove_reference<>
+#include <type_traits>  // for integral_constant<>, underlying_type<>, declval<>(), remove_const<>, remove_reference<>
 
-#include <gsl-lite/gsl-lite.hpp> // for gsl_CPP17_OR_GREATER, type_identity<>
+#include <gsl-lite/gsl-lite.hpp>  // for type_identity<>
 
-#include <makeshift/utility.hpp>  // for type_seq_<>
-#include <makeshift/constval.hpp> // for array_constant<>
+#include <makeshift/utility.hpp>   // for type_seq_<>
+#include <makeshift/constval.hpp>  // for array_constant<>
 
 
 namespace makeshift {

@@ -3,18 +3,19 @@
 #define INCLUDED_MAKESHIFT_EXPERIMENTAL_FUNCTIONAL_HPP_
 
 
-#include <utility>     // for move(), forward<>()
-#include <type_traits> // for move(), forward<>()
+#include <utility>      // for move(), forward<>()
+#include <type_traits>  // for move(), forward<>()
 
-#include <gsl-lite/gsl-lite.hpp> // for gsl_CPP17_OR_GREATER
+#include <gsl-lite/gsl-lite.hpp>  // for gsl_CPP17_OR_GREATER
+
+#if !gsl_CPP17_OR_GREATER
+# error makeshift requires C++17 mode or higher
+#endif // !gsl_CPP17_OR_GREATER
 
 #include <makeshift/experimental/detail/functional.hpp>
 
 
 namespace makeshift {
-
-
-namespace gsl = ::gsl_lite;
 
 
     //

@@ -3,15 +3,19 @@
 #define INCLUDED_MAKESHIFT_ALGORITHM_HPP_
 
 
-#include <cstddef>     // for ptrdiff_t
-#include <utility>     // for forward<>(), swap()
-#include <iterator>    // for iterator_traits<>
-#include <type_traits> // for integral_constant<>, decay<>
+#include <cstddef>      // for ptrdiff_t
+#include <utility>      // for forward<>(), swap()
+#include <iterator>     // for iterator_traits<>
+#include <type_traits>  // for integral_constant<>, decay<>, conjunction<>
 
-#include <gsl-lite/gsl-lite.hpp> // for gsl_Expects()
+#include <gsl-lite/gsl-lite.hpp>  // for index, gsl_Expects(), gsl_CPP17_OR_GREATER
+
+#if !gsl_CPP17_OR_GREATER
+# error makeshift requires C++17 mode or higher
+#endif // !gsl_CPP17_OR_GREATER
 
 #include <makeshift/detail/algorithm.hpp>
-#include <makeshift/detail/range-index.hpp> // for identity_transform_t, all_of_pred, none_of_pred
+#include <makeshift/detail/ranges.hpp>     // for identity_transform_t, all_of_pred, none_of_pred
 
 
 namespace makeshift {
@@ -87,7 +91,7 @@ template <typename F, typename... Rs>
 constexpr void
 range_for(F&& func, Rs&&... ranges)
 {
-    static_assert(!gsl::conjunction_v<std::is_same<std::decay_t<Rs>, detail::range_index_t>...>, "no range argument given");
+    static_assert(!std::conjunction_v<std::is_same<std::decay_t<Rs>, detail::range_index_t>...>, "no range argument given");
 
     auto mergedSize = detail::merge_sizes(detail::range_size(ranges)...);
     auto it = detail::make_zip_begin_iterator(mergedSize, ranges...);
@@ -158,10 +162,10 @@ range_generate(R&& range, F const& generate)
     //ᅟ    // returns 13
     //
 template <typename T, typename ReduceFuncT, typename TransformFuncT, typename... Rs>
-gsl_NODISCARD constexpr std::decay_t<T>
+[[nodiscard]] constexpr std::decay_t<T>
 range_transform_reduce(T&& initialValue, ReduceFuncT&& reduce, TransformFuncT&& transform, Rs&&... ranges)
 {
-    static_assert(!gsl::conjunction_v<std::is_same<std::decay_t<Rs>, detail::range_index_t>...>, "no range argument given");
+    static_assert(!std::conjunction_v<std::is_same<std::decay_t<Rs>, detail::range_index_t>...>, "no range argument given");
 
     auto mergedSize = detail::merge_sizes(detail::range_size(ranges)...);
     auto result = std::forward<T>(initialValue);
@@ -185,7 +189,7 @@ range_transform_reduce(T&& initialValue, ReduceFuncT&& reduce, TransformFuncT&& 
     //ᅟ    // returns "Hello, World!"s;
     //
 template <typename T, typename ReduceFuncT, typename R>
-gsl_NODISCARD constexpr auto
+[[nodiscard]] constexpr auto
 range_reduce(T&& initialValue, ReduceFuncT&& reduce, R&& range)
 {
     static_assert(!std::is_same<std::decay_t<R>, detail::range_index_t>::value, "no range argument given");
@@ -208,10 +212,10 @@ range_reduce(T&& initialValue, ReduceFuncT&& reduce, R&& range)
     //ᅟ    // returns 2
     //
 template <typename PredicateT, typename... Rs>
-gsl_NODISCARD constexpr std::ptrdiff_t
+[[nodiscard]] constexpr std::ptrdiff_t
 range_count_if(PredicateT&& predicate, Rs&&... ranges)
 {
-    static_assert(!gsl::conjunction_v<std::is_same<std::decay_t<Rs>, detail::range_index_t>...>, "no range argument given");
+    static_assert(!std::conjunction_v<std::is_same<std::decay_t<Rs>, detail::range_index_t>...>, "no range argument given");
 
     auto mergedSize = detail::merge_sizes(detail::range_size(ranges)...);
     auto it = detail::make_zip_begin_iterator(mergedSize, ranges...);
@@ -234,10 +238,10 @@ range_count_if(PredicateT&& predicate, Rs&&... ranges)
     //ᅟ    // returns false
     //
 template <typename PredicateT, typename... Rs>
-gsl_NODISCARD constexpr bool
+[[nodiscard]] constexpr bool
 range_all_of(PredicateT&& predicate, Rs&&... ranges)
 {
-    static_assert(!gsl::conjunction_v<std::is_same<std::decay_t<Rs>, detail::range_index_t>...>, "no range argument given");
+    static_assert(!std::conjunction_v<std::is_same<std::decay_t<Rs>, detail::range_index_t>...>, "no range argument given");
 
     auto mergedSize = detail::merge_sizes(detail::range_size(ranges)...);
     auto it = detail::make_zip_begin_iterator(mergedSize, ranges...);
@@ -259,10 +263,10 @@ range_all_of(PredicateT&& predicate, Rs&&... ranges)
     //ᅟ    // returns false
     //
 template <typename PredicateT, typename... Rs>
-gsl_NODISCARD constexpr bool
+[[nodiscard]] constexpr bool
 range_any_of(PredicateT&& predicate, Rs&&... ranges)
 {
-    static_assert(!gsl::conjunction_v<std::is_same<std::decay_t<Rs>, detail::range_index_t>...>, "no range argument given");
+    static_assert(!std::conjunction_v<std::is_same<std::decay_t<Rs>, detail::range_index_t>...>, "no range argument given");
 
     auto mergedSize = detail::merge_sizes(detail::range_size(ranges)...);
     auto it = detail::make_zip_begin_iterator(mergedSize, ranges...);
@@ -284,10 +288,10 @@ range_any_of(PredicateT&& predicate, Rs&&... ranges)
     //ᅟ    // returns true
     //
 template <typename PredicateT, typename... Rs>
-gsl_NODISCARD constexpr bool
+[[nodiscard]] constexpr bool
 range_none_of(PredicateT&& predicate, Rs&&... ranges)
 {
-    static_assert(!gsl::conjunction_v<std::is_same<std::decay_t<Rs>, detail::range_index_t>...>, "no range argument given");
+    static_assert(!std::conjunction_v<std::is_same<std::decay_t<Rs>, detail::range_index_t>...>, "no range argument given");
 
     auto mergedSize = detail::merge_sizes(detail::range_size(ranges)...);
     auto it = detail::make_zip_begin_iterator(mergedSize, ranges...);

@@ -4,11 +4,11 @@
 
 
 #include <array>
-#include <cstddef>     // for size_t, ptrdiff_t
-#include <algorithm>   // for copy()
-#include <type_traits> // for integral_constant<>
+#include <cstddef>      // for size_t, ptrdiff_t
+#include <algorithm>    // for copy()
+#include <type_traits>  // for integral_constant<>
 
-#include <gsl-lite/gsl-lite.hpp> // for gsl_Expects(), gsl_NODISCARD, gsl_constexpr17
+#include <gsl-lite/gsl-lite.hpp> // for gsl_Expects(), gsl_constexpr17
 
 
 namespace makeshift {
@@ -41,53 +41,53 @@ private:
     gsl_constexpr17 std::size_t _size(void) const noexcept { return static_cast<DerivedT const*>(this)->size(); }
 
 public:
-    gsl_NODISCARD gsl_constexpr17 iterator begin(void) noexcept
+    [[nodiscard]] gsl_constexpr17 iterator begin(void) noexcept
     {
         return _data();
     }
-    gsl_NODISCARD gsl_constexpr17 const_iterator begin(void) const noexcept
+    [[nodiscard]] gsl_constexpr17 const_iterator begin(void) const noexcept
     {
         return _data();
     }
-    gsl_NODISCARD gsl_constexpr17 iterator end(void) noexcept
+    [[nodiscard]] gsl_constexpr17 iterator end(void) noexcept
     {
         return _data() + _size();
     }
-    gsl_NODISCARD gsl_constexpr17 const_iterator end(void) const noexcept
+    [[nodiscard]] gsl_constexpr17 const_iterator end(void) const noexcept
     {
         return _data() + _size();
     }
 
-    gsl_NODISCARD constexpr bool empty(void) const noexcept
+    [[nodiscard]] constexpr bool empty(void) const noexcept
     {
         return _size() == 0;
     }
 
-    gsl_NODISCARD gsl_constexpr17 reference operator [](size_type i)
+    [[nodiscard]] gsl_constexpr17 reference operator [](size_type i)
     {
         return _data()[i];
     }
-    gsl_NODISCARD gsl_constexpr17 const_reference operator [](size_type i) const
+    [[nodiscard]] gsl_constexpr17 const_reference operator [](size_type i) const
     {
         return _data()[i];
     }
 
-    gsl_NODISCARD gsl_constexpr17 reference front(void)
+    [[nodiscard]] gsl_constexpr17 reference front(void)
     {
         gsl_Expects(!empty());
         return _data()[0];
     }
-    gsl_NODISCARD gsl_constexpr17 const_reference front(void) const
+    [[nodiscard]] gsl_constexpr17 const_reference front(void) const
     {
         gsl_Expects(!empty());
         return _data()[0];
     }
-    gsl_NODISCARD gsl_constexpr17 reference back(void)
+    [[nodiscard]] gsl_constexpr17 reference back(void)
     {
         gsl_Expects(!empty());
         return _data()[_size() - 1];
     }
-    gsl_NODISCARD gsl_constexpr17 const_reference back(void) const
+    [[nodiscard]] gsl_constexpr17 const_reference back(void) const
     {
         gsl_Expects(!empty());
         return _data()[_size() - 1];
@@ -111,33 +111,33 @@ public:
     {
     }
 
-    gsl_NODISCARD gsl_constexpr17 iterator begin(void) noexcept
+    [[nodiscard]] gsl_constexpr17 iterator begin(void) noexcept
     {
         return data_.begin();
     }
-    gsl_NODISCARD gsl_constexpr17 const_iterator begin(void) const noexcept
+    [[nodiscard]] gsl_constexpr17 const_iterator begin(void) const noexcept
     {
         return data_.begin();
     }
-    gsl_NODISCARD gsl_constexpr17 iterator end(void) noexcept
+    [[nodiscard]] gsl_constexpr17 iterator end(void) noexcept
     {
         return data_.end();
     }
-    gsl_NODISCARD gsl_constexpr17 const_iterator end(void) const noexcept
+    [[nodiscard]] gsl_constexpr17 const_iterator end(void) const noexcept
     {
         return data_.end();
     }
 
-    gsl_NODISCARD constexpr std::size_t size(void) const noexcept
+    [[nodiscard]] constexpr std::size_t size(void) const noexcept
     {
         return Extent;
     }
 
-    gsl_NODISCARD gsl_constexpr17 T* data(void) noexcept
+    [[nodiscard]] gsl_constexpr17 T* data(void) noexcept
     {
         return data_.data();
     }
-    gsl_NODISCARD gsl_constexpr17 T const* data(void) const noexcept
+    [[nodiscard]] gsl_constexpr17 T const* data(void) const noexcept
     {
         return data_.data();
     }
@@ -155,16 +155,16 @@ public:
     {
     }
 
-    gsl_NODISCARD constexpr std::size_t size(void) const noexcept
+    [[nodiscard]] constexpr std::size_t size(void) const noexcept
     {
         return size_;
     }
 
-    gsl_NODISCARD gsl_constexpr17 T* data(void) noexcept
+    [[nodiscard]] gsl_constexpr17 T* data(void) noexcept
     {
         return data_.data();
     }
-    gsl_NODISCARD gsl_constexpr17 T const* data(void) const noexcept
+    [[nodiscard]] gsl_constexpr17 T const* data(void) const noexcept
     {
         return data_.data();
     }
@@ -206,16 +206,16 @@ public:
             delete[] data_;
     }
 
-    gsl_NODISCARD constexpr std::size_t size(void) const noexcept
+    [[nodiscard]] constexpr std::size_t size(void) const noexcept
     {
         return size_;
     }
 
-    gsl_NODISCARD constexpr T* data(void) noexcept
+    [[nodiscard]] constexpr T* data(void) noexcept
     {
         return data_;
     }
-    gsl_NODISCARD constexpr T const* data(void) const noexcept
+    [[nodiscard]] constexpr T const* data(void) const noexcept
     {
         return data_;
     }
@@ -251,16 +251,16 @@ public:
         delete[] data_;
     }
 
-    gsl_NODISCARD constexpr std::size_t size(void) const noexcept
+    [[nodiscard]] constexpr std::size_t size(void) const noexcept
     {
         return size_;
     }
 
-    gsl_NODISCARD constexpr T* data(void) noexcept
+    [[nodiscard]] constexpr T* data(void) noexcept
     {
         return data_;
     }
-    gsl_NODISCARD constexpr T const* data(void) const noexcept
+    [[nodiscard]] constexpr T const* data(void) const noexcept
     {
         return data_;
     }

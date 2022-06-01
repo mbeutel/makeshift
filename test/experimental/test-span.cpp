@@ -1,9 +1,9 @@
 
-#include <makeshift/span.hpp> // for soa_span<>
+#include <makeshift/experimental/span.hpp> // for soa_span<>
 
 #include <gsl-lite/gsl-lite.hpp> // for index, dim
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 
 namespace {

@@ -6,10 +6,18 @@
 #include <cstddef>     // for size_t
 #include <type_traits> // for integral_constant<>, declval<>(), is_enum<>, is_same<>
 
+#include <gsl-lite/gsl-lite.hpp>  // for gsl_CPP17_OR_GREATER
+
+#if !gsl_CPP17_OR_GREATER
+# error makeshift requires C++17 mode or higher
+#endif // !gsl_CPP17_OR_GREATER
+
 #include <makeshift/detail/type_traits.hpp>
 
 
 namespace makeshift {
+
+namespace gsl = ::gsl_lite;
 
 
     //
@@ -200,18 +208,6 @@ struct is_constval_of : detail::is_constval_of_<T, R> { };
 template <typename T, typename R>
 constexpr bool
 is_constval_of_v = is_constval_of<T, R>::value;
-
-
-    //
-    // Contains a default-constructed `constexpr` instance of type `T`.
-    //ᅟ
-    // Useful to avoid ODR violations when defining constexpr objects in C++14 (without C++17 `constexpr inline` available).
-    //ᅟ
-    //ᅟ    static constexpr S const& singleton = static_const<S>;
-    //
-template <typename T>
-constexpr T
-static_const{ };
 
 
 } // namespace makeshift
