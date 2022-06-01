@@ -39,7 +39,7 @@ jobs:
       cxxCompiler: MSVC
       cxxCompilerVersions: [VS2022]
       cudaCompiler: NVCC
-      cudaCompilerVersion: 11_7
+      cudaCompilerVersions: [11_7]
       platforms: [x64]
       cmakeConfigArgs: '<cmakeConfigArgs> -DMAKESHIFT_BUILD_CUDA_TESTS=ON'
 
@@ -73,7 +73,7 @@ jobs:
       cxxCompiler: GCC
       cxxCompilerVersions: [11]
       cudaCompiler: NVCC
-      cudaCompilerVersion: 11_7
+      cudaCompilerVersions: [11_7]
       platforms: [x64]
       cmakeConfigArgs: '<cmakeConfigArgs> -DMAKESHIFT_BUILD_CUDA_TESTS=ON'
 
