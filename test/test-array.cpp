@@ -21,8 +21,10 @@ TEST_CASE("array", "[flags]")
 
     SECTION("array-transform")
     {
+#if !gsl_COMPILER_NVCC_VERSION  // NVCC somehow screws up here.
         auto square = mk::array_transform([](auto x) { return int(x*x); }, numbers);
         CHECK(square == std::array<int, 2>{ 4, 9 });
+#endif // !gsl_COMPILER_NVCC_VERSION
 
         constexpr auto homogeneousNumbers = std::make_tuple(2, 3);
         auto moreNumbers = std::array<int, 2>{ 6, 8 };

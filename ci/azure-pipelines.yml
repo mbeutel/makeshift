@@ -60,7 +60,7 @@ jobs:
 
     - os: Linux
       cxxCompiler: Clang
-      cxxCompilerVersions: [8]
+      cxxCompilerVersions: [12]
       platforms: [x64]
 
     - os: Linux
