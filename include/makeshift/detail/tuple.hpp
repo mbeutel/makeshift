@@ -6,6 +6,7 @@
 #include <tuple>        // for make_tuple()
 #include <cstddef>      // for size_t
 #include <utility>      // for forward<>(), integer_sequence<>, tuple_size<>, get<>()
+#include <functional>   // for invoke()
 #include <type_traits>  // for decay<>
 
 #include <gsl-lite/gsl-lite.hpp>  // for gsl_constexpr20
