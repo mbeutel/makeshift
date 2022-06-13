@@ -250,6 +250,8 @@ template <typename F, typename... Vs>
 [[nodiscard]] constexpr decltype(auto)
 variant_transform(F&& func, Vs&&... args)
 {
+    gsl_DISABLE_MSVC_WARNINGS(4702)  // unreachable code
+
     // Currently we merge identical results, i.e. if two functor invocations both return the same type, the type appears only once
     // in the result variant. Although `std::variant<>` is explicitly designed to permit multiple alternatives of identical type,
     // it seems reasonable to merge identically typed alternatives here because identically typed alternatives cannot be
@@ -282,6 +284,8 @@ variant_transform(F&& func, Vs&&... args)
         },
         std::forward<Vs>(args)...);
 #endif // defined(__INTELLISENSE__)
+
+    gsl_RESTORE_MSVC_WARNINGS()
 }
 
     //
