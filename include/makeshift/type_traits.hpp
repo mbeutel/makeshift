@@ -210,6 +210,14 @@ constexpr bool
 is_constval_of_v = is_constval_of<T, R>::value;
 
 
+    //
+    // Can be used to delay the instantiation of a `static_assert()` in a constexpr if branch.
+    //
+template <typename...>
+constexpr bool
+dependent_false = false;
+
+
 } // namespace makeshift
 
 
