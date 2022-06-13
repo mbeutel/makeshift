@@ -227,10 +227,10 @@ visit(F&& func, Vs&&... args)
 //    return std::visit<R>(std::forward<F>(func), std::forward<Vs>(args)...);
 //# else // gsl_CPP20_OR_GREATER
     return std::visit(
-        [func = std::forward<F>(func)]
+        [&func]
         (auto&&... args) -> R
         {
-            return func(std::forward<decltype(args)>(args)...);
+            return std::forward<F>(func)(std::forward<decltype(args)>(args)...);
         },
         std::forward<Vs>(args)...);
 //# endif // gsl_CPP20_OR_GREATER
@@ -261,17 +261,26 @@ variant_transform(F&& func, Vs&&... args)
     return detail::convertible_to_anything{ };
 #else
     using R = detail::variant_transform_result<std::variant, F, Vs...>;
+    return std::visit
 # if gsl_CPP20_OR_GREATER
-    return std::visit<R>(std::forward<F>(func), std::forward<Vs>(args)...);
-# else // gsl_CPP20_OR_GREATER
-    return std::visit(
-        [func = std::forward<F>(func)]
+    <R>
+# endif // gsl_CPP20_OR_GREATER
+    (
+        [&func]
         (auto&&... args) -> R
         {
-            return func(std::forward<decltype(args)>(args)...);
+            using RR = decltype(std::forward<F>(func)(std::forward<decltype(args)>(args)...));
+            if constexpr (std::is_same_v<RR, void>)
+            {
+                std::forward<F>(func)(std::forward<decltype(args)>(args)...);
+                gsl_FailFast();
+            }
+            else
+            {
+                return std::forward<F>(func)(std::forward<decltype(args)>(args)...);
+            }
         },
         std::forward<Vs>(args)...);
-# endif // gsl_CPP20_OR_GREATER
 #endif // defined(__INTELLISENSE__)
 }
 

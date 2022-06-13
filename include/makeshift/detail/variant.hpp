@@ -11,7 +11,6 @@
 
 #include <gsl-lite/gsl-lite.hpp>  // for type_identity<>
 
-#include <makeshift/utility.hpp>   // for type_seq_<>
 #include <makeshift/constval.hpp>  // for array_constant<>
 
 
@@ -240,11 +239,14 @@ struct variant_transform_result_0_
     using type = typename variant_transform_results_0_<std::make_index_sequence<numOptions_>, shape_, strides_, F, Vs...>::type;
 };
 
+template <typename T> struct is_not_void : std::negation<std::is_void<T>> { };
+
 template <template <typename...> class VariantT, typename F, typename... Vs>
 struct variant_transform_result_
 {
     using result_seq_ = typename variant_transform_result_0_<VariantT, F, Vs...>::type;
-    using unique_result_seq_ = typename unique_sequence_<result_seq_>::type;
+    using non_void_result_seq_ = typename filter_sequence_<is_not_void, result_seq_>::type;
+    using unique_result_seq_ = typename unique_sequence_<non_void_result_seq_>::type;
     using type = typename instantiate_<VariantT, unique_result_seq_>::type;
 };
 template <template <typename...> class VariantT, typename F, typename... Vs>

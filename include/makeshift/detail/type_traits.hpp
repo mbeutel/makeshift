@@ -135,10 +135,29 @@ template <typename Rs, bool IsIn, typename T0, typename Ts> struct unique_sequen
 template <typename Rs, typename T0, typename Ts> struct unique_sequence_1_<Rs, true, T0, Ts> : unique_sequence_0_<Rs, Ts> { };
 template <template <typename...> class TypeSeqT, typename... Rs, typename T0, typename Ts> struct unique_sequence_1_<TypeSeqT<Rs...>, false, T0, Ts> : unique_sequence_0_<TypeSeqT<Rs..., T0>, Ts> { };
 template <typename Rs, typename T0, typename... Ts> struct unique_sequence_0_<Rs, type_set_<T0, Ts...>> : unique_sequence_1_<Rs, is_in_<T0, Ts...>::value, T0, type_set_<Ts...>> { };
-
 template <typename Ts> struct unique_sequence_;
 template <template <typename...> class TypeSeqT, typename... Ts> struct unique_sequence_<TypeSeqT<Ts...>> : unique_sequence_0_<TypeSeqT<>, type_set_<Ts...>> { };
 
+template <typename Rs, template <typename> class PredT, typename Ts> struct filter_sequence_0_;
+template <typename Rs, template <typename> class PredT, bool TakeT0, typename T0, typename Ts> struct filter_sequence_1_;
+template <typename... Rs, template <typename> class PredT, template <typename...> class TypeSeqT, typename T0, typename Ts>
+struct filter_sequence_1_<TypeSeqT<Rs...>, PredT, true, T0, Ts>
+    : filter_sequence_0_<TypeSeqT<Rs..., T0>, PredT, Ts> { };
+template <typename Rs, template <typename> class PredT, typename T0, typename Ts>
+struct filter_sequence_1_<Rs, PredT, false, T0, Ts>
+    : filter_sequence_0_<Rs, PredT, Ts> { };
+template <typename Rs, template <typename> class PredT, template <typename...> class TypeSeqT, typename T0, typename... Ts>
+struct filter_sequence_0_<Rs, PredT, TypeSeqT<T0, Ts...>>
+    : filter_sequence_1_<Rs, PredT, PredT<T0>::value, T0, TypeSeqT<Ts...>> { };
+template <typename Rs, template <typename> class PredT, template <typename...> class TypeSeqT>
+struct filter_sequence_0_<Rs, PredT, TypeSeqT<>>
+{
+    using type = Rs;
+};
+template <template <typename> class PredT, typename Ts> struct filter_sequence_;
+template <template <typename> class PredT, template <typename...> class TypeSeqT, typename... Ts>
+struct filter_sequence_<PredT, TypeSeqT<Ts...>>
+    : filter_sequence_0_<TypeSeqT<>, PredT, TypeSeqT<Ts...>> { };
 
 template <typename... Ts> struct equal_types_;
 template <> struct equal_types_<> : std::false_type { }; // we opt for false because then we don't have to name the common type
