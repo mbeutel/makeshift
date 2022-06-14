@@ -417,8 +417,16 @@ extract_value_metadata([[maybe_unused]] M const& md)
     //}
     else if constexpr (!std::is_same_v<M, std::nullopt_t>)  // Note that we don't confine `values()` to enums and bools.
     {
-            // Metadata has been defined for the type, but no values are listed; hence we assume that no values exist.
-        return std::array<V, 0>{ };
+        if constexpr (std::is_same_v<decltype(detail::extract_values<T>(md)), std::nullopt_t>)
+        {
+                // Metadata has been defined for the type, but no values are listed; hence we assume that no values exist.
+            return std::array<V, 0>{ };
+        }
+        else
+        {
+                // Values without the desired metadata have been defined for the type.
+            return std::nullopt;
+        }
     }
     else return std::nullopt;
 }
@@ -438,9 +446,17 @@ extract_member_metadata([[maybe_unused]] M const& md)
     //}
     else if constexpr (!std::is_same_v<M, std::nullopt_t> && std::is_class_v<T>)
     {
-            // The type is a class and metadata has been defined for it, but no memberes are listed; hence we assume that no
-            // members exist.
-        return std::array<V, 0>{ };
+        if constexpr (std::is_same_v<decltype(detail::extract_members<T>(md)), std::nullopt_t>)
+        {
+                // The type is a class and metadata has been defined for it, but no memberes are listed; hence we assume that no
+                // members exist.
+            return std::array<V, 0>{ };
+        }
+        else
+        {
+                // Members without the desired metadata have been defined for the type.
+            return std::nullopt;
+        }
     }
     else return std::nullopt;
 }
