@@ -69,7 +69,7 @@ description_or_name_or_empty()
 {
     auto name = metadata::name<T, ReflectorT>();
     auto desc = metadata::description<T, ReflectorT>();
-    if constexpr (metadata::is_available_v<decltype(desc)>) return desc;
+    if constexpr (metadata::is_available_v<decltype(desc)>) return desc;  // TODO: could we use `is_available()` here?
     else if constexpr (metadata::is_available(name)) return name;
     else return { };
 }
@@ -100,7 +100,7 @@ make_enum_metadata()
         gsl_Expects(name.find_first_of(enum_forbidden_chars) == std::string_view::npos);
     }
 
-    auto desc = detail::description_or_name_or_empty<T, ReflectorT>();
+    std::string_view desc = detail::description_or_name_or_empty<T, ReflectorT>();
 
     constexpr std::size_t N = std::tuple_size_v<std::decay_t<decltype(values)>>;
     return enum_metadata<T, N>{ desc, values, value_names };
