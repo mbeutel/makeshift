@@ -194,24 +194,24 @@ TEST_CASE("enum metadata")
     CHECK_FALSE(mk::metadata::is_available(mk::metadata::description<Color1>(md1)));
     CHECK_FALSE(mk::metadata::is_available(mk::metadata::bases<Color1>(md1)));
     CHECK(mk::metadata::is_available(mk::metadata::values<Color1>(md1)));
-    CHECK(mk::metadata::is_available(mk::metadata::value_names<Color1>(md1)));
-    CHECK(mk::metadata::is_available(mk::metadata::value_descriptions<Color1>(md1)));
+    CHECK_FALSE(mk::metadata::is_available(mk::metadata::value_names<Color1>(md1)));
+    CHECK_FALSE(mk::metadata::is_available(mk::metadata::value_descriptions<Color1>(md1)));
 
     constexpr auto md2 = mk::metadata_v<Color2>;
     CHECK(mk::metadata::name<Color2>(md2) == "Color2");
     CHECK(mk::metadata::description<Color2>(md2) == "color 2");
     CHECK_FALSE(mk::metadata::is_available(mk::metadata::bases<Color2>(md2)));
     CHECK(mk::metadata::values<Color2>(md2) == std::array{ Color2::red, Color2::green });
-    CHECK(mk::metadata::is_available(mk::metadata::value_names<Color2>(md2)));
-    CHECK(mk::metadata::is_available(mk::metadata::value_descriptions<Color2>(md2)));
+    CHECK_FALSE(mk::metadata::is_available(mk::metadata::value_names<Color2>(md2)));
+    CHECK_FALSE(mk::metadata::is_available(mk::metadata::value_descriptions<Color2>(md2)));
 
     constexpr auto md3 = mk::metadata_v<Color3>;
     CHECK_FALSE(mk::metadata::is_available(mk::metadata::name<Color3>(md3)));
     CHECK_FALSE(mk::metadata::is_available(mk::metadata::description<Color3>(md3)));
     CHECK_FALSE(mk::metadata::is_available(mk::metadata::bases<Color3>(md3)));
     CHECK(mk::metadata::values<Color3>(md3) == std::array{ Color3::red, Color3::green });
-    CHECK(mk::metadata::is_available(mk::metadata::value_names<Color3>(md3)));
-    CHECK(mk::metadata::is_available(mk::metadata::value_descriptions<Color3>(md3)));
+    CHECK_FALSE(mk::metadata::is_available(mk::metadata::value_names<Color3>(md3)));
+    CHECK_FALSE(mk::metadata::is_available(mk::metadata::value_descriptions<Color3>(md3)));
 
     constexpr auto md4 = mk::metadata_v<Color4>;
     CHECK_FALSE(mk::metadata::is_available(mk::metadata::name<Color4>(md4)));
@@ -273,8 +273,8 @@ TEST_CASE("struct metadata")
     CHECK(mk::metadata::description<COO2>(md2) == "COO 2");
     CHECK(mk::metadata::bases<COO2>(md2) == std::tuple{ });
     CHECK(mk::metadata::members<COO2>(md2) == mk::value_tuple{ &COO2::i, &COO2::j, &COO2::v });
-    CHECK(mk::metadata::is_available(mk::metadata::member_names<COO2>(md2)));
-    CHECK(mk::metadata::is_available(mk::metadata::member_descriptions<COO2>(md2)));
+    CHECK_FALSE(mk::metadata::is_available(mk::metadata::member_names<COO2>(md2)));
+    CHECK_FALSE(mk::metadata::is_available(mk::metadata::member_descriptions<COO2>(md2)));
 
     constexpr auto md3 = mk::metadata_v<COO3>;
     CHECK_FALSE(mk::metadata::is_available(mk::metadata::name<COO3>(md3)));
