@@ -35,6 +35,8 @@ namespace gsl = ::gsl_lite;
 //static_assert(std::bidirectional_iterator<mk::index_iterator>);
 static_assert(std::random_access_iterator<mk::index_iterator>);
 
+static_assert(std::ranges::random_access_range<mk::index_range>);
+static_assert(std::ranges::bidirectional_range<mk::range<std::list<int>::iterator>>);
 static_assert(std::ranges::random_access_range<mk::range<std::array<int, 1>::iterator>>);
 static_assert(std::ranges::random_access_range<mk::range<std::array<int, 1>::iterator, std::array<int, 1>::iterator, 1>>);
 

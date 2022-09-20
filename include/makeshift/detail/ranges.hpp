@@ -165,33 +165,6 @@ get(range_base<It, It, std::random_access_iterator_tag, Extent> const& range) no
 }
 
 
-class contiguous_index_range
-{
-private:
-    gsl::index first_;
-    gsl::index last_;
-
-public:
-    using const_iterator = index_iterator;
-    using iterator = index_iterator;
-
-    constexpr contiguous_index_range(gsl::index _first, gsl::index _last) noexcept
-        : first_(_first), last_(_last)
-    {
-    }
-    const_iterator
-    begin(void) const noexcept
-    {
-        return const_iterator(first_);
-    }
-    const_iterator
-    end(void) const noexcept
-    {
-        return const_iterator(last_);
-    }
-};
-
-
 } // namespace detail
 
 } // namespace makeshift

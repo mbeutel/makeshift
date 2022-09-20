@@ -79,39 +79,44 @@ make_range(It start, ExtentC extentC)
     //
     // Represents a range of index values [0, num).
     //ᅟ
-    //ᅟ    auto indices = make_index_range(3);
+    //ᅟ    auto indices = index_range(3);
     //ᅟ    for (auto index : indices)
     //ᅟ    {
     //ᅟ        std::cout << index << '\n';
     //ᅟ    }
     //ᅟ    // prints "0\n1\n2\n"
     //
-[[nodiscard]] constexpr detail::contiguous_index_range
-make_index_range(gsl::dim num)
+class index_range
 {
-    gsl_Expects(num >= 0);
+private:
+    gsl::index first_;
+    gsl::index last_;
 
-    return { 0, num };
-}
+public:
+    using const_iterator = index_iterator;
+    using iterator = index_iterator;
 
-
-    //
-    // Represents a range of index values [first, last).
-    //ᅟ
-    //ᅟ    auto indices = make_index_range(3, 7);
-    //ᅟ    for (auto index : indices)
-    //ᅟ    {
-    //ᅟ        std::cout << index << '\n';
-    //ᅟ    }
-    //ᅟ    // prints "3\n4\n5\n6\n"
-    //
-[[nodiscard]] constexpr detail::contiguous_index_range
-make_index_range(gsl::index first, gsl::index last)
-{
-    gsl_Expects(first <= last);
-
-    return { first, last };
-}
+    explicit constexpr index_range(gsl::index _num)
+        : first_(0), last_(_num)
+    {
+        gsl_Expects(_num >= 0);
+    }
+    explicit constexpr index_range(gsl::index _first, gsl::index _last)
+        : first_(_first), last_(_last)
+    {
+        gsl_Expects(_first <= _last);
+    }
+    constexpr const_iterator
+    begin(void) const noexcept
+    {
+        return const_iterator(first_);
+    }
+    constexpr const_iterator
+    end(void) const noexcept
+    {
+        return const_iterator(last_);
+    }
+};
 
 
 } // namespace makeshift
@@ -123,12 +128,12 @@ template <typename It, typename EndIt> class std::tuple_size<makeshift::range<It
 template <std::size_t I, typename It, std::ptrdiff_t Extent> class std::tuple_element<I, makeshift::range<It, It, Extent>> { public: using type = std::decay_t<decltype(*std::declval<It>())>; };
 template <std::size_t I, typename It, typename EndIt> class std::tuple_element<I, makeshift::range<It, EndIt, -1>>; // not defined
 
-    // Declare `range<>` and `detail::contiguous_index_range<>` as borrowed ranges.
+    // Declare `range<>` and `index_range<>` as borrowed ranges.
 #if gsl_CPP20_OR_GREATER
 template <typename It, typename EndIt, std::ptrdiff_t Extent>
 inline constexpr bool std::ranges::enable_borrowed_range<makeshift::range<It, EndIt, Extent>> = true;
 template <>
-inline constexpr bool std::ranges::enable_borrowed_range<makeshift::detail::contiguous_index_range> = true;
+inline constexpr bool std::ranges::enable_borrowed_range<makeshift::index_range> = true;
 #endif // gsl_CPP20_OR_GREATER
 
 #endif // INCLUDED_MAKESHIFT_RANGES_HPP_
