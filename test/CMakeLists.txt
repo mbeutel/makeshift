@@ -87,6 +87,7 @@ set_property(TEST test-makeshift-cxx17 PROPERTY FAIL_REGULAR_EXPRESSION "Sanitiz
 # C++20 tests
 if(cxx_std_20 IN_LIST CMAKE_CXX_COMPILE_FEATURES)
     add_executable(test-makeshift-cxx20
+        "test-ranges.cpp"
         "test-concepts.cpp"
         "test-constval.cpp"
         "test-metadata.cpp"

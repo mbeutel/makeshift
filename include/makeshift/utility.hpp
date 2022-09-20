@@ -115,6 +115,16 @@ composition(Ts...) -> composition<Ts...>;
 #endif // gsl_CPP17_OR_GREATER
 
 
+#if gsl_CPP20_OR_GREATER
+template <typename T>
+[[nodiscard]] consteval T
+as_consteval(T value)
+{
+    return std::move(value);
+}
+#endif // gsl_CPP20_OR_GREATER
+
+
 } // namespace makeshift
 
 

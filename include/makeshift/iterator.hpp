@@ -25,6 +25,10 @@ private:
     gsl::index i_;
 
 public:
+    explicit constexpr index_iterator() noexcept
+        : i_(-1)
+    {
+    }
     explicit constexpr index_iterator(gsl::index _i) noexcept
         : i_(_i)
     {
@@ -51,7 +55,7 @@ public:
     [[nodiscard]] MAKESHIFT_DETAIL_FORCEINLINE constexpr bool
     friend operator !=(index_iterator lhs, index_iterator rhs) noexcept
     {
-        return !(lhs == rhs);
+        return lhs.i_ != rhs.i_;
     }
 
 
@@ -175,23 +179,23 @@ public:
     [[nodiscard]] MAKESHIFT_DETAIL_FORCEINLINE friend constexpr bool
     operator <=(index_iterator lhs, index_iterator rhs) noexcept
     {
-        return !(rhs < lhs);
+        return lhs.i_ <= rhs.i_;
     }
     [[nodiscard]] MAKESHIFT_DETAIL_FORCEINLINE friend constexpr bool
     operator >(index_iterator lhs, index_iterator rhs) noexcept
     {
-        return rhs < lhs;
+        return lhs.i_ > rhs.i_;
     }
     [[nodiscard]] MAKESHIFT_DETAIL_FORCEINLINE friend constexpr bool
     operator >=(index_iterator lhs, index_iterator rhs) noexcept
     {
-        return !(lhs < rhs);
+        return lhs.i_ >= rhs.i_;
     }
 
     [[nodiscard]] MAKESHIFT_DETAIL_FORCEINLINE constexpr gsl::index
-    operator [](difference_type offset)
+    operator [](difference_type offset) const
     {
-        return *(*this + offset);
+        return i_ + offset;
     }
 };
 
