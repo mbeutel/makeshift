@@ -105,7 +105,7 @@ public:
     }
 
     [[nodiscard]] constexpr It const& begin(void) const noexcept { return first_; }
-    [[nodiscard]] constexpr It const& end(void) const noexcept { return first_ + Extent; }
+    [[nodiscard]] constexpr It end(void) const noexcept { return first_ + Extent; }
     [[nodiscard]] constexpr std::size_t size(void) const noexcept
     {
         return Extent;
