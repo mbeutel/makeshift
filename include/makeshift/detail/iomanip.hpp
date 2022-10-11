@@ -4,6 +4,7 @@
 
 
 #include <ios>
+#include <tuple>
 #include <iosfwd>
 #include <string>
 #include <string_view>
@@ -17,86 +18,89 @@ namespace makeshift {
 namespace detail {
 
 
-template <typename T, typename ReflectorT>
-struct enum_manipulator;
-template <typename T, typename ReflectorT>
-struct enum_manipulator<T&, ReflectorT>
+template <typename ToStreamFuncT, typename FromStreamFuncT = void>
+struct manipulator : ToStreamFuncT, FromStreamFuncT
 {
-    T& value_;
-
-    friend std::istream&
-    operator >>(std::istream& stream, enum_manipulator&& self)
+    template <typename... ArgsT>
+    struct bound_manipulator
     {
-        std::string str;
-        int ci;
-        stream >> std::ws;
-        while (stream.good() && (ci = stream.peek()) != std::char_traits<char>::eof() && !enum_forbidden_char_set.contains(static_cast<char>(ci)))
+        manipulator const& manip_;
+        std::tuple<ArgsT...> args_;
+
+        friend std::ostream&
+        operator <<(std::ostream& stream, bound_manipulator&& m)
         {
-            str += static_cast<char>(stream.get());
+            std::apply(
+                [&manip = m.manip_, &stream]
+                (auto&&... args)
+                {
+                    return static_cast<ToStreamFuncT const&>(manip)(stream, std::forward<decltype(args)>(args)...);
+                }, m.args_);
+            return stream;
         }
-        if (str.empty() || detail::try_enum_from_string(self.value_, str, static_enum_metadata<T, ReflectorT>::value) != 0)
+        friend std::istream&
+        operator >>(std::istream& stream, bound_manipulator&& m)
         {
-            stream.setstate(std::ios_base::failbit);
+            std::apply(
+                [&manip = m.manip_, &stream]
+                (auto&&... args)
+                {
+                    return static_cast<FromStreamFuncT const&>(manip)(stream, std::forward<decltype(args)>(args)...);
+                }, m.args_);
+            return stream;
         }
-        return stream;
+    };
+
+public:
+    explicit constexpr manipulator(ToStreamFuncT toStreamFunc, FromStreamFuncT fromStreamFunc)
+        : ToStreamFuncT(std::move(toStreamFunc)), FromStreamFuncT(std::move(fromStreamFunc))
+    {
+    }
+
+    template <typename... ArgsT>
+    constexpr bound_manipulator<ArgsT...>
+    operator ()(ArgsT&&... args) const
+    {
+        return { *this, { std::forward<ArgsT>(args)... } };
     }
 };
-template <typename T, typename ReflectorT>
-struct enum_manipulator<T const&, ReflectorT>
+template <typename ToStreamFuncT>
+struct manipulator<ToStreamFuncT, void> : ToStreamFuncT
 {
-    T value_;
-};
-template <typename T, typename ReflectorT>
-struct enum_manipulator
-{
-    T value_;
-};
-template <typename T, typename ReflectorT>
-std::ostream& operator <<(std::ostream& stream, enum_manipulator<T, ReflectorT>&& self)
-{
-    return stream << detail::enum_to_string(self.value_, static_enum_metadata<std::remove_cv_t<std::remove_reference_t<T>>, ReflectorT>::value);
-}
-
-
-template <typename T, typename ReflectorT>
-struct flags_manipulator;
-template <typename T, typename ReflectorT>
-struct flags_manipulator<T&, ReflectorT>
-{
-    T& value_;
-
-    friend std::istream&
-    operator >>(std::istream& stream, flags_manipulator&& self)
+    template <typename... ArgsT>
+    friend struct bound_manipulator;
+    template <typename... ArgsT>
+    struct bound_manipulator
     {
-        std::string str;
-        int ci;
-        stream >> std::ws;
-        while (stream.good() && (ci = stream.peek()) != std::char_traits<char>::eof() && !flags_forbidden_char_set.contains(static_cast<char>(ci)))
+        manipulator const& manip_;
+        std::tuple<ArgsT...> args_;
+
+        friend std::ostream&
+        operator <<(std::ostream& stream, bound_manipulator&& m)
         {
-            str += static_cast<char>(stream.get());
+            std::apply(
+                [&manip = m.manip_, &stream]
+                (auto&&... args)
+                {
+                    return static_cast<ToStreamFuncT const&>(manip)(stream, std::forward<decltype(args)>(args)...);
+                }, m.args_);
+            return stream;
         }
-        if (detail::flags_from_string(self.value_, str, static_flags_metadata<T, ReflectorT>::value, false) != 0)
-        {
-            stream.setstate(std::ios_base::failbit);
-        }
-        return stream;
+    };
+
+public:
+    explicit constexpr manipulator(ToStreamFuncT toStreamFunc)
+        : ToStreamFuncT(std::move(toStreamFunc))
+    {
+    }
+
+    template <typename... ArgsT>
+    constexpr bound_manipulator<ArgsT...>
+    operator ()(ArgsT&&... args) const
+    {
+        return { *this, { std::forward<ArgsT>(args)... } };
     }
 };
-template <typename T, typename ReflectorT>
-struct flags_manipulator<T const&, ReflectorT>
-{
-    T value_;
-};
-template <typename T, typename ReflectorT>
-struct flags_manipulator
-{
-    T value_;
-};
-template <typename T, typename ReflectorT>
-std::ostream& operator <<(std::ostream& stream, flags_manipulator<T, ReflectorT>&& self)
-{
-    return stream << detail::flags_to_string(self.value_, static_flags_metadata<std::remove_cv_t<std::remove_reference_t<T>>, ReflectorT>::value);
-}
 
 
 } // namespace detail
