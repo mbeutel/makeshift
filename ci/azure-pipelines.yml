@@ -16,6 +16,8 @@ resources:
 jobs:
 - template: azure-pipelines/cmake.yml@CImakeshift
   parameters:
+    vcpkgRef: 42cc830d874f8e24eb4eb05bd5bb28496e3d498c
+      
     cmakeConfigArgs: '-DBUILD_TESTING=ON'
     cmakeTestArgs: '--exclude-regex "cuda"' # do not run CUDA tests
 
