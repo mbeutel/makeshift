@@ -62,12 +62,14 @@ public:
     }
 
     template <typename... ArgsT>
-    constexpr decltype(auto) operator()(ArgsT&&... args)
+    constexpr decltype(auto)
+    operator()(ArgsT&&... args)
     {
         return func_(detail::y_combinator_func_ref<F&>{ func_ }, std::forward<ArgsT>(args)...);
     }
     template <typename... ArgsT>
-    constexpr decltype(auto) operator()(ArgsT&&... args) const
+    constexpr decltype(auto)
+    operator()(ArgsT&&... args) const
     {
         return func_(detail::y_combinator_func_ref<F const&>{ func_ }, std::forward<ArgsT>(args)...);
     }
@@ -88,7 +90,8 @@ y_combinator(F) -> y_combinator<F>;
     //ᅟ    int i = fac(4); // returns 24
     //
 template <typename F>
-constexpr y_combinator<F> make_y_combinator(F func)
+[[nodiscard]] constexpr y_combinator<F>
+make_y_combinator(F func)
 {
     return y_combinator<F>{ std::move(func) };
 }

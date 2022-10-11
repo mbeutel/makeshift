@@ -7,7 +7,7 @@
 #include <utility>      // for forward<>()
 #include <variant>
 #include <optional>
-#include <type_traits>  // for remove_cv<>, remove_reference<>
+#include <type_traits>  // for remove_cv<>, remove_reference<>, invoke_result<>
 
 #include <gsl-lite/gsl-lite.hpp>  // for type_identity<>, gsl_Expects(), gsl_CPP17_OR_GREATER
 
@@ -271,7 +271,7 @@ variant_transform(F&& func, Vs&&... args)
         [&func]
         (auto&&... args) -> R
         {
-            using RR = decltype(std::forward<F>(func)(std::forward<decltype(args)>(args)...));
+            using RR = std::invoke_result_t<F, decltype(args)...>;
             if constexpr (std::is_same_v<RR, void>)
             {
                 std::forward<F>(func)(std::forward<decltype(args)>(args)...);

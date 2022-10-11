@@ -136,4 +136,5 @@ template <>
 inline constexpr bool std::ranges::enable_borrowed_range<makeshift::index_range> = true;
 #endif // gsl_CPP20_OR_GREATER
 
+
 #endif // INCLUDED_MAKESHIFT_RANGES_HPP_
