@@ -18,6 +18,7 @@ namespace gsl = ::gsl_lite;
 TEST_CASE("array", "[flags]")
 {
     constexpr auto numbers = std::make_tuple(2, 3u);
+    (void) numbers;
 
     SECTION("array-transform")
     {

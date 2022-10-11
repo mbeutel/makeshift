@@ -172,13 +172,13 @@ TEST_CASE("constval")
             13.37f,
             { 4, 2 }
         });
-    auto cCTA = mk::constval_transform(ToArrayTransform{ }, cCT);
 #if !gsl_COMPILER_NVCC_VERSION  // NVCC somehow screws up here.
+    auto cCTA = mk::constval_transform(ToArrayTransform{ }, cCT);
     expect_tuple_like(cCTA);
-#endif // !gsl_COMPILER_NVCC_VERSION
-#ifndef ERRONEOUS_DEPENDENT_TYPE_DEDUCTION
+# ifndef ERRONEOUS_DEPENDENT_TYPE_DEDUCTION
     expect_array_constval_normalization(cCTA);
-#endif // ERRONEOUS_DEPENDENT_TYPE_DEDUCTION
+# endif // ERRONEOUS_DEPENDENT_TYPE_DEDUCTION
+#endif // !gsl_COMPILER_NVCC_VERSION
 
     auto cCTV = mk::constval_transform(ToTupleTransform{ }, cCT);
     expect_tuple_like(cCTV);
