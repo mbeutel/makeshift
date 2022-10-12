@@ -136,8 +136,8 @@ template <typename T, typename M, template <typename...> class PredT, std::size_
 struct record_index_1_<T, M, PredT, N, I, Occurrence, false, ArgsT> : record_index_0_<T, M, PredT, N, I + 1, Occurrence, ArgsT> { };
 template <typename T, typename M, template <typename...> class PredT, std::size_t N, std::size_t I, int Occurrence, typename... ArgsT>
 struct record_index_0_<T, M, PredT, N, I, Occurrence, type_sequence<ArgsT...>> : record_index_1_<T, M, PredT, N, I, Occurrence, PredT<T, std::tuple_element_t<I, M>, ArgsT...>::value, type_sequence<ArgsT...>> { };
-template <typename T, typename M, template <typename...> class PredT, std::size_t N, int Occurrence, typename ArgsT>
-struct record_index_0_<T, M, PredT, N, N, Occurrence, ArgsT> : std::integral_constant<std::size_t, std::size_t(-1)> { };
+template <typename T, typename M, template <typename...> class PredT, std::size_t N, int Occurrence, typename... ArgsT>
+struct record_index_0_<T, M, PredT, N, N, Occurrence, type_sequence<ArgsT...>> : std::integral_constant<std::size_t, std::size_t(-1)> { };
 template <typename T, typename M, template <typename...> class PredT, int Occurrence, typename, typename ArgsT>
 struct record_index : std::integral_constant<std::size_t, std::size_t(-1)> { };
 template <typename T, typename M, template <typename...> class PredT, int Occurrence, typename ArgsT>
@@ -484,6 +484,12 @@ search_index(T value, std::array<T, N> values)
     }
     return -1;
 }
+
+template <typename T, typename ReflectorT>
+struct value_store
+{
+    static constexpr inline auto value = detail::extract_values<T>(detail::unwrap_metadata<T, ReflectorT>({ }));
+};
 
 
 } // namespace detail

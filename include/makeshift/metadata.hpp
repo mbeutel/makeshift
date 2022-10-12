@@ -42,42 +42,42 @@ template <typename T, template <typename...> class PredT, typename... PredArgsT,
 [[nodiscard]] constexpr auto
 extract(MetadataOrReflectorT md = { }, type_sequence<PredArgsT...> = { })
 {
-    return detail::extract_metadata<void, typename detail::predicate_adaptor<PredT>::type, 0>(detail::unwrap_metadata<T>(md), type_sequence<PredArgsT...>{ });
+    return detail::extract_metadata<void, detail::predicate_adaptor<PredT>::template type, 0>(detail::unwrap_metadata<T>(md), type_sequence<PredArgsT...>{ });
 }
 template <typename T, int Occurrence, template <typename...> class PredT, typename... PredArgsT, typename MetadataOrReflectorT = reflector>
 [[nodiscard]] constexpr auto
 extract(MetadataOrReflectorT md = { }, type_sequence<PredArgsT...> = { })
 {
     static_assert(Occurrence >= 0);
-    return detail::extract_metadata<void, typename detail::predicate_adaptor<PredT>::type, Occurrence>(detail::unwrap_metadata<T>(md), type_sequence<PredArgsT...>{ });
+    return detail::extract_metadata<void, detail::predicate_adaptor<PredT>::template type, Occurrence>(detail::unwrap_metadata<T>(md), type_sequence<PredArgsT...>{ });
 }
 
 template <typename T, typename V, template <typename...> class PredT, typename... PredArgsT, typename MetadataOrReflectorT = reflector>
 [[nodiscard]] constexpr decltype(auto)
 extract_for_values(MetadataOrReflectorT md = { }, type_sequence<PredArgsT...> = { })
 {
-    return detail::extract_value_metadata<T, V, typename detail::predicate_adaptor<PredT>::type, 0, type_sequence<PredArgsT...>>(detail::unwrap_metadata<T>(md));
+    return detail::extract_value_metadata<T, V, detail::predicate_adaptor<PredT>::template type, 0, type_sequence<PredArgsT...>>(detail::unwrap_metadata<T>(md));
 }
 template <typename T, typename V, int Occurrence, template <typename...> class PredT, typename... PredArgsT, typename MetadataOrReflectorT = reflector>
 [[nodiscard]] constexpr decltype(auto)
 extract_for_values(MetadataOrReflectorT md = { }, type_sequence<PredArgsT...> = { })
 {
     static_assert(Occurrence >= 0);
-    return detail::extract_value_metadata<T, V, typename detail::predicate_adaptor<PredT>::type, Occurrence, type_sequence<PredArgsT...>>(detail::unwrap_metadata<T>(md));
+    return detail::extract_value_metadata<T, V, detail::predicate_adaptor<PredT>::template type, Occurrence, type_sequence<PredArgsT...>>(detail::unwrap_metadata<T>(md));
 }
 
 template <typename T, typename V, template <typename...> class PredT, typename... PredArgsT, typename MetadataOrReflectorT = reflector>
 [[nodiscard]] constexpr decltype(auto)
 extract_for_members(MetadataOrReflectorT md = { }, type_sequence<PredArgsT...> = { })
 {
-    return detail::extract_member_metadata<T, V, typename detail::predicate_adaptor<PredT>::type, 0, type_sequence<PredArgsT...>>(detail::unwrap_metadata<T>(md));
+    return detail::extract_member_metadata<T, V, detail::predicate_adaptor<PredT>::template type, 0, type_sequence<PredArgsT...>>(detail::unwrap_metadata<T>(md));
 }
 template <typename T, typename V, int Occurrence, template <typename...> class PredT, typename... PredArgsT, typename MetadataOrReflectorT = reflector>
 [[nodiscard]] constexpr decltype(auto)
 extract_for_members(MetadataOrReflectorT md = { }, type_sequence<PredArgsT...> = { })
 {
     static_assert(Occurrence >= 0);
-    return detail::extract_member_metadata<T, V, typename detail::predicate_adaptor<PredT>::type, Occurrence, type_sequence<PredArgsT...>>(detail::unwrap_metadata<T>(md));
+    return detail::extract_member_metadata<T, V, detail::predicate_adaptor<PredT>::template type, Occurrence, type_sequence<PredArgsT...>>(detail::unwrap_metadata<T>(md));
 }
 
 
@@ -153,9 +153,8 @@ template <typename T, typename ReflectorT = reflector>
 [[nodiscard]] constexpr gsl::index
 search_value_index(T value, ReflectorT = { })
 {
-    static constexpr auto values_ = metadata::values<T, ReflectorT>();
-    static_assert(metadata::is_available(values_));
-    return detail::search_index(value, values_);
+    static_assert(metadata::is_available(detail::value_store<T, ReflectorT>::value));
+    return detail::search_index(value, detail::value_store<T, ReflectorT>::value);
 }
 template <typename T, typename ReflectorT = reflector>
 [[nodiscard]] constexpr gsl::index
