@@ -13,6 +13,8 @@
 
 #include <gsl-lite/gsl-lite.hpp>  // for type_identity<>
 
+#include <makeshift/utility.hpp>  // for type_sequence<>
+
 
 namespace makeshift {
 
@@ -51,7 +53,17 @@ struct reflector
 };
 
 
+template <template <typename...> class PredT>
+struct predicate_adaptor
+{
+    template <typename, typename T, typename... ArgsT>
+    struct type : PredT<T, ArgsT...>
+    {
+    };
+};
+
 template <typename, typename M> struct is_string_like : std::is_convertible<M, std::string_view> { };
+template <typename M> struct is_string_like_2 : std::is_convertible<M, std::string_view> { };
 
 template <typename T, typename M> struct is_value_array : std::false_type { };
 template <typename T, std::size_t N> struct is_value_array<T, std::array<T, N>> : std::true_type { };
@@ -112,31 +124,31 @@ template <typename T, typename M, std::size_t... Is> struct is_member_tuple_0_<T
 template <typename T, typename M, typename = void> struct is_member_tuple : std::false_type { };
 template <typename T, typename M> struct is_member_tuple<T, M, std::void_t<typename std::tuple_size<M>::type>> : is_member_tuple_0_<T, M, std::make_index_sequence<std::tuple_size_v<M>>> { };
 
-template <typename T, typename M, template <typename...> class PredT, std::size_t N, std::size_t I, int Occurrence>
+template <typename T, typename M, template <typename...> class PredT, std::size_t N, std::size_t I, int Occurrence, typename ArgsT>
 struct record_index_0_;
-template <typename T, typename M, template <typename...> class PredT, std::size_t N, std::size_t I, int Occurrence, bool Match>
+template <typename T, typename M, template <typename...> class PredT, std::size_t N, std::size_t I, int Occurrence, bool Match, typename ArgsT>
 struct record_index_1_;
-template <typename T, typename M, template <typename...> class PredT, std::size_t N, std::size_t I>
-struct record_index_1_<T, M, PredT, N, I, 0, true> : std::integral_constant<std::size_t, I> { };
-template <typename T, typename M, template <typename...> class PredT, std::size_t N, std::size_t I, int Occurrence>
-struct record_index_1_<T, M, PredT, N, I, Occurrence, true> : record_index_0_<T, M, PredT, N, I + 1, Occurrence - 1> { };
-template <typename T, typename M, template <typename...> class PredT, std::size_t N, std::size_t I, int Occurrence>
-struct record_index_1_<T, M, PredT, N, I, Occurrence, false> : record_index_0_<T, M, PredT, N, I + 1, Occurrence> { };
-template <typename T, typename M, template <typename...> class PredT, std::size_t N, std::size_t I, int Occurrence>
-struct record_index_0_ : record_index_1_<T, M, PredT, N, I, Occurrence, PredT<T, std::tuple_element_t<I, M>>::value> { };
-template <typename T, typename M, template <typename...> class PredT, std::size_t N, int Occurrence>
-struct record_index_0_<T, M, PredT, N, N, Occurrence> : std::integral_constant<std::size_t, std::size_t(-1)> { };
-template <typename T, typename M, template <typename...> class PredT, int Occurrence = 0, typename = void>
+template <typename T, typename M, template <typename...> class PredT, std::size_t N, std::size_t I, typename ArgsT>
+struct record_index_1_<T, M, PredT, N, I, 0, true, ArgsT> : std::integral_constant<std::size_t, I> { };
+template <typename T, typename M, template <typename...> class PredT, std::size_t N, std::size_t I, int Occurrence, typename ArgsT>
+struct record_index_1_<T, M, PredT, N, I, Occurrence, true, ArgsT> : record_index_0_<T, M, PredT, N, I + 1, Occurrence - 1, ArgsT> { };
+template <typename T, typename M, template <typename...> class PredT, std::size_t N, std::size_t I, int Occurrence, typename ArgsT>
+struct record_index_1_<T, M, PredT, N, I, Occurrence, false, ArgsT> : record_index_0_<T, M, PredT, N, I + 1, Occurrence, ArgsT> { };
+template <typename T, typename M, template <typename...> class PredT, std::size_t N, std::size_t I, int Occurrence, typename... ArgsT>
+struct record_index_0_<T, M, PredT, N, I, Occurrence, type_sequence<ArgsT...>> : record_index_1_<T, M, PredT, N, I, Occurrence, PredT<T, std::tuple_element_t<I, M>, ArgsT...>::value, type_sequence<ArgsT...>> { };
+template <typename T, typename M, template <typename...> class PredT, std::size_t N, int Occurrence, typename ArgsT>
+struct record_index_0_<T, M, PredT, N, N, Occurrence, ArgsT> : std::integral_constant<std::size_t, std::size_t(-1)> { };
+template <typename T, typename M, template <typename...> class PredT, int Occurrence, typename, typename ArgsT>
 struct record_index : std::integral_constant<std::size_t, std::size_t(-1)> { };
-template <typename T, typename M, template <typename...> class PredT, int Occurrence>
-struct record_index<T, M, PredT, Occurrence, std::void_t<typename std::tuple_size<M>::type>> : record_index_0_<T, M, PredT, std::tuple_size_v<M>, 0, Occurrence> { };
+template <typename T, typename M, template <typename...> class PredT, int Occurrence, typename ArgsT>
+struct record_index<T, M, PredT, Occurrence, std::void_t<typename std::tuple_size<M>::type>, ArgsT> : record_index_0_<T, M, PredT, std::tuple_size_v<M>, 0, Occurrence, ArgsT> { };
 
-template <typename T, typename M, template <typename...> class PredT, int Occurrence, typename Is>
+template <typename T, typename M, template <typename...> class PredT, int Occurrence, typename Is, typename ArgsT>
 struct record_indices_0_;
-template <typename T, typename M, template <typename...> class PredT, int Occurrence, std::size_t... Is>
-struct record_indices_0_<T, M, PredT, Occurrence, std::index_sequence<Is...>> : std::index_sequence<record_index<T, std::tuple_element_t<Is, M>, PredT, Occurrence>::value...> { };
-template <typename T, typename M, template <typename...> class PredT, int Occurrence>
-struct record_indices : record_indices_0_<T, M, PredT, Occurrence, std::make_index_sequence<std::tuple_size_v<M>>> { };
+template <typename T, typename M, template <typename...> class PredT, int Occurrence, std::size_t... Is, typename ArgsT>
+struct record_indices_0_<T, M, PredT, Occurrence, std::index_sequence<Is...>, ArgsT> : std::index_sequence<record_index<T, std::tuple_element_t<Is, M>, PredT, Occurrence, void, ArgsT>::value...> { };
+template <typename T, typename M, template <typename...> class PredT, int Occurrence, typename ArgsT>
+struct record_indices : record_indices_0_<T, M, PredT, Occurrence, std::make_index_sequence<std::tuple_size_v<M>>, ArgsT> { };
 
 template <typename T, typename MetadataT>
 constexpr decltype(auto)
@@ -240,19 +252,19 @@ struct extract_metadata_<std::size_t(-1)>
     }
 };
 
-template <typename T, template <typename...> class PredT, int Occurrence, typename M>
+template <typename T, template <typename...> class PredT, int Occurrence, typename M, typename... ArgsT>
 constexpr decltype(auto)
-extract_metadata([[maybe_unused]] M const& md)
+extract_metadata([[maybe_unused]] M const& md, type_sequence<ArgsT...> = { })
 {
     if constexpr (!std::is_same_v<M, std::nullopt_t>)
     {
-        if constexpr (Occurrence == 0 && PredT<T, M>::value)
+        if constexpr (Occurrence == 0 && PredT<T, M, ArgsT...>::value)
         {
             return detail::promote(md);
         }
         else
         {
-            return extract_metadata_<record_index<T, M, PredT, Occurrence>::value>::invoke(md);
+            return extract_metadata_<record_index<T, M, PredT, Occurrence, void, type_sequence<ArgsT...>>::value>::invoke(md);
         }
     }
     else return std::nullopt;
@@ -359,11 +371,11 @@ extract_members([[maybe_unused]] M const& md)
     else return std::nullopt;
 }
 
-template <typename T, typename V, template <typename...> class PredT, int Occurrence, typename R, std::size_t N>
+template <typename T, typename V, template <typename...> class PredT, int Occurrence, typename ArgsT, typename R, std::size_t N>
 constexpr decltype(auto)
 try_extract_column([[maybe_unused]] std::array<R, N> const& arg)
 {
-    constexpr std::size_t j = record_index<T, R, PredT, Occurrence>::value;
+    constexpr std::size_t j = record_index<T, R, PredT, Occurrence, void, ArgsT>::value;
     if constexpr (j != std::size_t(-1))
     {
         return detail::extract_column<V, j>(arg);
@@ -378,11 +390,11 @@ any_index_invalid(std::index_sequence<Is...>)
     return ((Is == std::size_t(-1)) || ...);
 }
 
-template <typename T, typename V, template <typename...> class PredT, int Occurrence, typename TupleT>
+template <typename T, typename V, template <typename...> class PredT, int Occurrence, typename ArgsT, typename TupleT>
 constexpr decltype(auto)
 try_extract_column([[maybe_unused]] TupleT const& arg)
 {
-    constexpr auto js = record_indices<T, TupleT, PredT, Occurrence>{ };
+    constexpr auto js = record_indices<T, TupleT, PredT, Occurrence, ArgsT>{ };
     if constexpr (!detail::any_index_invalid(js))
     {
         return detail::extract_column<V>(arg, js);
@@ -390,11 +402,11 @@ try_extract_column([[maybe_unused]] TupleT const& arg)
     else return std::nullopt;
 }
 
-template <typename T, template <typename...> class PredT, int Occurrence, typename TupleT>
+template <typename T, template <typename...> class PredT, int Occurrence, typename ArgsT, typename TupleT>
 constexpr decltype(auto)
 try_extract_heterogeneous_column([[maybe_unused]] TupleT const& arg)
 {
-    constexpr auto js = record_indices<T, TupleT, PredT, Occurrence>{ };
+    constexpr auto js = record_indices<T, TupleT, PredT, Occurrence, ArgsT>{ };
     if constexpr (!detail::any_index_invalid(js))
     {
         return detail::extract_heterogeneous_column(arg, js);
@@ -402,13 +414,13 @@ try_extract_heterogeneous_column([[maybe_unused]] TupleT const& arg)
     else return std::nullopt;
 }
 
-template <typename T, typename V, template <typename...> class PredT, int Occurrence, typename M>
+template <typename T, typename V, template <typename...> class PredT, int Occurrence, typename ArgsT, typename M>
 constexpr decltype(auto)
 extract_value_metadata([[maybe_unused]] M const& md)
 {
     if constexpr (!std::is_same_v<std::decay_t<decltype(detail::extract_metadata<T, is_value_record_tuple, 0>(md))>, std::nullopt_t>)
     {
-        return detail::try_extract_column<T, V, PredT, Occurrence>(detail::extract_metadata<T, is_value_record_tuple, 0>(md));
+        return detail::try_extract_column<T, V, PredT, Occurrence, ArgsT>(detail::extract_metadata<T, is_value_record_tuple, 0>(md));
     }
     //else if constexpr (!std::is_same_v<std::decay_t<decltype(detail::extract_metadata<T, is_value_record, 0>(md))>, std::nullopt_t>)
     //{
@@ -431,13 +443,13 @@ extract_value_metadata([[maybe_unused]] M const& md)
     else return std::nullopt;
 }
 
-template <typename T, typename V, template <typename...> class PredT, int Occurrence, typename M>
+template <typename T, typename V, template <typename...> class PredT, int Occurrence, typename ArgsT, typename M>
 constexpr decltype(auto)
 extract_member_metadata([[maybe_unused]] M const& md)
 {
     if constexpr (!std::is_same_v<std::decay_t<decltype(detail::extract_metadata<T, is_member_record_tuple, 0>(md))>, std::nullopt_t>)
     {
-        return detail::try_extract_column<T, V, PredT, Occurrence>(detail::extract_metadata<T, is_member_record_tuple, 0>(md));
+        return detail::try_extract_column<T, V, PredT, Occurrence, ArgsT>(detail::extract_metadata<T, is_member_record_tuple, 0>(md));
     }
     //else if constexpr (!std::is_same_v<std::decay_t<decltype(detail::extract_metadata<T, is_member_record, 0>(md))>, std::nullopt_t>)
     //{
