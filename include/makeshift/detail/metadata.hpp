@@ -474,6 +474,18 @@ extract_member_metadata([[maybe_unused]] M const& md)
 }
 
 
+template <typename T, std::size_t N>
+constexpr gsl::index
+search_index(T value, std::array<T, N> values)
+{
+    for (std::size_t i = 0; i != N; ++i)
+    {
+        if (values[i] == value) return gsl::index(i);
+    }
+    return -1;
+}
+
+
 } // namespace detail
 
 } // namespace makeshift

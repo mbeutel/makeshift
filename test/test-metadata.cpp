@@ -221,6 +221,11 @@ TEST_CASE("enum metadata")
     CHECK(mk::metadata::value_names<Color4>(md4) == std::array{ "red"sv, "green"sv });
     CHECK_FALSE(mk::metadata::is_available(mk::metadata::value_descriptions<Color4>(md4)));
 
+    CHECK(mk::metadata::find_value_index(Color4::red) == 0);
+    CHECK(mk::metadata::find_value_index(Color4::green) == 1);
+    CHECK(mk::metadata::search_value_index(Color4(42)) == -1);
+    CHECK_THROWS_AS(mk::metadata::find_value_index(Color4(42)), gsl::fail_fast);
+
     constexpr auto md5 = mk::metadata_v<Color5>;
     CHECK(mk::metadata::name<Color5>(md5) == "Color5");
     CHECK(mk::metadata::description<Color5>(md5) == "color 5");

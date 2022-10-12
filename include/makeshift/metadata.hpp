@@ -149,6 +149,24 @@ member_descriptions(MetadataOrReflectorT md = { })
 }
 
 
+template <typename T, typename ReflectorT = reflector>
+[[nodiscard]] constexpr gsl::index
+search_value_index(T value, ReflectorT = { })
+{
+    static constexpr auto values_ = metadata::values<T, ReflectorT>();
+    static_assert(metadata::is_available(values_));
+    return detail::search_index(value, values_);
+}
+template <typename T, typename ReflectorT = reflector>
+[[nodiscard]] constexpr gsl::index
+find_value_index(T value, ReflectorT = { })
+{
+    gsl::index i = metadata::search_value_index<T, ReflectorT>(value);
+    if (i >= 0) return i;
+    gsl_FailFast();
+}
+
+
 } // namespace metadata
 
 } // namespace makeshift
