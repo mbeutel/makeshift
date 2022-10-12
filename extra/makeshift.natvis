@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
 
+    <Type Name="makeshift::index_iterator">
+        <SmartPointer Usage="Indexable">&amp;i_,na</SmartPointer>
+        <Expand>
+            <Item Name="[index]">i_</Item>
+        </Expand>
+    </Type>
+
     <Type Name="std::integral_constant&lt;*,*&gt;">
         <DisplayString>{($T1)$T2} constval</DisplayString>
     </Type>
