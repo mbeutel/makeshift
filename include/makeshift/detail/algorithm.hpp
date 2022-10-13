@@ -127,7 +127,7 @@ public:
     }
 
         // sanity check
-    void _check_end(bool isEnd) const
+    constexpr void _check_end(bool isEnd) const
     {
         using Swallow = int[];
         (void) Swallow{ 1, (detail::get_leaf<Is>(*this)._check_end(isEnd), 0)... };
@@ -286,11 +286,11 @@ private:
     std::size_t n_;
 
 protected:
-    explicit zip_range_size_base(gsl::dim _n)
+    explicit constexpr zip_range_size_base(gsl::dim _n)
         : n_(std::size_t(_n))
     {
     }
-    gsl::dim _size(void) const noexcept
+    constexpr gsl::dim _size(void) const noexcept
     {
         return gsl::dim(n_);
     }
@@ -316,10 +316,10 @@ template <gsl::dim N>
 class zip_range_size_base<dim_constant<N>>
 {
 protected:
-    explicit zip_range_size_base(dim_constant<N>)
+    explicit constexpr zip_range_size_base(dim_constant<N>)
     {
     }
-    static dim_constant<N> _size(void) noexcept
+    static constexpr dim_constant<N> _size(void) noexcept
     {
         return { };
     }
@@ -345,10 +345,10 @@ template <>
 class zip_range_size_base<dim_constant<unknown_size>>
 {
 protected:
-    explicit zip_range_size_base(dim_constant<unknown_size>)
+    explicit constexpr zip_range_size_base(dim_constant<unknown_size>)
     {
     }
-    static dim_constant<unknown_size> _size(void) noexcept
+    static constexpr dim_constant<unknown_size> _size(void) noexcept
     {
         return { };
     }
@@ -409,7 +409,7 @@ private:
     using iterator = zip_iterator<N, Rs&...>;
 
 public:
-    [[nodiscard]] MAKESHIFT_DETAIL_FORCEINLINE typename iterator::reference
+    [[nodiscard]] constexpr MAKESHIFT_DETAIL_FORCEINLINE typename iterator::reference
     operator [](std::size_t i) const
     {
         return this->begin()[i];

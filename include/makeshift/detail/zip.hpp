@@ -221,7 +221,11 @@ template <> struct range_iterator_category_<tuple_index_t> { using type = std::i
 template <typename R> using range_iterator_category_t = typename range_iterator_category_<R>::type;
 
 #ifdef __cpp_concepts
-template <typename R> struct range_iterator_concept_{ using type = typename std::iterator_traits<decltype(detail::range_begin(std::declval<R>()))>::iterator_concept; };
+template <typename It, typename = void> struct range_iterator_concept_1_ { using type = typename std::iterator_traits<It>::iterator_category; };
+template <typename It> struct range_iterator_concept_1_<It, std::void_t<typename It::iterator_concept>> { using type = typename It::iterator_concept; };
+template <typename It, typename = void> struct range_iterator_concept_0_ : range_iterator_concept_1_<It> { };
+template <typename It> struct range_iterator_concept_0_<It, std::void_t<typename std::iterator_traits<It>::iterator_concept>> { using type = typename std::iterator_traits<It>::iterator_concept; };
+template <typename R> struct range_iterator_concept_ : range_iterator_concept_0_<decltype(detail::range_begin(std::declval<R>()))> { };
 template <> struct range_iterator_concept_<range_index_t> : range_iterator_category_<range_index_t> { };
 template <> struct range_iterator_concept_<tuple_index_t> : range_iterator_category_<tuple_index_t> { };
 template <typename R> using range_iterator_concept_t = typename range_iterator_concept_<R>::type;
