@@ -243,7 +243,7 @@ all_members(void)
     else return std::nullopt;
 }
 
-template <typename T>
+template <template <typename...> class TupleT, typename T>
 struct tie_members_functor
 {
     T& x;
@@ -252,7 +252,7 @@ struct tie_members_functor
     constexpr auto
     operator ()(MembersC...)
     {
-        return std::tuple<decltype(x.*MembersC{ }())...>{ x.*MembersC{ }()... };
+        return TupleT<decltype(x.*MembersC{ }())...>{ x.*MembersC{ }()... };
     }
 };
 

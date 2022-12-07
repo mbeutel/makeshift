@@ -336,7 +336,17 @@ tie_members(T& x, ReflectorT = { })
     static_assert(metadata::is_available(detail::all_members<std::remove_const_t<T>, value_tuple, ReflectorT>()), "no member metadata was defined for type T");
 
     return makeshift::apply(
-        detail::tie_members_functor<T>{ x },
+        detail::tie_members_functor<std::tuple, T>{ x },
+        MAKESHIFT_CONSTVAL_(detail::all_members<std::remove_const_t<T>, value_tuple, ReflectorT>()));
+}
+template <template <typename...> class TupleT, typename T, typename ReflectorT = reflector>
+[[nodiscard]] constexpr auto
+tie_members(T& x, ReflectorT = { })
+{
+    static_assert(metadata::is_available(detail::all_members<std::remove_const_t<T>, value_tuple, ReflectorT>()), "no member metadata was defined for type T");
+
+    return makeshift::apply(
+        detail::tie_members_functor<TupleT, T>{ x },
         MAKESHIFT_CONSTVAL_(detail::all_members<std::remove_const_t<T>, value_tuple, ReflectorT>()));
 }
 #endif // gsl_CPP20_OR_GREATER

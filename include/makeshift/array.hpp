@@ -126,12 +126,12 @@ array_transform(F&& func, Ts&&... args)
     // Takes a scalar function (i.e. a function of non-tuple arguments) and returns an array of the results of the function
     // applied to the tuple elements.
     //ᅟ
-    //ᅟ    auto indices = array_transform<3, MyArray>(
+    //ᅟ    auto indices = array_transform<MyArray, 3>(
     //ᅟ        [](std::size_t i) { return i; },
     //ᅟ        range_index);
     //ᅟ    // returns MyArray<int, 3>{ 0, 1, 2 }
     //
-template <std::size_t N, template <typename, std::size_t> class ArrayT, typename F, typename... Ts>
+template <template <typename, std::size_t> class ArrayT, std::size_t N, typename F, typename... Ts>
 [[nodiscard]] constexpr auto
 array_transform(F&& func, Ts&&... args)
 {
@@ -162,12 +162,12 @@ array_transform(F&& func, Ts&&... args)
     // Takes a scalar function (i.e. a function of non-tuple arguments) and returns an array of the results of the function
     // applied to the tuple elements.
     //ᅟ
-    //ᅟ    auto gridCoords = array_transform<3, MyArray, double>(
+    //ᅟ    auto gridCoords = array_transform<MyArray, 3, double>(
     //ᅟ        [dx = 1.0](mk::index i) { return i*dx; },
     //ᅟ        range_index);
     //ᅟ    // returns MyArray<double, 3>{ 0.0, 1.0, 2.0 }
     //
-template <std::size_t N, template <typename, std::size_t> class ArrayT, typename T, typename F, typename... Ts>
+template <template <typename, std::size_t> class ArrayT, std::size_t N, typename T, typename F, typename... Ts>
 [[nodiscard]] constexpr auto
 array_transform(F&& func, Ts&&... args)
 {
@@ -193,10 +193,10 @@ array_fill(T const& value)
     //
     // Returns an array of size `N` filled with the given value.
     //ᅟ
-    //ᅟ    auto indices = array_fill<3, MyArray>(1);
+    //ᅟ    auto indices = array_fill<MyArray, 3>(1);
     //ᅟ    // returns MyArray<int, 3>{ 1, 1, 1 }
     //
-template <std::size_t N, template <typename, std::size_t> class ArrayT, typename T>
+template <template <typename, std::size_t> class ArrayT, std::size_t N, typename T>
 [[nodiscard]] constexpr auto
 array_fill(T const& value)
 {
@@ -205,7 +205,7 @@ array_fill(T const& value)
 
 
     //
-    // Returns an array of size `N` filled with the given value.
+    // Returns an array of size `N` filled with a sequence of values.
     //ᅟ
     //ᅟ    auto indices = array_iota<3>(1);
     //ᅟ    // returns std::array{ 1, 2, 3 }
@@ -224,14 +224,14 @@ array_iota(T value = { })
 }
 
     //
-    // Returns an array of size `N` filled with the given value.
+    // Returns an array of size `N` filled with a sequence of values.
     //ᅟ
-    //ᅟ    auto indices = array_fill<3, MyArray>(1);
-    //ᅟ    // returns MyArray<int, 3>{ 1, 1, 1 }
+    //ᅟ    auto indices = array_iota<MyArray, 3>(1);
+    //ᅟ    // returns MyArray<int, 3>{ 1, 2, 3 }
     //
 template <template <typename, std::size_t> class ArrayT, std::size_t N, typename T>
 [[nodiscard]] constexpr auto
-array_iota(T const& value)
+array_iota(T value = { })
 {
     auto result = ArrayT<T, N>{ };
     for (std::size_t i = 0; i != N; ++i)

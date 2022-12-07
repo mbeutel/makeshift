@@ -740,7 +740,42 @@
             </ArrayItems>
         </Expand>
     </Type>
-    
+
+    <!--Type Name="makeshift::detail::general_range_base&lt;*,*&gt;">
+        <DisplayString>range({ first_ }, { last_ })</DisplayString>
+        <Expand>
+            <CustomListItems>
+                <Variable Name="i" InitialValue="first_"/>
+                <Loop></Loop>
+            </CustomListItems>
+            <IndexListItems>
+                <Size>last_ - first_</Size>
+                <ValueNode>first_[$i]</ValueNode>
+            </IndexListItems>
+        </Expand>
+    </Type-->
+    <Type Name="makeshift::detail::general_range_base&lt;*,*&gt;">
+        <DisplayString>range({ first_ }, { last_ })</DisplayString>
+        <Expand>
+            <Item Name="first">first_</Item>
+            <Item Name="last">last_</Item>
+        </Expand>
+    </Type>
+    <Type Name="makeshift::detail::random_access_range_base&lt;*,*&gt;">
+        <DisplayString>range({ first_ }, { last_ })</DisplayString>
+        <Expand>
+            <Item Name="first">first_</Item>
+            <Item Name="last">last_</Item>
+        </Expand>
+    </Type>
+    <Type Name="makeshift::detail::static_random_access_range_base&lt;*,*&gt;">
+        <DisplayString>range({ first_ }, { first_ + extent })</DisplayString>
+        <Expand>
+            <Item Name="first">first_</Item>
+            <Item Name="last">first_ + extent</Item>
+        </Expand>
+    </Type>
+
     <!-- TODO: add visualizer for range<> -->
 
 </AutoVisualizer>

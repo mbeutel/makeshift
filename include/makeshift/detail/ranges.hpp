@@ -22,17 +22,15 @@ namespace gsl = ::gsl_lite;
 namespace detail {
 
 
-template <typename It, typename EndIt, typename IteratorTagT, std::ptrdiff_t Extent>
-class range_base;
-template <typename It, typename EndIt, typename IteratorTagT>
-class range_base<It, EndIt, IteratorTagT, -1>
+template <typename It, typename EndIt>
+class general_range_base
 {
 private:
     It first_;
     EndIt last_;
 
 public:
-    constexpr range_base(It first, EndIt last)
+    constexpr general_range_base(It first, EndIt last)
         : first_(std::move(first)), last_(std::move(last))
     {
     }
@@ -41,45 +39,20 @@ public:
     [[nodiscard]] constexpr EndIt const& end(void) const noexcept { return last_; }
 };
 template <typename It, typename EndIt>
-class range_base<It, EndIt, std::random_access_iterator_tag, -1>
+class random_access_range_base
 {
 private:
     It first_;
     EndIt last_;
 
 public:
-    constexpr range_base(It first, EndIt last)
+    constexpr random_access_range_base(It first, EndIt last)
         : first_(std::move(first)), last_(std::move(last))
     {
     }
 
     [[nodiscard]] constexpr It const& begin(void) const noexcept { return first_; }
     [[nodiscard]] constexpr EndIt const& end(void) const noexcept { return last_; }
-    [[nodiscard]] constexpr std::size_t size(void) const noexcept
-    {
-        return last_ - first_;
-    }
-    [[nodiscard]] constexpr decltype(auto) operator [](std::size_t i) const noexcept
-    {
-        gsl_Expects(i < last_ - first_);
-        return first_[i];
-    }
-};
-template <typename It>
-class range_base<It, It, std::random_access_iterator_tag, -1>
-{
-private:
-    It first_;
-    It last_;
-
-public:
-    constexpr range_base(It first, It last)
-        : first_(std::move(first)), last_(std::move(last))
-    {
-    }
-
-    [[nodiscard]] constexpr It const& begin(void) const noexcept { return first_; }
-    [[nodiscard]] constexpr It const& end(void) const noexcept { return last_; }
     [[nodiscard]] constexpr std::size_t size(void) const noexcept
     {
         return last_ - first_;
@@ -91,15 +64,17 @@ public:
     }
 };
 template <typename It, std::ptrdiff_t Extent>
-class range_base<It, It, std::random_access_iterator_tag, Extent>
+class static_random_access_range_base
 {
+    static constexpr std::ptrdiff_t extent_ = Extent;
+
     static_assert(Extent >= 0, "range extent must be non-negative");
 
 private:
     It first_;
 
 public:
-    constexpr range_base(It first, It /*last*/)
+    constexpr static_random_access_range_base(It first, It /*last*/)
         : first_(std::move(first))
     {
     }
@@ -115,6 +90,41 @@ public:
         gsl_Expects(i < std::size_t(Extent));
         return first_[i];
     }
+};
+
+template <typename It, typename EndIt, typename IteratorTagT, std::ptrdiff_t Extent>
+class range_base;
+template <typename It, typename EndIt, typename IteratorTagT>
+class range_base<It, EndIt, IteratorTagT, -1> : public general_range_base<It, EndIt>
+{
+    using base = general_range_base<It, EndIt>;
+
+public:
+    using base::base;
+};
+template <typename It, typename EndIt>
+class range_base<It, EndIt, std::random_access_iterator_tag, -1> : public random_access_range_base<It, EndIt>
+{
+    using base = random_access_range_base<It, EndIt>;
+
+public:
+    using base::base;
+};
+template <typename It>
+class range_base<It, It, std::random_access_iterator_tag, -1> : public random_access_range_base<It, It>
+{
+    using base = random_access_range_base<It, It>;
+
+public:
+    using base::base;
+};
+template <typename It, std::ptrdiff_t Extent>
+class range_base<It, It, std::random_access_iterator_tag, Extent> : public static_random_access_range_base<It, Extent>
+{
+    using base = static_random_access_range_base<It, Extent>;
+
+public:
+    using base::base;
 };
 
 template <typename It> using range_iterator_tag = std::conditional_t<
