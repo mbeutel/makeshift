@@ -62,7 +62,7 @@ struct search_first_tuple_element_index : detail::search_tuple_element_index<Tup
     //
 template <typename T, typename TupleT>
 constexpr std::ptrdiff_t
-search_first_tuple_element_index_v = search_first_tuple_element_index<T, TupleT, false>::value;
+search_first_tuple_element_index_v = search_first_tuple_element_index<T, TupleT>::value;
 
 
     //
