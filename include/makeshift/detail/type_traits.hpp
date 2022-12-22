@@ -97,22 +97,25 @@ template <typename T, typename... Ts> using search_type_pack_index = std::integr
 
 template <typename T> struct same_as_pred { };
 
-template <typename TupleT, typename PredT, typename Is> struct search_tuple_element_index_0;
-template <bool Matches, typename TupleT, typename PredT, typename Is> struct search_tuple_element_index_1;
-template <typename TupleT, typename PredT, std::size_t I0, std::size_t... Is> struct search_tuple_element_index_1<true, TupleT, PredT, std::index_sequence<I0, Is...>>
-    : std::integral_constant<std::ptrdiff_t, (search_tuple_element_index_0<TupleT, PredT, std::index_sequence<Is...>>::value == element_not_found ? std::ptrdiff_t(I0) : element_not_unique)> { };
-template <typename TupleT, typename PredT, std::size_t I0, std::size_t... Is> struct search_tuple_element_index_1<false, TupleT, PredT, std::index_sequence<I0, Is...>> : search_tuple_element_index_0<TupleT, PredT, std::index_sequence<Is...>> { };
-template <typename TupleT, typename PredT> struct search_tuple_element_index_0<TupleT, PredT, std::index_sequence<>> : std::integral_constant<std::ptrdiff_t, element_not_found> { };
-template <typename TupleT, typename PredT, std::size_t I0, std::size_t... Is> struct search_tuple_element_index_0<TupleT, PredT, std::index_sequence<I0, Is...>>
-    : search_tuple_element_index_1<decltype(std::declval<PredT>()(std::declval<std::tuple_element_t<I0, TupleT>>()))::value, TupleT, PredT, std::index_sequence<I0, Is...>> { };
-template <typename TupleT, typename T, std::size_t I0, std::size_t... Is> struct search_tuple_element_index_0<TupleT, same_as_pred<T>, std::index_sequence<I0, Is...>>
-    : search_tuple_element_index_1<std::is_same<T, std::tuple_element_t<I0, TupleT>>::value, TupleT, same_as_pred<T>, std::index_sequence<I0, Is...>> { };
-template <typename TupleT, typename PredT> struct search_tuple_element_index : search_tuple_element_index_0<TupleT, PredT, std::make_index_sequence<std::tuple_size<TupleT>::value>> { };
+template <bool Unique, typename TupleT, typename PredT, typename Is> struct search_tuple_element_index_0;
+template <bool Unique, bool Matches, typename TupleT, typename PredT, typename Is> struct search_tuple_element_index_1;
+template <typename TupleT, typename PredT, std::size_t I0, std::size_t... Is> struct search_tuple_element_index_1<true, true, TupleT, PredT, std::index_sequence<I0, Is...>>
+    : std::integral_constant<std::ptrdiff_t, (search_tuple_element_index_0<true, TupleT, PredT, std::index_sequence<Is...>>::value == element_not_found ? std::ptrdiff_t(I0) : element_not_unique)> { };
+template <typename TupleT, typename PredT, std::size_t I0, std::size_t... Is> struct search_tuple_element_index_1<false, true, TupleT, PredT, std::index_sequence<I0, Is...>>
+    : std::integral_constant<std::ptrdiff_t, std::ptrdiff_t(I0)> { };
+template <bool Unique, typename TupleT, typename PredT, std::size_t I0, std::size_t... Is> struct search_tuple_element_index_1<Unique, false, TupleT, PredT, std::index_sequence<I0, Is...>>
+    : search_tuple_element_index_0<Unique, TupleT, PredT, std::index_sequence<Is...>> { };
+template <bool Unique, typename TupleT, typename PredT> struct search_tuple_element_index_0<Unique, TupleT, PredT, std::index_sequence<>> : std::integral_constant<std::ptrdiff_t, element_not_found> { };
+template <bool Unique, typename TupleT, typename PredT, std::size_t I0, std::size_t... Is> struct search_tuple_element_index_0<Unique, TupleT, PredT, std::index_sequence<I0, Is...>>
+    : search_tuple_element_index_1<Unique, decltype(std::declval<PredT>()(std::declval<std::tuple_element_t<I0, TupleT>>()))::value, TupleT, PredT, std::index_sequence<I0, Is...>> { };
+template <bool Unique, typename TupleT, typename T, std::size_t I0, std::size_t... Is> struct search_tuple_element_index_0<Unique, TupleT, same_as_pred<T>, std::index_sequence<I0, Is...>>
+    : search_tuple_element_index_1<Unique, std::is_same<T, std::tuple_element_t<I0, TupleT>>::value, TupleT, same_as_pred<T>, std::index_sequence<I0, Is...>> { };
+template <typename TupleT, typename PredT, bool Unique = true> struct search_tuple_element_index : search_tuple_element_index_0<Unique, TupleT, PredT, std::make_index_sequence<std::tuple_size<TupleT>::value>> { };
 
-template <typename TupleT, typename PredT>
+template <typename TupleT, typename PredT, bool Unique = true>
 struct tuple_element_index
 {
-    static constexpr std::ptrdiff_t value = search_tuple_element_index<TupleT, PredT>::value;
+    static constexpr std::ptrdiff_t value = search_tuple_element_index<TupleT, PredT, Unique>::value;
     static_assert(value != element_not_found, "no tuple element matches given predicate");
     static_assert(value != element_not_unique, "more than one tuple element matches given predicate");
 };

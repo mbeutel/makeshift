@@ -50,6 +50,22 @@ search_type_pack_index_v = search_type_pack_index<T, Ts...>::value;
 
 
     //
+    // Determines the first index of the element type `T` in the tuple.
+    // Returns a value < 0 if `T` does not appear in the tuple, or if it appears more than once.
+    //
+template <typename T, typename TupleT>
+struct search_first_tuple_element_index : detail::search_tuple_element_index<TupleT, detail::same_as_pred<T>, false> { };
+
+    //
+    // Determines the first index of the element type `T` in the tuple.
+    // Returns a value < 0 if `T` does not appear in the tuple, or if it appears more than once.
+    //
+template <typename T, typename TupleT>
+constexpr std::ptrdiff_t
+search_first_tuple_element_index_v = search_first_tuple_element_index<T, TupleT, false>::value;
+
+
+    //
     // Determines the index of the element type `T` in the tuple.
     // Returns a value < 0 if `T` does not appear in the tuple, or if it appears more than once.
     //
@@ -77,6 +93,20 @@ struct type_pack_index : std::integral_constant<std::size_t, detail::type_pack_i
 template <typename T, typename... Ts>
 constexpr std::size_t
 type_pack_index_v = type_pack_index<T, Ts...>::value;
+
+
+    //
+    // Determines the first index of the element type `T` in the tuple.
+    //
+template <typename T, typename TupleT>
+struct first_tuple_element_index : std::integral_constant<std::size_t, detail::tuple_element_index<TupleT, detail::same_as_pred<T>, false>::value> { };
+
+    //
+    // Determines the first index of the element type `T` in the tuple.
+    //
+template <typename T, typename TupleT>
+constexpr std::size_t
+first_tuple_element_index_v = first_tuple_element_index<T, TupleT>::value;
 
 
     //
