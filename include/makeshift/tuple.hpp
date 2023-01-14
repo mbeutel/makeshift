@@ -17,11 +17,13 @@
 
 #include <makeshift/type_traits.hpp>  // for can_instantiate<>, static_const<>, is_tuple_like<>, nth_type<>
 
-#include <makeshift/metadata.hpp>  // for metadata_v<>, members()
+#include <makeshift/concepts.hpp>  // for tuple_like<>
+#include <makeshift/metadata.hpp>  // for all_members()
 
 #include <makeshift/detail/constval.hpp>  // for MAKESHIFT_CONSTVAL_()
 #include <makeshift/detail/tuple.hpp>
 #include <makeshift/detail/macros.hpp>    // for MAKESHIFT_DETAIL_FORCEINLINE, MAKESHIFT_DETAIL_EMPTY_BASES
+#include <makeshift/detail/metadata.hpp>  // for apply_impl()
 
 
 namespace makeshift {
@@ -54,18 +56,25 @@ struct MAKESHIFT_DETAIL_EMPTY_BASES value_tuple : detail::value_tuple_base<std::
 template <typename... Ts>
 value_tuple(Ts...) -> value_tuple<Ts...>;
 template <std::size_t I, typename... Ts>
-constexpr auto&
+[[nodiscard]] constexpr auto&
 get(value_tuple<Ts...>& tuple) noexcept
 {
     static_assert(I < sizeof...(Ts), "tuple index out of range");
     return _tuple_get(tuple, detail::tuple_index_tag<I>{ });
 }
 template <std::size_t I, typename... Ts>
-constexpr auto const&
+[[nodiscard]] constexpr auto const&
 get(value_tuple<Ts...> const& tuple) noexcept
 {
     static_assert(I < sizeof...(Ts), "tuple index out of range");
     return _tuple_get(tuple, detail::tuple_index_tag<I>{ });
+}
+
+template <typename... Ts>
+[[nodiscard]] constexpr value_tuple<std::decay_t<Ts>...>
+make_value_tuple(Ts&&... args)
+{
+    return { std::forward<Ts>(args)... };
 }
 
 
@@ -332,22 +341,44 @@ tuple_cat(Ts&&... tuples)
 template <typename T, typename ReflectorT = reflector>
 [[nodiscard]] constexpr auto
 tie_members(T& x, ReflectorT = { })
+requires std::invocable<ReflectorT const&, gsl::type_identity<T>>
 {
-    static_assert(metadata::is_available(detail::all_members<std::remove_const_t<T>, value_tuple, ReflectorT>()), "no member metadata was defined for type T");
+    auto allMembersC = MAKESHIFT_CONSTVAL_(metadata::members<value_tuple, T, ReflectorT>());
+    static_assert(metadata::is_available(allMembersC()), "no member metadata was defined for type T");
 
     return makeshift::apply(
         detail::tie_members_functor<std::tuple, T>{ x },
-        MAKESHIFT_CONSTVAL_(detail::all_members<std::remove_const_t<T>, value_tuple, ReflectorT>()));
+        allMembersC);
 }
 template <template <typename...> class TupleT, typename T, typename ReflectorT = reflector>
 [[nodiscard]] constexpr auto
 tie_members(T& x, ReflectorT = { })
+requires std::invocable<ReflectorT const&, gsl::type_identity<T>>
 {
-    static_assert(metadata::is_available(detail::all_members<std::remove_const_t<T>, value_tuple, ReflectorT>()), "no member metadata was defined for type T");
+    auto allMembersC = MAKESHIFT_CONSTVAL_(metadata::members<value_tuple, T, ReflectorT>());
+    static_assert(metadata::is_available(allMembersC()), "no member metadata was defined for type T");
 
     return makeshift::apply(
         detail::tie_members_functor<TupleT, T>{ x },
-        MAKESHIFT_CONSTVAL_(detail::all_members<std::remove_const_t<T>, value_tuple, ReflectorT>()));
+        allMembersC);
+}
+template <typename T, typename MembersC>
+[[nodiscard]] constexpr auto
+tie_members(T& x, MembersC const& membersC)
+requires tuple_like<decltype(membersC())>
+{
+    return makeshift::apply(
+        detail::tie_members_functor<std::tuple, T>{ x },
+        membersC);
+}
+template <template <typename...> class TupleT, typename T, typename MembersC>
+[[nodiscard]] constexpr auto
+tie_members(T& x, MembersC const& membersC)
+requires tuple_like<decltype(membersC())>
+{
+    return makeshift::apply(
+        detail::tie_members_functor<TupleT, T>{ x },
+        membersC);
 }
 #endif // gsl_CPP20_OR_GREATER
 

@@ -6,14 +6,18 @@
 #include <array>
 #include <tuple>
 #include <cstddef>      // for size_t
-#include <utility>      // for index_sequence<>, tuple_size<>
+#include <utility>      // for index_sequence<>, tuple_size<>, forward<>()
 #include <optional>
+#include <functional>   // for invoke()
 #include <string_view>
-#include <type_traits>  // for void_t<>
+#include <type_traits>  // for void_t<>, index_sequence<>, make_index_sequence<>
 
-#include <gsl-lite/gsl-lite.hpp>  // for type_identity<>
+#include <gsl-lite/gsl-lite.hpp>  // for type_identity<>, gsl_constexpr20
 
 #include <makeshift/utility.hpp>  // for type_sequence<>
+
+#include <makeshift/detail/array.hpp>  // for array_cat_impl()
+#include <makeshift/detail/tuple.hpp>  // for tuple_cat_impl()
 
 
 namespace makeshift {
@@ -61,6 +65,15 @@ struct predicate_adaptor
     {
     };
 };
+
+
+template <typename T>
+constexpr std::negation<std::is_same<T, std::nullopt_t>>
+is_available(T const&)
+{
+    return { };
+}
+
 
 template <typename, typename M> struct is_string_like : std::is_convertible<M, std::string_view> { };
 template <typename M> struct is_string_like_2 : std::is_convertible<M, std::string_view> { };
@@ -150,11 +163,18 @@ struct record_indices_0_<T, M, PredT, Occurrence, std::index_sequence<Is...>, Ar
 template <typename T, typename M, template <typename...> class PredT, int Occurrence, typename ArgsT>
 struct record_indices : record_indices_0_<T, M, PredT, Occurrence, std::make_index_sequence<std::tuple_size_v<M>>, ArgsT> { };
 
+//template <typename T, typename ReflectorT>
+//constexpr decltype(auto)
+//get_metadata(ReflectorT = { })
+//{
+//    static_assert(std::is_invocable_v<MetadataT const&, gsl::type_identity<T>>);
+//    return std::forward<MetadataT>(md)(gsl::type_identity<T>{ });
+//}
 template <typename T, typename MetadataT>
 constexpr decltype(auto)
-unwrap_metadata(MetadataT&& md)
+unwrap_metadata(MetadataT&& md = { })
 {
-    if constexpr (std::is_invocable_v<MetadataT&&, gsl::type_identity<T>>)
+    if constexpr (std::is_invocable_v<MetadataT const&, gsl::type_identity<T>>)
     {
             // `md` is a reflector, and this function is usually evaluated in a constexpr context, so extract its value.
         return std::forward<MetadataT>(md)(gsl::type_identity<T>{ });
@@ -490,6 +510,84 @@ struct value_store
 {
     static constexpr inline auto value = detail::extract_values<T>(detail::unwrap_metadata<T, ReflectorT>({ }));
 };
+template <typename T, typename ReflectorT>
+struct member_store
+{
+    static constexpr inline auto value = detail::extract_members<T>(detail::unwrap_metadata<T, ReflectorT>({ }));
+};
+
+
+template <typename FuncT, typename TupleT, std::size_t... Is>
+gsl_constexpr20 decltype(auto)
+apply_impl_1(FuncT&& f, TupleT&& t, std::index_sequence<Is...>)
+{
+    using std::get;
+    return std::invoke(std::forward<FuncT>(f), get<Is>(std::forward<TupleT>(t))...);
+}
+template <typename FuncT, typename TupleT, std::size_t... Is>
+gsl_constexpr20 decltype(auto)
+apply_impl(FuncT&& f, TupleT&& t)
+{
+    return detail::apply_impl_1(std::forward<FuncT>(f), std::forward<TupleT>(t),
+        std::make_index_sequence<std::tuple_size_v<std::remove_reference_t<TupleT>>>{ });
+}
+
+
+template <typename T, template <typename...> class TupleT, typename ReflectorT>
+constexpr auto
+all_members()
+{
+    auto directMembers = detail::extract_members<T>(detail::unwrap_metadata<T, ReflectorT>());
+    if constexpr (detail::is_available(directMembers))
+    {
+        auto baseMemberTupleTuple = detail::apply_impl(
+            [](auto&&... bases)
+            {
+                return TupleT<decltype(detail::all_members<typename std::remove_cv_t<std::remove_reference_t<decltype(bases)>>::type, TupleT, ReflectorT>())...>{
+                    detail::all_members<typename std::remove_cv_t<std::remove_reference_t<decltype(bases)>>::type, TupleT, ReflectorT>()...
+                };
+            },
+            detail::extract_bases<T>(detail::unwrap_metadata<T, ReflectorT>()));
+        return detail::apply_impl(
+            [&directMembers](auto&&... baseMemberTuples)
+            {
+                return detail::tuple_cat_impl<TupleT>(
+                    std::forward<decltype(baseMemberTuples)>(baseMemberTuples)...,
+                    directMembers);
+            },
+            baseMemberTupleTuple);
+    }
+    else return std::nullopt;
+}
+
+
+template <typename T, typename V, template <typename...> class PredT, int Occurrence, typename ArgsT, typename ReflectorT>
+constexpr decltype(auto)
+extract_all_member_metadata()
+{
+    constexpr auto directMemberMetadata = detail::extract_member_metadata<T, V, PredT, Occurrence, ArgsT>(
+        detail::unwrap_metadata<T, ReflectorT>());
+    if constexpr (detail::is_available(directMemberMetadata))
+    {
+        auto baseMemberMetadataArrayTuple = detail::apply_impl(
+            [](auto&&... bases)
+            {
+                return std::make_tuple(
+                    detail::extract_member_metadata<typename std::remove_cv_t<std::remove_reference_t<decltype(bases)>>::type, V, PredT, Occurrence, ArgsT>(
+                        detail::unwrap_metadata<typename std::remove_cv_t<std::remove_reference_t<decltype(bases)>>::type, ReflectorT>())...);
+            },
+            detail::extract_bases<T>(detail::unwrap_metadata<T, ReflectorT>()));
+        return detail::apply_impl(
+            [&directMemberMetadata](auto&&... baseMemberMetadataArrays)
+            {
+                return detail::array_cat_impl<std::array, V>(
+                    std::forward<decltype(baseMemberMetadataArrays)>(baseMemberMetadataArrays)...,
+                    directMemberMetadata);
+            },
+            baseMemberMetadataArrayTuple);
+    }
+    else return std::nullopt;
+}
 
 
 } // namespace detail

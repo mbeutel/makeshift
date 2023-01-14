@@ -4,6 +4,7 @@
 
 
 #include <array>
+#include <tuple>
 #include <optional>
 #include <string_view>
 #include <type_traits>
@@ -24,15 +25,21 @@ namespace gsl = ::gsl_lite;
 
 using reflector = detail::reflector;
 constexpr auto reflector_c = reflector{ };
-template <typename T> constexpr auto metadata_v = reflector_c(gsl::type_identity<std::remove_cv_t<T>>{ });
-template <typename T> using metadata_t = std::remove_const_t<decltype(metadata_v<T>)>;
+template <typename T, typename ReflectorT = reflector> constexpr auto metadata_v = ReflectorT{ }(gsl::type_identity<std::remove_cv_t<T>>{ });
+template <typename T, typename ReflectorT = reflector> using metadata_t = std::remove_const_t<decltype(metadata_v<T, ReflectorT>)>;
 
 
 namespace metadata {
 
 
+template <typename T, typename ReflectorT = reflector>
+[[nodiscard]] constexpr std::negation<std::is_same<metadata_t<T, ReflectorT>, std::nullopt_t>>
+is_available_for()
+{
+    return { };
+}
 template <typename T>
-constexpr std::negation<std::is_same<T, std::nullopt_t>>
+[[nodiscard]] constexpr std::negation<std::is_same<T, std::nullopt_t>>
 is_available(T const&)
 {
     return { };
@@ -78,6 +85,20 @@ extract_for_members(MetadataOrReflectorT md = { }, type_sequence<PredArgsT...> =
 {
     static_assert(Occurrence >= 0);
     return detail::extract_member_metadata<T, V, detail::predicate_adaptor<PredT>::template type, Occurrence, type_sequence<PredArgsT...>>(detail::unwrap_metadata<T>(md));
+}
+
+template <typename T, typename V, template <typename...> class PredT, typename... PredArgsT, typename ReflectorT = reflector>
+[[nodiscard]] constexpr decltype(auto)
+extract_for_all_members(ReflectorT = { }, type_sequence<PredArgsT...> = { })
+{
+    return detail::extract_all_member_metadata<T, V, detail::predicate_adaptor<PredT>::template type, 0, type_sequence<PredArgsT...>, ReflectorT>();
+}
+template <typename T, typename V, int Occurrence, template <typename...> class PredT, typename... PredArgsT, typename ReflectorT = reflector>
+[[nodiscard]] constexpr decltype(auto)
+extract_for_all_members(ReflectorT = { }, type_sequence<PredArgsT...> = { })
+{
+    static_assert(Occurrence >= 0);
+    return detail::extract_all_member_metadata<T, V, detail::predicate_adaptor<PredT>::template type, Occurrence, type_sequence<PredArgsT...>, ReflectorT>();
 }
 
 
@@ -129,23 +150,50 @@ value_descriptions(MetadataOrReflectorT md = { })
 
 template <typename T, typename MetadataOrReflectorT = reflector>
 [[nodiscard]] constexpr auto
-members(MetadataOrReflectorT md = { })
+exclusive_members(MetadataOrReflectorT md = { })
 {
     return detail::extract_members<T>(detail::unwrap_metadata<T>(md));
 }
 
 template <typename T, typename MetadataOrReflectorT = reflector>
 [[nodiscard]] constexpr auto
-member_names(MetadataOrReflectorT md = { })
+exclusive_member_names(MetadataOrReflectorT md = { })
 {
     return metadata::extract_for_members<T, std::string_view, std::is_convertible, std::string_view>(md);
 }
 
 template <typename T, typename MetadataOrReflectorT = reflector>
 [[nodiscard]] constexpr auto
-member_descriptions(MetadataOrReflectorT md = { })
+exclusive_member_descriptions(MetadataOrReflectorT md = { })
 {
     return metadata::extract_for_members<T, std::string_view, 1, std::is_convertible, std::string_view>(md);
+}
+
+template <template <typename...> class TupleT, typename T, typename ReflectorT = reflector>
+[[nodiscard]] constexpr auto
+members(ReflectorT = { })
+{
+    return detail::all_members<std::remove_const_t<T>, TupleT, ReflectorT>();
+}
+template <typename T, typename ReflectorT = reflector>
+[[nodiscard]] constexpr auto
+members(ReflectorT = { })
+{
+    return detail::all_members<std::remove_const_t<T>, std::tuple, ReflectorT>();
+}
+
+template <typename T, typename ReflectorT = reflector>
+[[nodiscard]] constexpr auto
+member_names(ReflectorT = { })
+{
+    return metadata::extract_for_all_members<T, std::string_view, std::is_convertible, std::string_view>(ReflectorT{ });
+}
+
+template <typename T, typename ReflectorT = reflector>
+[[nodiscard]] constexpr auto
+member_descriptions(ReflectorT = { })
+{
+    return metadata::extract_for_all_members<T, std::string_view, 1, std::is_convertible, std::string_view>(ReflectorT{ });
 }
 
 

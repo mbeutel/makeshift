@@ -11,8 +11,6 @@
 
 #include <gsl-lite/gsl-lite.hpp>  // for gsl_constexpr20
 
-#include <makeshift/metadata.hpp>  // for metadata_v<>, bases(), members()
-
 #include <makeshift/detail/indices-2d.hpp>       // for indices_2d_
 #include <makeshift/detail/macros.hpp>           // for MAKESHIFT_DETAIL_FORCEINLINE, MAKESHIFT_DETAIL_EMPTY_BASES
 #include <makeshift/detail/tuple-transform.hpp>
@@ -185,22 +183,6 @@ struct conjunction_fn
 };
 
 
-template <typename FuncT, typename TupleT, std::size_t... Is>
-gsl_constexpr20 decltype(auto)
-apply_impl_1(FuncT&& f, TupleT&& t, std::index_sequence<Is...>)
-{
-    using std::get;
-    return std::invoke(std::forward<FuncT>(f), get<Is>(std::forward<TupleT>(t))...);
-}
-template <typename FuncT, typename TupleT, std::size_t... Is>
-gsl_constexpr20 decltype(auto)
-apply_impl(FuncT&& f, TupleT&& t)
-{
-    return detail::apply_impl_1(std::forward<FuncT>(f), std::forward<TupleT>(t),
-        std::make_index_sequence<std::tuple_size_v<std::remove_reference_t<TupleT>>>{ });
-}
-
-
 template <template <typename...> class TupleT, typename IndicesT, std::size_t... Is, typename... Ts>
 constexpr TupleT<std::tuple_element_t<IndicesT::col(Is), std::remove_cv_t<std::remove_reference_t<std::tuple_element_t<IndicesT::row(Is), std::tuple<Ts...>>>>>...>
 tuple_cat_impl_1(std::index_sequence<Is...>, std::tuple<Ts...> tupleOfTuples)
@@ -216,32 +198,6 @@ tuple_cat_impl(Ts&&... tuples)
     return detail::tuple_cat_impl_1<TupleT, Indices>(std::make_index_sequence<Indices::size>{ }, std::tuple<Ts&&...>{ std::forward<Ts>(tuples)... });
 }
 
-
-template <typename T, template <typename...> class TupleT, typename ReflectorT>
-constexpr auto
-all_members(void)
-{
-    if constexpr (metadata::is_available(metadata::members<T, ReflectorT>()))
-    {
-        auto baseMemberTupleTuple = detail::apply_impl(
-            [](auto&&... bases)
-            {
-                return TupleT<decltype(detail::all_members<typename std::remove_cv_t<std::remove_reference_t<decltype(bases)>>::type, TupleT, ReflectorT>())...>{
-                    detail::all_members<typename std::remove_cv_t<std::remove_reference_t<decltype(bases)>>::type, TupleT, ReflectorT>()...
-                };
-            },
-            metadata::bases<T, ReflectorT>());
-        return detail::apply_impl(
-            [](auto&&... baseMemberTuples)
-            {
-                return detail::tuple_cat_impl<TupleT>(
-                    std::forward<decltype(baseMemberTuples)>(baseMemberTuples)...,  // base class members
-                    metadata::members<T, ReflectorT>());  // direct members
-            },
-            baseMemberTupleTuple);
-    }
-    else return std::nullopt;
-}
 
 template <template <typename...> class TupleT, typename T>
 struct tie_members_functor
