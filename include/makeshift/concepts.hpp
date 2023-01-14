@@ -6,23 +6,24 @@
 #include <cstddef>  // for size_t
 #include <utility>  // for tuple_size<>
 
-#include <gsl-lite/gsl-lite.hpp> // for gsl_CPP17_OR_GREATER
+#include <gsl-lite/gsl-lite.hpp>  // for gsl_CPP17_OR_GREATER
 
 #if !gsl_CPP17_OR_GREATER
 # error makeshift requires C++17 mode or higher
 #endif // !gsl_CPP17_OR_GREATER
 
-#if defined(__has_include)
+#if gsl_CPP20_OR_GREATER && defined(__has_include)
 # if __has_include(<concepts>)
 #  include <concepts> // for same_as<>, convertible_to<>
 # endif // __has_include(<concepts>)
-#endif // defined(__has_include)
+#endif // gsl_CPP20_OR_GREATER && defined(__has_include)
 
 
 namespace makeshift {
 
 
-#if defined(__cpp_concepts) && defined(__cpp_lib_concepts)
+#if gsl_CPP20_OR_GREATER && defined(__cpp_concepts) && defined(__cpp_lib_concepts)
+
     //
     // The type must have a tuple-like interface.
     //ᅟ
@@ -73,7 +74,8 @@ concept constval = requires {
 template <typename C, typename T>
 concept constval_of = constval<C> &&
 std::convertible_to<typename C::value_type, T>;
-#endif // defined(__cpp_concepts) && defined(__cpp_lib_concepts)
+
+#endif // gsl_CPP20_OR_GREATER && defined(__cpp_concepts) && defined(__cpp_lib_concepts)
 
 
 } // namespace makeshift

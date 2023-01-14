@@ -257,8 +257,7 @@ array_cat(Ts&&... tuples)
 {
     static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
 
-    using Indices = detail::indices_2d_<std::tuple_size<std::decay_t<Ts>>::value...>;
-    return detail::array_cat_impl<std::array, T, Indices>(std::make_index_sequence<Indices::size>{ }, std::tuple<Ts&&...>{ std::forward<Ts>(tuples)... });
+    return detail::array_cat_impl<std::array, T>(std::forward<Ts>(tuples)...);
 }
 
     //
@@ -276,8 +275,7 @@ array_cat(Ts&&... tuples)
 {
     static_assert(detail::are_tuple_args_v<Ts...>, "arguments must be tuples or tuple-like types");
 
-    using Indices = detail::indices_2d_<std::tuple_size<std::decay_t<Ts>>::value...>;
-    return detail::array_cat_impl<ArrayT, T, Indices>(std::make_index_sequence<Indices::size>{ }, std::tuple<Ts&&...>{ std::forward<Ts>(tuples)... });
+    return detail::array_cat_impl<ArrayT, T>(std::forward<Ts>(tuples)...);
 }
 
 

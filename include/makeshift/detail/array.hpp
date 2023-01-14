@@ -111,10 +111,17 @@ array_transform_to_impl(std::index_sequence<Is...>, F&& func, Ts&&... args)
 
 template <template <typename, std::size_t> class ArrayT, typename T, typename IndicesT, std::size_t... Is, typename... Ts>
 constexpr ArrayT<T, IndicesT::size>
-array_cat_impl(std::index_sequence<Is...>, std::tuple<Ts...> tupleOfTuples)
+array_cat_impl_1(std::index_sequence<Is...>, std::tuple<Ts...> tupleOfTuples)
 {
     using std::get;
     return { get<IndicesT::col(Is)>(get<IndicesT::row(Is)>(std::move(tupleOfTuples)))... };
+}
+template <template <typename, std::size_t> class ArrayT, typename T, typename... TuplesT>
+constexpr auto
+array_cat_impl(TuplesT&&... tuples)
+{
+    using Indices = detail::indices_2d_<std::tuple_size<std::decay_t<TuplesT>>::value...>;
+    return detail::array_cat_impl_1<ArrayT, T, Indices>(std::make_index_sequence<Indices::size>{ }, std::tuple<TuplesT&&...>{ std::forward<TuplesT>(tuples)... });
 }
 
 
