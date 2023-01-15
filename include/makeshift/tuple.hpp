@@ -31,6 +31,32 @@ namespace makeshift {
 namespace gsl = ::gsl_lite;
 
 
+namespace detail {
+
+    // This belongs to <makeshift/detail/tuple.hpp> but can't be defined there because said header is required by <makeshift/metadata.hpp>.
+template <template <typename...> class TupleT, typename T, typename ReflectorT>
+struct tie_members_by_name_functor
+{
+    T& x;
+
+    template <typename MemberNameC>
+    constexpr inline decltype(auto)
+    _invoke()
+    {
+        constexpr auto member = metadata::find_member_by_name<T, ReflectorT>(MemberNameC{ });
+        return x.*member;
+    }
+    template <typename... MemberNamesC>
+    constexpr inline auto
+    operator ()(MemberNamesC...)
+    {
+        return TupleT<decltype(_invoke<MemberNamesC>())...>{ _invoke<MemberNamesC>()... };
+    }
+};
+
+} // namespace detail
+
+
     //
     // Given a tuple-like type, returns a `type_sequence<>` of the element types.
     //
@@ -364,7 +390,7 @@ requires std::invocable<ReflectorT const&, gsl::type_identity<T>>
 }
 template <typename T, typename MembersC>
 [[nodiscard]] constexpr auto
-tie_members(T& x, MembersC const& membersC)
+tie_members(T& x, MembersC membersC)
 requires tuple_like<decltype(membersC())>
 {
     return makeshift::apply(
@@ -373,12 +399,30 @@ requires tuple_like<decltype(membersC())>
 }
 template <template <typename...> class TupleT, typename T, typename MembersC>
 [[nodiscard]] constexpr auto
-tie_members(T& x, MembersC const& membersC)
+tie_members(T& x, MembersC membersC)
 requires tuple_like<decltype(membersC())>
 {
     return makeshift::apply(
         detail::tie_members_functor<TupleT, T>{ x },
         membersC);
+}
+template <typename T, typename ReflectorT = reflector, typename MemberNamesC>
+[[nodiscard]] constexpr auto
+tie_members_by_name(T& x, MemberNamesC memberNamesC, ReflectorT = { })
+//requires tuple_like<decltype(memberNamesC())>
+{
+    return makeshift::apply(
+        detail::tie_members_by_name_functor<std::tuple, T, ReflectorT>{ x },
+        memberNamesC);
+}
+template <template <typename...> class TupleT, typename T, typename ReflectorT = reflector, typename MemberNamesC>
+[[nodiscard]] constexpr auto
+tie_members_by_name(T& x, MemberNamesC memberNamesC, ReflectorT = { })
+//requires tuple_like<decltype(memberNamesC())>
+{
+    return makeshift::apply(
+        detail::tie_members_by_name_functor<TupleT, T, ReflectorT>{ x },
+        memberNamesC);
 }
 #endif // gsl_CPP20_OR_GREATER
 

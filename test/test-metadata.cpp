@@ -7,6 +7,7 @@
 #include <gsl-lite/gsl-lite.hpp>
 
 #include <makeshift/tuple.hpp>
+#include <makeshift/constval.hpp>
 #include <makeshift/metadata.hpp>
 
 #include <catch2/catch_test_macros.hpp>
@@ -175,6 +176,41 @@ reflect(gsl::type_identity<SubCOO2>)
     };
 }
 
+struct AltLayoutSubCOO1
+{
+    double v;
+    double v2;
+    int i;
+    int j;
+};
+constexpr auto
+reflect(gsl::type_identity<AltLayoutSubCOO1>)
+{
+    return mk::make_value_tuple(
+        mk::value_tuple{ &AltLayoutSubCOO1::v,  "v"  },
+        mk::value_tuple{ &AltLayoutSubCOO1::v2, "v2" },
+        mk::value_tuple{ &AltLayoutSubCOO1::i,  "i"  },
+        mk::value_tuple{ &AltLayoutSubCOO1::j,  "j"  }
+    );
+}
+
+struct AltLayoutCOO1
+{
+    double v;
+    int i;
+    int j;
+
+};
+constexpr auto
+reflect(gsl::type_identity<AltLayoutCOO1>)
+{
+    return mk::make_value_tuple(
+        mk::value_tuple{ &AltLayoutCOO1::v,  "v"  },
+        mk::value_tuple{ &AltLayoutCOO1::i,  "i"  },
+        mk::value_tuple{ &AltLayoutCOO1::j,  "j"  }
+    );
+}
+
 
 TEST_CASE("enum metadata")
 {
@@ -326,6 +362,46 @@ TEST_CASE("struct metadata")
         CHECK(mk::tie_members(sc1) == mk::tie_members(sc2));
         sc2.v2 = 8.;
         CHECK(mk::tie_members(sc1) != mk::tie_members(sc2));
+
+        AltLayoutSubCOO1 alsc1a{ };
+        mk::template_for(
+            [&alsc1a, &sc2](auto memberC, auto memberNameC)
+            {
+                constexpr auto altMember = mk::metadata::find_member_by_name<AltLayoutSubCOO1>(memberNameC);
+                alsc1a.*altMember = sc2.*memberC();
+            },
+            MAKESHIFT_CONSTVAL(mk::metadata::members<SubCOO2>()), MAKESHIFT_CONSTVAL(mk::metadata::member_names<SubCOO2>()));
+        CHECK(alsc1a.i == sc2.i);
+        CHECK(alsc1a.j == sc2.j);
+        CHECK(alsc1a.v == sc2.v);
+        CHECK(alsc1a.v2 == sc2.v2);
+        AltLayoutSubCOO1 alsc1b{ };
+        auto subNamesC = MAKESHIFT_CONSTVAL(mk::metadata::member_names<SubCOO2>());
+        mk::tie_members_by_name(alsc1b, subNamesC) = mk::tie_members_by_name(sc2, subNamesC);
+        CHECK(alsc1b.i == sc2.i);
+        CHECK(alsc1b.j == sc2.j);
+        CHECK(alsc1b.v == sc2.v);
+        CHECK(alsc1b.v2 == sc2.v2);
+        AltLayoutCOO1 alc1a{ };
+        mk::template_for(
+            [&alc1a, &sc2]([[maybe_unused]] auto memberC, auto memberNameC)
+            {
+                constexpr auto altMember = mk::metadata::search_member_by_name<AltLayoutCOO1>(memberNameC);
+                if constexpr (mk::metadata::is_available(altMember))
+                {
+                    alc1a.*altMember = sc2.*memberC();
+                }
+            },
+            MAKESHIFT_CONSTVAL(mk::metadata::members<SubCOO2>()), MAKESHIFT_CONSTVAL(mk::metadata::member_names<SubCOO2>()));
+        CHECK(alc1a.i == sc2.i);
+        CHECK(alc1a.j == sc2.j);
+        CHECK(alc1a.v == sc2.v);
+        AltLayoutCOO1 alc1b{ };
+        auto namesC = MAKESHIFT_CONSTVAL(mk::metadata::member_names<COO4>());
+        mk::tie_members_by_name(alc1b, namesC) = mk::tie_members_by_name(sc2, namesC);
+        CHECK(alc1b.i == sc2.i);
+        CHECK(alc1b.j == sc2.j);
+        CHECK(alc1b.v == sc2.v);
     }
 #endif // gsl_CPP20_OR_GREATER
 }
