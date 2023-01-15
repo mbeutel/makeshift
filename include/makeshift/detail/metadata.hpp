@@ -163,27 +163,12 @@ struct record_indices_0_<T, M, PredT, Occurrence, std::index_sequence<Is...>, Ar
 template <typename T, typename M, template <typename...> class PredT, int Occurrence, typename ArgsT>
 struct record_indices : record_indices_0_<T, M, PredT, Occurrence, std::make_index_sequence<std::tuple_size_v<M>>, ArgsT> { };
 
-//template <typename T, typename ReflectorT>
-//constexpr decltype(auto)
-//get_metadata(ReflectorT = { })
-//{
-//    static_assert(std::is_invocable_v<MetadataT const&, gsl::type_identity<T>>);
-//    return std::forward<MetadataT>(md)(gsl::type_identity<T>{ });
-//}
-template <typename T, typename MetadataT>
+template <typename T, typename ReflectorT>
 constexpr decltype(auto)
-unwrap_metadata(MetadataT&& md = { })
+get_metadata(ReflectorT = { })
 {
-    if constexpr (std::is_invocable_v<MetadataT const&, gsl::type_identity<T>>)
-    {
-            // `md` is a reflector, and this function is usually evaluated in a constexpr context, so extract its value.
-        return std::forward<MetadataT>(md)(gsl::type_identity<T>{ });
-    }
-    else
-    {
-            // `md` isn't a reflector, so it must be metadata.
-        return std::forward<MetadataT>(md);
-    }
+    static_assert(std::is_invocable_v<ReflectorT const&, gsl::type_identity<T>>);
+    return ReflectorT{ }(gsl::type_identity<T>{ });
 }
 
 template <typename T>
@@ -505,39 +490,12 @@ search_index(T value, std::array<T, N> values)
     return -1;
 }
 
-template <typename T, typename ReflectorT>
-struct value_store
-{
-    static constexpr inline auto value = detail::extract_values<T>(detail::unwrap_metadata<T, ReflectorT>({ }));
-};
-template <typename T, typename ReflectorT>
-struct member_store
-{
-    static constexpr inline auto value = detail::extract_members<T>(detail::unwrap_metadata<T, ReflectorT>({ }));
-};
-
-
-template <typename FuncT, typename TupleT, std::size_t... Is>
-gsl_constexpr20 decltype(auto)
-apply_impl_1(FuncT&& f, TupleT&& t, std::index_sequence<Is...>)
-{
-    using std::get;
-    return std::invoke(std::forward<FuncT>(f), get<Is>(std::forward<TupleT>(t))...);
-}
-template <typename FuncT, typename TupleT, std::size_t... Is>
-gsl_constexpr20 decltype(auto)
-apply_impl(FuncT&& f, TupleT&& t)
-{
-    return detail::apply_impl_1(std::forward<FuncT>(f), std::forward<TupleT>(t),
-        std::make_index_sequence<std::tuple_size_v<std::remove_reference_t<TupleT>>>{ });
-}
-
 
 template <typename T, template <typename...> class TupleT, typename ReflectorT>
 constexpr auto
 all_members()
 {
-    auto directMembers = detail::extract_members<T>(detail::unwrap_metadata<T, ReflectorT>());
+    auto directMembers = detail::extract_members<T>(detail::get_metadata<T, ReflectorT>());
     if constexpr (detail::is_available(directMembers))
     {
         auto baseMemberTupleTuple = detail::apply_impl(
@@ -547,7 +505,7 @@ all_members()
                     detail::all_members<typename std::remove_cv_t<std::remove_reference_t<decltype(bases)>>::type, TupleT, ReflectorT>()...
                 };
             },
-            detail::extract_bases<T>(detail::unwrap_metadata<T, ReflectorT>()));
+            detail::extract_bases<T>(detail::get_metadata<T, ReflectorT>()));
         return detail::apply_impl(
             [&directMembers](auto&&... baseMemberTuples)
             {
@@ -559,14 +517,12 @@ all_members()
     }
     else return std::nullopt;
 }
-
-
 template <typename T, typename V, template <typename...> class PredT, int Occurrence, typename ArgsT, typename ReflectorT>
 constexpr decltype(auto)
 extract_all_member_metadata()
 {
     constexpr auto directMemberMetadata = detail::extract_member_metadata<T, V, PredT, Occurrence, ArgsT>(
-        detail::unwrap_metadata<T, ReflectorT>());
+        detail::get_metadata<T, ReflectorT>());
     if constexpr (detail::is_available(directMemberMetadata))
     {
         auto baseMemberMetadataArrayTuple = detail::apply_impl(
@@ -574,9 +530,9 @@ extract_all_member_metadata()
             {
                 return std::make_tuple(
                     detail::extract_member_metadata<typename std::remove_cv_t<std::remove_reference_t<decltype(bases)>>::type, V, PredT, Occurrence, ArgsT>(
-                        detail::unwrap_metadata<typename std::remove_cv_t<std::remove_reference_t<decltype(bases)>>::type, ReflectorT>())...);
+                        detail::get_metadata<typename std::remove_cv_t<std::remove_reference_t<decltype(bases)>>::type, ReflectorT>())...);
             },
-            detail::extract_bases<T>(detail::unwrap_metadata<T, ReflectorT>()));
+            detail::extract_bases<T>(detail::get_metadata<T, ReflectorT>()));
         return detail::apply_impl(
             [&directMemberMetadata](auto&&... baseMemberMetadataArrays)
             {
@@ -588,6 +544,42 @@ extract_all_member_metadata()
     }
     else return std::nullopt;
 }
+
+template <typename T, typename ReflectorT>
+struct value_store
+{
+    static constexpr inline auto value = detail::extract_values<T>(detail::get_metadata<T, ReflectorT>());
+};
+template <typename T, typename ReflectorT>
+struct value_name_store
+{
+    static constexpr inline auto value = detail::extract_value_metadata<T, std::string_view,
+        detail::predicate_adaptor<std::is_convertible>::template type, 0, type_sequence<std::string_view>>(
+            detail::get_metadata<T, ReflectorT>());
+};
+template <typename T, typename ReflectorT>
+struct exclusive_member_store
+{
+    static constexpr inline auto value = detail::extract_members<T>(detail::get_metadata<T, ReflectorT>());
+};
+template <typename T, typename ReflectorT>
+struct exclusive_member_name_store
+{
+    static constexpr inline auto value = detail::extract_member_metadata<T, std::string_view,
+        detail::predicate_adaptor<std::is_convertible>::template type, 0, type_sequence<std::string_view>>(
+            detail::get_metadata<T, ReflectorT>());
+};
+template <template <typename...> class TupleT, typename T, typename ReflectorT>
+struct member_store
+{
+    static constexpr inline auto value = detail::all_members<T, TupleT, ReflectorT>();
+};
+template <typename T, typename ReflectorT>
+struct member_name_store
+{
+    static constexpr inline auto value = detail::extract_all_member_metadata<T, std::string_view,
+        detail::predicate_adaptor<std::is_convertible>::template type, 0, type_sequence<std::string_view>, ReflectorT>();
+};
 
 
 } // namespace detail
