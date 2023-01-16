@@ -279,7 +279,7 @@ template <typename T, typename ReflectorT = reflector, typename NameC>
 [[nodiscard]] constexpr auto
 search_exclusive_member_by_name(NameC nameC, ReflectorT = { })
 {
-    constexpr auto const& members = detail::exclusive_member_store<std::tuple, std::remove_const_t<T>, ReflectorT>::value;
+    constexpr auto const& members = detail::exclusive_member_store<std::remove_const_t<T>, ReflectorT>::value;
     static_assert(metadata::is_available(members));
     constexpr auto maybeIndex = metadata::search_exclusive_member_index_by_name<T, ReflectorT>(nameC());
     if constexpr (maybeIndex >= 0)
