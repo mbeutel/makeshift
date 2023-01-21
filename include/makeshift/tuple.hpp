@@ -9,7 +9,7 @@
 #include <utility>      // for forward<>(), index_sequence_for<>
 #include <type_traits>  // for decay<>
 
-#include <gsl-lite/gsl-lite.hpp>  // for identity, gsl_constexpr20, gsl_CPP17_OR_GREATER
+#include <gsl-lite/gsl-lite.hpp>  // for identity, gsl_CPP20_OR_GREATER
 
 #if !gsl_CPP17_OR_GREATER
 # error makeshift requires C++17 mode or higher
@@ -320,7 +320,7 @@ template_none_of(PredicateT&& predicate, Ts&&... args)
 
 
 template <typename FuncT, typename TupleT, std::size_t... Is>
-gsl_constexpr20 decltype(auto)
+constexpr decltype(auto)
 apply(FuncT&& f, TupleT&& t)
 {
     return detail::apply_impl(std::forward<FuncT>(f), std::forward<TupleT>(t));
