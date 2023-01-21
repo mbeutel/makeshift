@@ -9,12 +9,19 @@
 #include <utility>      // for forward<>(), get<>()
 #include <type_traits>  // for integral_constant<>, declval<>(), is_base_of<>, is_integral<>, is_enum<>, is_member_pointer<>, is_null_pointer<>, is_empty<>, is_default_constructible<>, common_type<>, make_signed<>, conjunction<>, disjunction<>
 
-#include <gsl-lite/gsl-lite.hpp>  // for type_identity<>, gsl_Assert()
+#include <gsl-lite/gsl-lite.hpp>  // for type_identity<>, gsl_Assert(), 
 
 #include <makeshift/type_traits.hpp>  // for constval_tag, can_instantiate<>
 
-
-#define MAKESHIFT_CONSTVAL_(...)                                        \
+#if gsl_CPP20_OR_GREATER
+# define MAKESHIFT_CONSTVAL_(...)                                       \
+    (makeshift::detail::make_constval(                                  \
+        []                                                              \
+        {                                                               \
+            return __VA_ARGS__;                                         \
+        }))
+#else  // gsl_CPP20_OR_GREATER ^^^ / vvv !gsl_CPP20_OR_GREATER
+# define MAKESHIFT_CONSTVAL_(...)                                       \
     (makeshift::detail::make_constval(                                  \
         []                                                              \
         {                                                               \
@@ -29,7 +36,7 @@
             };                                                          \
             return R_{ };                                               \
         }()))
-
+#endif  // !gsl_CPP20_OR_GREATER
 
 namespace makeshift {
 
