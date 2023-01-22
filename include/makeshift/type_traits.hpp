@@ -241,6 +241,24 @@ is_constval_of_v = is_constval_of<T, R>::value;
 
 
     //
+    // Determines whether an object of type `T` is type-transportable, i.e., default-constructible and without state,
+    // such that an equivalent object can be reconstructed as `T{ }`.
+    // Examples for type-transportable objects are constvals and lambdas without captures (with C++20).
+    //
+template <typename T>
+struct is_type_transportable : std::conjunction<std::is_empty<T>, std::is_default_constructible<T>> { };
+
+    //
+    // Determines whether an object of type `T` is type-transportable, i.e., default-constructible and without state,
+    // such that an equivalent object can be reconstructed as `T{ }`.
+    // Examples for type-transportable objects are constvals and lambdas without captures (with C++20).
+    //
+template <typename T>
+constexpr bool
+is_type_transportable_v = is_type_transportable<T>::value;
+
+
+    //
     // Can be used to delay the instantiation of a `static_assert()` in a constexpr if branch.
     //
 template <typename...>
