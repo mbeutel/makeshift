@@ -121,6 +121,7 @@ struct ToTupleTransform
     }
 };
 
+
 TEST_CASE("constval")
 {
     auto c1 = std::integral_constant<int, 1>{ };
@@ -199,6 +200,35 @@ TEST_CASE("constval")
     //auto cCT3 = mk::ref_c<c2>; // this doesn't work either, for the same reason
     auto iCT = MAKESHIFT_CONSTVAL(SomeClass::ct.i);
     expect_constval_normalization<int>(iCT);
+}
+
+TEST_CASE("constval as comonad")
+{
+    auto aC = MAKESHIFT_CONSTVAL(2);
+
+        // extract
+    int a = aC();
+    CHECK(a == 2);
+
+#if gsl_CPP20_OR_GREATER
+# if !gsl_BETWEEN(gsl_COMPILER_MSVC_VERSION, 1, 143)  // ICE in VC++ 2019
+        // extend
+    static constexpr auto lookupTable = std::tuple{ "hi", 42, 3.14f };
+    auto f = [](auto xC) { return std::get<xC()>(lookupTable); };
+    auto b = f(aC);
+    CHECK(b == 3.14f);
+    //auto bC = MAKESHIFT_CONSTVAL(f(aC));  // doesn't work due to capture
+    auto bC = makeshift::constval_extend(  // works in C++20
+        [](auto f, auto xC)
+        {
+            return f(xC);
+        },
+        f, aC);
+    CHECK(bC() == b);
+    auto bC2 = makeshift::constval_extend(f, aC);  // works in C++20
+    CHECK(bC2() == b);
+# endif  // !gsl_BETWEEN(gsl_COMPILER_MSVC_VERSION, 1, 143)
+#endif  // gsl_CPP20_OR_GREATER
 }
 
 

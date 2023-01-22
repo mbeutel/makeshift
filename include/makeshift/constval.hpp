@@ -216,7 +216,7 @@ constval_extract(const C& value)
 
     //
     // Returns the result of the function applied to the values of the given constvals as a constval, or the result value itself
-    // if one of the arguments is not a constval.
+    // if one of the arguments is not type-transportable.
     //ᅟ
     //ᅟ    auto baseIndexR = MAKESHIFT_CONSTVAL(42); // returns `std::integral_constant<int, 42>{ }`
     //ᅟ    auto offsetR = MAKESHIFT_CONSTVAL(3); // returns `std::integral_constant<int, 3>{ }`
@@ -226,14 +226,14 @@ template <typename F, typename... Cs>
 [[nodiscard]] constexpr auto
 constval_transform(const F&, const Cs&... args)
 {
-    static_assert(std::is_empty<F>::value, "transformer must be stateless");
-    return detail::constval_transform_impl<F>(std::conjunction<is_constval<Cs>...>{ }, args...);
+    static_assert(is_type_transportable_v<F>, "transformer must be type-transportable");
+    return detail::constval_transform_impl<F>(std::conjunction<is_type_transportable<Cs>...>{ }, args...);
 }
 
 
     //
     // Returns the result of the function applied to the given constvals as a constval, or the result value itself if one of the
-    // arguments is not a constval.
+    // arguments is not type-transportable.
     //ᅟ
     //ᅟ    auto variantR = MAKESHIFT_CONSTVAL(std::variant<int, float>{ 42 });
     //ᅟ    auto elementR = constval_extend(
@@ -249,8 +249,8 @@ template <typename CF, typename... Cs>
 [[nodiscard]] constexpr auto
 constval_extend(const CF&, const Cs&... args)
 {
-    static_assert(std::is_empty<CF>::value, "extender must be stateless");
-    return detail::constval_extend_impl<CF>(std::conjunction<is_constval<Cs>...>{ }, args...);
+    static_assert(is_type_transportable_v<CF>, "extender must be type-transportable");
+    return detail::constval_extend_impl<CF>(std::conjunction<is_type_transportable<Cs>...>{ }, args...);
 }
 
 

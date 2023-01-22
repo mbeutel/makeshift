@@ -249,7 +249,7 @@ struct constval_transform_functor
 {
     constexpr auto operator ()(void) const
     {
-        return F{ }(constval_value<Cs>...);
+        return F{ }(Cs{ }()...);
     }
 };
 
@@ -270,7 +270,7 @@ struct constval_extend_functor
 {
     constexpr auto operator ()(void) const
     {
-        return CF{ }(constval_t<Cs>{ }...);
+        return CF{ }(Cs{ }...);
     }
 };
 
