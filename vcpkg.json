@@ -1,7 +1,7 @@
 {
     "name": "makeshift",
     "version-string": "4.0.0",
-    "description": "still need to come up with something",
+    "description": "lightweight metaprogramming in C++",
     "homepage": "https://github.com/mbeutel/makeshift",
     "license": " BSL-1.0",
     "dependencies": [
