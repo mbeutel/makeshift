@@ -119,16 +119,20 @@ Now, configure your project passing the CMake build directory as a parameter:
 
 ## Version semantics
 
-*makeshift* follows [Semantic Versioning](https://semver.org/) guidelines. We maintain
-[API](https://en.wikipedia.org/wiki/Application_programming_interface) and [ABI](https://en.wikipedia.org/wiki/Application_binary_interface) compatibility and avoid
-breaking changes in minor and patch releases.
+*makeshift* follows [Semantic Versioning](https://semver.org/) guidelines with regard to its
+[API](https://en.wikipedia.org/wiki/Application_programming_interface). We aim to retain full
+API compatibility and to avoid breaking changes in minor and patch releases.
+
+We do not guarantee to maintain [ABI](https://en.wikipedia.org/wiki/Application_binary_interface)
+compatibility except in patch releases.
 
 Development happens in the `master` branch. Versioning semantics apply only to tagged releases:
 there is no stability guarantee between individual commits in the `master` branch, that is, anything
-added since the last tagged release may be renamed, removed, have the semantics changed, etc. without further notice.
+added since the last tagged release may be renamed, removed, have the semantics changed, etc. without
+further notice.
 
-A minor-version release will be compatible (in both ABI and API) with the previous minor-version
-release. Thus, once a change is released, it becomes part of the API.
+A minor-version release will be API-compatible with the previous minor-version release. Thus, once
+a change is released, it becomes part of the API.
 
 
 ## Features
