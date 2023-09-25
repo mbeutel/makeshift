@@ -30,22 +30,24 @@ struct manipulator : ToStreamFuncT, FromStreamFuncT
         friend std::ostream&
         operator <<(std::ostream& stream, bound_manipulator&& m)
         {
+            using T = ToStreamFuncT;  // workaround for nvcc compiler bug
             std::apply(
                 [&manip = m.manip_, &stream]
                 (auto&&... args)
                 {
-                    return static_cast<ToStreamFuncT const&>(manip)(stream, std::forward<decltype(args)>(args)...);
+                    return static_cast<T const&>(manip)(stream, std::forward<decltype(args)>(args)...);
                 }, m.args_);
             return stream;
         }
         friend std::istream&
         operator >>(std::istream& stream, bound_manipulator&& m)
         {
+            using T = FromStreamFuncT;
             std::apply(
                 [&manip = m.manip_, &stream]
                 (auto&&... args)
                 {
-                    return static_cast<FromStreamFuncT const&>(manip)(stream, std::forward<decltype(args)>(args)...);
+                    return static_cast<T const&>(manip)(stream, std::forward<decltype(args)>(args)...);
                 }, m.args_);
             return stream;
         }
