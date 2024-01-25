@@ -18,7 +18,7 @@ jobs:
   parameters:
     vcpkgRef: 223d33be7d3ec6c3d64381ca37f501b8c87dda6a
       
-    cmakeConfigArgs: '-DBUILD_TESTING=ON'
+    cmakeConfigArgs: '-DMAKESHIFT_BUILD_TESTING=ON'
     cmakeTestArgs: '--exclude-regex "cuda"' # do not run CUDA tests
 
     cmakeBuildConfigurations: [Debug, RelWithDebInfo]
@@ -41,7 +41,7 @@ jobs:
       cudaCompiler: NVCC
       cudaCompilerVersions: [11_8]
       platforms: [x64]
-      cmakeConfigArgs: '<cmakeConfigArgs> -DBUILD_TESTING_CUDA=ON'
+      cmakeConfigArgs: '<cmakeConfigArgs> -DMAKESHIFT_BUILD_TESTING_CUDA=ON'
 
     - os: Linux
       cxxCompiler: GCC
@@ -75,7 +75,7 @@ jobs:
       cudaCompiler: NVCC
       cudaCompilerVersions: [11_8]
       platforms: [x64]
-      cmakeConfigArgs: '<cmakeConfigArgs> -DBUILD_TESTING_CUDA=ON'
+      cmakeConfigArgs: '<cmakeConfigArgs> -DMAKESHIFT_BUILD_TESTING_CUDA=ON'
 
     - os: MacOS
       cxxCompiler: GCC

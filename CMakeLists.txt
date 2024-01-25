@@ -13,16 +13,15 @@ project(makeshift
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
 # Define build options.
-option(BUILD_TESTING "Build tests" OFF)
-option(BUILD_TESTING_CUDA "Build CUDA tests" OFF)
-option(CMAKE_EXPORT_PACKAGE_REGISTRY "Export to user package registry" OFF)
+option(MAKESHIFT_BUILD_TESTING "Build tests" OFF)
+option(MAKESHIFT_BUILD_TESTING_CUDA "Build CUDA tests" OFF)
 
 # Include target definitions.
 add_subdirectory(src)
-if(BUILD_TESTING)
+if(MAKESHIFT_BUILD_TESTING)
     enable_testing()
     add_subdirectory(test)
-    if(BUILD_TESTING_CUDA)
+    if(MAKESHIFT_BUILD_TESTING_CUDA)
         enable_language(CUDA)
         add_subdirectory(test/cuda)
     endif()
