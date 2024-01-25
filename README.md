@@ -2,7 +2,7 @@
 
 | metadata | build  | tests  |
 | -------- | ------ | ------ |
-| [![Language](https://badgen.net/badge/C++/17+/blue)](https://en.wikipedia.org/wiki/C%2B%2B#Standardization) <br> [![License](https://badgen.net/github/license/mbeutel/makeshift)](https://opensource.org/licenses/BSL-1.0) <br> [![Version](https://badgen.net/github/release/mbeutel/makeshift)](https://github.com/mbeutel/makeshift/releases)   |   [![Build Status](https://dev.azure.com/moritzbeutel/makeshift/_apis/build/status/mbeutel.makeshift?branchName=master)](https://dev.azure.com/moritzbeutel/makeshift/_build/latest?definitionId=2&branchName=master)   |   [![Azure DevOps tests](https://img.shields.io/azure-devops/tests/moritzbeutel/makeshift/2)](https://dev.azure.com/moritzbeutel/makeshift/_testManagement/runs)  |
+| [![Language](https://badgen.net/badge/language/C++%E2%89%A517/blue)](https://en.wikipedia.org/wiki/C%2B%2B#Standardization) <br> [![License](https://badgen.net/github/license/mbeutel/makeshift)](https://opensource.org/licenses/BSL-1.0) <br> [![Version](https://badgen.net/github/release/mbeutel/makeshift)](https://github.com/mbeutel/makeshift/releases)   |   [![Build Status](https://dev.azure.com/moritzbeutel/makeshift/_apis/build/status/mbeutel.makeshift?branchName=master)](https://dev.azure.com/moritzbeutel/makeshift/_build/latest?definitionId=2&branchName=master)   |   [![Azure DevOps tests](https://img.shields.io/azure-devops/tests/moritzbeutel/makeshift/2)](https://dev.azure.com/moritzbeutel/makeshift/_testManagement/runs)  |
 
 
 *makeshift* is a C++ library which augments the C++ Standard Library with the following:
@@ -77,8 +77,8 @@ int main()
 
 ## Dependencies
 
-* [gsl-lite](https://github.com/gsl-lite/gsl-lite), an implementation of the [C++ Core Guidelines Support Library](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#S-gsl)
-* optional (for testing only): [Catch2](https://github.com/catchorg/Catch2)
+* [*gsl-lite*](https://github.com/gsl-lite/gsl-lite), an implementation of the [C++ Core Guidelines Support Library](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#S-gsl)
+* optional (for testing only): [*Catch2*](https://github.com/catchorg/Catch2)
 
 
 ## Installation and use
@@ -142,4 +142,26 @@ TODO
 
 ## Reference
 
-TODO
+TODO:
+- n-ary fixed-size algorithms
+  - Arrays and tuples as functors
+- Compile-time programming
+  - Compile-time computations as a comonadic pattern
+  - Domains of compile-time computations
+  - Constvals
+  - Constvals as functors
+  - Constval normalisation
+- Variants
+  - The constval--variant equivalence
+  - The expand function
+  - Variants as functors
+- Metadata
+  - Surrogate reflection: values, members, bases
+  - Serialisation
+  - The expand function with metadata
+  - The struct--tuple continuum
+  - Things I can now do with structs
+- Polymorphic value types
+  - Compile-time polymorphism
+  - Type erasure with the Concept--Model idiom
+  - Configuring polymorphic code
