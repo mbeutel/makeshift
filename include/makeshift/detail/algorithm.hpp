@@ -106,11 +106,20 @@ private:
         return detail::is_end(detail::get_leaf<Is>(*this)._is_end()...);
     }
 
+    template <typename T>
+    struct MemberTypeOf  // MSVC bug workaround
+    {
+        using value_type = typename T::value_type;
+        using reference = typename T::reference;
+    };
+
 public:
     using difference_type = std::ptrdiff_t; // we just assume that here
-    using value_type = std::tuple<typename zip_iterator_leaf<Is, Rs>::value_type...>;
+    //using value_type = std::tuple<typename zip_iterator_leaf<Is, Rs>::value_type...>;
+    using value_type = std::tuple<typename MemberTypeOf<zip_iterator_leaf<Is, Rs>>::value_type...>;
     using pointer = void;
-    using reference = std::tuple<typename zip_iterator_leaf<Is, Rs>::reference...>;
+    //using reference = std::tuple<typename zip_iterator_leaf<Is, Rs>::reference...>;
+    using reference = std::tuple<typename MemberTypeOf<zip_iterator_leaf<Is, Rs>>::reference...>;
     using iterator_category = common_iterator_tag<range_iterator_category_t<std::decay_t<Rs>>...>;
 #ifdef __cpp_concepts
         // this deliberately cannot include ContiguousIterator (zipping contiguous iterators does not yield a contiguous iterator)
