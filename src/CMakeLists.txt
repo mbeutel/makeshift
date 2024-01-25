@@ -9,6 +9,7 @@ cmake_minimum_required(VERSION 3.20)
 find_package(gsl-lite 0.40 REQUIRED)
 
 add_library(makeshift INTERFACE)
+add_library(makeshift::makeshift ALIAS makeshift)
 
 target_compile_features(makeshift INTERFACE cxx_std_17)
 
