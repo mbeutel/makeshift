@@ -17,7 +17,7 @@ jobs:
 - template: azure-pipelines/cmake.yml@CImakeshift
   parameters:
     vcpkgRef: fc6345e114c2e2c4f9714037340ccb08326b3e8c
-      
+
     cmakeConfigArgs: '-DMAKESHIFT_BUILD_TESTING=ON'
     cmakeTestArgs: '--exclude-regex "cuda"' # do not run CUDA tests
 
@@ -50,7 +50,7 @@ jobs:
 
     - os: Linux
       cxxCompiler: GCC
-      cxxCompilerVersions: [12]
+      cxxCompilerVersions: [13]
       platforms: [x64]
       cxxStandardLibraryDebugMode: true
       cxxSanitizers: [AddressSanitizer, UndefinedBehaviorSanitizer]
@@ -63,7 +63,7 @@ jobs:
 
     - os: Linux
       cxxCompiler: Clang
-      cxxCompilerVersions: [14]
+      cxxCompilerVersions: [17]
       platforms: [x64]
       cxxStandardLibraryDebugMode: true
       cxxSanitizers: [AddressSanitizer, UndefinedBehaviorSanitizer, ImplicitIntegerArithmeticValueChange]
@@ -71,18 +71,18 @@ jobs:
 
     - os: Linux
       cxxCompiler: GCC
-      cxxCompilerVersions: [11]
+      cxxCompilerVersions: [12]
       cudaCompiler: NVCC
-      cudaCompilerVersions: [11_8]
+      cudaCompilerVersions: [12_3]
       platforms: [x64]
       cmakeConfigArgs: '<cmakeConfigArgs> -DMAKESHIFT_BUILD_TESTING_CUDA=ON'
 
     - os: MacOS
       cxxCompiler: GCC
-      cxxCompilerVersions: [10, 12]
+      cxxCompilerVersions: [10, 13]
       platforms: [x64]
 
     - os: MacOS
       cxxCompiler: AppleClang
-      cxxCompilerVersions: [13_1_6, 14]
+      cxxCompilerVersions: [13_1_6, 15_2]
       platforms: [x64]
