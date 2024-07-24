@@ -483,6 +483,8 @@ template <typename T, std::size_t N>
 constexpr gsl::index
 search_index(T value, std::array<T, N> values)
 {
+    // TODO: this should be optimized to a direct index lookup for the case of consecutive values
+
     for (std::size_t i = 0; i != N; ++i)
     {
         if (values[i] == value) return gsl::index(i);

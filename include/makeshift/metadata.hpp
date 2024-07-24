@@ -64,6 +64,19 @@ extract(ReflectorT = { }, type_sequence<PredArgsT...> = { })
     static_assert(Occurrence >= 0);
     return detail::extract_metadata<void, detail::predicate_adaptor<PredT>::template type, Occurrence>(detail::get_metadata<T, ReflectorT>(), type_sequence<PredArgsT...>{ });
 }
+template <typename T, typename V, typename ReflectorT = reflector>
+[[nodiscard]] constexpr V
+extract(ReflectorT = { })
+{
+    return detail::extract_metadata<void, detail::predicate_adaptor<std::is_same>::template type, 0>(detail::get_metadata<T, ReflectorT>(), type_sequence<V>{ });
+}
+template <typename T, int Occurrence, typename V, typename ReflectorT = reflector>
+[[nodiscard]] constexpr V
+extract(ReflectorT = { })
+{
+    static_assert(Occurrence >= 0);
+    return detail::extract_metadata<void, detail::predicate_adaptor<std::is_same>::template type, Occurrence>(detail::get_metadata<T, ReflectorT>(), type_sequence<V>{ });
+}
 
 template <typename T, typename V, template <typename...> class PredT, typename... PredArgsT, typename ReflectorT = reflector>
 [[nodiscard]] constexpr decltype(auto)
@@ -77,6 +90,19 @@ extract_for_values(ReflectorT = { }, type_sequence<PredArgsT...> = { })
 {
     static_assert(Occurrence >= 0);
     return detail::extract_value_metadata<std::remove_const_t<T>, V, detail::predicate_adaptor<PredT>::template type, Occurrence, type_sequence<PredArgsT...>>(detail::get_metadata<T, ReflectorT>());
+}
+template <typename T, typename V, typename ReflectorT = reflector>
+[[nodiscard]] constexpr decltype(auto)
+extract_for_values(ReflectorT = { })
+{
+    return detail::extract_value_metadata<std::remove_const_t<T>, V, detail::predicate_adaptor<std::is_same>::template type, 0, type_sequence<V>>(detail::get_metadata<T, ReflectorT>());
+}
+template <typename T, typename V, int Occurrence, typename ReflectorT = reflector>
+[[nodiscard]] constexpr decltype(auto)
+extract_for_values(ReflectorT = { })
+{
+    static_assert(Occurrence >= 0);
+    return detail::extract_value_metadata<std::remove_const_t<T>, V, detail::predicate_adaptor<std::is_same>::template type, Occurrence, type_sequence<V>>(detail::get_metadata<T, ReflectorT>());
 }
 
 template <typename T, typename V, template <typename...> class PredT, typename... PredArgsT, typename ReflectorT = reflector>
@@ -92,6 +118,19 @@ extract_for_exclusive_members(ReflectorT = { }, type_sequence<PredArgsT...> = { 
     static_assert(Occurrence >= 0);
     return detail::extract_member_metadata<std::remove_const_t<T>, V, detail::predicate_adaptor<PredT>::template type, Occurrence, type_sequence<PredArgsT...>>(detail::get_metadata<T, ReflectorT>());
 }
+template <typename T, typename V, typename ReflectorT = reflector>
+[[nodiscard]] constexpr decltype(auto)
+extract_for_exclusive_members(ReflectorT = { })
+{
+    return detail::extract_member_metadata<std::remove_const_t<T>, V, detail::predicate_adaptor<std::is_same>::template type, 0, type_sequence<V>>(detail::get_metadata<T, ReflectorT>());
+}
+template <typename T, typename V, int Occurrence, typename ReflectorT = reflector>
+[[nodiscard]] constexpr decltype(auto)
+extract_for_exclusive_members(ReflectorT = { })
+{
+    static_assert(Occurrence >= 0);
+    return detail::extract_member_metadata<std::remove_const_t<T>, V, detail::predicate_adaptor<std::is_same>::template type, Occurrence, type_sequence<V>>(detail::get_metadata<T, ReflectorT>());
+}
 
 template <typename T, typename V, template <typename...> class PredT, typename... PredArgsT, typename ReflectorT = reflector>
 [[nodiscard]] constexpr decltype(auto)
@@ -105,6 +144,19 @@ extract_for_members(ReflectorT = { }, type_sequence<PredArgsT...> = { })
 {
     static_assert(Occurrence >= 0);
     return detail::extract_all_member_metadata<std::remove_const_t<T>, V, detail::predicate_adaptor<PredT>::template type, Occurrence, type_sequence<PredArgsT...>, ReflectorT>();
+}
+template <typename T, typename V, typename ReflectorT = reflector>
+[[nodiscard]] constexpr decltype(auto)
+extract_for_members(ReflectorT = { })
+{
+    return detail::extract_all_member_metadata<std::remove_const_t<T>, V, detail::predicate_adaptor<std::is_same>::template type, 0, type_sequence<V>, ReflectorT>();
+}
+template <typename T, typename V, int Occurrence, typename ReflectorT = reflector>
+[[nodiscard]] constexpr decltype(auto)
+extract_for_members(ReflectorT = { })
+{
+    static_assert(Occurrence >= 0);
+    return detail::extract_all_member_metadata<std::remove_const_t<T>, V, detail::predicate_adaptor<std::is_same>::template type, Occurrence, type_sequence<V>, ReflectorT>();
 }
 
 
