@@ -9,7 +9,11 @@
 #include <utility>      // for forward<>(), get<>()
 #include <type_traits>  // for integral_constant<>, declval<>(), is_base_of<>, is_integral<>, is_enum<>, is_member_pointer<>, is_null_pointer<>, is_empty<>, is_default_constructible<>, common_type<>, make_signed<>, conjunction<>, disjunction<>
 
-#include <gsl-lite/gsl-lite.hpp>  // for type_identity<>, gsl_Assert(), 
+#include <gsl-lite/gsl-lite.hpp>  // for type_identity<>, gsl_Assert()
+
+#if gsl_CPP20_OR_GREATER
+# include <iterator>
+#endif // gsl_CPP20_OR_GREATER
 
 #include <makeshift/type_traits.hpp>  // for constval_tag, can_instantiate<>
 
@@ -307,6 +311,20 @@ static constexpr void constval_assert_impl(std::false_type /*isConstval*/, bool 
 {
     gsl_Assert(arg);
 }
+
+
+#if gsl_CPP20_OR_GREATER
+template <std::size_t N, typename R>
+constexpr auto
+constval_range_to_array_impl(R&& range)
+{
+    using IteratorT = decltype(std::ranges::begin(std::declval<R&>()));
+    using T = std::iter_value_t<IteratorT>;
+    auto result = std::array<T, N>{ };
+    std::ranges::copy(range, result.begin());
+    return result;
+}
+#endif // gsl_CPP20_OR_GREATER
 
 
 template <typename C>

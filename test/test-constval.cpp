@@ -9,6 +9,7 @@
 #include <gsl-lite/gsl-lite.hpp> // for type_identity<>
 
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_range_equals.hpp>
 
 #include <makeshift/array.hpp>   // for array<>
 #include <makeshift/utility.hpp>
@@ -230,6 +231,34 @@ TEST_CASE("constval as comonad")
 # endif  // !gsl_BETWEEN(gsl_COMPILER_MSVC_VERSION, 1, 143)
 #endif  // gsl_CPP20_OR_GREATER
 }
+
+#if gsl_CPP20_OR_GREATER
+constexpr std::vector<int>
+computeFibonacciSeqUpTo(int max)
+{
+    gsl_Expects(max >= 1);
+
+    int c0 = 1;
+    int c1 = 1;
+    auto result = std::vector<int>{ c0, c1 };
+    for (;;)
+    {
+        int c2 = c0 + c1;
+        if (c2 > max) return result;
+        result.push_back(c2);
+        c0 = c1;
+        c1 = c2;
+    }
+}
+
+TEST_CASE("constval_range_to_array")
+{
+    CHECK_THAT(computeFibonacciSeqUpTo(50), Catch::Matchers::RangeEquals(std::array{ 1, 1, 2, 3, 5, 8, 13, 21, 34 }));
+
+    constexpr std::array fibonacciSeqUpTo50 = makeshift::constval_range_to_array([] { return computeFibonacciSeqUpTo(50); });
+    CHECK(fibonacciSeqUpTo50 == std::array{ 1, 1, 2, 3, 5, 8, 13, 21, 34 });
+}
+#endif // gsl_CPP20_OR_GREATER
 
 
 } // anonymous namespace

@@ -12,6 +12,10 @@
 # error makeshift requires C++17 mode or higher
 #endif // !gsl_CPP17_OR_GREATER
 
+#if gsl_CPP20_OR_GREATER
+# include <array>
+#endif // gsl_CPP20_OR_GREATER
+
 #include <makeshift/type_traits.hpp>  // for can_instantiate<>
 
 #include <makeshift/detail/constval.hpp>
@@ -252,6 +256,26 @@ constval_extend(const CF&, const Cs&... args)
     static_assert(is_type_transportable_v<CF>, "extender must be type-transportable");
     return detail::constval_extend_impl<CF>(std::conjunction<is_type_transportable<Cs>...>{ }, args...);
 }
+
+
+#if gsl_CPP20_OR_GREATER
+    //
+    // Converts the given constval, taken to be a range of elements, to a `std::array<>`. Useful to convert dynamic compile-time
+    // computations into `constinit` data.
+    // TODO: we do not support proper constvals here yet.
+    //ᅟ
+    //ᅟ    auto dataC = [] { return std::vector{ 1, 2, 3 }; };
+    //ᅟ    constexpr std::array<int, 3> data = constval_range_to_array(dataC);  // returns `std::array{ 1, 2, 3 }`
+    //
+template <typename C, typename ProjT = gsl::identity>
+[[nodiscard]] constexpr auto
+constval_range_to_array(C, ProjT = { })
+{
+    static_assert(is_type_transportable_v<ProjT>, "projector must be type-transportable");
+    constexpr std::size_t N = std::size(ProjT{ }(C{ }()));
+    return detail::constval_range_to_array_impl<N>(ProjT{ }(C{ }()));
+}
+#endif // gsl_CPP20_OR_GREATER
 
 
     //
