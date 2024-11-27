@@ -3,6 +3,7 @@
 #define INCLUDED_MAKESHIFT_IOMANIP_HPP_
 
 
+#include <istream>      // for ws
 #include <type_traits>  // for remove_reference<>
 
 #include <gsl-lite/gsl-lite.hpp>  // for gsl_CPP17_OR_GREATER
