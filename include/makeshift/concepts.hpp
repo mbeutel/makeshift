@@ -18,6 +18,8 @@
 # endif // __has_include(<concepts>)
 #endif // gsl_CPP20_OR_GREATER && defined(__has_include)
 
+#include <makeshift/type_traits.hpp>  // for is_instantiation_of<>
+
 
 namespace makeshift {
 
@@ -74,6 +76,21 @@ concept constval = requires {
 template <typename C, typename T>
 concept constval_of = constval<C> &&
 std::convertible_to<typename C::value_type, T>;
+
+
+    //
+    // The type needs to be an instantiation of the given template `U<>`.
+    //ᅟ
+template <typename T, template <typename...> class U>
+concept instantiation_of = is_instantiation_of_v<T, U>;
+
+
+    //
+    // The type is not equal to the given type `U`.
+    //ᅟ
+template <typename T, typename U>
+concept distinct_from = !std::is_same_v<T, U>;
+
 
 #endif // gsl_CPP20_OR_GREATER && defined(__cpp_concepts) && defined(__cpp_lib_concepts)
 
