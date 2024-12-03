@@ -1,4 +1,7 @@
 
+#include <string>
+#include <exception>
+
 #include <makeshift/iostream.hpp>
 
 #include <gsl-lite/gsl-lite.hpp>
