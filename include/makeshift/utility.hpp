@@ -130,7 +130,7 @@ as_consteval(T value)
 
     // Specialize `tuple_size<>` and `tuple_element<>` for `type_sequence<>`.
 template <typename... Ts> class std::tuple_size<makeshift::type_sequence<Ts...>> : public std::integral_constant<std::size_t, sizeof...(Ts)> { };
-template <std::size_t I, typename... Ts> class std::tuple_element<I, makeshift::type_sequence<Ts...>> { public: using type = gsl_lite::type_identity<typename makeshift::detail::nth_type_<I, Ts...>::type>; };
+template <std::size_t I, typename... Ts> class std::tuple_element<I, makeshift::type_sequence<Ts...>> { public: using type = typename makeshift::detail::nth_type_<I, Ts...>::type; };
 
 
 #endif // INCLUDED_MAKESHIFT_UTILITY_HPP_
