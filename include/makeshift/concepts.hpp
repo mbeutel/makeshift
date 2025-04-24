@@ -3,6 +3,7 @@
 #define INCLUDED_MAKESHIFT_CONCEPTS_HPP_
 
 
+#include <array>
 #include <cstddef>  // for size_t
 #include <utility>  // for tuple_size<>
 
@@ -18,7 +19,7 @@
 # endif // __has_include(<concepts>)
 #endif // gsl_CPP20_OR_GREATER && defined(__has_include)
 
-#include <makeshift/type_traits.hpp>  // for is_instantiation_of<>
+#include <makeshift/type_traits.hpp>  // for is_instantiation_of<>, is_type_transportable<>
 
 
 namespace makeshift {
@@ -55,12 +56,20 @@ concept bitmask = requires(T m) {
 
 
     //
+    // Determines whether an object of type `T` is type-transportable, i.e., default-constructible and without state,
+    // such that an equivalent object can be reconstructed as `T{ }`.
+    // Examples for type-transportable objects are constvals and lambdas without captures (with C++20).
+    //
+template <typename T>
+concept type_transportable = is_type_transportable_v<T>;
+
+    //
     // The type must be a constval, i.e. like `std::integral_constant<>` but for an arbitrary value type.
     //ᅟ
     // Note that `constexpr`-ness is assumed but not checked (this is not feasible with current implementations).
     //
 template <typename C>
-concept constval = requires {
+concept constval = type_transportable<C> && requires {
     typename C::value_type;
 } && std::convertible_to<C, typename C::value_type> &&
     requires(C c) {
