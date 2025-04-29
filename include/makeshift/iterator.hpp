@@ -1,15 +1,15 @@
-
+﻿
 #ifndef INCLUDED_MAKESHIFT_ITERATOR_HPP_
 #define INCLUDED_MAKESHIFT_ITERATOR_HPP_
 
 
 #include <iterator>  // for input_iterator_tag, random_access_iterator_tag
 
-#include <gsl-lite/gsl-lite.hpp>  // for index, diff, gsl_CPP17_OR_GREATER
+#include <gsl-lite/gsl-lite.hpp>  // for index, diff, gsl_CPP20_OR_GREATER
 
-#if !gsl_CPP17_OR_GREATER
-# error makeshift requires C++17 mode or higher
-#endif // !gsl_CPP17_OR_GREATER
+#if !gsl_CPP20_OR_GREATER
+# error makeshift requires C++20 mode or higher
+#endif // !gsl_CPP20_OR_GREATER
 
 #include <makeshift/detail/macros.hpp>  // for MAKESHIFT_DETAIL_FORCEINLINE
 
@@ -129,7 +129,7 @@ public:
         --*this;
         return result;
     }
-    
+
 
     // Additional `std::random_access_iterator<>` concept requirements:
     // https://en.cppreference.com/w/cpp/iterator/random_access_iterator

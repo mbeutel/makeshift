@@ -9,11 +9,11 @@
 #include <optional>
 #include <type_traits>  // for remove_cv<>, remove_reference<>, invoke_result<>
 
-#include <gsl-lite/gsl-lite.hpp>  // for type_identity<>, gsl_Expects(), gsl_CPP17_OR_GREATER
+#include <gsl-lite/gsl-lite.hpp>  // for type_identity<>, gsl_Expects(), gsl_CPP20_OR_GREATER
 
-#if !gsl_CPP17_OR_GREATER
-# error makeshift requires C++17 mode or higher
-#endif // !gsl_CPP17_OR_GREATER
+#if !gsl_CPP20_OR_GREATER
+# error makeshift requires C++20 mode or higher
+#endif // !gsl_CPP20_OR_GREATER
 
 #include <makeshift/constval.hpp>  // for ref_constval<>
 #include <makeshift/metadata.hpp>
@@ -223,17 +223,7 @@ visit(F&& func, Vs&&... args)
 #if defined(__INTELLISENSE__)
     return detail::convertible_to_anything{ };
 #else
-//# if gsl_CPP20_OR_GREATER  // TODO: need more precise feature check
-//    return std::visit<R>(std::forward<F>(func), std::forward<Vs>(args)...);
-//# else // gsl_CPP20_OR_GREATER
-    return std::visit(
-        [&func]
-        (auto&&... args) -> R
-        {
-            return std::forward<F>(func)(std::forward<decltype(args)>(args)...);
-        },
-        std::forward<Vs>(args)...);
-//# endif // gsl_CPP20_OR_GREATER
+    return std::visit<R>(std::forward<F>(func), std::forward<Vs>(args)...);
 #endif // !defined(__INTELLISENSE__)
 }
 
@@ -263,10 +253,7 @@ variant_transform(F&& func, Vs&&... args)
     return detail::convertible_to_anything{ };
 #else
     using R = detail::variant_transform_result<std::variant, F, Vs...>;
-    return std::visit
-# if gsl_CPP20_OR_GREATER
-    <R>
-# endif // gsl_CPP20_OR_GREATER
+    return std::visit<R>
     (
         [&func]
         (auto&&... args) -> R
@@ -304,7 +291,6 @@ variant_transform_many(F&& func, Vs&&... args)
     return detail::convertible_to_anything{ };
 #else
     using R = detail::variant_transform_many_result<std::variant, F, Vs...>;
-# if gsl_CPP20_OR_GREATER
     return std::visit<R>(
         [func = std::forward<F>(func)]
         (auto&&... args) -> R
@@ -317,20 +303,6 @@ variant_transform_many(F&& func, Vs&&... args)
                 func(std::forward<decltype(args)>(args)...));
         },
         std::forward<Vs>(args)...);
-# else // gsl_CPP20_OR_GREATER
-    return std::visit(
-        [func = std::forward<F>(func)]
-        (auto&&... args) -> R
-        {
-            return std::visit(
-                [](auto&& result) -> R
-                {
-                    return std::forward<decltype(result)>(result);
-                },
-                func(std::forward<decltype(args)>(args)...));
-        },
-        std::forward<Vs>(args)...);
-# endif // gsl_CPP20_OR_GREATER
 #endif // defined(__INTELLISENSE__)
 }
 

@@ -7,11 +7,11 @@
 #include <utility>     // for tuple_size<>, tuple_element<>
 #include <type_traits> // for integral_constant<>
 
-#include <gsl-lite/gsl-lite.hpp>  // for type_identity<>, gsl_CPP17_OR_GREATER
+#include <gsl-lite/gsl-lite.hpp>  // for type_identity<>, gsl_CPP20_OR_GREATER
 
-#if !gsl_CPP17_OR_GREATER
-# error makeshift requires C++17 mode or higher
-#endif // !gsl_CPP17_OR_GREATER
+#if !gsl_CPP20_OR_GREATER
+# error makeshift requires C++20 mode or higher
+#endif // !gsl_CPP20_OR_GREATER
 
 #include <makeshift/detail/type_traits.hpp>  // for constval_tag, type_sequence_cat_<>
 
@@ -102,7 +102,6 @@ template <typename... Ts>
 using type_sequence_cat_t = typename type_sequence_cat<Ts...>::type;
 
 
-#if gsl_CPP17_OR_GREATER
     //
     // Class that inherits from all its template arguments.
     //
@@ -112,17 +111,14 @@ struct composition // TODO: is this really needed?
 };
 template <typename... Ts>
 composition(Ts...) -> composition<Ts...>;
-#endif // gsl_CPP17_OR_GREATER
 
 
-#if gsl_CPP20_OR_GREATER
 template <typename T>
 [[nodiscard]] consteval T
 as_consteval(T value)
 {
     return std::move(value);
 }
-#endif // gsl_CPP20_OR_GREATER
 
 
 } // namespace makeshift

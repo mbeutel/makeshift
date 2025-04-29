@@ -1,13 +1,10 @@
-
+﻿
 #include <list>
 #include <array>
+#include <ranges>
 #include <iterator>
 
 #include <gsl-lite/gsl-lite.hpp>
-
-#if gsl_CPP20_OR_GREATER
-# include <ranges>
-#endif // gsl_CPP20_OR_GREATER
 
 #include <makeshift/ranges.hpp>
 
@@ -19,8 +16,6 @@ namespace {
 namespace mk = ::makeshift;
 namespace gsl = ::gsl_lite;
 
-
-#if gsl_CPP20_OR_GREATER
 
 //static_assert(std::default_initializable<mk::index_iterator>);
 //static_assert(std::copyable<mk::index_iterator>);
@@ -41,8 +36,6 @@ static_assert(std::ranges::bidirectional_range<mk::range<std::list<int>::iterato
 static_assert(std::ranges::random_access_range<mk::range<std::array<int, 1>::iterator>>);
 static_assert(std::ranges::random_access_range<mk::range<std::array<int, 1>::iterator, std::array<int, 1>::iterator, 1>>);
 #endif // !gsl_COMPILER_APPLECLANG_VERSION
-
-#endif // gsl_CPP20_OR_GREATER
 
 // TODO: add tests
 

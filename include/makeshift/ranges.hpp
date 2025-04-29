@@ -7,15 +7,13 @@
 #include <utility>      // for move(), tuple_size<>, forward<>()
 #include <type_traits>  // for enable_if<>, is_convertible<>
 
-#include <gsl-lite/gsl-lite.hpp>  // for index, dim, gsl_Expects(), gsl_CPP17_OR_GREATER
+#include <gsl-lite/gsl-lite.hpp>  // for index, dim, gsl_Expects(), gsl_CPP20_OR_GREATER
 
-#if !gsl_CPP17_OR_GREATER
-# error makeshift requires C++17 mode or higher
-#endif // !gsl_CPP17_OR_GREATER
+#if !gsl_CPP20_OR_GREATER
+# error makeshift requires C++20 mode or higher
+#endif // !gsl_CPP20_OR_GREATER
 
-#if gsl_CPP20_OR_GREATER
-# include <ranges>  // for borrowed_range<>
-#endif // gsl_CPP20_OR_GREATER
+#include <ranges>  // for borrowed_range<>
 
 #include <makeshift/detail/ranges.hpp>
 
@@ -129,12 +127,10 @@ template <std::size_t I, typename It, std::ptrdiff_t Extent> class std::tuple_el
 template <std::size_t I, typename It, typename EndIt> class std::tuple_element<I, makeshift::range<It, EndIt, -1>>; // not defined
 
     // Declare `range<>` and `index_range<>` as borrowed ranges.
-#if gsl_CPP20_OR_GREATER
 template <typename It, typename EndIt, std::ptrdiff_t Extent>
 inline constexpr bool std::ranges::enable_borrowed_range<makeshift::range<It, EndIt, Extent>> = true;
 template <>
 inline constexpr bool std::ranges::enable_borrowed_range<makeshift::index_range> = true;
-#endif // gsl_CPP20_OR_GREATER
 
 
 #endif // INCLUDED_MAKESHIFT_RANGES_HPP_

@@ -11,9 +11,9 @@
 
 #include <gsl-lite/gsl-lite.hpp>  // for identity, gsl_CPP20_OR_GREATER
 
-#if !gsl_CPP17_OR_GREATER
-# error makeshift requires C++17 mode or higher
-#endif // !gsl_CPP17_OR_GREATER
+#if !gsl_CPP20_OR_GREATER
+# error makeshift requires C++20 mode or higher
+#endif // !gsl_CPP20_OR_GREATER
 
 #include <makeshift/type_traits.hpp>  // for can_instantiate<>, static_const<>, is_tuple_like<>, nth_type<>
 
@@ -363,7 +363,6 @@ tuple_cat(Ts&&... tuples)
 }
 
 
-#if gsl_CPP20_OR_GREATER  // need constexpr `std::invoke()`
 template <typename T, typename ReflectorT = reflector>
 [[nodiscard]] constexpr auto
 tie_members(T& x, ReflectorT = { })
@@ -424,7 +423,6 @@ tie_members_by_name(T& x, MemberNamesC memberNamesC, ReflectorT = { })
         detail::tie_members_by_name_functor<TupleT, T, ReflectorT>{ x },
         memberNamesC);
 }
-#endif // gsl_CPP20_OR_GREATER
 
 
 } // namespace makeshift

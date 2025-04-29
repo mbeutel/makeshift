@@ -1,4 +1,4 @@
-
+﻿
 #ifndef INCLUDED_MAKESHIFT_STRING_HPP_
 #define INCLUDED_MAKESHIFT_STRING_HPP_
 
@@ -6,11 +6,11 @@
 #include <string>
 #include <string_view>
 
-#include <gsl-lite/gsl-lite.hpp>  // for gsl_CPP17_OR_GREATER
+#include <gsl-lite/gsl-lite.hpp>  // for gsl_CPP20_OR_GREATER
 
-#if !gsl_CPP17_OR_GREATER
-# error makeshift requires C++17 mode or higher
-#endif // !gsl_CPP17_OR_GREATER
+#if !gsl_CPP20_OR_GREATER
+# error makeshift requires C++20 mode or higher
+#endif // !gsl_CPP20_OR_GREATER
 
 #include <makeshift/metadata.hpp>
 

@@ -180,73 +180,12 @@ struct conjunction_fn
     }
 };
 
-#if !gsl_CPP20_OR_GREATER
-// Borrowed from https://en.cppreference.com/w/cpp/utility/functional/invoke.
-template <typename> constexpr bool is_reference_wrapper_v = false;
-template <typename U> constexpr bool is_reference_wrapper_v<std::reference_wrapper<U>> = true;
-template <typename C, typename PointedToT, typename T1, typename... ArgsT>
-constexpr decltype(auto)
-invoke_memptr(PointedToT C::* f, T1&& t1, ArgsT&&... args)
-{
-    if constexpr (std::is_function_v<PointedToT>)
-    {
-        if constexpr (std::is_base_of_v<C, std::decay_t<T1>>)
-        {
-            return (std::forward<T1>(t1).*f)(std::forward<ArgsT>(args)...);
-        }
-        else if constexpr (is_reference_wrapper_v<std::decay_t<T1>>)
-        {
-            return (t1.get().*f)(std::forward<ArgsT>(args)...);
-        }
-        else
-        {
-            return ((*std::forward<T1>(t1)).*f)(std::forward<ArgsT>(args)...);
-        }
-    }
-    else
-    {
-        static_assert(std::is_object_v<PointedToT> && sizeof...(args) == 0);
-        if constexpr (std::is_base_of_v<C, std::decay_t<T1>>)
-        {
-            return std::forward<T1>(t1).*f;
-        }
-        else if constexpr (is_reference_wrapper_v<std::decay_t<T1>>)
-        {
-            return t1.get().*f;
-        }
-        else
-        {
-            return (*std::forward<T1>(t1)).*f;
-        }
-    }
-}
-template <typename F, typename... ArgsT>
-constexpr std::invoke_result_t<F, ArgsT...>
-invoke(F&& f, ArgsT&&... args)
-noexcept(std::is_nothrow_invocable_v<F, ArgsT...>)
-{
-    if constexpr (std::is_member_pointer_v<std::decay_t<F>>)
-    {
-        return detail::invoke_memptr(f, std::forward<ArgsT>(args)...);
-    }
-    else
-    {
-        return std::forward<F>(f)(std::forward<ArgsT>(args)...);
-    }
-}
-#endif // !gsl_CPP20_OR_GREATER
-
-
 template <typename FuncT, typename TupleT, std::size_t... Is>
 constexpr decltype(auto)
 apply_impl_1(FuncT&& f, TupleT&& t, std::index_sequence<Is...>)
 {
     using std::get;
-#if gsl_CPP20_OR_GREATER
     return std::invoke(std::forward<FuncT>(f), get<Is>(std::forward<TupleT>(t))...);
-#else
-    return detail::invoke(std::forward<FuncT>(f), get<Is>(std::forward<TupleT>(t))...);
-#endif // !gsl_CPP20_OR_GREATER
 }
 template <typename FuncT, typename TupleT, std::size_t... Is>
 constexpr decltype(auto)

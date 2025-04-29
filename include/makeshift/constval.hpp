@@ -3,18 +3,15 @@
 #define INCLUDED_MAKESHIFT_CONSTVAL_HPP_
 
 
+#include <array>
 #include <utility>      // for tuple_size<>, tuple_element<>, integer_sequence<>
 #include <type_traits>  // for is_empty<>, conjunction<>
 
-#include <gsl-lite/gsl-lite.hpp>  // for type_identity<>, index, dim, stride, diff, gsl_CPP17_OR_GREATER
+#include <gsl-lite/gsl-lite.hpp>  // for type_identity<>, index, dim, stride, diff, gsl_CPP20_OR_GREATER
 
-#if !gsl_CPP17_OR_GREATER
-# error makeshift requires C++17 mode or higher
-#endif // !gsl_CPP17_OR_GREATER
-
-#if gsl_CPP20_OR_GREATER
-# include <array>
-#endif // gsl_CPP20_OR_GREATER
+#if !gsl_CPP20_OR_GREATER
+# error makeshift requires C++20 mode or higher
+#endif // !gsl_CPP20_OR_GREATER
 
 #include <makeshift/type_traits.hpp>  // for can_instantiate<>
 
@@ -258,7 +255,6 @@ constval_extend(const CF&, const Cs&... args)
 }
 
 
-#if gsl_CPP20_OR_GREATER
     //
     // Converts the given constval, taken to be a range of elements, to a `std::array<>`. Useful to convert dynamic compile-time
     // computations into `constinit` data.
@@ -275,7 +271,6 @@ constval_range_to_array(C, ProjT = { })
     constexpr std::size_t N = std::size(ProjT{ }(C{ }()));
     return detail::constval_range_to_array_impl<N>(ProjT{ }(C{ }()));
 }
-#endif // gsl_CPP20_OR_GREATER
 
 
     //

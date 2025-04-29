@@ -1,4 +1,4 @@
-
+﻿
 #include <makeshift/constval.hpp>
 
 #include <array>
@@ -211,7 +211,6 @@ TEST_CASE("constval as comonad")
     int a = aC();
     CHECK(a == 2);
 
-#if gsl_CPP20_OR_GREATER
 # if !gsl_BETWEEN(gsl_COMPILER_MSVC_VERSION, 1, 143)  // ICE in VC++ 2019
         // extend
     static constexpr auto lookupTable = std::tuple{ "hi", 42, 3.14f };
@@ -229,10 +228,8 @@ TEST_CASE("constval as comonad")
     auto bC2 = makeshift::constval_extend(f, aC);  // works in C++20
     CHECK(bC2() == b);
 # endif  // !gsl_BETWEEN(gsl_COMPILER_MSVC_VERSION, 1, 143)
-#endif  // gsl_CPP20_OR_GREATER
 }
 
-#if gsl_CPP20_OR_GREATER
 constexpr std::vector<int>
 computeFibonacciSeqUpTo(int max)
 {
@@ -258,7 +255,6 @@ TEST_CASE("constval_range_to_array")
     constexpr std::array fibonacciSeqUpTo50 = makeshift::constval_range_to_array([] { return computeFibonacciSeqUpTo(50); });
     CHECK(fibonacciSeqUpTo50 == std::array{ 1, 1, 2, 3, 5, 8, 13, 21, 34 });
 }
-#endif // gsl_CPP20_OR_GREATER
 
 
 } // anonymous namespace

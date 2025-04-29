@@ -7,11 +7,11 @@
 #include <cstddef> // for size_t
 #include <utility> // for integer_sequence<>, get<>(), tuple_size<>
 
-#include <gsl-lite/gsl-lite.hpp> // for gsl_constexpr17, gsl_CPP17_OR_GREATER
+#include <gsl-lite/gsl-lite.hpp> // for gsl_constexpr17, gsl_CPP20_OR_GREATER
 
-#if !gsl_CPP17_OR_GREATER
-# error makeshift requires C++17 mode or higher
-#endif // !gsl_CPP17_OR_GREATER
+#if !gsl_CPP20_OR_GREATER
+# error makeshift requires C++20 mode or higher
+#endif // !gsl_CPP20_OR_GREATER
 
 #include <makeshift/detail/array.hpp>
 

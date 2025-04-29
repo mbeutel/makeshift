@@ -1,4 +1,4 @@
-
+﻿
 #ifndef INCLUDED_MAKESHIFT_DETAIL_ZIP_HPP_
 #define INCLUDED_MAKESHIFT_DETAIL_ZIP_HPP_
 
@@ -220,7 +220,6 @@ template <> struct range_iterator_category_<range_index_t> { using type = std::r
 template <> struct range_iterator_category_<tuple_index_t> { using type = std::input_iterator_tag; }; // TODO: ?
 template <typename R> using range_iterator_category_t = typename range_iterator_category_<R>::type;
 
-#ifdef __cpp_concepts
 template <typename It, typename = void> struct range_iterator_concept_1_ { using type = typename std::iterator_traits<It>::iterator_category; };
 template <typename It> struct range_iterator_concept_1_<It, std::void_t<typename It::iterator_concept>> { using type = typename It::iterator_concept; };
 template <typename It, typename = void> struct range_iterator_concept_0_ : range_iterator_concept_1_<It> { };
@@ -229,7 +228,6 @@ template <typename R> struct range_iterator_concept_ : range_iterator_concept_0_
 template <> struct range_iterator_concept_<range_index_t> : range_iterator_category_<range_index_t> { };
 template <> struct range_iterator_concept_<tuple_index_t> : range_iterator_category_<tuple_index_t> { };
 template <typename R> using range_iterator_concept_t = typename range_iterator_concept_<R>::type;
-#endif // __cpp_concepts
 
 template <bool HasData, bool HasSize> struct range_iterator_leaf_mode_0_;
 template <> struct range_iterator_leaf_mode_0_<false, false> : std::integral_constant<iterator_mode, iterator_mode::iterator_pair> { };

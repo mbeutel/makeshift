@@ -313,7 +313,6 @@ static constexpr void constval_assert_impl(std::false_type /*isConstval*/, bool 
 }
 
 
-#if gsl_CPP20_OR_GREATER
 template <std::size_t N, typename R>
 constexpr auto
 constval_range_to_array_impl(R&& range)
@@ -324,7 +323,6 @@ constval_range_to_array_impl(R&& range)
     std::ranges::copy(range, result.begin());
     return result;
 }
-#endif // gsl_CPP20_OR_GREATER
 
 
 template <typename C>

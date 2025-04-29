@@ -1,31 +1,25 @@
-
+﻿
 #ifndef INCLUDED_MAKESHIFT_CONCEPTS_HPP_
 #define INCLUDED_MAKESHIFT_CONCEPTS_HPP_
 
 
 #include <array>
-#include <cstddef>  // for size_t
-#include <utility>  // for tuple_size<>
+#include <cstddef>   // for size_t
+#include <utility>   // for tuple_size<>
 
-#include <gsl-lite/gsl-lite.hpp>  // for gsl_CPP17_OR_GREATER
+#include <gsl-lite/gsl-lite.hpp>  // for gsl_CPP20_OR_GREATER
 
-#if !gsl_CPP17_OR_GREATER
-# error makeshift requires C++17 mode or higher
-#endif // !gsl_CPP17_OR_GREATER
+#if !gsl_CPP20_OR_GREATER
+# error makeshift requires C++20 mode or higher
+#endif // !gsl_CPP20_OR_GREATER
 
-#if gsl_CPP20_OR_GREATER && defined(__has_include)
-# if __has_include(<concepts>)
-#  include <concepts> // for same_as<>, convertible_to<>
-# endif // __has_include(<concepts>)
-#endif // gsl_CPP20_OR_GREATER && defined(__has_include)
+#include <concepts>  // for same_as<>, convertible_to<>
 
 #include <makeshift/type_traits.hpp>  // for is_instantiation_of<>, is_type_transportable<>
 
 
 namespace makeshift {
 
-
-#if gsl_CPP20_OR_GREATER && defined(__cpp_concepts) && defined(__cpp_lib_concepts)
 
     //
     // The type must have a tuple-like interface.
@@ -56,7 +50,7 @@ concept bitmask = requires(T m) {
 
 
     //
-    // Determines whether an object of type `T` is type-transportable, i.e., default-constructible and without state,
+    // Determines whether an object of type `T` is type-transportable, that is, default-constructible and without state,
     // such that an equivalent object can be reconstructed as `T{ }`.
     // Examples for type-transportable objects are constvals and lambdas without captures (with C++20).
     //
@@ -99,9 +93,6 @@ concept instantiation_of = is_instantiation_of_v<T, U>;
     //ᅟ
 template <typename T, typename U>
 concept distinct_from = !std::is_same_v<T, U>;
-
-
-#endif // gsl_CPP20_OR_GREATER && defined(__cpp_concepts) && defined(__cpp_lib_concepts)
 
 
 } // namespace makeshift

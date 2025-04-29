@@ -8,11 +8,11 @@
 #include <iterator>     // for iterator_traits<>
 #include <type_traits>  // for integral_constant<>, decay<>, conjunction<>
 
-#include <gsl-lite/gsl-lite.hpp>  // for index, gsl_Expects(), gsl_CPP17_OR_GREATER
+#include <gsl-lite/gsl-lite.hpp>  // for index, gsl_Expects(), gsl_CPP20_OR_GREATER
 
-#if !gsl_CPP17_OR_GREATER
-# error makeshift requires C++17 mode or higher
-#endif // !gsl_CPP17_OR_GREATER
+#if !gsl_CPP20_OR_GREATER
+# error makeshift requires C++20 mode or higher
+#endif // !gsl_CPP20_OR_GREATER
 
 #include <makeshift/detail/algorithm.hpp>
 #include <makeshift/detail/ranges.hpp>     // for identity_transform_t, all_of_pred, none_of_pred
@@ -55,7 +55,7 @@ shuffle(RandomIt first, RandomIt last, URBG&& rng, UniformIntDistributionT dist)
 
     //
     // Given a list of ranges, returns a range of tuples. 
-    //ᅟ
+   //ᅟ
     //ᅟ    for (auto&& [i, val] : range_zip(range_index, std::array{ 1, 2, 3 })) {
     //ᅟ        std::cout << "array[" << i << "]: " << val << '\n';
     //ᅟ    }

@@ -1,4 +1,4 @@
-
+﻿
 #include <tuple>
 #include <optional>
 #include <string_view>
@@ -337,7 +337,6 @@ TEST_CASE("struct metadata")
     CHECK(mk::metadata::members<mk::value_tuple, SubCOO2>() == mk::value_tuple{ &COO4::i, &COO4::j, &COO4::v, &SubCOO2::v2 });
     CHECK(mk::metadata::member_names<SubCOO2>() == std::array{ "i"sv, "j"sv, "v"sv, "v2"sv });
 
-#if gsl_CPP20_OR_GREATER
     SECTION("tie_members()")
     {
         COO1 coo1{ 4, 5, 6. };
@@ -403,7 +402,6 @@ TEST_CASE("struct metadata")
         CHECK(alc1b.j == sc2.j);
         CHECK(alc1b.v == sc2.v);
     }
-#endif // gsl_CPP20_OR_GREATER
 }
 
 
