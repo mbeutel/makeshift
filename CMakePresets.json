@@ -1,0 +1,198 @@
+﻿{
+    "version": 9,
+    "configurePresets": [
+        {
+            "name": "defaults",
+            "hidden": true,
+            "generator": "Ninja Multi-Config",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/install/${presetName}"
+            }
+        },
+        {
+            "name": "vcpkg",
+            "hidden": true,
+            "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+        },
+        {
+            "name": "x64-windows",
+            "hidden": true,
+            "architecture": {
+                "value": "x64",
+                "strategy": "external"
+            },
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x64-windows"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            },
+            "vendor": { "microsoft.com/VisualStudioSettings/CMake/1.0": { "hostOS": [ "Windows" ] } }
+        },
+        {
+            "name": "arm64-windows",
+            "hidden": true,
+            "architecture": {
+                "value": "arm64",
+                "strategy": "external"
+            },
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "arm64-windows"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            },
+            "vendor": { "microsoft.com/VisualStudioSettings/CMake/1.0": { "hostOS": [ "Windows" ] } }
+        },
+        {
+            "name": "x64-linux",
+            "hidden": true,
+            "architecture": {
+                "value": "x64"
+            },
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x64-linux"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
+            },
+            "vendor": { "microsoft.com/VisualStudioSettings/CMake/1.0": { "hostOS": [ "Linux" ] } }
+        },
+        {
+            "name": "arm64-linux",
+            "hidden": true,
+            "architecture": {
+                "value": "arm64"
+            },
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "arm64-linux"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
+            },
+            "vendor": { "microsoft.com/VisualStudioSettings/CMake/1.0": { "hostOS": [ "Linux" ] } }
+        },
+        {
+            "name": "x64-osx",
+            "hidden": true,
+            "architecture": {
+                "value": "x64"
+            },
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x64-osx"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Darwin"
+            }
+
+        },
+        {
+            "name": "arm64-osx",
+            "hidden": true,
+            "architecture": {
+                "value": "arm64"
+            },
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "arm64-osx"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Darwin"
+            }
+
+        },
+        {
+            "name": "msvc-defaults",
+            "hidden": true,
+            "inherits": "defaults",
+            "environment": {
+                "CC": "cl",
+                "CXX": "cl",
+                // enable UTF-8 source file encoding, the highest warning level, and some additional warnings:
+                // W44062: enumerator 'identifier' in a switch of enum 'enumeration' is not handled
+                // W44242: 'identifier': conversion from 'type1' to 'type2', possible loss of data
+                // W44254: 'operator': conversion from 'type1' to 'type2', possible loss of data
+                // W44265: 'class': class has virtual functions, but destructor is not virtual
+                "CFLAGS": "/utf-8 /W4 /w44062 /w44242 /w44254 /w44265",
+                "CXXFLAGS": "/utf-8 /W4 /w44062 /w44242 /w44254 /w44265"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            }
+        },
+        {
+            "name": "clang-cl-defaults",
+            "hidden": true,
+            "inherits": "defaults",
+            "environment": {
+                "CC": "clang-cl",
+                "CXX": "clang-cl",
+                // enable UTF-8 source file encoding, the highest warning level, and some additional warnings:
+                // W44062: enumerator 'identifier' in a switch of enum 'enumeration' is not handled
+                // W44242: 'identifier': conversion from 'type1' to 'type2', possible loss of data
+                // W44254: 'operator': conversion from 'type1' to 'type2', possible loss of data
+                // W44265: 'class': class has virtual functions, but destructor is not virtual
+                "CFLAGS": "/utf-8 /W4 /w44062 /w44242 /w44254 /w44265",
+                "CXXFLAGS": "/utf-8 /W4 /w44062 /w44242 /w44254 /w44265"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            }
+        },
+        {
+            "name": "gcc-defaults",
+            "hidden": true,
+            "inherits": "defaults",
+            "environment": {
+                "CC": "gcc",
+                "CXX": "g++",
+                // enable the highest warning level and pedantic mode
+                "CFLAGS": "-Wall -Wextra -pedantic",
+                "CXXFLAGS": "-Wall -Wextra -pedantic"
+            }
+        },
+        {
+            "name": "clang-defaults",
+            "hidden": true,
+            "inherits": "defaults",
+            "environment": {
+                "CC": "clang",
+                "CXX": "clang++",
+                // enable the highest warning level and pedantic mode
+                "CFLAGS": "-Wall -Wextra -pedantic",
+                "CXXFLAGS": "-Wall -Wextra -pedantic"
+            }
+        }
+    ],
+    "buildPresets": [
+    ],
+    "testPresets": [
+        {
+            "name": "defaults",
+            "hidden": true,
+            "output": {
+                "outputOnFailure": true
+            },
+            "execution": {
+                "noTestsAction": "error",
+                "stopOnFailure": true
+            }
+        }
+    ]
+}

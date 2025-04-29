@@ -1,15 +1,13 @@
-
+﻿
 # makeshift C++ library
 # Author: Moritz Beutel
 # makeshift unit tests
 
 
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.30)
 
-find_package(Catch2 3.0 REQUIRED)
-find_package(gsl-lite 0.40 REQUIRED)
-
-include(TargetCompileSettings)
+find_package(Catch2 REQUIRED)
+find_package(gsl-lite 0.42 REQUIRED)
 
 # common settings target
 add_library(test-makeshift-settings INTERFACE)
@@ -49,10 +47,11 @@ target_precompile_headers(test-makeshift-settings
         #<catch2/catch_test_macros.hpp>
 )
 
-# C++17 tests
-add_executable(test-makeshift-cxx17
+# C++20 tests
+add_executable(test-makeshift-cxx20
     "test-algorithm.cpp"
     "test-array.cpp"
+    "test-concepts.cpp"
     "test-constval.cpp"
     "test-functional.cpp"
     "test-iostream.cpp"
@@ -73,33 +72,10 @@ add_executable(test-makeshift-cxx17
     "experimental/test-utility.cpp"
     "experimental/test-variant.cpp"
 )
-target_compile_features(test-makeshift-cxx17 PRIVATE cxx_std_17)
-cmakeshift_target_compile_settings(test-makeshift-cxx17
-    SOURCE_FILE_ENCODING "UTF-8"
-)
-target_link_libraries(test-makeshift-cxx17
+target_compile_features(test-makeshift-cxx20 PRIVATE cxx_std_20)
+target_link_libraries(test-makeshift-cxx20
     PRIVATE
         test-makeshift-settings
 )
-add_test(NAME test-makeshift-cxx17 COMMAND test-makeshift-cxx17)
-set_property(TEST test-makeshift-cxx17 PROPERTY FAIL_REGULAR_EXPRESSION "Sanitizer")
-
-# C++20 tests
-if(cxx_std_20 IN_LIST CMAKE_CXX_COMPILE_FEATURES)
-    add_executable(test-makeshift-cxx20
-        "test-ranges.cpp"
-        "test-concepts.cpp"
-        "test-constval.cpp"
-        "test-metadata.cpp"
-    )
-    target_compile_features(test-makeshift-cxx20 PRIVATE cxx_std_20)
-    cmakeshift_target_compile_settings(test-makeshift-cxx20
-        SOURCE_FILE_ENCODING "UTF-8"
-    )
-    target_link_libraries(test-makeshift-cxx20
-        PRIVATE
-            test-makeshift-settings
-    )
-    add_test(NAME test-makeshift-cxx20 COMMAND test-makeshift-cxx20)
-    set_property(TEST test-makeshift-cxx20 PROPERTY FAIL_REGULAR_EXPRESSION "Sanitizer")
-endif()
+add_test(NAME test-makeshift-cxx20 COMMAND test-makeshift-cxx20)
+set_property(TEST test-makeshift-cxx20 PROPERTY FAIL_REGULAR_EXPRESSION "Sanitizer")
