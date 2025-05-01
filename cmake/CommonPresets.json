@@ -11,8 +11,8 @@
             "name": "compiler presets",
             "hidden": true,
             "environment": {
-                "_CFLAGS": "$penv{CFLAGS} $env{_PRESET_CFLAGS} $env{_USE_PRESET_ASAN} $env{_USE_PRESET_UBSAN} $env{_USE_PRESET_TSAN} $env{_USE_PRESET_STDLIB}",
-                "_CXXFLAGS": "$penv{CXXFLAGS} $env{_PRESET_CXXFLAGS} $env{_USE_PRESET_ASAN} $env{_USE_PRESET_UBSAN} $env{_USE_PRESET_TSAN} $env{_USE_PRESET_STDLIB} $env{_USE_PRESET_DEBUGCHECKS}",
+                "_CFLAGS": "$penv{CFLAGS} $env{_PRESET_CFLAGS} $env{_USE_PRESET_WARNERR} $env{_USE_PRESET_ASAN} $env{_USE_PRESET_UBSAN} $env{_USE_PRESET_TSAN} $env{_USE_PRESET_STDLIB}",
+                "_CXXFLAGS": "$penv{CXXFLAGS} $env{_PRESET_CXXFLAGS} $env{_USE_PRESET_WARNERR} $env{_USE_PRESET_ASAN} $env{_USE_PRESET_UBSAN} $env{_USE_PRESET_TSAN} $env{_USE_PRESET_STDLIB} $env{_USE_PRESET_DEBUGCHECKS}",
                 "CFLAGS": "$env{_CFLAGS}",
                 "CXXFLAGS": "$env{_CXXFLAGS}"
             }
@@ -84,6 +84,7 @@
             "environment": {
                 "_PRESET_CFLAGS": "/utf-8 /permissive- /W4 /w44062 /w44242 /w44254 /w44265",
                 "_PRESET_CXXFLAGS": "/utf-8 /permissive- /W4 /w44062 /w44242 /w44254 /w44265",
+                "_PRESET_WARNERR": "/WX",
                 "_PRESET_ASAN": "/fsanitize=address",
                 "_PRESET_UBSAN": "/fsanitize=undefined", // not currently supported
                 "_PRESET_TSAN": "/fsanitize=thread", // not currently supported
@@ -103,6 +104,7 @@
             "environment": {
                 "_PRESET_CFLAGS": "/utf-8 /permissive- /W4 /w44062 /w44242 /w44254 /w44265",
                 "_PRESET_CXXFLAGS": "/utf-8 /permissive- /W4 /w44062 /w44242 /w44254 /w44265",
+                "_PRESET_WARNERR": "/WX",
                 "_PRESET_ASAN": "/fsanitize=address",
                 "_PRESET_UBSAN": "-fsanitize=undefined -fsanitize-trap=undefined -fsanitize=implicit-integer-arithmetic-value-change",
                 "_PRESET_TSAN": "-fsanitize=thread", // not currently supported
@@ -122,6 +124,7 @@
             "environment": {
                 "_PRESET_CFLAGS": "-Wall -Wextra -pedantic",
                 "_PRESET_CXXFLAGS": "-Wall -Wextra -pedantic",
+                "_PRESET_WARNERR": "-Werror",
                 "_PRESET_ASAN": "-fsanitize=address -fno-omit-frame-pointer",
                 "_PRESET_UBSAN": "-fsanitize=undefined -fno-omit-frame-pointer -fsanitize-undefined-trap-on-error",
                 "_PRESET_TSAN": "-fsanitize=thread",
@@ -136,6 +139,7 @@
             "environment": {
                 "_PRESET_CFLAGS": "-Wall -Wextra -pedantic",
                 "_PRESET_CXXFLAGS": "-Wall -Wextra -pedantic",
+                "_PRESET_WARNERR": "-Werror",
                 "_PRESET_ASAN": "-fsanitize=address -fno-omit-frame-pointer",
                 "_PRESET_UBSAN": "-fsanitize=undefined -fno-omit-frame-pointer -fsanitize-trap=undefined -fsanitize=implicit-integer-arithmetic-value-change",
                 "_PRESET_TSAN": "-fsanitize=thread",
@@ -173,6 +177,14 @@
             "inherits": "compiler presets",
             "environment": {
                 "_USE_PRESET_DEBUGCHECKS": "$env{_PRESET_DEBUGCHECKS} $env{_PRESET_DEBUGCHECKS2}"
+            }
+        },
+        {
+            "name": "warnings as errors",
+            "hidden": true,
+            "inherits": "compiler presets",
+            "environment": {
+                "_USE_PRESET_WARNERR": "$env{_PRESET_WARNERR}"
             }
         },
 
