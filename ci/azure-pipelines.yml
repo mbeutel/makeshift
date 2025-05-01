@@ -1,4 +1,4 @@
-
+﻿
 trigger:
 - master
 - mr/*
@@ -16,9 +16,9 @@ resources:
 jobs:
 - template: azure-pipelines/cmake.yml@CImakeshift
   parameters:
-    vcpkgRef: fc6345e114c2e2c4f9714037340ccb08326b3e8c
+    vcpkgRef: e2bb93a35f70851c2bfb60006f1f7659cd1637d1
+    vcpkgManifestRoot: '$(Build.SourcesDirectory)/ci'
 
-    cmakeConfigArgs: '-DMAKESHIFT_BUILD_TESTING=ON'
     cmakeTestArgs: '--exclude-regex "cuda"' # do not run CUDA tests
 
     cmakeBuildConfigurations: [Debug, RelWithDebInfo]
@@ -29,60 +29,66 @@ jobs:
       cxxCompiler: MSVC
       cxxCompilerVersions: [VS2019, VS2022]
       platforms: [x86, x64]
+      cmakeConfigPreset: 'ci-msvc'
 
     - os: Windows
       cxxCompiler: Clang
       cxxCompilerVersions: [VS2019, VS2022]
       platforms: [x86, x64]
+      cmakeConfigPreset: 'ci-clang-cl'
 
     - os: Windows
       cxxCompiler: MSVC
       cxxCompilerVersions: [VS2022]
       cudaCompiler: NVCC
-      cudaCompilerVersions: [11_8]
+      cudaCompilerVersions: [12_8]
       platforms: [x64]
+      cmakeConfigPreset: 'ci-msvc'
       cmakeConfigArgs: '<cmakeConfigArgs> -DMAKESHIFT_BUILD_TESTING_CUDA=ON'
 
     - os: Linux
       cxxCompiler: GCC
       cxxCompilerVersions: [10]
       platforms: [x64]
+      cmakeConfigPreset: 'ci-gcc'
 
     - os: Linux
       cxxCompiler: GCC
       cxxCompilerVersions: [13]
       platforms: [x64]
-      cxxStandardLibraryDebugMode: true
-      cxxSanitizers: [AddressSanitizer, UndefinedBehaviorSanitizer]
+      cmakeConfigPreset: 'ci-gcc-sanitize'
       tag: 'sanitize'
 
     - os: Linux
       cxxCompiler: Clang
       cxxCompilerVersions: [12]
       platforms: [x64]
+      cmakeConfigPreset: 'ci-clang'
 
     - os: Linux
       cxxCompiler: Clang
       cxxCompilerVersions: [17]
       platforms: [x64]
-      cxxStandardLibraryDebugMode: true
-      cxxSanitizers: [AddressSanitizer, UndefinedBehaviorSanitizer, ImplicitIntegerArithmeticValueChange]
+      cmakeConfigPreset: 'ci-clang-sanitize'
       tag: 'sanitize'
 
     - os: Linux
       cxxCompiler: GCC
       cxxCompilerVersions: [12]
       cudaCompiler: NVCC
-      cudaCompilerVersions: [12_3]
+      cudaCompilerVersions: [12_8]
       platforms: [x64]
+      cmakeConfigPreset: 'ci-gcc'
       cmakeConfigArgs: '<cmakeConfigArgs> -DMAKESHIFT_BUILD_TESTING_CUDA=ON'
 
     - os: MacOS
       cxxCompiler: GCC
       cxxCompilerVersions: [10, 13]
       platforms: [x64]
+      cmakeConfigPreset: 'ci-gcc'
 
     - os: MacOS
       cxxCompiler: AppleClang
-      cxxCompilerVersions: [13_1_6, 15_2]
+      cxxCompilerVersions: [14_0_3, 15_4, 16]
       platforms: [x64]
+      cmakeConfigPreset: 'ci-clang'

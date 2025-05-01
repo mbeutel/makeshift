@@ -18,15 +18,14 @@ option(MAKESHIFT_BUILD_TESTING_CUDA "Build CUDA tests" OFF)
 
 # Obtain source dependencies.
 # We use CPM to fetch dependencies in a stand-alone build but configure it to prefer packages provided through other means.
-set(CPM_USE_LOCAL_PACKAGES ON)
+option(CPM_USE_LOCAL_PACKAGES "Always try to use `find_package` to get dependencies" ON)
+option(CPM_LOCAL_PACKAGES_ONLY "Only use `find_package` to get dependencies" OFF)
 set(CPM_SOURCE_CACHE "${CMAKE_BINARY_DIR}/CPM-cache")
 include(CPM)
 CPMAddPackage(NAME gsl-lite      VERSION 0.42.0 GITHUB_REPOSITORY gsl-lite/gsl-lite   SYSTEM OFF)
 if(MAKESHIFT_BUILD_TESTING)
+    set(CMAKE_CXX_STANDARD 17)  # workaround, cf. https://github.com/catchorg/Catch2/issues/2046
     CPMAddPackage(NAME catch2    VERSION  3.8.1 GITHUB_REPOSITORY catchorg/Catch2     SYSTEM OFF)
-    # workaround, cf. https://github.com/catchorg/Catch2/issues/2046
-    find_package(Catch2 REQUIRED)
-    target_compile_features(Catch2 PUBLIC cxx_std_17)
 endif()
 
 # Include target definitions.

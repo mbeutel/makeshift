@@ -1,0 +1,7 @@
+﻿{
+    "name": "makeshift-ci",
+    "dependencies": [
+        "gsl-lite",
+        "catch2"
+    ]
+}
