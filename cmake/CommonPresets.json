@@ -11,8 +11,10 @@
             "name": "compiler presets",
             "hidden": true,
             "environment": {
-                "CFLAGS": "$penv{CFLAGS} $env{_CFLAGS_PRESET}",
-                "CXXFLAGS": "$penv{CXXFLAGS} $env{_CXXFLAGS_PRESET}"
+                "_CFLAGS": "$penv{CFLAGS} $env{_CFLAGS_PRESET} $env{_SANITIZE_PRESET} $env{_STDLIB_PRESET}",
+                "_CXXFLAGS": "$penv{CXXFLAGS} $env{_CXXFLAGS_PRESET} $env{_SANITIZE_PRESET} $env{_STDLIB_PRESET} $env{_DEBUGCHECKS_PRESET}",
+                "CFLAGS": "$env{_CFLAGS}",
+                "CXXFLAGS": "$env{_CXXFLAGS}"
             }
         },
 
@@ -28,17 +30,58 @@
         },
 
         {
+            "name": "use MSVC",
+            "hidden": true,
+            "environment": {
+                "CC": "cl",
+                "CXX": "cl"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            }
+        },
+        {
+            "name": "use clang-cl",
+            "hidden": true,
+            "environment": {
+                "CC": "clang-cl",
+                "CXX": "clang-cl"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            }
+        },
+        {
+            "name": "use GCC",
+            "hidden": true,
+            "environment": {
+                "CC": "gcc",
+                "CXX": "g++"
+            }
+        },
+        {
+            "name": "use Clang",
+            "hidden": true,
+            "environment": {
+                "CC": "clang",
+                "CXX": "clang++"
+            }
+        },
+
+        {
             // For MSVC, enable UTF-8 source file encoding, the highest warning level, and some additional warnings:
             // W44062: enumerator 'identifier' in a switch of enum 'enumeration' is not handled
             // W44242: 'identifier': conversion from 'type1' to 'type2', possible loss of data
             // W44254: 'operator': conversion from 'type1' to 'type2', possible loss of data
             // W44265: 'class': class has virtual functions, but destructor is not virtual
-            "name": "use MSVC",
+            "name": "presets for MSVC",
             "hidden": true,
             "inherits": "compiler presets",
             "environment": {
-                "CC": "cl",
-                "CXX": "cl",
                 "_CFLAGS_PRESET": "/utf-8 /permissive- /W4 /w44062 /w44242 /w44254 /w44265",
                 "_CXXFLAGS_PRESET": "/utf-8 /permissive- /W4 /w44062 /w44242 /w44254 /w44265"
             },
@@ -49,40 +92,24 @@
             }
         },
         {
-            "name": "use MSVC & ASan",
+            "name": "ASan for MSVC",
             "hidden": true,
-            "inherits": "use MSVC",
+            "inherits": "compiler presets",
             "environment": {
-                "_CFLAGS_PRESET": "/utf-8 /permissive- /W4 /w44062 /w44242 /w44254 /w44265 /fsanitize=address",
-                "_CXXFLAGS_PRESET": "/utf-8 /permissive- /W4 /w44062 /w44242 /w44254 /w44265 /fsanitize=address"
-            }
-        },
-        {
-            "name": "use MSVC & library debug checks",
-            "hidden": true,
-            "inherits": "use MSVC",
-            "environment": {
-                "_CFLAGS_PRESET": "/utf-8 /permissive- /W4 /w44062 /w44242 /w44254 /w44265",
-                "_CXXFLAGS_PRESET": "/utf-8 /permissive- /W4 /w44062 /w44242 /w44254 /w44265 /D_ITERATOR_DEBUG_LEVEL=1"
-            }
-        },
-        {
-            "name": "use MSVC & ASan & library debug checks",
-            "hidden": true,
-            "inherits": "use MSVC",
-            "environment": {
-                "_CFLAGS_PRESET": "/utf-8 /permissive- /W4 /w44062 /w44242 /w44254 /w44265 /fsanitize=address",
-                "_CXXFLAGS_PRESET": "/utf-8 /permissive- /W4 /w44062 /w44242 /w44254 /w44265 /fsanitize=address /D_ITERATOR_DEBUG_LEVEL=1"
+                "_SANITIZE_PRESET": "/fsanitize=address"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
             }
         },
 
         {
-            "name": "use clang-cl",
+            "name": "presets for clang-cl",
             "hidden": true,
             "inherits": "compiler presets",
             "environment": {
-                "CC": "clang-cl",
-                "CXX": "clang-cl",
                 "_CFLAGS_PRESET": "/utf-8 /permissive- /W4 /w44062 /w44242 /w44254 /w44265",
                 "_CXXFLAGS_PRESET": "/utf-8 /permissive- /W4 /w44062 /w44242 /w44254 /w44265"
             },
@@ -93,164 +120,109 @@
             }
         },
         {
-            "name": "use clang-cl & library debug checks",
-            "hidden": true,
-            "inherits": "use clang-cl",
-            "environment": {
-                "_CFLAGS_PRESET": "/utf-8 /permissive- /W4 /w44062 /w44242 /w44254 /w44265",
-                "_CXXFLAGS_PRESET": "/utf-8 /permissive- /W4 /w44062 /w44242 /w44254 /w44265 /D_ITERATOR_DEBUG_LEVEL=1"
-            }
-        },
-        {
             // On Windows, UBSan currently works with non-Debug builds only.
-            "name": "use clang-cl & UBSan",
+            "name": "UBSan for clang-cl",
             "hidden": true,
-            "inherits": "use clang-cl",
+            "inherits": "compiler presets",
             "environment": {
-                "_CFLAGS_PRESET": "/utf-8 /permissive- /W4 /w44062 /w44242 /w44254 /w44265 -fsanitize=undefined -fsanitize-trap=undefined -fsanitize=implicit-integer-arithmetic-value-change",
-                "_CXXFLAGS_PRESET": "/utf-8 /permissive- /W4 /w44062 /w44242 /w44254 /w44265 -fsanitize=undefined -fsanitize-trap=undefined -fsanitize=implicit-integer-arithmetic-value-change"
+                "_SANITIZE_PRESET": "-fsanitize=undefined -fsanitize-trap=undefined -fsanitize=implicit-integer-arithmetic-value-change"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
             }
         },
 
         {
             // For GCC, enable the highest warning level and pedantic mode.
-            "name": "use GCC",
+            "name": "presets for GCC",
             "hidden": true,
             "inherits": "compiler presets",
             "environment": {
-                "CC": "gcc",
-                "CXX": "g++",
                 "_CFLAGS_PRESET": "-Wall -Wextra -pedantic",
                 "_CXXFLAGS_PRESET": "-Wall -Wextra -pedantic"
             }
         },
         {
-            "name": "use GCC & ASan & UBSan",
+            "name": "ASan & UBSan for GCC",
             "hidden": true,
-            "inherits": "use GCC",
+            "inherits": "compiler presets",
             "environment": {
-                "_CFLAGS_PRESET": "-Wall -Wextra -pedantic -fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer -fsanitize-undefined-trap-on-error",
-                "_CXXFLAGS_PRESET": "-Wall -Wextra -pedantic -fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer -fsanitize-undefined-trap-on-error"
+                "_SANITIZE_PRESET": "-fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer -fsanitize-undefined-trap-on-error"
             }
         },
         {
-            "name": "use GCC & TSan",
+            "name": "TSan for GCC",
             "hidden": true,
-            "inherits": "use GCC",
+            "inherits": "compiler presets",
             "environment": {
-                "_CFLAGS_PRESET": "-Wall -Wextra -pedantic -fsanitize=thread",
-                "_CXXFLAGS_PRESET": "-Wall -Wextra -pedantic -fsanitize=thread"
-            }
-        },
-        {
-            "name": "use GCC & library debug checks",
-            "hidden": true,
-            "inherits": "use GCC",
-            "environment": {
-                "_CFLAGS_PRESET": "-Wall -Wextra -pedantic",
-                "_CXXFLAGS_PRESET": "-Wall -Wextra -pedantic -D_GLIBCXX_DEBUG"
-            }
-        },
-        {
-            "name": "use GCC & ASan & UBSan & library debug checks",
-            "hidden": true,
-            "inherits": "use GCC",
-            "environment": {
-                "_CFLAGS_PRESET": "-Wall -Wextra -pedantic -fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer -fsanitize-undefined-trap-on-error",
-                "_CXXFLAGS_PRESET": "-Wall -Wextra -pedantic -fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer -fsanitize-undefined-trap-on-error -D_GLIBCXX_DEBUG"
+                "_SANITIZE_PRESET": "-fsanitize=thread"
             }
         },
 
         {
             // For Clang, enable the highest warning level and pedantic mode.
-            "name": "use Clang",
+            "name": "presets for Clang",
             "hidden": true,
+            "inherits": "compiler presets",
             "environment": {
-                "CC": "clang",
-                "CXX": "clang++",
                 "_CFLAGS_PRESET": "-Wall -Wextra -pedantic",
                 "_CXXFLAGS_PRESET": "-Wall -Wextra -pedantic"
             }
         },
         {
-            "name": "use Clang & ASan & UBSan",
+            "name": "ASan & UBSan for Clang",
             "hidden": true,
-            "inherits": "use Clang",
+            "inherits": "compiler presets",
             "environment": {
-                "_CFLAGS_PRESET": "-Wall -Wextra -pedantic -fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer -fsanitize-trap=undefined -fsanitize=implicit-integer-arithmetic-value-change",
-                "_CXXFLAGS_PRESET": "-Wall -Wextra -pedantic -fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer -fsanitize-trap=undefined -fsanitize=implicit-integer-arithmetic-value-change"
+                "_SANITIZE_PRESET": "-fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer -fsanitize-trap=undefined -fsanitize=implicit-integer-arithmetic-value-change"
             }
         },
         {
-            "name": "use Clang & TSan",
+            "name": "TSan for Clang",
             "hidden": true,
-            "inherits": "use Clang",
+            "inherits": "compiler presets",
             "environment": {
-                "_CFLAGS_PRESET": "-Wall -Wextra -pedantic -fsanitize=thread",
-                "_CXXFLAGS_PRESET": "-Wall -Wextra -pedantic -fsanitize=thread"
+                "_SANITIZE_PRESET": "-fsanitize=thread"
             }
         },
         {
-            "name": "use Clang & library debug checks",
+            "name": "libstdc++ for Clang",
             "hidden": true,
-            "inherits": "use Clang",
+            "inherits": "compiler presets",
             "environment": {
-                "_CFLAGS_PRESET": "-Wall -Wextra -pedantic",
-                "_CXXFLAGS_PRESET": "-Wall -Wextra -pedantic -D_LIBCPP_DEBUG=1"
+                "_STDLIB_PRESET": "-stdlib=libstdc++"
+            }
+        },
+
+        {
+            "name": "library debug checks for MS-STL",
+            "hidden": true,
+            "inherits": "compiler presets",
+            "environment": {
+                "_DEBUGCHECKS_PRESET": "/D_ITERATOR_DEBUG_LEVEL=1"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
             }
         },
         {
-            "name": "use Clang & ASan & UBSan & library debug checks",
+            "name": "library debug checks for libstdc++",
             "hidden": true,
-            "inherits": "use Clang",
+            "inherits": "compiler presets",
             "environment": {
-                "_CFLAGS_PRESET": "-Wall -Wextra -pedantic -fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer -fsanitize-trap=undefined -fsanitize=implicit-integer-arithmetic-value-change",
-                "_CXXFLAGS_PRESET": "-Wall -Wextra -pedantic -fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer -fsanitize-trap=undefined -fsanitize=implicit-integer-arithmetic-value-change -D_LIBCPP_DEBUG=1"
+                "_DEBUGCHECKS_PRESET": "-D_GLIBCXX_DEBUG"
             }
         },
         {
-            "name": "use Clang & libstdc++",
+            "name": "library debug checks for libc++",
             "hidden": true,
-            "inherits": "use Clang",
+            "inherits": "compiler presets",
             "environment": {
-                "_CFLAGS_PRESET": "-Wall -Wextra -pedantic -stdlib=libstdc++",
-                "_CXXFLAGS_PRESET": "-Wall -Wextra -pedantic -stdlib=libstdc++"
-            }
-        },
-        {
-            "name": "use Clang & ASan & UBSan & libstdc++",
-            "hidden": true,
-            "inherits": "use Clang",
-            "environment": {
-                "_CFLAGS_PRESET": "-Wall -Wextra -pedantic -fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer -fsanitize-trap=undefined -fsanitize=implicit-integer-arithmetic-value-change -stdlib=libstdc++",
-                "_CXXFLAGS_PRESET": "-Wall -Wextra -pedantic -fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer -fsanitize-trap=undefined -fsanitize=implicit-integer-arithmetic-value-change -stdlib=libstdc++"
-            }
-        },
-        {
-            "name": "use Clang & TSan & libstdc++",
-            "hidden": true,
-            "inherits": "use Clang",
-            "environment": {
-                "_CFLAGS_PRESET": "-Wall -Wextra -pedantic -fsanitize=thread -stdlib=libstdc++",
-                "_CXXFLAGS_PRESET": "-Wall -Wextra -pedantic -fsanitize=thread -stdlib=libstdc++"
-            }
-        },
-        {
-            "name": "use Clang & libstdc++ & library debug checks",
-            "hidden": true,
-            "inherits": "use Clang",
-            "environment": {
-                "_CFLAGS_PRESET": "-Wall -Wextra -pedantic -stdlib=libstdc++",
-                "_CXXFLAGS_PRESET": "-Wall -Wextra -pedantic -stdlib=libstdc++ -D_GLIBCXX_DEBUG"
-            }
-        },
-        {
-            "name": "use Clang & ASan & UBSan & libstdc++ & library debug checks",
-            "hidden": true,
-            "inherits": "use Clang",
-            "environment": {
-                "_CFLAGS_PRESET": "-Wall -Wextra -pedantic -fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer -fsanitize-trap=undefined -fsanitize=implicit-integer-arithmetic-value-change -stdlib=libstdc++",
-                "_CXXFLAGS_PRESET": "-Wall -Wextra -pedantic -fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer -fsanitize-trap=undefined -fsanitize=implicit-integer-arithmetic-value-change -stdlib=libstdc++ -D_GLIBCXX_DEBUG"
+                "_DEBUGCHECKS_PRESET": "-D_LIBCPP_DEBUG=1"
             }
         }
     ],
