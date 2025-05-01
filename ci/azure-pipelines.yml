@@ -48,7 +48,7 @@ jobs:
 
     - os: Linux
       cxxCompiler: GCC
-      cxxCompilerVersions: [11, 12, 13, 14]
+      cxxCompilerVersions: [12, 13, 14]
       platforms: [x64]
       cmakeConfigPreset: 'ci-gcc'
 
@@ -83,7 +83,7 @@ jobs:
 
     - os: MacOS
       cxxCompiler: GCC
-      cxxCompilerVersions: [10, 11, 12, 13, 14]
+      cxxCompilerVersions: [12, 13, 14]
       platforms: [x64]
       cmakeConfigPreset: 'ci-gcc'
 
