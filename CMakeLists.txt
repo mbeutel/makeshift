@@ -25,7 +25,7 @@ include(CPM)
 CPMAddPackage(NAME gsl-lite      VERSION 0.42.0 GITHUB_REPOSITORY gsl-lite/gsl-lite   SYSTEM OFF)
 if(MAKESHIFT_BUILD_TESTING)
     set(CMAKE_CXX_STANDARD 17)  # workaround, cf. https://github.com/catchorg/Catch2/issues/2046
-    CPMAddPackage(NAME catch2    VERSION  3.8.1 GITHUB_REPOSITORY catchorg/Catch2     SYSTEM OFF)
+    CPMAddPackage(NAME Catch2    VERSION  3.8.1 GITHUB_REPOSITORY catchorg/Catch2     SYSTEM OFF)
 endif()
 
 # Include target definitions.
