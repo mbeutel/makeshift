@@ -20,7 +20,7 @@
 
         {
             // "CI" covers AppVeyor, GitHub Actions, GitLab CI, Travis CI, and possibly others.
-            "name": "CI presets",
+            "name": "CI",
             "hidden": true,
             "condition": {
                 "type": "notEquals",

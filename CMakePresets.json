@@ -14,7 +14,7 @@
         {
             "name": "CI settings",
             "hidden": true,
-            "inherits": [ "CI presets", "warnings as errors" ],
+            "inherits": [ "defaults", "CI", "warnings as errors" ],
             "cacheVariables": {
                 // Project-specific settings
                 "MAKESHIFT_BUILD_TESTING": "ON",
