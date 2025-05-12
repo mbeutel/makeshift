@@ -16,14 +16,10 @@
             "environment": {
                 "_CFLAGS": "$penv{CFLAGS} $env{_PRESET_CFLAGS} $env{_USE_PRESET_ASAN} $env{_USE_PRESET_UBSAN} $env{_USE_PRESET_TSAN} $env{_USE_PRESET_STDLIB}",
                 "_CXXFLAGS": "$penv{CXXFLAGS} $env{_PRESET_CXXFLAGS} $env{_USE_PRESET_ASAN} $env{_USE_PRESET_UBSAN} $env{_USE_PRESET_TSAN} $env{_USE_PRESET_STDLIB} $env{_USE_PRESET_DEBUGCHECKS}",
-                "_CMAKE_C_FLAGS": "$env{_CFLAGS} $env{_USE_PRESET_WARN} $env{_USE_PRESET_WARNERR}",
-                "_CMAKE_CXX_FLAGS": "$env{_CXXFLAGS} $env{_USE_PRESET_WARN} $env{_USE_PRESET_WARNERR}",
                 "CFLAGS": "$env{_CFLAGS}",
-                "CXXFLAGS": "$env{_CXXFLAGS}"
-            },
-            "cacheVariables": {
-                "CMAKE_C_FLAGS": "$env{_CMAKE_C_FLAGS}",
-                "CMAKE_CXX_FLAGS": "$env{_CMAKE_CXX_FLAGS}"
+                "CXXFLAGS": "$env{_CXXFLAGS}",
+                "MY_C_FLAGS": "$env{_USE_PRESET_WARN};$env{_USE_PRESET_WARNERR}",
+                "MY_CXX_FLAGS": "$env{_USE_PRESET_WARN};$env{_USE_PRESET_WARNERR}"
             }
         },
 
@@ -50,7 +46,7 @@
             "environment": {
                 "_PRESET_CFLAGS": "/utf-8",
                 "_PRESET_CXXFLAGS": "/utf-8",
-                "_PRESET_WARN": "/permissive- /W4 /w44062 /w44242 /w44254 /w44265",
+                "_PRESET_WARN": "/permissive-;/W4;/w44062;/w44242;/w44254;/w44265",
                 "_PRESET_WARNERR": "/WX",
                 "_PRESET_ASAN": "/fsanitize=address",
                 "_PRESET_UBSAN": "/fsanitize=undefined", // not currently supported
@@ -71,7 +67,7 @@
             "environment": {
                 "_PRESET_CFLAGS": "/utf-8",
                 "_PRESET_CXXFLAGS": "/utf-8",
-                "_PRESET_WARN": "/permissive- /W4 /w44062 /w44242 /w44254 /w44265",
+                "_PRESET_WARN": "/permissive-;/W4;/w44062;/w44242;/w44254;/w44265",
                 "_PRESET_WARNERR": "/WX",
                 "_PRESET_ASAN": "/fsanitize=address",
                 "_PRESET_UBSAN": "-fsanitize=undefined -fsanitize-trap=undefined -fsanitize=implicit-integer-arithmetic-value-change",
@@ -92,7 +88,7 @@
             "environment": {
                 "_PRESET_CFLAGS": "",
                 "_PRESET_CXXFLAGS": "",
-                "_PRESET_WARN": "-Wall -Wextra -pedantic",
+                "_PRESET_WARN": "-Wall;-Wextra;-pedantic",
                 "_PRESET_WARNERR": "-Werror",
                 "_PRESET_ASAN": "-fsanitize=address -fno-omit-frame-pointer",
                 "_PRESET_UBSAN": "-fsanitize=undefined -fno-omit-frame-pointer -fsanitize-undefined-trap-on-error",
@@ -108,7 +104,7 @@
             "environment": {
                 "_PRESET_CFLAGS": "",
                 "_PRESET_CXXFLAGS": "",
-                "_PRESET_WARN": "-Wall -Wextra -pedantic",
+                "_PRESET_WARN": "-Wall;-Wextra;-pedantic",
                 "_PRESET_WARNERR": "-Werror",
                 "_PRESET_ASAN": "-fsanitize=address -fno-omit-frame-pointer",
                 "_PRESET_UBSAN": "-fsanitize=undefined -fno-omit-frame-pointer -fsanitize-trap=undefined -fsanitize=implicit-integer-arithmetic-value-change",

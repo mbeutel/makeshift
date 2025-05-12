@@ -23,6 +23,10 @@ target_compile_definitions(test-makeshift-settings
         gsl_CONFIG_CONTRACT_CHECKING_AUDIT  # run audit-level checks
         gsl_CONFIG_CONTRACT_VIOLATION_THROWS  # make gsl-lite's precondition assertions throw `gsl::fail_fast` on failure
 )
+target_compile_options(test-makeshift-settings
+    INTERFACE
+        ${MAKESHIFT_COMPILE_OPTIONS}
+)
 target_link_libraries(test-makeshift-settings
     INTERFACE
         gsl::gsl-lite-v1

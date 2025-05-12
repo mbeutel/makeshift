@@ -13,6 +13,7 @@ project(makeshift
 # Define build options.
 option(MAKESHIFT_BUILD_TESTING "Build tests" OFF)
 option(MAKESHIFT_BUILD_TESTING_CUDA "Build CUDA tests" OFF)
+set(MAKESHIFT_COMPILE_OPTIONS "" CACHE STRING "Extra compile options which should not be passed on when building dependencies (e.g. warning flags)")
 
 # Obtain source dependencies.
 # We use CPM to fetch dependencies in a stand-alone build but configure it to prefer packages provided through other means.

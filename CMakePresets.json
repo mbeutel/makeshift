@@ -8,7 +8,8 @@
             "generator": "Ninja Multi-Config",
             "binaryDir": "${sourceDir}/build/${presetName}",
             "cacheVariables": {
-                "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/install/${presetName}"
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/install/${presetName}",
+                "MAKESHIFT_COMPILE_OPTIONS": "$env{MY_CXX_FLAGS}"
             }
         },
         {
