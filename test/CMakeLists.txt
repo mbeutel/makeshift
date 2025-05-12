@@ -7,7 +7,7 @@
 cmake_minimum_required(VERSION 3.30)
 
 find_package(Catch2 REQUIRED)
-find_package(gsl-lite 0.42 REQUIRED)
+find_package(gsl-lite 0.43 REQUIRED)
 
 # common settings target
 add_library(test-makeshift-settings INTERFACE)

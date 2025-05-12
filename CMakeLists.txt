@@ -20,7 +20,7 @@ option(CPM_USE_LOCAL_PACKAGES "Always try to use `find_package` to get dependenc
 option(CPM_LOCAL_PACKAGES_ONLY "Only use `find_package` to get dependencies" OFF)
 set(CPM_SOURCE_CACHE "${CMAKE_BINARY_DIR}/CPM-cache")
 include(cmake/CPM.cmake)
-CPMAddPackage(NAME gsl-lite      VERSION 0.42.0 GITHUB_REPOSITORY gsl-lite/gsl-lite   SYSTEM OFF)
+CPMAddPackage(NAME gsl-lite      VERSION 0.43.0 GITHUB_REPOSITORY gsl-lite/gsl-lite   SYSTEM OFF)
 if(MAKESHIFT_BUILD_TESTING)
     set(CMAKE_CXX_STANDARD 17)  # workaround, cf. https://github.com/catchorg/Catch2/issues/2046
     CPMAddPackage(NAME Catch2    VERSION  3.8.1 GITHUB_REPOSITORY catchorg/Catch2     SYSTEM OFF)
@@ -43,5 +43,5 @@ install_basic_package_files(makeshift
     COMPATIBILITY SameMajorVersion
     ARCH_INDEPENDENT
     DEPENDENCIES
-        "gsl-lite 0.42"
+        "gsl-lite 0.43"
 )

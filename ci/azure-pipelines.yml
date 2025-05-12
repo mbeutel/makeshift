@@ -16,7 +16,7 @@ resources:
 jobs:
 - template: azure-pipelines/cmake.yml@CImakeshift
   parameters:
-    vcpkgRef: e2bb93a35f70851c2bfb60006f1f7659cd1637d1
+    vcpkgRef: ca846b21276c9a3171074ac8d2b4f6516894a7d0
     vcpkgManifestRoot: '$(Build.SourcesDirectory)/ci'
 
     cmakeTestArgs: '--exclude-regex "cuda"' # do not run CUDA tests
