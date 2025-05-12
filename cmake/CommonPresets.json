@@ -46,8 +46,8 @@
             "environment": {
                 "_PRESET_CFLAGS": "/utf-8",
                 "_PRESET_CXXFLAGS": "/utf-8",
-                "_PRESET_WARN": "/permissive-;/W4;/w44062;/w44242;/w44254;/w44265",
-                "_PRESET_WARNERR": "/WX",
+                "_PRESET_WARN": "$<$<COMPILE_LANGUAGE:C,CXX>:/permissive->;$<$<COMPILE_LANGUAGE:C,CXX>:/W4>;$<$<COMPILE_LANGUAGE:C,CXX>:/w44062>;$<$<COMPILE_LANGUAGE:C,CXX>:/w44242>;$<$<COMPILE_LANGUAGE:C,CXX>:/w44254>;$<$<COMPILE_LANGUAGE:C,CXX>:/w44265>",
+                "_PRESET_WARNERR": "$<$<COMPILE_LANGUAGE:C,CXX>:/WX>",
                 "_PRESET_ASAN": "/fsanitize=address",
                 "_PRESET_UBSAN": "/fsanitize=undefined", // not currently supported
                 "_PRESET_TSAN": "/fsanitize=thread", // not currently supported
@@ -67,8 +67,8 @@
             "environment": {
                 "_PRESET_CFLAGS": "/utf-8",
                 "_PRESET_CXXFLAGS": "/utf-8",
-                "_PRESET_WARN": "/permissive-;/W4;/w44062;/w44242;/w44254;/w44265",
-                "_PRESET_WARNERR": "/WX",
+                "_PRESET_WARN": "$<$<COMPILE_LANGUAGE:C,CXX>:/permissive->;$<$<COMPILE_LANGUAGE:C,CXX>:/W4>;$<$<COMPILE_LANGUAGE:C,CXX>:/w44062>;$<$<COMPILE_LANGUAGE:C,CXX>:/w44242>;$<$<COMPILE_LANGUAGE:C,CXX>:/w44254>;$<$<COMPILE_LANGUAGE:C,CXX>:/w44265>",
+                "_PRESET_WARNERR": "$<$<COMPILE_LANGUAGE:C,CXX>:/WX>",
                 "_PRESET_ASAN": "/fsanitize=address",
                 "_PRESET_UBSAN": "-fsanitize=undefined -fsanitize-trap=undefined -fsanitize=implicit-integer-arithmetic-value-change",
                 "_PRESET_TSAN": "-fsanitize=thread", // not currently supported
@@ -88,8 +88,8 @@
             "environment": {
                 "_PRESET_CFLAGS": "",
                 "_PRESET_CXXFLAGS": "",
-                "_PRESET_WARN": "-Wall;-Wextra;-pedantic",
-                "_PRESET_WARNERR": "-Werror",
+                "_PRESET_WARN": "$<$<COMPILE_LANGUAGE:C,CXX>:-Wall>;$<$<COMPILE_LANGUAGE:C,CXX>:-Wextra>;$<$<COMPILE_LANGUAGE:C,CXX>:-pedantic>",
+                "_PRESET_WARNERR": "$<$<COMPILE_LANGUAGE:C,CXX>:-Werror>",
                 "_PRESET_ASAN": "-fsanitize=address -fno-omit-frame-pointer",
                 "_PRESET_UBSAN": "-fsanitize=undefined -fno-omit-frame-pointer -fsanitize-undefined-trap-on-error",
                 "_PRESET_TSAN": "-fsanitize=thread",
@@ -104,8 +104,8 @@
             "environment": {
                 "_PRESET_CFLAGS": "",
                 "_PRESET_CXXFLAGS": "",
-                "_PRESET_WARN": "-Wall;-Wextra;-pedantic",
-                "_PRESET_WARNERR": "-Werror",
+                "_PRESET_WARN": "$<$<COMPILE_LANGUAGE:C,CXX>:-Wall>;$<$<COMPILE_LANGUAGE:C,CXX>:-Wextra>;$<$<COMPILE_LANGUAGE:C,CXX>:-pedantic>",
+                "_PRESET_WARNERR": "$<$<COMPILE_LANGUAGE:C,CXX>:-Werror>",
                 "_PRESET_ASAN": "-fsanitize=address -fno-omit-frame-pointer",
                 "_PRESET_UBSAN": "-fsanitize=undefined -fno-omit-frame-pointer -fsanitize-trap=undefined -fsanitize=implicit-integer-arithmetic-value-change",
                 "_PRESET_TSAN": "-fsanitize=thread",

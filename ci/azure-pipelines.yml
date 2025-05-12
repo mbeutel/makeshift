@@ -1,4 +1,7 @@
 ﻿
+variables:
+  System.Debug: true
+
 trigger:
 - master
 - mr/*
