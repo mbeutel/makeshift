@@ -1,4 +1,7 @@
-﻿{
+﻿// Collection of generally useful CMake configuration presets.
+// The contents of this file are in the public domain.
+// (Moritz Beutel, 2025)
+{
     "version": 7,
     "configurePresets": [
         {
@@ -11,8 +14,8 @@
             "name": "compiler presets",
             "hidden": true,
             "environment": {
-                "_CFLAGS": "$penv{CFLAGS} $env{_PRESET_CFLAGS} $env{_USE_PRESET_WARNERR} $env{_USE_PRESET_ASAN} $env{_USE_PRESET_UBSAN} $env{_USE_PRESET_TSAN} $env{_USE_PRESET_STDLIB}",
-                "_CXXFLAGS": "$penv{CXXFLAGS} $env{_PRESET_CXXFLAGS} $env{_USE_PRESET_WARNERR} $env{_USE_PRESET_ASAN} $env{_USE_PRESET_UBSAN} $env{_USE_PRESET_TSAN} $env{_USE_PRESET_STDLIB} $env{_USE_PRESET_DEBUGCHECKS}",
+                "_CFLAGS": "$penv{CFLAGS} $env{_PRESET_CFLAGS} $env{_USE_PRESET_WARN} $env{_USE_PRESET_WARNERR} $env{_USE_PRESET_ASAN} $env{_USE_PRESET_UBSAN} $env{_USE_PRESET_TSAN} $env{_USE_PRESET_STDLIB}",
+                "_CXXFLAGS": "$penv{CXXFLAGS} $env{_PRESET_CXXFLAGS} $env{_USE_PRESET_WARN} $env{_USE_PRESET_WARNERR} $env{_USE_PRESET_ASAN} $env{_USE_PRESET_UBSAN} $env{_USE_PRESET_TSAN} $env{_USE_PRESET_STDLIB} $env{_USE_PRESET_DEBUGCHECKS}",
                 "CFLAGS": "$env{_CFLAGS}",
                 "CXXFLAGS": "$env{_CXXFLAGS}"
             }
@@ -30,49 +33,6 @@
         },
 
         {
-            "name": "force MSVC",
-            "hidden": true,
-            "environment": {
-                "CC": "cl",
-                "CXX": "cl"
-            },
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Windows"
-            }
-        },
-        {
-            "name": "force clang-cl",
-            "hidden": true,
-            "environment": {
-                "CC": "clang-cl",
-                "CXX": "clang-cl"
-            },
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Windows"
-            }
-        },
-        {
-            "name": "force GCC",
-            "hidden": true,
-            "environment": {
-                "CC": "gcc",
-                "CXX": "g++"
-            }
-        },
-        {
-            "name": "force Clang",
-            "hidden": true,
-            "environment": {
-                "CC": "clang",
-                "CXX": "clang++"
-            }
-        },
-
-        {
             // For MSVC, enable UTF-8 source file encoding, the highest warning level, and some additional warnings:
             // W44062: enumerator 'identifier' in a switch of enum 'enumeration' is not handled
             // W44242: 'identifier': conversion from 'type1' to 'type2', possible loss of data
@@ -82,8 +42,9 @@
             "hidden": true,
             "inherits": "compiler presets",
             "environment": {
-                "_PRESET_CFLAGS": "/utf-8 /permissive- /W4 /w44062 /w44242 /w44254 /w44265",
-                "_PRESET_CXXFLAGS": "/utf-8 /permissive- /W4 /w44062 /w44242 /w44254 /w44265",
+                "_PRESET_CFLAGS": "/utf-8 /permissive-",
+                "_PRESET_CXXFLAGS": "/utf-8 /permissive-",
+                "_PRESET_WARN": "/W4 /w44062 /w44242 /w44254 /w44265",
                 "_PRESET_WARNERR": "/WX",
                 "_PRESET_ASAN": "/fsanitize=address",
                 "_PRESET_UBSAN": "/fsanitize=undefined", // not currently supported
@@ -102,8 +63,9 @@
             "hidden": true,
             "inherits": "compiler presets",
             "environment": {
-                "_PRESET_CFLAGS": "/utf-8 /permissive- /W4 /w44062 /w44242 /w44254 /w44265",
-                "_PRESET_CXXFLAGS": "/utf-8 /permissive- /W4 /w44062 /w44242 /w44254 /w44265",
+                "_PRESET_CFLAGS": "/utf-8 /permissive-",
+                "_PRESET_CXXFLAGS": "/utf-8 /permissive-",
+                "_PRESET_WARN": "/W4 /w44062 /w44242 /w44254 /w44265",
                 "_PRESET_WARNERR": "/WX",
                 "_PRESET_ASAN": "/fsanitize=address",
                 "_PRESET_UBSAN": "-fsanitize=undefined -fsanitize-trap=undefined -fsanitize=implicit-integer-arithmetic-value-change",
@@ -122,8 +84,9 @@
             "hidden": true,
             "inherits": "compiler presets",
             "environment": {
-                "_PRESET_CFLAGS": "-Wall -Wextra -pedantic",
-                "_PRESET_CXXFLAGS": "-Wall -Wextra -pedantic",
+                "_PRESET_CFLAGS": "",
+                "_PRESET_CXXFLAGS": "",
+                "_PRESET_WARN": "-Wall -Wextra -pedantic",
                 "_PRESET_WARNERR": "-Werror",
                 "_PRESET_ASAN": "-fsanitize=address -fno-omit-frame-pointer",
                 "_PRESET_UBSAN": "-fsanitize=undefined -fno-omit-frame-pointer -fsanitize-undefined-trap-on-error",
@@ -137,13 +100,15 @@
             "hidden": true,
             "inherits": "compiler presets",
             "environment": {
-                "_PRESET_CFLAGS": "-Wall -Wextra -pedantic",
-                "_PRESET_CXXFLAGS": "-Wall -Wextra -pedantic",
+                "_PRESET_CFLAGS": "",
+                "_PRESET_CXXFLAGS": "",
+                "_PRESET_WARN": "-Wall -Wextra -pedantic",
                 "_PRESET_WARNERR": "-Werror",
                 "_PRESET_ASAN": "-fsanitize=address -fno-omit-frame-pointer",
                 "_PRESET_UBSAN": "-fsanitize=undefined -fno-omit-frame-pointer -fsanitize-trap=undefined -fsanitize=implicit-integer-arithmetic-value-change",
                 "_PRESET_TSAN": "-fsanitize=thread",
-                "_PRESET_DEBUGCHECKS": "-D_LIBCPP_DEBUG=1"
+                // cf. https://libcxx.llvm.org/Hardening.html
+                "_PRESET_DEBUGCHECKS": "-D_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_DEBUG"
             }
         },
 
@@ -180,6 +145,14 @@
             }
         },
         {
+            "name": "high warning level",
+            "hidden": true,
+            "inherits": "compiler presets",
+            "environment": {
+                "_USE_PRESET_WARN": "$env{_PRESET_WARN}"
+            }
+        },
+        {
             "name": "warnings as errors",
             "hidden": true,
             "inherits": "compiler presets",
@@ -195,6 +168,53 @@
             "environment": {
                 "_USE_PRESET_STDLIB": "-stdlib=libstdc++",
                 "_PRESET_DEBUGCHECKS2": "-D_GLIBCXX_DEBUG"
+            }
+        },
+
+        {
+            "name": "force MSVC",
+            "hidden": true,
+            "inherits":  "MSVC presets",
+            "environment": {
+                "CC": "cl",
+                "CXX": "cl"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            }
+        },
+        {
+            "name": "force clang-cl",
+            "hidden": true,
+            "inherits": "clang-cl presets",
+            "environment": {
+                "CC": "clang-cl",
+                "CXX": "clang-cl"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            }
+        },
+        {
+            "name": "force GCC",
+            "hidden": true,
+            "inherits": "GCC presets",
+            "environment": {
+                "CC": "gcc",
+                "CXX": "g++"
+            }
+        },
+        {
+            "name": "force Clang",
+            "hidden": true,
+            "inherits": "Clang presets",
+            "environment": {
+                "CC": "clang",
+                "CXX": "clang++"
             }
         }
     ],
