@@ -14,10 +14,16 @@
             "name": "compiler presets",
             "hidden": true,
             "environment": {
-                "_CFLAGS": "$penv{CFLAGS} $env{_PRESET_CFLAGS} $env{_USE_PRESET_WARN} $env{_USE_PRESET_WARNERR} $env{_USE_PRESET_ASAN} $env{_USE_PRESET_UBSAN} $env{_USE_PRESET_TSAN} $env{_USE_PRESET_STDLIB}",
-                "_CXXFLAGS": "$penv{CXXFLAGS} $env{_PRESET_CXXFLAGS} $env{_USE_PRESET_WARN} $env{_USE_PRESET_WARNERR} $env{_USE_PRESET_ASAN} $env{_USE_PRESET_UBSAN} $env{_USE_PRESET_TSAN} $env{_USE_PRESET_STDLIB} $env{_USE_PRESET_DEBUGCHECKS}",
+                "_CFLAGS": "$penv{CFLAGS} $env{_PRESET_CFLAGS} $env{_USE_PRESET_ASAN} $env{_USE_PRESET_UBSAN} $env{_USE_PRESET_TSAN} $env{_USE_PRESET_STDLIB}",
+                "_CXXFLAGS": "$penv{CXXFLAGS} $env{_PRESET_CXXFLAGS} $env{_USE_PRESET_ASAN} $env{_USE_PRESET_UBSAN} $env{_USE_PRESET_TSAN} $env{_USE_PRESET_STDLIB} $env{_USE_PRESET_DEBUGCHECKS}",
+                "_CMAKE_C_FLAGS": "$env{_CFLAGS} $env{_USE_PRESET_WARN} $env{_USE_PRESET_WARNERR}",
+                "_CMAKE_CXX_FLAGS": "$env{_CXXFLAGS} $env{_USE_PRESET_WARN} $env{_USE_PRESET_WARNERR}",
                 "CFLAGS": "$env{_CFLAGS}",
                 "CXXFLAGS": "$env{_CXXFLAGS}"
+            },
+            "cacheVariables": {
+                "CMAKE_C_FLAGS": "$env{_CMAKE_C_FLAGS}",
+                "CMAKE_CXX_FLAGS": "$env{_CMAKE_CXX_FLAGS}"
             }
         },
 
@@ -42,9 +48,9 @@
             "hidden": true,
             "inherits": "compiler presets",
             "environment": {
-                "_PRESET_CFLAGS": "/utf-8 /permissive-",
-                "_PRESET_CXXFLAGS": "/utf-8 /permissive-",
-                "_PRESET_WARN": "/W4 /w44062 /w44242 /w44254 /w44265",
+                "_PRESET_CFLAGS": "/utf-8",
+                "_PRESET_CXXFLAGS": "/utf-8",
+                "_PRESET_WARN": "/permissive- /W4 /w44062 /w44242 /w44254 /w44265",
                 "_PRESET_WARNERR": "/WX",
                 "_PRESET_ASAN": "/fsanitize=address",
                 "_PRESET_UBSAN": "/fsanitize=undefined", // not currently supported
@@ -63,9 +69,9 @@
             "hidden": true,
             "inherits": "compiler presets",
             "environment": {
-                "_PRESET_CFLAGS": "/utf-8 /permissive-",
-                "_PRESET_CXXFLAGS": "/utf-8 /permissive-",
-                "_PRESET_WARN": "/W4 /w44062 /w44242 /w44254 /w44265",
+                "_PRESET_CFLAGS": "/utf-8",
+                "_PRESET_CXXFLAGS": "/utf-8",
+                "_PRESET_WARN": "/permissive- /W4 /w44062 /w44242 /w44254 /w44265",
                 "_PRESET_WARNERR": "/WX",
                 "_PRESET_ASAN": "/fsanitize=address",
                 "_PRESET_UBSAN": "-fsanitize=undefined -fsanitize-trap=undefined -fsanitize=implicit-integer-arithmetic-value-change",
