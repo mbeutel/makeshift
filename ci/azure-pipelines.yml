@@ -44,7 +44,7 @@ jobs:
       cudaCompilerVersions: [12_8]
       platforms: [x64]
       cmakeConfigPreset: 'ci-msvc'
-      cmakeConfigArgs: '<cmakeConfigArgs> -DMAKESHIFT_BUILD_TESTING_CUDA=ON'
+      cmakeConfigArgs: '<cmakeConfigArgs> -DMAKESHIFT_BUILD_TESTING_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES=75'
 
     - os: Linux
       cxxCompiler: GCC
@@ -79,7 +79,7 @@ jobs:
       cudaCompilerVersions: [12_8]
       platforms: [x64]
       cmakeConfigPreset: 'ci-gcc'
-      cmakeConfigArgs: '<cmakeConfigArgs> -DMAKESHIFT_BUILD_TESTING_CUDA=ON'
+      cmakeConfigArgs: '<cmakeConfigArgs> -DMAKESHIFT_BUILD_TESTING_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES=75'
 
     - os: MacOS
       cxxCompiler: GCC
