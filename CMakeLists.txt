@@ -10,8 +10,6 @@ project(makeshift
     LANGUAGES CXX
 )
 
-list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
-
 # Define build options.
 option(MAKESHIFT_BUILD_TESTING "Build tests" OFF)
 option(MAKESHIFT_BUILD_TESTING_CUDA "Build CUDA tests" OFF)
@@ -21,7 +19,7 @@ option(MAKESHIFT_BUILD_TESTING_CUDA "Build CUDA tests" OFF)
 option(CPM_USE_LOCAL_PACKAGES "Always try to use `find_package` to get dependencies" ON)
 option(CPM_LOCAL_PACKAGES_ONLY "Only use `find_package` to get dependencies" OFF)
 set(CPM_SOURCE_CACHE "${CMAKE_BINARY_DIR}/CPM-cache")
-include(CPM)
+include(cmake/CPM.cmake)
 CPMAddPackage(NAME gsl-lite      VERSION 0.42.0 GITHUB_REPOSITORY gsl-lite/gsl-lite   SYSTEM OFF)
 if(MAKESHIFT_BUILD_TESTING)
     set(CMAKE_CXX_STANDARD 17)  # workaround, cf. https://github.com/catchorg/Catch2/issues/2046
@@ -40,7 +38,7 @@ if(MAKESHIFT_BUILD_TESTING)
 endif()
 
 # Install.
-include(InstallBasicPackageFiles)
+include(cmake/InstallBasicPackageFiles.cmake)
 install_basic_package_files(makeshift
     COMPATIBILITY SameMajorVersion
     ARCH_INDEPENDENT
