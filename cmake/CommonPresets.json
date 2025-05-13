@@ -18,8 +18,7 @@
                 "_CXXFLAGS": "$penv{CXXFLAGS} $env{_PRESET_CXXFLAGS} $env{_USE_PRESET_ASAN} $env{_USE_PRESET_UBSAN} $env{_USE_PRESET_TSAN} $env{_USE_PRESET_STDLIB} $env{_USE_PRESET_DEBUGCHECKS}",
                 "CFLAGS": "$env{_CFLAGS}",
                 "CXXFLAGS": "$env{_CXXFLAGS}",
-                "MY_C_FLAGS": "$env{_USE_PRESET_WARN};$env{_USE_PRESET_WARNERR}",
-                "MY_CXX_FLAGS": "$env{_USE_PRESET_WARN};$env{_USE_PRESET_WARNERR}"
+                "MY_COMPILE_OPTIONS": "$env{_USE_PRESET_WARN};$env{_USE_PRESET_WARNERR}"
             }
         },
 
@@ -88,8 +87,8 @@
             "environment": {
                 "_PRESET_CFLAGS": "",
                 "_PRESET_CXXFLAGS": "",
-                "_PRESET_WARN": "$<$<COMPILE_LANGUAGE:C,CXX>:-Wall>;$<$<COMPILE_LANGUAGE:C,CXX>:-Wextra>;$<$<COMPILE_LANGUAGE:C,CXX>:-pedantic>",
-                "_PRESET_WARNERR": "$<$<COMPILE_LANGUAGE:C,CXX>:-Werror>",
+                "_PRESET_WARN": "-Wall;-Wextra;-pedantic",
+                "_PRESET_WARNERR": "-Werror",
                 "_PRESET_ASAN": "-fsanitize=address -fno-omit-frame-pointer",
                 "_PRESET_UBSAN": "-fsanitize=undefined -fno-omit-frame-pointer -fsanitize-undefined-trap-on-error",
                 "_PRESET_TSAN": "-fsanitize=thread",
@@ -104,8 +103,8 @@
             "environment": {
                 "_PRESET_CFLAGS": "",
                 "_PRESET_CXXFLAGS": "",
-                "_PRESET_WARN": "$<$<COMPILE_LANGUAGE:C,CXX>:-Wall>;$<$<COMPILE_LANGUAGE:C,CXX>:-Wextra>;$<$<COMPILE_LANGUAGE:C,CXX>:-pedantic>",
-                "_PRESET_WARNERR": "$<$<COMPILE_LANGUAGE:C,CXX>:-Werror>",
+                "_PRESET_WARN": "-Wall;-Wextra;-pedantic",
+                "_PRESET_WARNERR": "-Werror",
                 "_PRESET_ASAN": "-fsanitize=address -fno-omit-frame-pointer",
                 "_PRESET_UBSAN": "-fsanitize=undefined -fno-omit-frame-pointer -fsanitize-trap=undefined -fsanitize=implicit-integer-arithmetic-value-change",
                 "_PRESET_TSAN": "-fsanitize=thread",
