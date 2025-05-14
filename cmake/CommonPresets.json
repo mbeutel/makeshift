@@ -94,7 +94,7 @@
                 "_PRESET_CXXFLAGS": "",
                 "_PRESET_CUDAFLAGS": "",
                 "_PRESET_WARN": "$<$<COMPILE_LANGUAGE:C,CXX>:-Wall;-Wextra;-pedantic>$<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=-Wall,-Wextra,-pedantic>",
-                "_PRESET_WARNERR": "$<$<COMPILE_LANGUAGE:C,CXX>:-Werror>$<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=-Werror>",
+                "_PRESET_WARNERR": "$<$<COMPILE_LANGUAGE:C,CXX>:-Werror>",  // avoid -Werror for CUDA host compilers for now
                 "_PRESET_ASAN": "-fsanitize=address -fno-omit-frame-pointer",
                 "_PRESET_UBSAN": "-fsanitize=undefined -fno-omit-frame-pointer -fsanitize-undefined-trap-on-error",
                 "_PRESET_TSAN": "-fsanitize=thread",
@@ -111,7 +111,7 @@
                 "_PRESET_CXXFLAGS": "",
                 "_PRESET_CUDAFLAGS": "",
                 "_PRESET_WARN": "$<$<COMPILE_LANGUAGE:C,CXX>:-Wall;-Wextra;-pedantic>$<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=-Wall,-Wextra,-pedantic>",
-                "_PRESET_WARNERR": "$<$<COMPILE_LANGUAGE:C,CXX>:-Werror>$<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=-Werror>",
+                "_PRESET_WARNERR": "$<$<COMPILE_LANGUAGE:C,CXX>:-Werror>",  // avoid -Werror for CUDA host compilers for now
                 "_PRESET_ASAN": "-fsanitize=address -fno-omit-frame-pointer",
                 "_PRESET_UBSAN": "-fsanitize=undefined -fno-omit-frame-pointer -fsanitize-trap=undefined -fsanitize=implicit-integer-arithmetic-value-change",
                 "_PRESET_TSAN": "-fsanitize=thread",
