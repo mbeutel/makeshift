@@ -85,36 +85,24 @@ int main()
 
 ### As CMake package
 
-The recommended way to consume *makeshift* in your CMake project is to use `find_package()` and `target_link_libraries()`:
+The recommended way to consume *makeshift* in your CMake project is to use `find_package()` to locate the package `makeshift`
+and `target_link_libraries()` to link to the imported target `makeshift::makeshift`:
 
 ```CMake
 cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
-    
-find_package(makeshift 4.0 REQUIRED)
-    
+
 project(my-program LANGUAGES CXX)
-    
+
+find_package(makeshift 1.0 REQUIRED)
+
 add_executable(my-program main.cpp)
 target_link_libraries(my-program PRIVATE makeshift::makeshift)
 ```
 
-The easiest way to set up the dependencies is to use the [Vcpkg](https://vcpkg.io/en/index.html)
-package manager. With Vcpkg available, clone the *makeshift* repository and configure a build
-directory with CMake:
-
-    git clone git@github.com:mbeutel/makeshift.git <makeshift-source-dir>
-    cd <makeshift-source-dir>
-    mkdir build
-    cd build
-    cmake -G Ninja -DCMAKE_TOOLCHAIN_FILE="<vcpkg-dir>/scripts/buildsystems/vcpkg.cmake" ..
-
-Now, configure your project passing the CMake build directory as a parameter:
-
-    cd <my-program-source-dir>
-    mkdir build
-    cd build
-    cmake -G Ninja -DCMAKE_TOOLCHAIN_FILE="<vcpkg-dir>/scripts/buildsystems/vcpkg.cmake" -Dmakeshift_DIR:PATH=<makeshift-source-dir>/build ..
-    cmake --build .
+*makeshift* may be obtained easily with [CPM](https://github.com/cpm-cmake/CPM.cmake):
+```cmake
+CPMAddPackage(NAME makeshift VERSION 4.0.0 GITHUB_REPOSITORY mbeutel/makeshift)
+```
 
 
 ## Version semantics
@@ -152,16 +140,16 @@ TODO:
   - Constvals as functors
   - Constval normalisation
 - Variants
-  - The constval--variant equivalence
+  - The constval–variant equivalence
   - The expand function
   - Variants as functors
 - Metadata
   - Surrogate reflection: values, members, bases
-  - Serialisation
+  - Serialization
   - The expand function with metadata
-  - The struct--tuple continuum
+  - The struct–tuple continuum
   - Things I can now do with structs
 - Polymorphic value types
   - Compile-time polymorphism
-  - Type erasure with the Concept--Model idiom
+  - Type erasure with the Concept–Model idiom
   - Configuring polymorphic code
