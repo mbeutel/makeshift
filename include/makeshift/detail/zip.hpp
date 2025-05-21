@@ -91,10 +91,10 @@ get(tuple_index_t) noexcept
 
 
 template <typename R, typename = void> struct has_data : std::false_type { };
-template <typename R> struct has_data<R, std::void_t<decltype(gsl::data(std::declval<R>()))>> : std::true_type { };
+template <typename R> struct has_data<R, std::void_t<decltype(std::data(std::declval<R>()))>> : std::true_type { };
 
 template <typename R, typename = void> struct has_size : std::false_type { };
-template <typename R> struct has_size<R, std::void_t<decltype(gsl::size(std::declval<R>()))>> : std::true_type { };
+template <typename R> struct has_size<R, std::void_t<decltype(std::size(std::declval<R>()))>> : std::true_type { };
 
 enum class iterator_mode
 {

@@ -7,7 +7,7 @@
 cmake_minimum_required(VERSION 3.30)
 
 # dependencies
-find_package(gsl-lite 0.43 REQUIRED)
+find_package(gsl-lite 1.0 REQUIRED)
 
 # targets
 add_library(makeshift INTERFACE)
@@ -24,7 +24,7 @@ target_include_directories(makeshift
 # target dependencies
 target_link_libraries(makeshift
     INTERFACE
-        gsl::gsl-lite-v1
+        gsl-lite::gsl-lite
 )
 
 install(
