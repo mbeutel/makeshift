@@ -50,6 +50,11 @@ struct MAKESHIFT_DETAIL_EMPTY_BASES value_tuple_leaf
     {
         return self.value_;
     }
+    friend constexpr T&&
+    _tuple_get(value_tuple_leaf<I, T>&& self, tuple_index_tag<I>) noexcept
+    {
+        return static_cast<T&&>(self.value_);
+    }
     friend constexpr T const&
     _tuple_get(value_tuple_leaf<I, T> const& self, tuple_index_tag<I>) noexcept
     {
@@ -61,10 +66,16 @@ struct MAKESHIFT_DETAIL_EMPTY_BASES value_tuple_base;
 template <std::size_t... Is, typename... Ts>
 struct MAKESHIFT_DETAIL_EMPTY_BASES value_tuple_base<std::index_sequence<Is...>, Ts...> : value_tuple_leaf<Is, Ts>...
 {
+    value_tuple_base() = default;
     constexpr value_tuple_base(Ts... values)
         : value_tuple_leaf<Is, Ts>{ values }...
     {
     }
+};
+template <>
+struct MAKESHIFT_DETAIL_EMPTY_BASES value_tuple_base<std::index_sequence<>>
+{
+    value_tuple_base() = default;
 };
 template <std::size_t... Is, typename... Ts>
 constexpr auto

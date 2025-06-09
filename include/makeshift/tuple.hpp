@@ -95,6 +95,13 @@ get(value_tuple<Ts...> const& tuple) noexcept
     static_assert(I < sizeof...(Ts), "tuple index out of range");
     return _tuple_get(tuple, detail::tuple_index_tag<I>{ });
 }
+template <std::size_t I, typename... Ts>
+[[nodiscard]] constexpr decltype(auto)
+get(value_tuple<Ts...>&& tuple) noexcept
+{
+    static_assert(I < sizeof...(Ts), "tuple index out of range");
+    return _tuple_get(std::move(tuple), detail::tuple_index_tag<I>{ });
+}
 
 template <typename... Ts>
 [[nodiscard]] constexpr value_tuple<std::decay_t<Ts>...>
